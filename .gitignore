@@ -11,3 +11,6 @@ __pycache__/
 Thumbs.db
 
 .expo/
+.scratch/
+.temp/
+*.log

@@ -10,33 +10,39 @@
   <script src="supabase/client.js"></script>
   <title>AXIOM FLEET — Car Rental Operations Platform</title>
   <style>
+    /* ───────────────────────────────────────────────────────────────
+       AXIOM FLEET visual system — a warmer, more editorial command deck
+       inspired by road markings, cockpit instruments and live routing.
+       ─────────────────────────────────────────────────────────────── */
     :root {
-      --ink: #132238;
-      --ink-2: #1f334e;
-      --muted: #6b7b90;
-      --muted-2: #8f9db0;
-      --line: #e7edf4;
-      --line-strong: #d7e1ec;
-      --canvas: #f5f7fb;
-      --surface: #ffffff;
-      --surface-soft: #f8fafc;
-      --navy: #0b1220;
-      --navy-2: #111d31;
-      --navy-3: #192842;
-      --blue: #2f6df6;
-      --blue-2: #5a8bff;
-      --blue-soft: #edf3ff;
-      --teal: #13a38b;
-      --teal-soft: #e9f8f4;
-      --amber: #d88919;
-      --amber-soft: #fff5df;
-      --red: #d4525c;
-      --red-soft: #fff0f1;
-      --purple: #7957d6;
-      --purple-soft: #f2efff;
-      --shadow-sm: 0 1px 2px rgba(18, 35, 56, .04), 0 3px 12px rgba(18, 35, 56, .035);
-      --shadow-md: 0 18px 50px rgba(18, 35, 56, .14), 0 3px 12px rgba(18, 35, 56, .04);
-      --radius: 14px;
+      --ink: #101a22;
+      --ink-2: #26343f;
+      --muted: #687883;
+      --muted-2: #92a0a5;
+      --line: #e3e9e5;
+      --line-strong: #d3ded8;
+      --canvas: #edf1ed;
+      --surface: #fffefa;
+      --surface-soft: #f7f9f5;
+      --navy: #0d1419;
+      --navy-2: #151f25;
+      --navy-3: #24343b;
+      --blue: #5d61ee;
+      --blue-2: #8183ff;
+      --blue-soft: #f0efff;
+      --teal: #0e9c89;
+      --teal-soft: #e7f7f1;
+      --amber: #da8a24;
+      --amber-soft: #fff3dc;
+      --red: #e05f58;
+      --red-soft: #fff0ed;
+      --purple: #976edd;
+      --purple-soft: #f2edff;
+      --lime: #dafa5b;
+      --orange: #ff8d62;
+      --shadow-sm: 0 1px 2px rgba(19, 34, 42, .04), 0 8px 24px rgba(19, 34, 42, .045);
+      --shadow-md: 0 22px 70px rgba(19, 34, 42, .18), 0 4px 16px rgba(19, 34, 42, .06);
+      --radius: 18px;
     }
 
     * { box-sizing: border-box; }
@@ -548,40 +554,6 @@
       .topbar { height: 64px; }.topbar-title h2 { display:none; }.global-search { height:34px; }.keycap { display:none; }.top-avatar { width:30px;height:30px; }.content { padding-top:20px; }.grid.kpis { grid-template-columns: 1fr 1fr; gap: 10px; }.kpi { padding: 14px; }.kpi-value { font-size: 22px; }.kpi-label { font-size: 10px; }.kpi-foot { font-size: 9px; }.card-head { padding-left:14px; padding-right:14px; }.card-body { padding:14px; }.quick-grid { gap: 7px; }.quick-action { padding:10px 8px; }.quick-action span { font-size:9px; }.quick-action strong { font-size:10px; }.side-stats { grid-template-columns:1fr; }.customer-grid, .people-summary { grid-template-columns:1fr; }.invoice-summary { grid-template-columns:1fr 1fr; }.invoice-summary .invoice-hero { grid-column:1 / -1; }.invoice-summary .small-stat-card:last-child { display:block; }.form-grid { grid-template-columns:1fr; }.form-group.full { grid-column:auto; }.modal { max-height: 95vh; }.panel-toolbar { padding: 10px; }.tabs { width:100%; overflow:auto; }.toolbar-spacer { display:none; }.filter-input { flex:1; min-width:120px; }.topbar .icon-button { display:none; }.topbar-title { flex:1; }.page-head p { max-width: 300px; }
     }
   
-    /* ───────────────────────────────────────────────────────────────
-       AXIOM FLEET visual system — a warmer, more editorial command deck
-       inspired by road markings, cockpit instruments and live routing.
-       ─────────────────────────────────────────────────────────────── */
-    :root {
-      --ink: #101a22;
-      --ink-2: #26343f;
-      --muted: #687883;
-      --muted-2: #92a0a5;
-      --line: #e3e9e5;
-      --line-strong: #d3ded8;
-      --canvas: #edf1ed;
-      --surface: #fffefa;
-      --surface-soft: #f7f9f5;
-      --navy: #0d1419;
-      --navy-2: #151f25;
-      --navy-3: #24343b;
-      --blue: #5d61ee;
-      --blue-2: #8183ff;
-      --blue-soft: #f0efff;
-      --teal: #0e9c89;
-      --teal-soft: #e7f7f1;
-      --amber: #da8a24;
-      --amber-soft: #fff3dc;
-      --red: #e05f58;
-      --red-soft: #fff0ed;
-      --purple: #976edd;
-      --purple-soft: #f2edff;
-      --lime: #dafa5b;
-      --orange: #ff8d62;
-      --shadow-sm: 0 1px 2px rgba(19, 34, 42, .04), 0 8px 24px rgba(19, 34, 42, .045);
-      --shadow-md: 0 22px 70px rgba(19, 34, 42, .18), 0 4px 16px rgba(19, 34, 42, .06);
-      --radius: 18px;
-    }
     body {
       background: radial-gradient(circle at 82% -20%, rgba(218,250,91,.12), transparent 34rem), radial-gradient(circle at 35% 0%, rgba(93,97,238,.045), transparent 36rem), var(--canvas);
       color: var(--ink);
