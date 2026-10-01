@@ -1197,7 +1197,10 @@
   </section>
 
   <script>
+    const iconCache = new Map();
     const icon = (name, size = 15) => {
+      const cacheKey = `${name}:${size}`;
+      if (iconCache.has(cacheKey)) return iconCache.get(cacheKey);
       const icons = {
         plus: '<path d="M12 5v14M5 12h14"/>',
         x: '<path d="M6 6l12 12M18 6 6 18"/>',
@@ -1244,7 +1247,9 @@
         play: '<path d="m8 5 11 7-11 7V5Z"/>',
         target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor"/>',
       };
-      return `<svg aria-hidden="true" focusable="false" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${icons[name] || icons.spark}</svg>`;
+      const rendered = `<svg aria-hidden="true" focusable="false" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${icons[name] || icons.spark}</svg>`;
+      iconCache.set(cacheKey, rendered);
+      return rendered;
     };
 
     // All workspace records are tenant-scoped API data. The console deliberately
@@ -3116,58 +3121,117 @@
       state.hydration = { status: 'loading', error: '' };
       if (!state.liveData) render();
       try {
-        const [overview, bookings, duties, invoices, drivers, vehicles, customers, suppliers, branches, priceBooks, reports, checklist, onboarding, billSummary, billList, organization, settings, employees, policies, approvals, notifications, invitations] = await Promise.all([
+        const isCorporate = currentUser?.role === 'corporate';
+        const isDriver = currentUser?.role === 'driver';
+
+        // Critical operational endpoints required for initial viewport render
+        const criticalEndpoints = [
           apiRequest('/api/overview').catch(() => ({ duties: {}, stats: {} })),
           apiRequest('/api/bookings?limit=50').catch(() => ({ items: [] })),
           apiRequest('/api/duties?limit=50').catch(() => ({ items: [] })),
           apiRequest('/api/invoices?limit=50').catch(() => ({ items: [] })),
-          apiRequest('/api/drivers?limit=50').catch(() => ({ items: [] })),
-          apiRequest('/api/vehicles?limit=50').catch(() => ({ items: [] })),
+          isCorporate ? Promise.resolve({ items: [] }) : apiRequest('/api/drivers?limit=50').catch(() => ({ items: [] })),
+          isCorporate ? Promise.resolve({ items: [] }) : apiRequest('/api/vehicles?limit=50').catch(() => ({ items: [] })),
           apiRequest('/api/customers?limit=50').catch(() => ({ items: [] })),
           apiRequest('/api/suppliers?limit=50').catch(() => ({ items: [] })),
           apiRequest('/api/branches?limit=50').catch(() => ({ items: [] })),
-          apiRequest('/api/price-books?limit=50').catch(() => ({ items: [] })),
-          apiRequest('/api/reports/summary').catch(() => ({ invoices: {}, bookings: {} })),
-          apiRequest('/api/organization/checklist').catch(() => ({ items: [], total: 0, completed: 0 })),
-          apiRequest('/api/onboarding').catch(() => ({ items: [], total: 0, completed: 0 })),
-          apiRequest('/api/bill-intelligence/summary').catch(() => ({ summary: {} })),
-          apiRequest('/api/bill-intelligence?status=all&limit=100').catch(() => ({ items: [], summary: {} })),
           apiRequest('/api/organization').catch(() => ({ item: currentUser?.organization || null })),
           apiRequest('/api/settings').catch(() => ({ item: { settings: {} } })),
-          apiRequest('/api/employees?limit=100').catch(() => ({ items: null, unavailable: true })),
-          apiRequest('/api/policies?limit=50').catch(() => ({ items: null, unavailable: true })),
-          apiRequest('/api/approvals?limit=50').catch(() => ({ items: null, unavailable: true })),
-          apiRequest('/api/notifications?limit=50').catch(() => ({ items: null, unavailable: true })),
-          apiRequest('/api/invitations?limit=50').catch(() => ({ items: null, unavailable: true }))
-        ]);
-        state.liveData = { overview, bookings, duties, invoices, drivers, vehicles, customers, suppliers, branches, priceBooks, reports, checklist, onboarding, organization, settings, employees, policies, approvals, notifications, invitations };
-        state.actionCenter = await apiRequest('/api/workspace/next-actions?limit=20').catch(() => ({ items: [], summary: { unavailable: true }, total_available: 0 }));
-        const corporatePaths = ['/api/corporate/account', '/api/corporate/users', '/api/corporate/policies', '/api/corporate/duty-slip-approvals', '/api/corporate/masters?kind=duty_types', '/api/corporate/masters?kind=vehicle_groups', '/api/corporate/masters?kind=billing_items', '/api/corporate/masters?kind=taxes', '/api/corporate/masters?kind=company_scopes', '/api/corporate/masters?kind=pricing_rules', '/api/corporate/allotment/rules'];
-        const corporateResults = await Promise.allSettled(corporatePaths.map(path => apiRequest(path)));
-        state.corporateData = Object.fromEntries(corporatePaths.map((path, index) => [path, corporateResults[index].status === 'fulfilled' ? corporateResults[index].value : null]));
-        const enterprisePaths = ['/api/enterprise/groups', '/api/enterprise/companies', '/api/enterprise/billing-profiles', '/api/enterprise/bank-accounts', '/api/enterprise/tax-entities', '/api/enterprise/billing-items', '/api/enterprise/custom-fields', '/api/enterprise/company-profile', '/api/enterprise/plans', '/api/enterprise/usage', '/api/enterprise/sso/config', '/api/enterprise/booking-controls', '/api/passenger/portal-links', '/api/allotment-exceptions', '/api/duty-closure-jobs'];
-        const enterpriseResults = await Promise.allSettled(enterprisePaths.map(path => apiRequest(path)));
-        state.enterpriseData = Object.fromEntries(enterprisePaths.map((path, index) => [path, enterpriseResults[index].status === 'fulfilled' ? enterpriseResults[index].value : null]));
+          apiRequest('/api/reports/summary').catch(() => ({ invoices: {}, bookings: {} })),
+          apiRequest('/api/organization/checklist').catch(() => ({ items: [], total: 0, completed: 0 }))
+        ];
+
+        // Role-specific fast paths
+        if (isCorporate) {
+          criticalEndpoints.push(
+            apiRequest('/api/corporate/account').catch(() => null),
+            apiRequest('/api/corporate/users').catch(() => ({ items: [] })),
+            apiRequest('/api/corporate/policies').catch(() => ({ items: [] })),
+            apiRequest('/api/corporate/duty-slip-approvals').catch(() => ({ items: [] }))
+          );
+        }
+
+        const [overview, bookings, duties, invoices, drivers, vehicles, customers, suppliers, branches, organization, settings, reports, checklist, ...corpFast] = await Promise.all(criticalEndpoints);
+
+        state.liveData = {
+          overview, bookings, duties, invoices, drivers, vehicles, customers, suppliers, branches,
+          priceBooks: { items: [] }, reports, checklist, onboarding: checklist, organization, settings,
+          employees: { items: [] }, policies: { items: [] }, approvals: { items: [] }, notifications: { items: [] }, invitations: { items: [] }
+        };
+
+        if (isCorporate && corpFast.length >= 4) {
+          state.corporateData['/api/corporate/account'] = corpFast[0];
+          state.corporateData['/api/corporate/users'] = corpFast[1];
+          state.corporateData['/api/corporate/policies'] = corpFast[2];
+          state.corporateData['/api/corporate/duty-slip-approvals'] = corpFast[3];
+        }
+
         syncWorkspaceChrome();
-        state.billData = { summary: billSummary?.summary || billList?.summary || {}, items: billList?.items || [] };
-        const networkPaths = ['/api/network/v1/feature-flag', '/api/network/v1/programs?limit=20', '/api/network/v1/requirements?limit=50', '/api/network/v1/invites?limit=20', '/api/network/v1/vendor-profiles?limit=50', '/api/network/v1/partner-directory?limit=50', '/api/network/v1/associates?limit=50', '/api/network/v1/contracts?limit=50', '/api/network/v1/service-orders?limit=20', '/api/network/v1/regions?limit=20', '/api/network/v1/vendor-approvals?limit=50', '/api/network/v1/disputes?limit=50', '/api/network/v1/corrective-actions?limit=50'];
-        const networkResults = await Promise.allSettled(networkPaths.map(path => apiRequest(path)));
-        state.networkData = Object.fromEntries(networkPaths.map((path, index) => [path.split('?')[0], networkResults[index].status === 'fulfilled' ? networkResults[index].value : null]));
-        const extendedPaths = ['/api/supplier-bills?limit=20', '/api/costs?limit=20', '/api/driver-payouts?limit=20', '/api/network/edges?limit=20', '/api/alerts?limit=20', '/api/admin/kpis', '/api/security/2fa', '/api/operations/route-plans?limit=20', '/api/operations/dispatch-board?limit=50', '/api/operations/sites?limit=20', '/api/safety/incidents?limit=50', '/api/safety/policies?limit=10', '/api/permissions', '/api/audit?limit=10'];
-        const extendedResults = await Promise.allSettled(extendedPaths.map(path => apiRequest(path)));
-        state.extendedData = Object.fromEntries(extendedPaths.map((path, index) => [path.split('?')[0], extendedResults[index].status === 'fulfilled' ? extendedResults[index].value : null]));
-        const phase12Paths = ['/api/masters/registry?limit=250', '/api/operations/rosters?limit=50', '/api/operations/live-board?limit=100', '/api/mobile/home', '/api/safety/monitor?limit=50', '/api/views', '/api/integrations/catalog', '/api/integrations/config'];
-        const phase12Results = await Promise.allSettled(phase12Paths.map(path => apiRequest(path)));
-        state.phase12Data = Object.fromEntries(phase12Paths.map((path, index) => [path.split('?')[0], phase12Results[index].status === 'fulfilled' ? phase12Results[index].value : null]));
-        const phase3Paths = ['/api/phase3/predictive-alerts?limit=30', '/api/phase3/vendor-quality/graph', '/api/phase3/simulations?limit=10', '/api/phase3/variance/findings?limit=30', '/api/phase3/sustainability/summary', '/api/phase3/sustainability/report', '/api/phase3/sustainability/trips?limit=100', '/api/phase3/sustainability/charging-stations?limit=50', '/api/phase3/sustainability/targets?limit=20', '/api/phase3/regions?limit=20', '/api/phase3/localization'];
-        const phase3Results = await Promise.allSettled(phase3Paths.map(path => apiRequest(path)));
-        state.phase3Data = Object.fromEntries(phase3Paths.map((path, index) => [path.split('?')[0], phase3Results[index].status === 'fulfilled' ? phase3Results[index].value : null]));
-        const followonPaths = ['/api/supplier-payment-requests', '/api/supplier-advances', '/api/driver-payouts/requests', '/api/supplier-settlement-approvals', '/api/fuel-stations', '/api/fuel-prices', '/api/fuel-analytics', '/api/petty-cash/reconciliations', '/api/finance/reconciliations', '/api/payroll/exports', '/api/payroll/compliance', '/api/reports/builder', '/api/reports/favorites', '/api/reports/exports', '/api/reporting/import-templates', '/api/feedback/forms', '/api/feedback/analytics', '/api/feedback/corrective-actions', '/api/feedback/delivery-policies', '/api/feedback/escalation-policies', '/api/feedback/notifications', '/api/feedback/delivery-attempts'];
-        const followonResults = await Promise.allSettled(followonPaths.map(path => apiRequest(path)));
-        state.followonData = Object.fromEntries(followonPaths.map((path, index) => [path.split('?')[0], followonResults[index].status === 'fulfilled' ? followonResults[index].value : null]));
-        await flushDriverQueue();
         state.hydration = { status: 'ready', error: '' };
         render();
+
+        // Asynchronously populate secondary data in parallel without blocking UI responsiveness
+        (async () => {
+          try {
+            const secondaryPromises = [
+              apiRequest('/api/workspace/next-actions?limit=20').catch(() => ({ items: [], summary: { unavailable: true }, total_available: 0 })),
+              apiRequest('/api/bill-intelligence/summary').catch(() => ({ summary: {} })),
+              apiRequest('/api/bill-intelligence?status=all&limit=100').catch(() => ({ items: [], summary: {} })),
+              apiRequest('/api/employees?limit=100').catch(() => ({ items: null, unavailable: true })),
+              apiRequest('/api/policies?limit=50').catch(() => ({ items: null, unavailable: true })),
+              apiRequest('/api/approvals?limit=50').catch(() => ({ items: null, unavailable: true })),
+              apiRequest('/api/notifications?limit=50').catch(() => ({ items: null, unavailable: true })),
+              apiRequest('/api/invitations?limit=50').catch(() => ({ items: null, unavailable: true }))
+            ];
+            if (!isCorporate) {
+              secondaryPromises.push(apiRequest('/api/price-books?limit=50').catch(() => ({ items: [] })));
+            }
+
+            const [actionCenter, billSummary, billList, employees, policies, approvals, notifications, invitations, priceBooks] = await Promise.all(secondaryPromises);
+            state.actionCenter = actionCenter;
+            state.billData = { summary: billSummary?.summary || billList?.summary || {}, items: billList?.items || [] };
+            if (employees) state.liveData.employees = employees;
+            if (policies) state.liveData.policies = policies;
+            if (approvals) state.liveData.approvals = approvals;
+            if (notifications) state.liveData.notifications = notifications;
+            if (invitations) state.liveData.invitations = invitations;
+            if (priceBooks) state.liveData.priceBooks = priceBooks;
+
+            // Background load remaining modules concurrently based on role
+            const backgroundTasks = [];
+
+            if (isCorporate) {
+              const corporateRemaining = ['/api/corporate/masters?kind=duty_types', '/api/corporate/masters?kind=vehicle_groups', '/api/corporate/masters?kind=billing_items', '/api/corporate/masters?kind=taxes', '/api/corporate/masters?kind=company_scopes', '/api/corporate/masters?kind=pricing_rules', '/api/corporate/allotment/rules'];
+              backgroundTasks.push(Promise.allSettled(corporateRemaining.map(path => apiRequest(path))).then(res => {
+                corporateRemaining.forEach((path, i) => { state.corporateData[path] = res[i].status === 'fulfilled' ? res[i].value : null; });
+              }));
+              backgroundTasks.push(apiRequest('/api/phase3/localization').then(res => { state.phase3Data['/api/phase3/localization'] = res; }).catch(() => {}));
+            } else if (isDriver) {
+              backgroundTasks.push(apiRequest('/api/mobile/home').then(res => { state.phase12Data['/api/mobile/home'] = res; }).catch(() => {}));
+            } else {
+              // Vendor owner / Admin background hydration
+              const enterprisePaths = ['/api/enterprise/groups', '/api/enterprise/companies', '/api/enterprise/billing-profiles', '/api/enterprise/bank-accounts', '/api/enterprise/tax-entities', '/api/enterprise/billing-items', '/api/enterprise/custom-fields', '/api/enterprise/company-profile', '/api/enterprise/plans', '/api/enterprise/usage', '/api/enterprise/sso/config', '/api/enterprise/booking-controls', '/api/passenger/portal-links', '/api/allotment-exceptions', '/api/duty-closure-jobs'];
+              const networkPaths = ['/api/network/v1/feature-flag', '/api/network/v1/programs?limit=20', '/api/network/v1/requirements?limit=50', '/api/network/v1/invites?limit=20', '/api/network/v1/vendor-profiles?limit=50', '/api/network/v1/partner-directory?limit=50', '/api/network/v1/associates?limit=50', '/api/network/v1/contracts?limit=50', '/api/network/v1/service-orders?limit=20', '/api/network/v1/regions?limit=20', '/api/network/v1/vendor-approvals?limit=50', '/api/network/v1/disputes?limit=50', '/api/network/v1/corrective-actions?limit=50'];
+              const extendedPaths = ['/api/supplier-bills?limit=20', '/api/costs?limit=20', '/api/driver-payouts?limit=20', '/api/network/edges?limit=20', '/api/alerts?limit=20', '/api/admin/kpis', '/api/security/2fa', '/api/operations/route-plans?limit=20', '/api/operations/dispatch-board?limit=50', '/api/operations/sites?limit=20', '/api/safety/incidents?limit=50', '/api/safety/policies?limit=10', '/api/permissions', '/api/audit?limit=10'];
+              const phase12Paths = ['/api/masters/registry?limit=250', '/api/operations/rosters?limit=50', '/api/operations/live-board?limit=100', '/api/mobile/home', '/api/safety/monitor?limit=50', '/api/views', '/api/integrations/catalog', '/api/integrations/config'];
+              const phase3Paths = ['/api/phase3/predictive-alerts?limit=30', '/api/phase3/vendor-quality/graph', '/api/phase3/simulations?limit=10', '/api/phase3/variance/findings?limit=30', '/api/phase3/sustainability/summary', '/api/phase3/sustainability/report', '/api/phase3/sustainability/trips?limit=100', '/api/phase3/sustainability/charging-stations?limit=50', '/api/phase3/sustainability/targets?limit=20', '/api/phase3/regions?limit=20', '/api/phase3/localization'];
+              const followonPaths = ['/api/supplier-payment-requests', '/api/supplier-advances', '/api/driver-payouts/requests', '/api/supplier-settlement-approvals', '/api/fuel-stations', '/api/fuel-prices', '/api/fuel-analytics', '/api/petty-cash/reconciliations', '/api/finance/reconciliations', '/api/payroll/exports', '/api/payroll/compliance', '/api/reports/builder', '/api/reports/favorites', '/api/reports/exports', '/api/reporting/import-templates', '/api/feedback/forms', '/api/feedback/analytics', '/api/feedback/corrective-actions', '/api/feedback/delivery-policies', '/api/feedback/escalation-policies', '/api/feedback/notifications', '/api/feedback/delivery-attempts'];
+
+              backgroundTasks.push(
+                Promise.allSettled(enterprisePaths.map(p => apiRequest(p))).then(res => { enterprisePaths.forEach((p, i) => { state.enterpriseData[p] = res[i].status === 'fulfilled' ? res[i].value : null; }); }),
+                Promise.allSettled(networkPaths.map(p => apiRequest(p))).then(res => { networkPaths.forEach((p, i) => { state.networkData[p.split('?')[0]] = res[i].status === 'fulfilled' ? res[i].value : null; }); }),
+                Promise.allSettled(extendedPaths.map(p => apiRequest(p))).then(res => { extendedPaths.forEach((p, i) => { state.extendedData[p.split('?')[0]] = res[i].status === 'fulfilled' ? res[i].value : null; }); }),
+                Promise.allSettled(phase12Paths.map(p => apiRequest(p))).then(res => { phase12Paths.forEach((p, i) => { state.phase12Data[p.split('?')[0]] = res[i].status === 'fulfilled' ? res[i].value : null; }); }),
+                Promise.allSettled(phase3Paths.map(p => apiRequest(p))).then(res => { phase3Paths.forEach((p, i) => { state.phase3Data[p.split('?')[0]] = res[i].status === 'fulfilled' ? res[i].value : null; }); }),
+                Promise.allSettled(followonPaths.map(p => apiRequest(p))).then(res => { followonPaths.forEach((p, i) => { state.followonData[p.split('?')[0]] = res[i].status === 'fulfilled' ? res[i].value : null; }); })
+              );
+            }
+
+            await Promise.all(backgroundTasks);
+            await flushDriverQueue();
+            syncWorkspaceChrome();
+          } catch (_) {}
+        })();
       } catch (error) {
         state.hydration = { status: 'error', error: error?.message || 'The service is temporarily unavailable.' };
         if (!state.liveData) render(); else showToast('Refresh needs a retry', state.hydration.error);

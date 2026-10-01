@@ -26,7 +26,12 @@
   function readSession() {
     try { return JSON.parse(localStorage.getItem(storageKey) || 'null'); } catch (_) { return null; }
   }
+  let cachedCurrentUser = null;
+  function invalidateUserCache() {
+    cachedCurrentUser = null;
+  }
   function writeSession(session) {
+    invalidateUserCache();
     if (session) localStorage.setItem(storageKey, JSON.stringify(session));
     else localStorage.removeItem(storageKey);
   }
@@ -117,7 +122,8 @@
     if (membershipRole === 'driver') return 'driver';
     return profile?.account_type || 'vendor';
   }
-  async function currentUser() {
+  async function currentUser(forceRefresh = false) {
+    if (!forceRefresh && cachedCurrentUser) return cachedCurrentUser;
     const session = await refreshIfNeeded();
     if (!session?.access_token) throw new Error('Sign in required.');
     const user = await authRequest('/user', {}, session.access_token);
@@ -161,7 +167,7 @@
       ? await dataRequest(`drivers?user_id=eq.${encodeURIComponent(user.id)}&select=*`, {}, session.access_token)
       : [];
     const driver = driverRows[0] || {};
-    return {
+    const resolved = {
       ok: true,
       user: {
         id: user.id,
@@ -189,6 +195,8 @@
         }
       }
     };
+    cachedCurrentUser = resolved;
+    return resolved;
   }
   async function signUp(payload) {
     const authData = await authRequest('/signup', {
