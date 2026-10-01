@@ -1347,17 +1347,54 @@
       panel.hidden = !advancedNavOpen;
       toggle.setAttribute('aria-expanded', advancedNavOpen ? 'true' : 'false');
       const label = toggle.querySelector('span');
-      if (label) label.lastChild.textContent = currentUser?.role === 'driver' ? 'Driver menu' : 'More tools';
+      if (label) label.lastChild.textContent = currentUser?.role === 'driver' ? 'Driver menu' : currentUser?.role === 'corporate' ? 'Advanced tools' : 'More tools';
       const role = currentUser?.role;
-      const allowed = role === 'driver' ? new Set(['driver','planning','safety','settings']) : role === 'corporate' ? new Set(['overview','bookings','duties','planning','billing','masters','customers','reports','phase3','network','safety','passenger','settings','enterprise']) : null;
+      const allowed = role === 'driver'
+        ? new Set(['driver','planning','safety','settings'])
+        : role === 'corporate'
+          ? new Set(['overview','bookings','duties','customers','billing','settings','reports','network','passenger'])
+          : null;
       const networkFlag = state.networkData?.['/api/network/v1/feature-flag']?.flag;
       const networkDisabled = networkFlag?.enabled === false;
       if (networkDisabled && state.page === 'network') state.page = 'overview';
-      document.querySelectorAll('.nav-item[data-page]').forEach(item => { item.hidden = Boolean(allowed && !allowed.has(item.dataset.page)) || (item.dataset.page === 'network' && networkDisabled); });
+      document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+        item.hidden = Boolean(allowed && !allowed.has(item.dataset.page)) || (item.dataset.page === 'network' && networkDisabled);
+        const span = item.querySelector('span');
+        if (span) {
+          if (role === 'corporate') {
+            if (item.dataset.page === 'overview') span.textContent = 'Corporate Dashboard';
+            else if (item.dataset.page === 'bookings') span.textContent = 'Bookings & Requests';
+            else if (item.dataset.page === 'duties') span.textContent = 'Duty Slips & Tracking';
+            else if (item.dataset.page === 'customers') span.textContent = 'Employees & Cost Centers';
+            else if (item.dataset.page === 'billing') span.textContent = 'Invoices & Statements';
+            else if (item.dataset.page === 'settings') span.textContent = 'Travel Policies & Setup';
+            else if (item.dataset.page === 'passenger') span.textContent = 'Booker / Passenger View';
+          } else {
+            if (item.dataset.page === 'overview') span.textContent = 'Overview';
+            else if (item.dataset.page === 'bookings') span.textContent = 'Bookings';
+            else if (item.dataset.page === 'duties') span.textContent = 'Duties board';
+            else if (item.dataset.page === 'customers') span.textContent = 'Customers & pricing';
+            else if (item.dataset.page === 'billing') span.textContent = 'Billing & receipts';
+            else if (item.dataset.page === 'settings') span.textContent = 'Settings';
+            else if (item.dataset.page === 'passenger') span.textContent = 'Passenger view';
+          }
+        }
+      });
       document.querySelectorAll('.nav-section').forEach(section => {
         let hasVisibleItem = false; let next = section.nextElementSibling;
-        while (next && !next.classList.contains('nav-section')) { if (next.classList.contains('nav-item') && !next.hidden) hasVisibleItem = true; next = next.nextElementSibling; }
+        while (next && !next.classList.contains('nav-section') && !next.classList.contains('sidebar-bottom')) {
+          if (next.classList.contains('nav-item') && !next.hidden) hasVisibleItem = true;
+          if (next.id === 'advanced-nav') {
+            next.querySelectorAll('.nav-item').forEach(subItem => { if (!subItem.hidden) hasVisibleItem = true; });
+          }
+          next = next.nextElementSibling;
+        }
         section.hidden = Boolean(allowed && !hasVisibleItem);
+        if (role === 'corporate' && section.textContent.includes('Operations')) {
+          section.textContent = 'Corporate Travel Desk';
+        } else if (role !== 'corporate' && section.textContent.includes('Corporate Travel Desk')) {
+          section.textContent = 'Operations';
+        }
       });
     }
 
@@ -1493,10 +1530,23 @@
       const foundationScope = corporateAccount ? Object.values(corporateAccount.visibility || {}).reduce((sum, values) => sum + (Array.isArray(values) ? values.length : 0), 0) : 0;
       const foundationMasters = Object.values(corporateAccountResponse?.master_counts || {}).reduce((sum, value) => sum + Number(value || 0), 0);
       const foundationPanel = `<section class="card section-card" style="border-color:#cad9c7;background:linear-gradient(120deg,#f7fbf1,#fffefa)"><div class="card-head"><div><div class="corp-brief-kicker" style="color:#58775b">Corporate policy foundation</div><h3 style="margin-top:6px">Connection, entitlements and explainable decisions</h3><p>${corporateAccount ? `Connected account <strong>${esc(corporateAccount.name)}</strong> · ${foundationScope} explicit scope value${foundationScope === 1 ? '' : 's'} · ${foundationMasters} versioned master${foundationMasters === 1 ? '' : 's'}.` : 'No corporate account is connected yet. Start the setup snapshot before activating policy controls.'}</p></div><div style="display:flex;align-items:center;gap:8px">${status(accountStatus, accountTone)}${button(corporateAccount ? icon('settings')+'Edit setup' : icon('link')+'Connect account','small soft','data-action="corporate-setup"')}${corporateAccount ? button(icon('check')+'Policy','small soft','data-action="corporate-policy"') : ''}${corporateAccount ? button(icon('users')+'Access','small soft','data-action="corporate-access-editor"') : ''}${corporateAccount ? button(icon('file')+'Masters','small soft','data-action="corporate-masters"') : ''}${corporateAccount ? button(icon('route')+'Allotment','small soft','data-action="corporate-allotment"') : ''}</div></div><div class="corp-finance-rail"><div class="finance-cell"><span>Account readiness</span><strong>${esc(foundationReady)}</strong></div><div class="finance-cell"><span>Access records</span><strong>${employees.length}</strong></div><div class="finance-cell"><span>Active policies</span><strong>${policyActiveCount}</strong></div><div class="finance-cell"><span>Slip approvals</span><strong>${pendingDutySlipApprovals.length}</strong></div></div></section>`;
-      return `${pageHead(`${formatDate(new Date())} · ${esc(branchName)}`, workspaceGreeting(), 'Move a booking request from the right person, through the right policy, to a supplier-backed duty with evidence at every handoff.', `${button(icon('refresh')+'Refresh', '', 'data-action="refresh"')}${button(icon('plus')+'Request booking', 'primary', 'data-action="new-booking"')}`)}${actionCenter}${foundationPanel}
-        <section class="corp-console-intro" aria-label="Corporate account overview"><div class="corp-brief"><div class="corp-brief-kicker">${esc(workspaceName)} · account operations</div><h2>Decide, delegate and prove every corporate journey.</h2><p>Use this home to manage a corporate account connected to rental and supplier records, booking requests, account access, visibility scope, supplier rules and passenger close-out. Operational numbers below are tenant/API-backed; an empty state means the tenant has no record yet.</p><div class="corp-brief-actions">${button(icon('plus')+'Direct or delegated request','primary','data-action="new-booking"')}${button(icon('users')+'People &amp; access','','data-action="corporate-people"')}${button(icon('check')+'Open approval queue','','data-page-link="bookings"')}${button(icon('link')+'Axiom Network','','data-page-link="network"')}</div></div><aside class="corp-account-model"><div class="model-kicker">Account model</div><h3>One corporate account, clear operating boundaries.</h3><div class="corp-model-row"><span class="corp-model-number">1</span><div><strong>Corporate Super Admin</strong><span>Owns workspace setup and policy scope.</span></div></div><div class="corp-model-row"><span class="corp-model-number">2</span><div><strong>Employee-admin</strong><span>Delegates access by branch and entity.</span></div></div><div class="corp-model-row"><span class="corp-model-number">3</span><div><strong>Booker / passenger</strong><span>Requests only within assigned travel controls.</span></div></div></aside></section>
-        <section class="corp-workflow-rail" aria-label="Corporate booking workflow"><div class="corp-workflow-step"><span class="corp-workflow-icon">${icon('file')}</span><div class="corp-workflow-copy"><strong>Request</strong><span>Direct or delegated booking request enters the queue.</span></div></div><div class="corp-workflow-step"><span class="corp-workflow-icon">${icon('check')}</span><div class="corp-workflow-copy"><strong>Approve</strong><span>Manager decision and lead-time SLA check.</span></div></div><div class="corp-workflow-step"><span class="corp-workflow-icon">${icon('route')}</span><div class="corp-workflow-copy"><strong>Allot</strong><span>Supplier choice or automatic allotment stays visible.</span></div></div><div class="corp-workflow-step"><span class="corp-workflow-icon">${icon('shield')}</span><div class="corp-workflow-copy"><strong>Close</strong><span>Passenger duty-slip approve / reject and audit trail.</span></div></div></section>
-        <div class="corp-account-grid"><div class="corp-account-tile"><span class="tile-icon">${icon('users')}</span><div><strong>${employeeCount}</strong><span>Employee records<br>role activation follows access policy</span></div></div><div class="corp-account-tile"><span class="tile-icon">${icon('building')}</span><div><strong>${branchCount}</strong><span>Operating branches<br>visibility boundary</span></div></div><div class="corp-account-tile"><span class="tile-icon">${icon('shield')}</span><div><strong>${policyCount}</strong><span>Policy records<br>${policiesSource ? `${policyActiveCount} active` : 'source unavailable'}</span></div></div><div class="corp-account-tile"><span class="tile-icon">${icon('link')}</span><div><strong>${supplierCount}</strong><span>Supplier records<br>connected account coverage</span></div></div></div>
+      const quickBookingActions = `
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 20px">
+          ${button(icon('plus')+'Book for Self', 'primary', 'data-action="book-self"')}
+          ${button(icon('users')+'Book for Employee / Guest', 'soft', 'data-action="book-employee"')}
+          ${button(icon('check')+'Manager Approvals (' + pendingRequests.length + ')', '', 'data-page-link="bookings"')}
+          ${button(icon('route')+'Live Trip Board', '', 'data-page-link="duties"')}
+          ${button(icon('wallet')+'Consolidated Invoices', '', 'data-page-link="billing"')}
+        </div>
+      `;
+
+      return `${pageHead(`${formatDate(new Date())} · ${esc(branchName)}`, `${workspaceGreeting()} · Corporate Travel Desk`, 'Manage business travel requests, employee policies, live duty status, and consolidated billing.', `${button(icon('refresh')+'Refresh', '', 'data-action="refresh"')}${button(icon('plus')+'New Travel Request', 'primary', 'data-action="book-employee"')}`)}
+        ${quickBookingActions}
+        ${actionCenter}
+        ${foundationPanel}
+        <section class="corp-console-intro" aria-label="Corporate account overview"><div class="corp-brief"><div class="corp-brief-kicker">${esc(workspaceName)} · Corporate Travel Management</div><h2>Automated corporate travel, live tracking &amp; paperless duty slips.</h2><p>Empower employees and travel managers to book rides within policy, track vehicle dispatch in real time, verify digital duty slips with OTP, and consolidate GST billing without manual spreadsheets.</p><div class="corp-brief-actions">${button(icon('plus')+'Book for Self','primary','data-action="book-self"')}${button(icon('users')+'Book for Employee','soft','data-action="book-employee"')}${button(icon('users')+'Employee Directory','','data-action="corporate-people"')}${button(icon('check')+'Pending Approvals','','data-page-link="bookings"')}</div></div><aside class="corp-account-model"><div class="model-kicker">Corporate Controls</div><h3>Multi-tier corporate governance</h3><div class="corp-model-row"><span class="corp-model-number">1</span><div><strong>Corporate Admin &amp; Travel Desk</strong><span>Configures policy lead times, vehicle allowances &amp; cost centers.</span></div></div><div class="corp-model-row"><span class="corp-model-number">2</span><div><strong>Department Approver / Manager</strong><span>Reviews out-of-policy bookings and authorizes exceptions.</span></div></div><div class="corp-model-row"><span class="corp-model-number">3</span><div><strong>Employee / Passenger</strong><span>Books travel, tracks driver arrival with OTP, &amp; signs e-duty slips.</span></div></div></aside></section>
+        <section class="corp-workflow-rail" aria-label="Corporate booking workflow"><div class="corp-workflow-step"><span class="corp-workflow-icon">${icon('file')}</span><div class="corp-workflow-copy"><strong>1. Request / Book</strong><span>Self-book or book for employees with designated cost center.</span></div></div><div class="corp-workflow-step"><span class="corp-workflow-icon">${icon('check')}</span><div class="corp-workflow-copy"><strong>2. Policy &amp; Approval</strong><span>Automatic vehicle eligibility check and manager sign-off.</span></div></div><div class="corp-workflow-step"><span class="corp-workflow-icon">${icon('route')}</span><div class="corp-workflow-copy"><strong>3. Live Duty &amp; Driver</strong><span>Driver details, tracking link and OTP boarding verification.</span></div></div><div class="corp-workflow-step"><span class="corp-workflow-icon">${icon('shield')}</span><div class="corp-workflow-copy"><strong>4. E-Duty Slip &amp; Bill</strong><span>Passenger digital signature / approval with consolidated GST invoice.</span></div></div></section>
+        <div class="corp-account-grid"><div class="corp-account-tile" style="cursor:pointer" data-page-link="customers"><span class="tile-icon">${icon('users')}</span><div><strong>${employeeCount}</strong><span>Employees &amp; Cost Centers<br>View department assignments</span></div></div><div class="corp-account-tile" style="cursor:pointer" data-page-link="bookings"><span class="tile-icon" style="color:var(--amber)">${icon('clock')}</span><div><strong>${pendingRequests.length}</strong><span>Pending Approvals<br>Requires travel desk decision</span></div></div><div class="corp-account-tile" style="cursor:pointer" data-page-link="duties"><span class="tile-icon" style="color:var(--teal)">${icon('route')}</span><div><strong>${movementRows.length || fallbackMovements.length}</strong><span>Active &amp; Live Duties<br>Tracked on route</span></div></div><div class="corp-account-tile" style="cursor:pointer" data-page-link="billing"><span class="tile-icon" style="color:var(--purple)">${icon('wallet')}</span><div><strong>${invoiceCount}</strong><span>Monthly Invoices<br>${invoiceValue} statement balance</span></div></div></div>
         <section class="corp-watch-grid"><section class="card section-card">${cardHead('Requests &amp; approvals','Booking decisions stay separate from dispatch execution.',`<span class="status ${approvalTone}">${pendingRequests.length} pending request${pendingRequests.length === 1 ? '' : 's'}</span>`)}<div class="table-wrap"><table class="corp-table"><thead><tr><th>Request</th><th>Passenger</th><th>Route</th><th>When</th><th>Decision</th><th></th></tr></thead><tbody>${approvalRows || `<tr><td colspan="6"><div class="corp-empty"><span class="corp-empty-icon">${icon('check')}</span><div><strong>No pending booking requests</strong>New direct or delegated requests will appear here when the tenant API receives them.${pendingDecisionCount ? ` ${pendingDecisionCount} approval record${pendingDecisionCount === 1 ? '' : 's'} exist outside the current request list.` : ''}<br>${button(icon('plus')+'Create a request','small soft','data-action="new-booking"')}</div></div></td></tr>`}</tbody></table></div></section><div class="corp-rail"><section class="card section-card">${cardHead('Booking policy watch','Cutoffs and decision coverage should be visible before the requester is blocked or charged.',status(policiesSource ? `${policyActiveCount} active` : 'Unavailable', policyTone))}<div class="corp-watch-list"><div class="corp-watch-row ${leadTimeConfigured ? 'ok' : ''}"><span class="watch-icon">${leadTimeConfigured ? icon('check') : icon('clock')}</span><div class="corp-watch-copy"><strong>Booking lead-time SLA</strong><span>${leadCopy} · requests inside the window should be blocked or explained.</span></div></div><div class="corp-watch-row ${cancellationConfigured ? 'ok' : ''}"><span class="watch-icon">${cancellationConfigured ? icon('check') : icon('warning')}</span><div class="corp-watch-copy"><strong>Cancellation cutoff</strong><span>${cancellationCopy} · surface potential charges before cancellation.</span></div></div><div class="corp-watch-row ${supplierSelectionConfigured ? 'ok' : ''}"><span class="watch-icon">${supplierSelectionConfigured ? icon('check') : icon('link')}</span><div class="corp-watch-copy"><strong>Supplier selection / auto-allotment</strong><span>${supplierSelectionConfigured ? 'Supplier selection is represented in policy scope.' : 'No supplier-selection rule found.'} ${autoAllotmentConfigured ? 'Automatic allotment is configured.' : 'Automatic allotment is not configured.'}</span></div></div></div></section><section class="card section-card">${cardHead('Account readiness','Activation and copied operating scope remain explicit, not implied.',`<span class="status ${readinessPercent === 100 ? 'green' : readinessPercent ? 'amber' : 'gray'}">${esc(readiness)}</span>`)}<div class="corp-watch-list"><div class="corp-watch-row ${employeeCount !== '—' && employeeCount > 0 ? 'ok' : ''}"><span class="watch-icon">${employeeCount !== '—' && employeeCount > 0 ? icon('check') : icon('users')}</span><div class="corp-watch-copy"><strong>Invite and account activation</strong><span>${employeeCount === '—' ? 'Employee source unavailable.' : employeeCount ? `${employeeCount} employee record${employeeCount === 1 ? '' : 's'} available for access setup.` : 'No employee records yet; invite or import the first person.'}</span></div></div><div class="corp-watch-row ${checklist && checklist.total && readinessPercent === 100 ? 'ok' : ''}"><span class="watch-icon">${checklist && checklist.total && readinessPercent === 100 ? icon('check') : icon('clock')}</span><div class="corp-watch-copy"><strong>Copied duty / pricing scope</strong><span>${checklist && checklist.total ? `${readinessPercent}% of setup checklist complete.` : 'No setup checklist record available.'} Use the onboarding action to make copied scope reviewable.</span></div></div></div><div style="padding:0 20px 17px">${button(icon('settings')+'Open setup checklist','small soft','data-action="setup-checklist"')}</div></section></div></section>
         <section class="grid two-col" style="margin-top:16px"><section class="card section-card">${cardHead('Live &amp; upcoming bookings','Requests that have cleared the inbox remain visible until the duty is closed.',`<span class="status blue">${movementRows.length + fallbackMovements.length ? movementRows.length || fallbackMovements.length : 0} shown</span>`)}<div class="table-wrap"><table class="corp-table"><thead><tr><th>Booking</th><th>Route</th><th>When</th><th>Status</th><th>Supplier / resource</th></tr></thead><tbody>${movementTableRows || `<tr><td colspan="5"><div class="corp-empty"><span class="corp-empty-icon">${icon('route')}</span><div><strong>No live or upcoming bookings</strong>The tenant has no active booking or duty record in the current response.</div></div></td></tr>`}</tbody></table></div></section><section class="card section-card">${cardHead('Duty-slip governance','Passenger approval is the final operational handoff, not a hidden email thread.',status(dutySlipConfigured ? 'Policy configured' : policiesSource ? 'Needs setup' : 'Unavailable', dutySlipConfigured ? 'green' : policiesSource ? 'amber' : 'gray'))}<div class="corp-watch-list"><div class="corp-watch-row ${dutySlipConfigured ? 'ok' : ''}"><span class="watch-icon">${dutySlipConfigured ? icon('check') : icon('clock')}</span><div class="corp-watch-copy"><strong>Passenger approve / reject</strong><span>${dutySlipCopy}</span></div></div><div class="corp-watch-row ${dutySlipConfigured ? 'ok' : ''}"><span class="watch-icon">${dutySlipConfigured ? icon('clock') : icon('warning')}</span><div class="corp-watch-copy"><strong>48-hour auto-approval window</strong><span>${dutySlipConfigured ? 'Review the configured policy before relying on auto-approval for unhandled slips.' : 'Not configured · A 48-hour auto-approval rule is not assumed.'}</span></div></div><div class="corp-watch-row ${notificationSource ? 'ok' : ''}"><span class="watch-icon">${notificationSource ? icon('mail') : icon('warning')}</span><div class="corp-watch-copy"><strong>Notification delivery</strong><span>${notificationCopy} · email and provider outcomes remain auditable.</span></div></div></div></section></section>
         <section class="grid two-col" style="margin-top:16px"><section class="card section-card">${cardHead('Service scope','Coverage is read from tenant branches, customer entities, suppliers and policy rules.',`<span class="status blue">${scopeRows.filter(row => row[2]).length}/${scopeRows.length} mapped</span>`)}<div class="corp-watch-list">${scopeRows.map(([label,value,ready]) => `<div class="corp-watch-row ${ready ? 'ok' : ''}"><span class="watch-icon">${ready ? icon('check') : icon('clock')}</span><div class="corp-watch-copy"><strong>${label}</strong><span>${value}</span></div></div>`).join('')}</div><div style="padding:0 20px 17px">${button(icon('settings')+'Review policy scope','small soft','data-page-link="settings"')}</div></section><section class="card section-card">${cardHead('Tenant evidence &amp; Axiom Network','Keep supplier, audit and partner handoffs in the same tenant boundary.',`<span class="status ${networkTone}">Network ${networkState}</span>`)}<div class="corp-finance-rail"><div class="finance-cell"><span>Audit events</span><strong>${activity.length || 0}</strong></div><div class="finance-cell"><span>Partner profiles</span><strong>${profiles.length}</strong></div><div class="finance-cell"><span>Service orders</span><strong>${serviceOrders.length}</strong></div></div><div class="corp-watch-list"><div class="corp-watch-row"><span class="watch-icon">${icon('link')}</span><div class="corp-watch-copy"><strong>Closed, invite-only B2B boundary</strong><span>${invites.length ? `${invites.length} invite record${invites.length === 1 ? '' : 's'} loaded.` : 'No invite records in the current tenant response.'} Network shares Axiom Fleet identity and audit foundations without opening public registration.</span></div></div></div><div style="padding:0 20px 17px">${button(icon('link')+'Open Network workspace','small soft','data-page-link="network"')}</div></section></section>
@@ -2162,6 +2212,8 @@
     function handleAction(action, el) {
       const actions = {
         'new-booking': () => openBookingModal(),
+        'book-self': () => openBookingModal(null, { forSelf: true }),
+        'book-employee': () => openBookingModal(null, { forSelf: false }),
         'create-route-plan': () => openRoutePlanModal(),
         'report-incident': () => openSafetyIncidentModal(),
         'new-safety-policy': () => openSafetyPolicyModal(),
@@ -2455,32 +2507,215 @@
       });
     }
 
-    function openBookingModal(existing) {
+    function openBookingModal(existing, options = {}) {
       const d = existing || {};
+      const isCorporate = currentUser?.role === 'corporate';
       const customerRecords = state.liveData?.customers?.items || [];
-      const existingCustomer = customerRecords.find(item => item.name === d.customer || item.id === d.customer_id);
-      const customerOptions = customerRecords.length ? customerRecords.map(item => `<option value="${esc(item.id)}" ${existingCustomer && item.id === existingCustomer.id ? 'selected' : ''}>${esc(item.name || item.id)}</option>`).join('') : '<option value="">No customer records available</option>';
+      const corporateAccountResponse = state.corporateData?.['/api/corporate/account'];
+      const corporateAccount = corporateAccountResponse?.account || null;
+      const corporateOrgName = corporateAccount?.name || currentUser?.organization?.name || 'Corporate Account';
+      const employees = state.corporateData?.['/api/corporate/users']?.items ?? state.liveData?.employees?.items ?? [];
+      
+      const existingCustomer = customerRecords.find(item => item.name === d.customer || item.id === d.customer_id) || (isCorporate ? customerRecords[0] : null);
+      const customerOptions = customerRecords.length 
+        ? customerRecords.map(item => `<option value="${esc(item.id)}" ${existingCustomer && item.id === existingCustomer.id ? 'selected' : ''}>${esc(item.name || item.id)}</option>`).join('')
+        : `<option value="corp-default" selected>${esc(corporateOrgName)}</option>`;
+
       const booking = (state.liveData?.bookings?.items || []).find(item => item.id === d.booking_id || item.booking_reference === d.id) || {};
       const routeParts = String(d.route || '').split(' → ');
-      const selectedType = d.type || booking.duty_type || '';
+      const selectedType = d.type || booking.duty_type || 'local';
       const selectedBookingType = booking.booking_type || d.booking_type || 'single';
-      const selectedAllotment = booking.allotment_mode || 'owned';
-      const modal = modalShell(existing ? 'Edit booking' : 'New booking', existing ? 'Update the tenant booking before dispatch.' : 'Create a booking, relationship and allotment intent in one auditable step.', `<div class="form-grid"><div class="form-group"><label>Customer <span class="required">*</span></label><select class="form-input" data-booking-field="customer" ${customerRecords.length ? '' : 'disabled'}><option value="">Select customer</option>${customerOptions}</select></div><div class="form-group"><label>Passenger name <span class="required">*</span></label><input class="form-input" data-booking-field="passenger" placeholder="Passenger name" value="${esc(booking.passenger_name || d.passenger || '')}"></div><div class="form-group"><label>Passenger email</label><input class="form-input" data-booking-field="passenger_email" type="email" placeholder="Passenger email" value="${esc(booking.passenger_email || '')}"></div><div class="form-group"><label>Reporting date &amp; time <span class="required">*</span></label><input class="form-input" data-booking-field="scheduled_at" type="datetime-local" value="${booking.scheduled_at ? new Date(booking.scheduled_at).toISOString().slice(0,16) : ''}"></div><div class="form-group"><label>Duty type <span class="required">*</span></label><select class="form-input" data-booking-field="duty_type"><option value="">Select duty type</option><option value="airport" ${selectedType === 'airport' ? 'selected' : ''}>Airport</option><option value="local" ${selectedType === 'local' ? 'selected' : ''}>Local</option><option value="outstation" ${selectedType === 'outstation' ? 'selected' : ''}>Outstation</option></select></div><div class="form-group"><label>Booking behavior</label><select class="form-input" data-booking-field="booking_type"><option value="single" ${selectedBookingType === 'single' ? 'selected' : ''}>Single duty</option><option value="parent" ${selectedBookingType === 'parent' ? 'selected' : ''}>Parent / split group</option><option value="flat_rate" ${selectedBookingType === 'flat_rate' ? 'selected' : ''}>Flat-rate</option><option value="multi_day" ${selectedBookingType === 'multi_day' ? 'selected' : ''}>Multi-day</option><option value="monthly" ${selectedBookingType === 'monthly' ? 'selected' : ''}>Monthly recurrence</option></select></div><div class="form-group"><label>Allotment path</label><select class="form-input" data-booking-field="allotment_mode"><option value="owned" ${selectedAllotment === 'owned' ? 'selected' : ''}>Owned fleet</option><option value="company_supplier" ${selectedAllotment === 'company_supplier' ? 'selected' : ''}>Company supplier</option><option value="dco" ${selectedAllotment === 'dco' ? 'selected' : ''}>DCO</option><option value="network" ${selectedAllotment === 'network' ? 'selected' : ''}>Invite-only Network</option></select></div><div class="form-group"><label>Flat rate (${regionalCurrencyCode()})</label><input class="form-input" data-booking-field="flat_rate" type="number" min="0" step="0.01" placeholder="Optional" value="${booking.flat_rate_paise ? Number(booking.flat_rate_paise) / 100 : ''}"></div><div class="form-group"><label>Vehicle group</label><input class="form-input" data-booking-field="vehicle_group" placeholder="Executive sedan / SUV" value="${esc(booking.vehicle_group_code || '')}"></div><div class="form-group"><label>Start date &amp; time</label><input class="form-input" data-booking-field="start_at" type="datetime-local" value="${booking.start_at ? new Date(booking.start_at).toISOString().slice(0,16) : ''}"></div><div class="form-group"><label>End date &amp; time</label><input class="form-input" data-booking-field="end_at" type="datetime-local" value="${booking.end_at ? new Date(booking.end_at).toISOString().slice(0,16) : ''}"></div><div class="form-group full"><label>Pickup address <span class="required">*</span></label><input class="form-input" data-booking-field="pickup" placeholder="Pickup address" value="${esc(booking.pickup?.label || routeParts[0] || '')}"></div><div class="form-group full"><label>Drop address <span class="required">*</span></label><input class="form-input" data-booking-field="dropoff" placeholder="Drop address" value="${esc(booking.dropoff?.label || routeParts[1] || '')}"></div><div class="form-group full"><label>Temporary passenger (expires in 24 hours)</label><input class="form-input" data-booking-field="temporary_passenger" placeholder="Optional visitor / guest name"></div><div class="form-group full"><label>Notes</label><input class="form-input" data-booking-field="notes" placeholder="Optional booking notes" value="${esc(booking.notes || '')}"></div></div>`, `${button('Cancel','','data-close-modal')}${button(existing?'Save changes':'Create booking','primary','data-submit-booking')}`);
+      const selectedAllotment = booking.allotment_mode || 'company_supplier';
+      
+      const defaultPassenger = options.forSelf ? (currentUser?.name || currentUser?.email || '') : (booking.passenger_name || d.passenger || '');
+      const defaultEmail = options.forSelf ? (currentUser?.email || '') : (booking.passenger_email || '');
+
+      const employeeOptions = employees.length 
+        ? employees.map(emp => `<option value="${esc(emp.id)}" data-name="${esc(emp.full_name || emp.name || '')}" data-email="${esc(emp.email || '')}" data-cost-center="${esc(emp.cost_center || '')}">${esc(emp.full_name || emp.name || emp.email)} ${emp.department ? `(${esc(emp.department)})` : ''}</option>`).join('')
+        : '';
+
+      const modal = modalShell(
+        existing ? 'Edit booking' : isCorporate ? 'New corporate travel request' : 'New booking',
+        existing ? 'Update the tenant booking before dispatch.' : isCorporate ? 'Submit a travel request with policy compliance, employee attribution and cost center.' : 'Create a booking, relationship and allotment intent in one auditable step.',
+        `<div class="form-grid">
+          ${isCorporate ? `
+          <div class="form-group full" style="background:#f4f9f4;border:1px solid #d5e5d3;border-radius:10px;padding:12px">
+            <label style="font-weight:700;color:#2c5234">Booking for</label>
+            <div style="display:flex;gap:18px;margin-top:6px">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="corp-booking-for" value="self" ${options.forSelf ? 'checked' : ''}> Myself (${esc(currentUser?.name || currentUser?.email || 'User')})</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="corp-booking-for" value="employee" ${!options.forSelf ? 'checked' : ''}> Another employee / guest</label>
+            </div>
+            ${employeeOptions ? `
+            <div id="corp-emp-picker-wrap" style="margin-top:10px;${options.forSelf ? 'display:none;' : ''}">
+              <label style="font-size:11px;color:#5a6b5c">Select employee from directory:</label>
+              <select class="form-input" id="corp-employee-select" style="margin-top:4px"><option value="">-- Choose employee or enter manually below --</option>${employeeOptions}</select>
+            </div>` : ''}
+          </div>` : ''}
+          <div class="form-group">
+            <label>${isCorporate ? 'Company / Billing Entity' : 'Customer'} <span class="required">*</span></label>
+            <select class="form-input" data-booking-field="customer">
+              ${customerOptions}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Passenger name <span class="required">*</span></label>
+            <input class="form-input" data-booking-field="passenger" placeholder="Passenger name" value="${esc(defaultPassenger)}">
+          </div>
+          <div class="form-group">
+            <label>Passenger email</label>
+            <input class="form-input" data-booking-field="passenger_email" type="email" placeholder="Passenger email" value="${esc(defaultEmail)}">
+          </div>
+          ${isCorporate ? `
+          <div class="form-group">
+            <label>Cost center / Project code</label>
+            <input class="form-input" data-booking-field="cost_center" placeholder="e.g. CC-104 or Sales" value="${esc(booking.cost_center || options.costCenter || '')}">
+          </div>` : ''}
+          <div class="form-group">
+            <label>Reporting date &amp; time <span class="required">*</span></label>
+            <input class="form-input" data-booking-field="scheduled_at" type="datetime-local" value="${booking.scheduled_at ? new Date(booking.scheduled_at).toISOString().slice(0,16) : ''}">
+          </div>
+          <div class="form-group">
+            <label>Duty type <span class="required">*</span></label>
+            <select class="form-input" data-booking-field="duty_type">
+              <option value="">Select duty type</option>
+              <option value="airport" ${selectedType === 'airport' ? 'selected' : ''}>Airport transfer</option>
+              <option value="local" ${selectedType === 'local' ? 'selected' : ''}>Local (4hr / 8hr)</option>
+              <option value="outstation" ${selectedType === 'outstation' ? 'selected' : ''}>Outstation</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Vehicle group</label>
+            <select class="form-input" data-booking-field="vehicle_group">
+              <option value="Sedan" ${booking.vehicle_group_code === 'Sedan' ? 'selected' : ''}>Sedan (Dzire / Etios)</option>
+              <option value="Executive Sedan" ${booking.vehicle_group_code === 'Executive Sedan' ? 'selected' : ''}>Executive Sedan (Ciaz / City)</option>
+              <option value="SUV" ${booking.vehicle_group_code === 'SUV' ? 'selected' : ''}>SUV (Innova / Ertiga)</option>
+              <option value="Premium SUV" ${booking.vehicle_group_code === 'Premium SUV' ? 'selected' : ''}>Premium SUV (Innova Crysta)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Booking behavior</label>
+            <select class="form-input" data-booking-field="booking_type">
+              <option value="single" ${selectedBookingType === 'single' ? 'selected' : ''}>Single duty</option>
+              <option value="parent" ${selectedBookingType === 'parent' ? 'selected' : ''}>Parent / split group</option>
+              <option value="flat_rate" ${selectedBookingType === 'flat_rate' ? 'selected' : ''}>Flat-rate</option>
+              <option value="multi_day" ${selectedBookingType === 'multi_day' ? 'selected' : ''}>Multi-day</option>
+              <option value="monthly" ${selectedBookingType === 'monthly' ? 'selected' : ''}>Monthly recurrence</option>
+            </select>
+          </div>
+          ${!isCorporate ? `
+          <div class="form-group">
+            <label>Allotment path</label>
+            <select class="form-input" data-booking-field="allotment_mode">
+              <option value="owned" ${selectedAllotment === 'owned' ? 'selected' : ''}>Owned fleet</option>
+              <option value="company_supplier" ${selectedAllotment === 'company_supplier' ? 'selected' : ''}>Company supplier</option>
+              <option value="dco" ${selectedAllotment === 'dco' ? 'selected' : ''}>DCO</option>
+              <option value="network" ${selectedAllotment === 'network' ? 'selected' : ''}>Invite-only Network</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Flat rate (${regionalCurrencyCode()})</label>
+            <input class="form-input" data-booking-field="flat_rate" type="number" min="0" step="0.01" placeholder="Optional" value="${booking.flat_rate_paise ? Number(booking.flat_rate_paise) / 100 : ''}">
+          </div>` : ''}
+          <div class="form-group full">
+            <label>Pickup address <span class="required">*</span></label>
+            <input class="form-input" data-booking-field="pickup" placeholder="Enter pickup point or landmark" value="${esc(booking.pickup?.label || routeParts[0] || '')}">
+          </div>
+          <div class="form-group full">
+            <label>Drop address <span class="required">*</span></label>
+            <input class="form-input" data-booking-field="dropoff" placeholder="Enter drop point or landmark" value="${esc(booking.dropoff?.label || routeParts[1] || '')}">
+          </div>
+          <div class="form-group full">
+            <label>Trip purpose / notes</label>
+            <input class="form-input" data-booking-field="notes" placeholder="e.g. Client visit, flight AI-302 arrival" value="${esc(booking.notes || '')}">
+          </div>
+        </div>`,
+        `${button('Cancel','','data-close-modal')}${button(existing?'Save changes':isCorporate?'Submit request':'Create booking','primary','data-submit-booking')}`
+      );
+      
       modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+      
+      if (isCorporate) {
+        modal.querySelectorAll('input[name="corp-booking-for"]').forEach(radio => {
+          radio.addEventListener('change', e => {
+            const isSelf = e.target.value === 'self';
+            const picker = modal.querySelector('#corp-emp-picker-wrap');
+            if (picker) picker.style.display = isSelf ? 'none' : 'block';
+            if (isSelf) {
+              const passInput = modal.querySelector('[data-booking-field="passenger"]');
+              const emailInput = modal.querySelector('[data-booking-field="passenger_email"]');
+              if (passInput) passInput.value = currentUser?.name || currentUser?.email || '';
+              if (emailInput) emailInput.value = currentUser?.email || '';
+            }
+          });
+        });
+        const empSelect = modal.querySelector('#corp-employee-select');
+        if (empSelect) {
+          empSelect.addEventListener('change', e => {
+            const opt = e.target.selectedOptions[0];
+            if (!opt || !opt.value) return;
+            const passInput = modal.querySelector('[data-booking-field="passenger"]');
+            const emailInput = modal.querySelector('[data-booking-field="passenger_email"]');
+            const ccInput = modal.querySelector('[data-booking-field="cost_center"]');
+            if (passInput && opt.dataset.name) passInput.value = opt.dataset.name;
+            if (emailInput && opt.dataset.email) emailInput.value = opt.dataset.email;
+            if (ccInput && opt.dataset.costCenter) ccInput.value = opt.dataset.costCenter;
+          });
+        }
+      }
+
       modal.querySelector('[data-submit-booking]').addEventListener('click', async () => {
         const read = key => modal.querySelector(`[data-booking-field="${key}"]`)?.value.trim() || '';
-        if (!validateFields(modal, [['[data-booking-field="passenger"]','Passenger name is required.'], ['[data-booking-field="pickup"]','Pickup address is required.'], ['[data-booking-field="dropoff"]','Drop address is required.'], ['[data-booking-field="duty_type"]','Duty type is required.']])) return;
-        const customer = customerRecords.find(item => item.id === read('customer'));
-        if (!customer) { showToast('Customer required', 'Create or select a tenant customer before saving the booking.'); return; }
+        if (!validateFields(modal, [
+          ['[data-booking-field="passenger"]','Passenger name is required.'],
+          ['[data-booking-field="pickup"]','Pickup address is required.'],
+          ['[data-booking-field="dropoff"]','Drop address is required.'],
+          ['[data-booking-field="duty_type"]','Duty type is required.']
+        ])) return;
+        
+        let customerId = read('customer');
+        const customer = customerRecords.find(item => item.id === customerId);
+        if (!customer && !customerId) {
+          showToast('Customer entity required', 'Select a company or customer entity.');
+          return;
+        }
+        
         const start = read('start_at') || read('scheduled_at');
-        const temporaryName = read('temporary_passenger');
-        const body = { customer_id:customer.id, passenger_name:read('passenger'), passenger_email:read('passenger_email'), scheduled_at:read('scheduled_at') ? new Date(read('scheduled_at')).toISOString() : '', start_at:start ? new Date(start).toISOString() : '', end_at:read('end_at') ? new Date(read('end_at')).toISOString() : null, duty_type:read('duty_type'), booking_type:read('booking_type'), allotment_mode:read('allotment_mode'), vehicle_group_code:read('vehicle_group'), flat_rate_paise:Math.round(Number(read('flat_rate') || 0) * 100), pickup:{label:read('pickup')}, dropoff:{label:read('dropoff')}, notes:read('notes'), temporary_passenger:temporaryName ? {name:temporaryName} : undefined, idempotency_key: existing ? undefined : `ui-booking-${Date.now()}-${Math.random().toString(16).slice(2)}` };
-        const submit = modal.querySelector('[data-submit-booking]'); submit.disabled = true;
+        const costCenter = read('cost_center');
+        const body = {
+          customer_id: customer ? customer.id : (customerRecords[0]?.id || currentUser?.organization?.id),
+          customer_name: customer ? customer.name : corporateOrgName,
+          passenger_name: read('passenger'),
+          passenger_email: read('passenger_email'),
+          cost_center: costCenter || undefined,
+          scheduled_at: read('scheduled_at') ? new Date(read('scheduled_at')).toISOString() : new Date().toISOString(),
+          start_at: start ? new Date(start).toISOString() : new Date().toISOString(),
+          end_at: read('end_at') ? new Date(read('end_at')).toISOString() : null,
+          duty_type: read('duty_type'),
+          booking_type: read('booking_type') || 'single',
+          allotment_mode: read('allotment_mode') || 'company_supplier',
+          vehicle_group_code: read('vehicle_group') || 'Sedan',
+          flat_rate_paise: Math.round(Number(read('flat_rate') || 0) * 100),
+          pickup: { label: read('pickup') },
+          dropoff: { label: read('dropoff') },
+          notes: costCenter ? `[Cost Center: ${costCenter}] ${read('notes')}` : read('notes'),
+          status: isCorporate ? 'pending_approval' : 'requested',
+          idempotency_key: existing ? undefined : `ui-booking-${Date.now()}-${Math.random().toString(16).slice(2)}`
+        };
+        
+        const submit = modal.querySelector('[data-submit-booking]');
+        submit.disabled = true;
         try {
           const id = existing && (existing.booking_id || booking.id);
-          const result = id ? await apiRequest(`/api/bookings/${encodeURIComponent(id)}`, {method:'PATCH', body:JSON.stringify(body)}) : await apiRequest('/api/bookings', {method:'POST', body:JSON.stringify(body)});
-          closeModal(); showToast(existing ? 'Booking updated' : 'Booking created', `${result.item?.booking_reference || result.item?.id || 'Tenant booking'} is saved with ${body.booking_type} behavior.`); await hydrateOperationalData();
-        } catch (error) { submit.disabled = false; showToast(existing ? 'Booking could not be updated' : 'Booking could not be created', error.message); }
+          const result = id 
+            ? await apiRequest(`/api/bookings/${encodeURIComponent(id)}`, {method:'PATCH', body:JSON.stringify(body)})
+            : await apiRequest('/api/bookings', {method:'POST', body:JSON.stringify(body)});
+          closeModal();
+          showToast(existing ? 'Booking updated' : 'Booking requested', `${result.item?.booking_reference || result.item?.id || 'Request'} has been recorded and submitted for approval.`);
+          await hydrateOperationalData();
+        } catch (error) {
+          submit.disabled = false;
+          showToast(existing ? 'Booking could not be updated' : 'Booking could not be created', error.message);
+        }
       });
     }
 
@@ -2882,23 +3117,23 @@
       if (!state.liveData) render();
       try {
         const [overview, bookings, duties, invoices, drivers, vehicles, customers, suppliers, branches, priceBooks, reports, checklist, onboarding, billSummary, billList, organization, settings, employees, policies, approvals, notifications, invitations] = await Promise.all([
-          apiRequest('/api/overview'),
-          apiRequest('/api/bookings?limit=50'),
-          apiRequest('/api/duties?limit=50'),
-          apiRequest('/api/invoices?limit=50'),
-          apiRequest('/api/drivers?limit=50'),
-          apiRequest('/api/vehicles?limit=50'),
-          apiRequest('/api/customers?limit=50'),
-          apiRequest('/api/suppliers?limit=50'),
-          apiRequest('/api/branches?limit=50'),
-          apiRequest('/api/price-books?limit=50'),
-          apiRequest('/api/reports/summary'),
-          apiRequest('/api/organization/checklist'),
-          apiRequest('/api/onboarding'),
-          apiRequest('/api/bill-intelligence/summary'),
-          apiRequest('/api/bill-intelligence?status=all&limit=100'),
-          apiRequest('/api/organization'),
-          apiRequest('/api/settings'),
+          apiRequest('/api/overview').catch(() => ({ duties: {}, stats: {} })),
+          apiRequest('/api/bookings?limit=50').catch(() => ({ items: [] })),
+          apiRequest('/api/duties?limit=50').catch(() => ({ items: [] })),
+          apiRequest('/api/invoices?limit=50').catch(() => ({ items: [] })),
+          apiRequest('/api/drivers?limit=50').catch(() => ({ items: [] })),
+          apiRequest('/api/vehicles?limit=50').catch(() => ({ items: [] })),
+          apiRequest('/api/customers?limit=50').catch(() => ({ items: [] })),
+          apiRequest('/api/suppliers?limit=50').catch(() => ({ items: [] })),
+          apiRequest('/api/branches?limit=50').catch(() => ({ items: [] })),
+          apiRequest('/api/price-books?limit=50').catch(() => ({ items: [] })),
+          apiRequest('/api/reports/summary').catch(() => ({ invoices: {}, bookings: {} })),
+          apiRequest('/api/organization/checklist').catch(() => ({ items: [], total: 0, completed: 0 })),
+          apiRequest('/api/onboarding').catch(() => ({ items: [], total: 0, completed: 0 })),
+          apiRequest('/api/bill-intelligence/summary').catch(() => ({ summary: {} })),
+          apiRequest('/api/bill-intelligence?status=all&limit=100').catch(() => ({ items: [], summary: {} })),
+          apiRequest('/api/organization').catch(() => ({ item: currentUser?.organization || null })),
+          apiRequest('/api/settings').catch(() => ({ item: { settings: {} } })),
           apiRequest('/api/employees?limit=100').catch(() => ({ items: null, unavailable: true })),
           apiRequest('/api/policies?limit=50').catch(() => ({ items: null, unavailable: true })),
           apiRequest('/api/approvals?limit=50').catch(() => ({ items: null, unavailable: true })),

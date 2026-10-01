@@ -124,8 +124,39 @@
     const profiles = await dataRequest(`profiles?id=eq.${encodeURIComponent(user.id)}&select=*`, {}, session.access_token);
     const memberships = await dataRequest(`organization_memberships?user_id=eq.${encodeURIComponent(user.id)}&status=eq.active&select=organization_id,role,branch_id,organizations(*)`, {}, session.access_token);
     const profile = profiles[0] || {};
-    const membership = memberships[0] || null;
-    const organization = membership?.organizations || null;
+    let membership = memberships[0] || null;
+    let organization = membership?.organizations || null;
+    if (!organization && membership?.organization_id) {
+      try {
+        const orgRows = await dataRequest(`organizations?id=eq.${encodeURIComponent(membership.organization_id)}&select=*`, {}, session.access_token);
+        if (orgRows?.[0]) organization = orgRows[0];
+      } catch (_) {}
+    }
+    if (!organization) {
+      try {
+        const ownedOrgs = await dataRequest(`organizations?owner_user_id=eq.${encodeURIComponent(user.id)}&select=*`, {}, session.access_token);
+        if (ownedOrgs?.[0]) {
+          organization = ownedOrgs[0];
+          if (!membership) {
+            membership = { organization_id: organization.id, role: organization.kind === 'corporate' ? 'corporate_admin' : 'vendor_owner' };
+          }
+        }
+      } catch (_) {}
+    }
+    if (!organization && (profile.account_type === 'corporate' || user.user_metadata?.account_type === 'corporate')) {
+      try {
+        const corpMemberships = await dataRequest(`corporate_account_users?user_id=eq.${encodeURIComponent(user.id)}&select=organization_id,account_type,status`, {}, session.access_token);
+        if (corpMemberships?.[0]?.organization_id) {
+          const orgRows = await dataRequest(`organizations?id=eq.${encodeURIComponent(corpMemberships[0].organization_id)}&select=*`, {}, session.access_token);
+          if (orgRows?.[0]) {
+            organization = orgRows[0];
+            if (!membership) {
+              membership = { organization_id: organization.id, role: 'corporate_admin' };
+            }
+          }
+        }
+      } catch (_) {}
+    }
     const driverRows = profile.account_type === 'driver'
       ? await dataRequest(`drivers?user_id=eq.${encodeURIComponent(user.id)}&select=*`, {}, session.access_token)
       : [];
@@ -191,7 +222,7 @@
         p_license_number: payload.license_number || ''
       }, token);
     } else {
-      await rpc('create_organization', {
+      const orgRes = await rpc('create_organization', {
         p_kind: payload.role,
         p_name: payload.organization_name,
         p_city: payload.city || '',
@@ -200,6 +231,43 @@
         p_fleet_size: payload.role === 'vendor' && payload.fleet_size ? Number(payload.fleet_size) : null,
         p_employee_count: payload.role === 'corporate' && payload.employee_count ? Number(payload.employee_count) : null
       }, token);
+      if (payload.role === 'corporate') {
+        try {
+          const orgId = orgRes?.id || orgRes?.organization_id;
+          if (orgId) {
+            const corpAccount = await dataRequest('corporate_accounts', {
+              method: 'POST',
+              body: JSON.stringify({
+                organization_id: orgId,
+                name: payload.organization_name || 'Corporate Account',
+                connection_type: 'manual',
+                status: 'active',
+                created_by: authData.user?.id || null
+              })
+            }, token);
+            const accountId = Array.isArray(corpAccount) ? corpAccount[0]?.id : corpAccount?.id;
+            if (accountId) {
+              await dataRequest('corporate_account_users', {
+                method: 'POST',
+                body: JSON.stringify({
+                  organization_id: orgId,
+                  account_id: accountId,
+                  user_id: authData.user?.id,
+                  email: payload.email,
+                  full_name: payload.full_name || '',
+                  account_type: 'admin',
+                  permission_profile: 'admin',
+                  status: 'active',
+                  invited_by: authData.user?.id,
+                  activated_at: new Date().toISOString()
+                })
+              }, token);
+            }
+          }
+        } catch (_) {
+          // If direct table writes are restricted by edge policies, orchestrator will connect gracefully
+        }
+      }
     }
     if (payload.timezone) {
       await dataRequest(`profiles?id=eq.${encodeURIComponent(authData.user?.id || '')}`, {
