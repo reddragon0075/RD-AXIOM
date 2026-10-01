@@ -1,0 +1,999 @@
+"""Booking, allotment, pricing and invoice-surcharge parity slice.
+
+This module is intentionally additive.  The existing domain, batch and
+enterprise handlers keep their public contracts; this slice adds the durable
+relationships and lifecycle records needed by the booking desk while keeping
+all writes tenant scoped, auditable and replay-safe.
+"""
+
+from __future__ import annotations
+
+import csv
+import io
+import json
+import math
+import re
+from datetime import datetime, timedelta, timezone
+from urllib.parse import parse_qs, urlsplit
+
+from backend_domain import (
+    DomainError,
+    _assert_owned,
+    _audit,
+    _create_booking,
+    _create_duty,
+    _org,
+    _require_role,
+    _serialize,
+    _text,
+    _update_booking,
+    new_id,
+    now_iso,
+)
+from backend_operations_parity import _allot, _create_batch
+
+
+BOOKING_TYPES = {"single", "parent", "child", "flat_rate", "monthly", "multi_day"}
+ALLOTMENT_MODES = {"owned", "company_supplier", "dco", "network"}
+ACTION_TYPES = {
+    "confirm", "unconfirm", "print", "briefing", "split", "advance", "attachment",
+    "delete", "restore", "import", "export", "allot_all", "reallot", "dispatch",
+    "arrival", "temporary_passenger", "temporary_allotment",
+}
+
+
+def _add_columns(conn, table: str, columns: dict[str, str]) -> None:
+    existing = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+    for name, definition in columns.items():
+        if name not in existing:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
+
+
+def initialize_booking_parity_schema(conn) -> None:
+    """Install additive local tables and extend databases created by older builds."""
+    _add_columns(conn, "domain_bookings", {
+        "booking_type": "TEXT NOT NULL DEFAULT 'single'",
+        "parent_booking_id": "TEXT",
+        "booking_group_id": "TEXT",
+        "child_sequence": "INTEGER NOT NULL DEFAULT 0",
+        "flat_rate_paise": "INTEGER NOT NULL DEFAULT 0",
+        "currency": "TEXT NOT NULL DEFAULT 'INR'",
+        "start_at": "TEXT",
+        "end_at": "TEXT",
+        "recurrence_rule": "TEXT NOT NULL DEFAULT ''",
+        "passenger_json": "TEXT NOT NULL DEFAULT '{}'",
+        "temporary_passenger_id": "TEXT",
+        "pricing_contract_id": "TEXT",
+        "pricing_snapshot_json": "TEXT NOT NULL DEFAULT '{}'",
+        "confirmation_status": "TEXT NOT NULL DEFAULT 'pending'",
+        "confirmed_at": "TEXT",
+        "advance_paise": "INTEGER NOT NULL DEFAULT 0",
+        "deleted_at": "TEXT",
+        "deleted_by": "TEXT",
+        "allotment_mode": "TEXT NOT NULL DEFAULT 'owned'",
+        "vehicle_group_code": "TEXT NOT NULL DEFAULT ''",
+        "source_import_id": "TEXT",
+    })
+    _add_columns(conn, "domain_duties", {
+        "arrival_at": "TEXT",
+        "arrival_status": "TEXT NOT NULL DEFAULT 'pending'",
+        "supplier_id": "TEXT",
+        "allotment_mode": "TEXT NOT NULL DEFAULT 'owned'",
+        "dispatch_id": "TEXT",
+    })
+    _add_columns(conn, "domain_invoices", {
+        "fuel_surcharge_paise": "INTEGER NOT NULL DEFAULT 0",
+        "pricing_snapshot_json": "TEXT NOT NULL DEFAULT '{}'",
+    })
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS domain_booking_request_keys (
+            organization_id TEXT NOT NULL,
+            idempotency_key TEXT NOT NULL,
+            booking_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            PRIMARY KEY(organization_id, idempotency_key)
+        );
+        CREATE TABLE IF NOT EXISTS domain_booking_actions (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            booking_id TEXT NOT NULL,
+            action_type TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'completed',
+            payload_json TEXT NOT NULL DEFAULT '{}',
+            idempotency_key TEXT,
+            actor_id TEXT,
+            created_at TEXT NOT NULL,
+            UNIQUE(organization_id, booking_id, action_type, idempotency_key)
+        );
+        CREATE TABLE IF NOT EXISTS domain_booking_attachments (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            booking_id TEXT NOT NULL,
+            filename TEXT NOT NULL,
+            content_type TEXT NOT NULL DEFAULT 'application/octet-stream',
+            storage_path TEXT NOT NULL DEFAULT '',
+            sha256 TEXT NOT NULL DEFAULT '',
+            size_bytes INTEGER NOT NULL DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'active',
+            metadata_json TEXT NOT NULL DEFAULT '{}',
+            created_by TEXT,
+            created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS domain_booking_briefings (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            booking_id TEXT NOT NULL,
+            version INTEGER NOT NULL DEFAULT 1,
+            status TEXT NOT NULL DEFAULT 'published',
+            briefing_json TEXT NOT NULL DEFAULT '{}',
+            created_by TEXT,
+            created_at TEXT NOT NULL,
+            UNIQUE(organization_id, booking_id, version)
+        );
+        CREATE TABLE IF NOT EXISTS domain_booking_advances (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            booking_id TEXT NOT NULL,
+            amount_paise INTEGER NOT NULL CHECK(amount_paise >= 0),
+            currency TEXT NOT NULL DEFAULT 'INR',
+            status TEXT NOT NULL DEFAULT 'requested',
+            mode TEXT NOT NULL DEFAULT 'manual',
+            reference TEXT NOT NULL DEFAULT '',
+            payload_json TEXT NOT NULL DEFAULT '{}',
+            idempotency_key TEXT,
+            created_by TEXT,
+            created_at TEXT NOT NULL,
+            UNIQUE(organization_id, idempotency_key)
+        );
+        CREATE TABLE IF NOT EXISTS domain_booking_imports (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'processing',
+            source_format TEXT NOT NULL DEFAULT 'json',
+            requested_count INTEGER NOT NULL DEFAULT 0,
+            imported_count INTEGER NOT NULL DEFAULT 0,
+            failed_count INTEGER NOT NULL DEFAULT 0,
+            rows_json TEXT NOT NULL DEFAULT '[]',
+            result_json TEXT NOT NULL DEFAULT '{}',
+            idempotency_key TEXT,
+            created_by TEXT,
+            created_at TEXT NOT NULL,
+            UNIQUE(organization_id, idempotency_key)
+        );
+        CREATE TABLE IF NOT EXISTS domain_booking_dispatches (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            booking_id TEXT NOT NULL,
+            allotment_mode TEXT NOT NULL,
+            supplier_id TEXT,
+            driver_id TEXT,
+            vehicle_id TEXT,
+            network_vendor_profile_id TEXT,
+            status TEXT NOT NULL DEFAULT 'requested',
+            response_status TEXT NOT NULL DEFAULT 'pending',
+            dispatch_details_json TEXT NOT NULL DEFAULT '{}',
+            expires_at TEXT,
+            idempotency_key TEXT,
+            created_by TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(organization_id, idempotency_key)
+        );
+        CREATE TABLE IF NOT EXISTS domain_temporary_passengers (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            customer_id TEXT,
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL DEFAULT '',
+            email TEXT NOT NULL DEFAULT '',
+            metadata_json TEXT NOT NULL DEFAULT '{}',
+            status TEXT NOT NULL DEFAULT 'active',
+            expires_at TEXT NOT NULL,
+            created_by TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS domain_temporary_allotments (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            booking_id TEXT NOT NULL,
+            allotment_mode TEXT NOT NULL,
+            supplier_id TEXT,
+            driver_id TEXT,
+            vehicle_id TEXT,
+            status TEXT NOT NULL DEFAULT 'active',
+            details_json TEXT NOT NULL DEFAULT '{}',
+            expires_at TEXT NOT NULL,
+            created_by TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS domain_booking_pricing_contracts (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            contract_type TEXT NOT NULL DEFAULT 'customer',
+            customer_id TEXT,
+            supplier_id TEXT,
+            name TEXT NOT NULL,
+            version INTEGER NOT NULL DEFAULT 1,
+            status TEXT NOT NULL DEFAULT 'draft',
+            effective_from TEXT NOT NULL,
+            effective_to TEXT,
+            currency TEXT NOT NULL DEFAULT 'INR',
+            terms_json TEXT NOT NULL DEFAULT '{}',
+            created_by TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(organization_id, contract_type, name, version)
+        );
+        CREATE TABLE IF NOT EXISTS domain_booking_pricing_rules (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            contract_id TEXT NOT NULL,
+            city TEXT NOT NULL DEFAULT '',
+            vehicle_group TEXT NOT NULL DEFAULT '',
+            duty_type TEXT NOT NULL DEFAULT '',
+            package_minutes INTEGER NOT NULL DEFAULT 0,
+            included_km REAL NOT NULL DEFAULT 0,
+            base_paise INTEGER NOT NULL DEFAULT 0,
+            extra_km_paise INTEGER NOT NULL DEFAULT 0,
+            extra_hour_paise INTEGER NOT NULL DEFAULT 0,
+            extra_half_hour_paise INTEGER NOT NULL DEFAULT 0,
+            waiting_paise INTEGER NOT NULL DEFAULT 0,
+            allowance_paise INTEGER NOT NULL DEFAULT 0,
+            auto_switch_json TEXT NOT NULL DEFAULT '{}',
+            extras_json TEXT NOT NULL DEFAULT '{}',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS domain_customer_fuel_rules (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            customer_id TEXT,
+            contract_id TEXT,
+            vehicle_group TEXT NOT NULL DEFAULT '',
+            fuel_type TEXT NOT NULL DEFAULT 'petrol',
+            included_fuel_price_paise INTEGER NOT NULL DEFAULT 0,
+            average_km_per_litre REAL NOT NULL DEFAULT 10,
+            surcharge_mode TEXT NOT NULL DEFAULT 'difference',
+            rate_percent_bps INTEGER NOT NULL DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'active',
+            effective_from TEXT NOT NULL,
+            effective_to TEXT,
+            created_by TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS domain_fuel_rates (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            city TEXT NOT NULL DEFAULT '',
+            fuel_type TEXT NOT NULL DEFAULT 'petrol',
+            price_paise INTEGER NOT NULL CHECK(price_paise >= 0),
+            effective_at TEXT NOT NULL,
+            source TEXT NOT NULL DEFAULT 'manual',
+            created_by TEXT,
+            created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS domain_booking_pricing_quotes (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            booking_id TEXT,
+            contract_id TEXT,
+            duty_type TEXT NOT NULL DEFAULT '',
+            total_paise INTEGER NOT NULL DEFAULT 0,
+            breakdown_json TEXT NOT NULL DEFAULT '{}',
+            idempotency_key TEXT,
+            created_by TEXT,
+            created_at TEXT NOT NULL,
+            UNIQUE(organization_id, idempotency_key)
+        );
+        CREATE INDEX IF NOT EXISTS idx_booking_actions_booking ON domain_booking_actions(organization_id, booking_id, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_booking_dispatches_booking ON domain_booking_dispatches(organization_id, booking_id, updated_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_temporary_allotments_expiry ON domain_temporary_allotments(organization_id, expires_at, status);
+        CREATE INDEX IF NOT EXISTS idx_pricing_rules_contract ON domain_booking_pricing_rules(organization_id, contract_id);
+        CREATE INDEX IF NOT EXISTS idx_fuel_rates_lookup ON domain_fuel_rates(organization_id, fuel_type, city, effective_at DESC);
+        """
+    )
+    _add_columns(conn, "domain_booking_dispatches", {
+        "network_vendor_profile_id": "TEXT",
+    })
+
+
+def _json(value, fallback):
+    if isinstance(value, (dict, list)):
+        return value
+    try:
+        return json.loads(value) if value else fallback
+    except (TypeError, json.JSONDecodeError):
+        return fallback
+
+
+def _number(value, default=0.0):
+    try:
+        number = float(value)
+        return number if math.isfinite(number) else default
+    except (TypeError, ValueError):
+        return default
+
+
+def _iso_datetime(value: str | None, field: str = "scheduled_at") -> datetime | None:
+    if not value:
+        return None
+    text = str(value).strip().replace("Z", "+00:00")
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError as exc:
+        raise DomainError(400, f"{field} must be an ISO datetime", "validation_error") from exc
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+
+def _public_booking(row):
+    item = _serialize(row, ("pickup_json", "dropoff_json", "passenger_json", "pricing_snapshot_json"))
+    for source, target in (("pickup_json", "pickup"), ("dropoff_json", "dropoff"), ("passenger_json", "passenger"), ("pricing_snapshot_json", "pricing_snapshot")):
+        item[target] = item.pop(source, {})
+    return item
+
+
+def _booking(conn, booking_id: str, org: str):
+    row = _assert_owned(conn, "domain_bookings", booking_id, org)
+    item = _public_booking(row)
+    children = conn.execute("SELECT * FROM domain_bookings WHERE organization_id = ? AND parent_booking_id = ? ORDER BY child_sequence, scheduled_at, id", (org, booking_id)).fetchall()
+    item["children"] = [_public_booking(child) for child in children]
+    item["actions"] = [_serialize(action, ("payload_json",)) for action in conn.execute("SELECT * FROM domain_booking_actions WHERE organization_id = ? AND booking_id = ? ORDER BY created_at DESC LIMIT 50", (org, booking_id)).fetchall()]
+    return item
+
+
+def _record_action(conn, user, org: str, booking_id: str, action_type: str, payload: dict, ip: str, status="completed"):
+    key = str(payload.get("idempotency_key") or "").strip() or None
+    if key:
+        existing = conn.execute("SELECT * FROM domain_booking_actions WHERE organization_id = ? AND booking_id = ? AND action_type = ? AND idempotency_key = ?", (org, booking_id, action_type, key)).fetchone()
+        if existing:
+            return _serialize(existing, ("payload_json",)), True
+    action_id = new_id("booking_action")
+    conn.execute("INSERT INTO domain_booking_actions(id, organization_id, booking_id, action_type, status, payload_json, idempotency_key, actor_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (action_id, org, booking_id, action_type, status, json.dumps(payload), key, user["id"], now_iso()))
+    _audit(conn, user, f"booking.{action_type}", "booking", booking_id, ip, {"action_id": action_id, **{key: value for key, value in payload.items() if key != "content"}})
+    return _serialize(conn.execute("SELECT * FROM domain_booking_actions WHERE id = ?", (action_id,)).fetchone(), ("payload_json",)), False
+
+
+def apply_booking_metadata(conn, user, booking_id: str, payload: dict, ip: str, *, parent_id: str | None = None, sequence: int = 0, group_id: str | None = None):
+    """Apply lifecycle fields to a booking created by the legacy domain/batch path."""
+    org = _org(user)
+    _assert_owned(conn, "domain_bookings", booking_id, org)
+    booking_type = str(payload.get("booking_type") or payload.get("booking_mode") or "single").strip().lower()
+    if booking_type in {"flat", "flat-rate", "flat_rate"}:
+        booking_type = "flat_rate"
+    if booking_type not in BOOKING_TYPES:
+        raise DomainError(400, "booking_type must be single, parent, child, flat_rate, monthly or multi_day", "validation_error")
+    start_at = payload.get("start_at") or payload.get("scheduled_at")
+    end_at = payload.get("end_at")
+    if start_at:
+        _iso_datetime(start_at, "start_at")
+    if end_at:
+        _iso_datetime(end_at, "end_at")
+    if start_at and end_at and _iso_datetime(end_at, "end_at") <= _iso_datetime(start_at, "start_at"):
+        raise DomainError(400, "end_at must be after start_at", "validation_error")
+    temporary_passenger = payload.get("temporary_passenger") if isinstance(payload.get("temporary_passenger"), dict) else {}
+    passenger = payload.get("passenger") if isinstance(payload.get("passenger"), dict) else {}
+    merged_passenger = {**passenger, **temporary_passenger}
+    contract_id = str(payload.get("pricing_contract_id") or payload.get("contract_id") or "").strip() or None
+    if contract_id:
+        _assert_owned(conn, "domain_booking_pricing_contracts", contract_id, org)
+    now = now_iso()
+    values = {
+        "booking_type": booking_type,
+        "parent_booking_id": parent_id or payload.get("parent_booking_id") or None,
+        "booking_group_id": group_id or payload.get("booking_group_id") or booking_id,
+        "child_sequence": int(sequence or payload.get("child_sequence") or 0),
+        "flat_rate_paise": max(0, int(payload.get("flat_rate_paise") or payload.get("flat_rate") or 0)),
+        "currency": str(payload.get("currency") or "INR").upper()[:8],
+        "start_at": start_at,
+        "end_at": end_at,
+        "recurrence_rule": str(payload.get("recurrence_rule") or payload.get("recurrence") or "")[:500],
+        "passenger_json": json.dumps(merged_passenger),
+        "pricing_contract_id": contract_id,
+        "pricing_snapshot_json": json.dumps(payload.get("pricing_snapshot") if isinstance(payload.get("pricing_snapshot"), dict) else {}),
+        "confirmation_status": str(payload.get("confirmation_status") or ("confirmed" if payload.get("status") == "confirmed" else "pending"))[:30],
+        "advance_paise": max(0, int(payload.get("advance_paise") or 0)),
+        "allotment_mode": str(payload.get("allotment_mode") or "owned").lower()[:30],
+        "vehicle_group_code": str(payload.get("vehicle_group_code") or payload.get("vehicle_group") or "")[:80],
+        "source_import_id": str(payload.get("source_import_id") or "")[:120] or None,
+        "updated_at": now,
+    }
+    if values["allotment_mode"] not in ALLOTMENT_MODES:
+        raise DomainError(400, "allotment_mode must be owned, company_supplier, dco or network", "validation_error")
+    conn.execute("""UPDATE domain_bookings SET booking_type = :booking_type, parent_booking_id = :parent_booking_id,
+        booking_group_id = :booking_group_id, child_sequence = :child_sequence, flat_rate_paise = :flat_rate_paise,
+        currency = :currency, start_at = :start_at, end_at = :end_at, recurrence_rule = :recurrence_rule,
+        passenger_json = :passenger_json, pricing_contract_id = :pricing_contract_id,
+        pricing_snapshot_json = :pricing_snapshot_json, confirmation_status = :confirmation_status,
+        advance_paise = :advance_paise, allotment_mode = :allotment_mode, vehicle_group_code = :vehicle_group_code,
+        source_import_id = :source_import_id, updated_at = :updated_at WHERE id = :booking_id AND organization_id = :organization_id""", {**values, "booking_id": booking_id, "organization_id": org})
+    return _booking(conn, booking_id, org)
+
+
+def _create_enriched_booking(conn, user, payload, ip, parent_id=None, sequence=0, group_id=None):
+    org = _org(user)
+    key = str(payload.get("idempotency_key") or "").strip() or None
+    if key:
+        replay = conn.execute("SELECT booking_id FROM domain_booking_request_keys WHERE organization_id = ? AND idempotency_key = ?", (org, key)).fetchone()
+        if replay:
+            return {"ok": True, "item": _booking(conn, replay["booking_id"], org), "idempotent_replay": True}
+    result = _create_booking(conn, user, payload, ip)
+    item = apply_booking_metadata(conn, user, result["item"]["id"], payload, ip, parent_id=parent_id, sequence=sequence, group_id=group_id)
+    if key:
+        conn.execute("INSERT INTO domain_booking_request_keys(organization_id, idempotency_key, booking_id, created_at) VALUES (?, ?, ?, ?)", (org, key, item["id"], now_iso()))
+    response = {**result, "item": item}
+    # Direct monthly and multi-day creates establish the same durable child
+    # group as batch intake.  Existing batch endpoints remain unchanged.
+    if parent_id is None and str(payload.get("booking_type") or payload.get("booking_mode") or "single").lower().replace("-", "_") in {"monthly", "multi_day"}:
+        generated = []
+        raw_dates = payload.get("dates") if isinstance(payload.get("dates"), list) else []
+        if not raw_dates:
+            start = _iso_datetime(payload.get("start_at") or payload.get("scheduled_at"), "scheduled_at")
+            end = _iso_datetime(payload.get("end_at"), "end_at") if payload.get("end_at") else None
+            occurrences = max(1, min(365, int(payload.get("occurrences") or (1 if not end else 365))))
+            for index in range(occurrences):
+                if str(payload.get("booking_type") or payload.get("booking_mode")).lower().replace("-", "_") == "monthly":
+                    month = start.month - 1 + index
+                    year, month_number = start.year + month // 12, month % 12 + 1
+                    day = min(start.day, [31, 29 if year % 4 == 0 else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month_number - 1])
+                    point = start.replace(year=year, month=month_number, day=day)
+                else:
+                    point = start + timedelta(days=index)
+                if end and point > end: break
+                raw_dates.append(point.isoformat().replace("+00:00", "Z"))
+        if len(raw_dates) > 1:
+            generated = _children_payload(conn, user, conn.execute("SELECT * FROM domain_bookings WHERE id = ?", (item["id"],)).fetchone(), {"dates": raw_dates[1:]}, ip, action_type="children")["items"]
+        response["children"] = generated
+        response["item"] = _booking(conn, item["id"], org)
+    return response
+
+
+def _active_contract(conn, org, payload, contract_type="customer"):
+    contract_id = str(payload.get("pricing_contract_id") or payload.get("contract_id") or "").strip()
+    if contract_id:
+        return _assert_owned(conn, "domain_booking_pricing_contracts", contract_id, org)
+    customer_id = str(payload.get("customer_id") or "").strip() or None
+    supplier_id = str(payload.get("supplier_id") or "").strip() or None
+    clauses = ["organization_id = ?", "contract_type = ?", "status = 'active'"]
+    params = [org, contract_type]
+    if customer_id:
+        clauses.append("(customer_id = ? OR customer_id IS NULL)"); params.append(customer_id)
+    elif supplier_id:
+        clauses.append("(supplier_id = ? OR supplier_id IS NULL)"); params.append(supplier_id)
+    clauses.append("effective_from <= ?"); params.append(now_iso())
+    return conn.execute(f"SELECT * FROM domain_booking_pricing_contracts WHERE {' AND '.join(clauses)} ORDER BY CASE WHEN customer_id IS NULL AND supplier_id IS NULL THEN 1 ELSE 0 END, version DESC, effective_from DESC LIMIT 1", params).fetchone()
+
+
+def _select_rule(conn, org, payload, contract=None):
+    if not contract:
+        return None
+    city = str(payload.get("city") or payload.get("pickup_city") or "").strip().lower()
+    vehicle_group = str(payload.get("vehicle_group") or payload.get("vehicle_group_code") or "").strip().lower()
+    duty_type = str(payload.get("duty_type") or "local").strip().lower()
+    rows = conn.execute("SELECT * FROM domain_booking_pricing_rules WHERE organization_id = ? AND contract_id = ?", (org, contract["id"])).fetchall()
+    ranked = []
+    for row in rows:
+        r_city, r_group, r_duty = str(row["city"] or "").lower(), str(row["vehicle_group"] or "").lower(), str(row["duty_type"] or "").lower()
+        if r_city and r_city != city: continue
+        if r_group and r_group != vehicle_group: continue
+        if r_duty and r_duty != duty_type: continue
+        ranked.append((int(bool(r_city)) + int(bool(r_group)) + int(bool(r_duty)), row))
+    return sorted(ranked, key=lambda pair: pair[0], reverse=True)[0][1] if ranked else None
+
+
+def calculate_pricing(conn, org: str, payload: dict, *, booking=None):
+    source = {**(dict(booking) if booking else {}), **payload}
+    if booking:
+        source.setdefault("customer_id", booking["customer_id"])
+        source.setdefault("duty_type", booking["duty_type"])
+        source.setdefault("vehicle_group_code", booking["vehicle_group_code"] if "vehicle_group_code" in booking.keys() else "")
+        source.setdefault("city", _json(booking["pickup_json"], {}).get("city", ""))
+    contract_type = "supplier" if str(source.get("pricing_scope") or "").lower() == "supplier" or (source.get("supplier_id") and not source.get("customer_id")) else "customer"
+    contract = _active_contract(conn, org, source, contract_type)
+    rule = _select_rule(conn, org, source, contract)
+    auto_switch = _json(rule["auto_switch_json"], {}) if rule else {}
+    duration = max(0, int(_number(source.get("duration_minutes"), 0)))
+    distance = max(0.0, _number(source.get("distance_km"), 0))
+    duty_type = str(source.get("duty_type") or "local").lower()
+    requested_duty_type = duty_type
+    switch_items = auto_switch.get("rules", auto_switch.get("thresholds", [])) if isinstance(auto_switch, dict) else []
+    if isinstance(switch_items, list):
+        for item in switch_items:
+            if not isinstance(item, dict): continue
+            max_km = item.get("max_km", item.get("distance_km"))
+            max_minutes = item.get("max_minutes", item.get("duration_minutes"))
+            if (max_km is None or distance <= _number(max_km, distance)) and (max_minutes is None or duration <= int(_number(max_minutes, duration))):
+                duty_type = str(item.get("duty_type") or item.get("switch_to") or duty_type).lower()
+                break
+    if duty_type != requested_duty_type:
+        rule = _select_rule(conn, org, {**source, "duty_type": duty_type}, contract) or rule
+    package = int(source.get("package_minutes") or (rule["package_minutes"] if rule else 0) or 0)
+    included_km = _number(source.get("included_km"), _number(rule["included_km"], 0) if rule else 0)
+    base = int(source.get("base_paise") or (rule["base_paise"] if rule else 0) or 0)
+    extra_km_rate = int(source.get("extra_km_paise") or (rule["extra_km_paise"] if rule else 0) or 0)
+    extra_half_rate = int(source.get("extra_half_hour_paise") or (rule["extra_half_hour_paise"] if rule else 0) or 0)
+    extra_hour_rate = int(source.get("extra_hour_paise") or (rule["extra_hour_paise"] if rule else 0) or 0)
+    waiting = int(source.get("waiting_paise") or (rule["waiting_paise"] if rule else 0) or 0)
+    allowance = int(source.get("allowance_paise") or (rule["allowance_paise"] if rule else 0) or 0)
+    extra_km = max(0.0, distance - included_km)
+    extra_minutes = max(0, duration - package)
+    extra_half_blocks = (extra_minutes + 29) // 30 if extra_half_rate else 0
+    extra_hours = (extra_minutes + 59) // 60 if extra_hour_rate else 0
+    km_total = int(round(extra_km * extra_km_rate))
+    time_total = extra_half_blocks * extra_half_rate + extra_hours * extra_hour_rate
+    surcharge = calculate_fuel_surcharge(conn, org, source.get("customer_id"), source.get("vehicle_group") or source.get("vehicle_group_code"), source)
+    flat = int(source.get("flat_rate_paise") or source.get("flat_rate") or 0)
+    transport_total = flat if flat > 0 else base + km_total + time_total + waiting + allowance
+    total = transport_total + surcharge["amount_paise"]
+    return {
+        "contract_id": contract["id"] if contract else None,
+        "rule_id": rule["id"] if rule else None,
+        "duty_type": duty_type,
+        "currency": str(source.get("currency") or "INR").upper(),
+        "total_paise": total,
+        "breakdown": {
+            "flat_rate_paise": flat,
+            "base_paise": base,
+            "duration_minutes": duration,
+            "distance_km": distance,
+            "package_minutes": package,
+            "included_km": included_km,
+            "extra_km": extra_km,
+            "extra_km_paise": km_total,
+            "extra_half_hour_blocks": extra_half_blocks,
+            "extra_time_paise": time_total,
+            "waiting_paise": waiting,
+            "allowance_paise": allowance,
+            "fuel_surcharge": surcharge,
+            "automatic_duty_type_switch": duty_type != str(source.get("duty_type") or "local").lower(),
+        },
+    }
+
+
+def calculate_fuel_surcharge(conn, org: str, customer_id, vehicle_group, payload: dict):
+    customer_id = str(customer_id or "").strip() or None
+    vehicle_group = str(vehicle_group or "").strip().lower()
+    clauses = ["organization_id = ?", "status = 'active'", "effective_from <= ?"]
+    params = [org, now_iso()]
+    if customer_id:
+        clauses.append("(customer_id = ? OR customer_id IS NULL)"); params.append(customer_id)
+    if vehicle_group:
+        clauses.append("(vehicle_group = ? OR vehicle_group = '')"); params.append(vehicle_group)
+    rule = conn.execute(f"SELECT * FROM domain_customer_fuel_rules WHERE {' AND '.join(clauses)} ORDER BY CASE WHEN customer_id IS NULL THEN 1 ELSE 0 END, CASE WHEN vehicle_group = '' THEN 1 ELSE 0 END, effective_from DESC LIMIT 1", params).fetchone()
+    if not rule:
+        return {"amount_paise": 0, "status": "not_configured"}
+    fuel_type = str(rule["fuel_type"] or "petrol").lower()
+    city = str(payload.get("city") or payload.get("pickup_city") or "").lower()
+    rate_clauses = ["organization_id = ?", "fuel_type = ?"]
+    rate_params = [org, fuel_type]
+    if city:
+        rate_clauses.append("(city = ? OR city = '')"); rate_params.append(city)
+    rate = conn.execute(f"SELECT * FROM domain_fuel_rates WHERE {' AND '.join(rate_clauses)} AND effective_at <= ? ORDER BY CASE WHEN city = '' THEN 1 ELSE 0 END, effective_at DESC LIMIT 1", [*rate_params, now_iso()]).fetchone()
+    if not rate:
+        return {"amount_paise": 0, "status": "fuel_rate_missing", "rule_id": rule["id"]}
+    actual = int(rate["price_paise"])
+    agreed = int(rule["included_fuel_price_paise"] or 0)
+    average = max(0.1, _number(rule["average_km_per_litre"], 10))
+    distance = max(0.0, _number(payload.get("distance_km"), 0))
+    litres = distance / average
+    delta = max(0, actual - agreed) if str(rule["surcharge_mode"]) == "difference" else actual
+    amount = int(round(litres * delta))
+    if str(rule["surcharge_mode"]) == "percent":
+        amount = int(round(max(0, _number(payload.get("transport_total_paise"), 0)) * int(rule["rate_percent_bps"] or 0) / 10000))
+    return {"amount_paise": amount, "status": "calculated", "rule_id": rule["id"], "fuel_rate_id": rate["id"], "fuel_type": fuel_type, "actual_price_paise": actual, "agreed_price_paise": agreed, "average_km_per_litre": average, "distance_km": distance, "litres": litres}
+
+
+def _children_payload(conn, user, parent, payload, ip, action_type="split"):
+    org = _org(user)
+    parent_id = parent["id"]
+    group_id = parent["booking_group_id"] if "booking_group_id" in parent.keys() and parent["booking_group_id"] else parent_id
+    requested = payload.get("children") if isinstance(payload.get("children"), list) else payload.get("dates") if isinstance(payload.get("dates"), list) else []
+    if not requested:
+        requested = [{"scheduled_at": payload.get("scheduled_at") or parent["scheduled_at"], "end_at": payload.get("end_at")}]
+    if len(requested) > 365:
+        raise DomainError(400, "A booking can have at most 365 child bookings per request", "validation_error")
+    created = []
+    for index, raw in enumerate(requested, 1):
+        child = raw if isinstance(raw, dict) else {"scheduled_at": raw}
+        source = {
+            "booking_reference": f"{parent['booking_reference']}-{index:03d}",
+            "customer_id": parent["customer_id"],
+            "passenger_name": child.get("passenger_name", parent["passenger_name"]),
+            "passenger_phone": child.get("passenger_phone", parent["passenger_phone"]),
+            "passenger_email": child.get("passenger_email", parent["passenger_email"]),
+            "pickup": child.get("pickup", _json(parent["pickup_json"], {})),
+            "dropoff": child.get("dropoff", _json(parent["dropoff_json"], {})),
+            "scheduled_at": child.get("scheduled_at", parent["scheduled_at"]),
+            "start_at": child.get("start_at", child.get("scheduled_at", parent["scheduled_at"])),
+            "end_at": child.get("end_at", parent["end_at"] if "end_at" in parent.keys() else None),
+            "duty_type": child.get("duty_type", parent["duty_type"]),
+            "notes": child.get("notes", parent["notes"]),
+            "booking_type": "child",
+            "flat_rate_paise": child.get("flat_rate_paise", parent["flat_rate_paise"] if "flat_rate_paise" in parent.keys() else 0),
+            "pricing_contract_id": child.get("pricing_contract_id", parent["pricing_contract_id"] if "pricing_contract_id" in parent.keys() else None),
+            "vehicle_group_code": child.get("vehicle_group_code", parent["vehicle_group_code"] if "vehicle_group_code" in parent.keys() else ""),
+            "allotment_mode": child.get("allotment_mode", parent["allotment_mode"] if "allotment_mode" in parent.keys() else "owned"),
+        }
+        created.append(_create_enriched_booking(conn, user, source, ip, parent_id=parent_id, sequence=index, group_id=group_id)["item"])
+    conn.execute("UPDATE domain_bookings SET booking_type = CASE WHEN booking_type = 'single' THEN 'parent' ELSE booking_type END, booking_group_id = ?, updated_at = ? WHERE id = ? AND organization_id = ?", (group_id, now_iso(), parent_id, org))
+    _record_action(conn, user, org, parent_id, action_type, {"child_ids": [item["id"] for item in created], "count": len(created), **{key: value for key, value in payload.items() if key in {"idempotency_key", "mode"}}}, ip)
+    return {"ok": True, "parent": _booking(conn, parent_id, org), "items": created, "count": len(created)}
+
+
+def _create_dispatch(conn, user, booking_id, payload, ip, *, reallot=False):
+    org = _org(user); _require_role(user)
+    booking = _assert_owned(conn, "domain_bookings", booking_id, org)
+    mode = str(payload.get("allotment_mode") or payload.get("mode") or booking["allotment_mode"] or "owned").lower()
+    if mode == "own": mode = "owned"
+    if mode not in ALLOTMENT_MODES:
+        raise DomainError(400, "allotment_mode must be owned, company_supplier, dco or network", "validation_error")
+    supplier_id = str(payload.get("supplier_id") or "").strip() or None
+    if supplier_id:
+        _assert_owned(conn, "domain_suppliers", supplier_id, org)
+    network_profile_id = str(payload.get("network_vendor_profile_id") or payload.get("vendor_profile_id") or "").strip() or None
+    if mode == "network":
+        if not network_profile_id:
+            raise DomainError(400, "network_vendor_profile_id is required for Network allotment", "invite_required")
+        profile = conn.execute("SELECT * FROM domain_network_vendor_profiles WHERE id = ? AND organization_id = ? AND status = 'active'", (network_profile_id, org)).fetchone()
+        if not profile:
+            raise DomainError(403, "Network allotment requires an active invited vendor profile", "invite_required")
+        invite = conn.execute("SELECT status, expires_at FROM domain_network_invites WHERE id = ? AND organization_id = ?", (profile["invite_id"], org)).fetchone()
+        if not invite or invite["status"] != "accepted" or (invite["expires_at"] and _iso_datetime(invite["expires_at"], "invite.expires_at") <= datetime.now(timezone.utc)):
+            raise DomainError(403, "Network allotment requires an accepted, unexpired invite", "invite_required")
+    key = str(payload.get("idempotency_key") or "").strip() or None
+    if key:
+        replay = conn.execute("SELECT * FROM domain_booking_dispatches WHERE organization_id = ? AND idempotency_key = ?", (org, key)).fetchone()
+        if replay:
+            return {"ok": True, "item": _serialize(replay, ("dispatch_details_json",)), "idempotent_replay": True}
+    driver_id = str(payload.get("driver_id") or "").strip() or None
+    vehicle_id = str(payload.get("vehicle_id") or "").strip() or None
+    if driver_id: _assert_owned(conn, "domain_drivers", driver_id, org)
+    if vehicle_id: _assert_owned(conn, "domain_vehicles", vehicle_id, org)
+    status = "requested" if mode != "owned" or not (driver_id and vehicle_id) else "dispatched"
+    dispatch_id = new_id("dispatch"); now = now_iso()
+    expires = payload.get("expires_at") or (datetime.now(timezone.utc) + timedelta(hours=2)).isoformat().replace("+00:00", "Z")
+    conn.execute("INSERT INTO domain_booking_dispatches(id,organization_id,booking_id,allotment_mode,supplier_id,driver_id,vehicle_id,network_vendor_profile_id,status,response_status,dispatch_details_json,expires_at,idempotency_key,created_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (dispatch_id, org, booking_id, mode, supplier_id, driver_id, vehicle_id, network_profile_id, status, "pending", json.dumps(payload), expires, key, user["id"], now, now))
+    duty = None
+    if mode == "owned" and driver_id and vehicle_id:
+        duty = _create_duty(conn, user, {"booking_id": booking_id, "driver_id": driver_id, "vehicle_id": vehicle_id, "reporting_at": booking["scheduled_at"]}, ip)["item"]
+        conn.execute("UPDATE domain_duties SET allotment_mode = 'owned', dispatch_id = ? WHERE id = ?", (dispatch_id, duty["id"]))
+        status = "dispatched"
+    conn.execute("UPDATE domain_booking_dispatches SET status = ?, response_status = ? WHERE id = ?", (status, "sent" if mode != "owned" else "accepted", dispatch_id))
+    conn.execute("UPDATE domain_bookings SET allotment_mode = ?, status = ?, updated_at = ? WHERE id = ? AND organization_id = ?", (mode, "assigned" if duty else "dispatched", now, booking_id, org))
+    action_type = "reallot" if reallot else "dispatch"
+    _record_action(conn, user, org, booking_id, action_type, {**payload, "dispatch_id": dispatch_id, "status": status}, ip)
+    return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_booking_dispatches WHERE id = ?", (dispatch_id,)).fetchone(), ("dispatch_details_json",)), "duty": duty}
+
+
+def _allot_all(conn, user, booking_id, payload, ip, reallot=False):
+    org = _org(user); _require_role(user)
+    parent = _assert_owned(conn, "domain_bookings", booking_id, org)
+    child_rows = conn.execute("SELECT id FROM domain_bookings WHERE organization_id = ? AND (parent_booking_id = ? OR (booking_group_id = ? AND id <> ?)) ORDER BY child_sequence, scheduled_at, id", (org, booking_id, booking_id, booking_id)).fetchall()
+    target_ids = [booking_id] + [row["id"] for row in child_rows]
+    if not child_rows and parent["parent_booking_id"]:
+        target_ids = [parent["parent_booking_id"]]
+    results = []
+    for target_id in target_ids:
+        child_payload = dict(payload)
+        if reallot:
+            for duty in conn.execute("SELECT * FROM domain_duties WHERE organization_id = ? AND booking_id = ? AND status NOT IN ('completed','cancelled')", (org, target_id)).fetchall():
+                conn.execute("UPDATE domain_duties SET status = 'cancelled', updated_at = ? WHERE id = ?", (now_iso(), duty["id"]))
+                conn.execute("UPDATE domain_capacity_locks SET status = 'released' WHERE organization_id = ? AND booking_id = ? AND status = 'held'", (org, target_id))
+        mode = str(payload.get("allotment_mode") or payload.get("mode") or "owned").lower()
+        if mode in {"owned", "own"} and (payload.get("driver_id") or payload.get("vehicle_id") or not payload.get("supplier_id")):
+            result = _allot(conn, user, target_id, {**child_payload, "idempotency_key": f"{payload.get('idempotency_key', '')}:{target_id}" if payload.get("idempotency_key") else None}, ip)
+        else:
+            result = _create_dispatch(conn, user, target_id, child_payload, ip, reallot=reallot)
+        results.append({"booking_id": target_id, **result})
+    _record_action(conn, user, org, booking_id, "reallot" if reallot else "allot_all", {"booking_ids": target_ids, "allotment_mode": payload.get("allotment_mode") or payload.get("mode") or "owned", "idempotency_key": payload.get("idempotency_key")}, ip)
+    return {"ok": True, "booking_id": booking_id, "items": results, "count": len(results)}
+
+
+def _import_bookings(conn, user, payload, ip):
+    org = _org(user); _require_role(user)
+    key = str(payload.get("idempotency_key") or "").strip() or None
+    if key:
+        existing = conn.execute("SELECT * FROM domain_booking_imports WHERE organization_id = ? AND idempotency_key = ?", (org, key)).fetchone()
+        if existing:
+            return {"ok": True, "item": _serialize(existing, ("rows_json", "result_json")), "idempotent_replay": True}
+    raw_rows = payload.get("bookings") if isinstance(payload.get("bookings"), list) else payload.get("rows") if isinstance(payload.get("rows"), list) else []
+    source_format = str(payload.get("source_format") or "json").lower()
+    if not raw_rows and payload.get("csv"):
+        try:
+            raw_rows = list(csv.DictReader(io.StringIO(str(payload["csv"]))))
+            source_format = "csv"
+        except csv.Error as exc:
+            raise DomainError(400, "Invalid CSV input", "validation_error") from exc
+    if not raw_rows or len(raw_rows) > 500:
+        raise DomainError(400, "Provide between 1 and 500 booking rows", "validation_error")
+    import_id = new_id("booking_import"); now = now_iso()
+    conn.execute("INSERT INTO domain_booking_imports(id,organization_id,status,source_format,requested_count,rows_json,result_json,idempotency_key,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)", (import_id, org, "processing", source_format, len(raw_rows), json.dumps(raw_rows), "{}", key, user["id"], now))
+    results = []; imported = 0; failed = 0
+    for index, row in enumerate(raw_rows, 1):
+        try:
+            if not isinstance(row, dict): raise DomainError(400, "Each booking row must be an object", "validation_error")
+            item = _create_enriched_booking(conn, user, {**row, "source_import_id": import_id}, ip)["item"]
+            imported += 1; results.append({"row": index, "status": "imported", "item": item})
+        except DomainError as exc:
+            failed += 1; results.append({"row": index, "status": "error", "code": exc.code, "message": exc.message})
+    status = "completed" if not failed else "partial" if imported else "failed"
+    conn.execute("UPDATE domain_booking_imports SET status = ?, imported_count = ?, failed_count = ?, result_json = ? WHERE id = ?", (status, imported, failed, json.dumps({"rows": results}), import_id))
+    _audit(conn, user, "booking.imported", "booking_import", import_id, ip, {"requested": len(raw_rows), "imported": imported, "failed": failed})
+    return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_booking_imports WHERE id = ?", (import_id,)).fetchone(), ("rows_json", "result_json")), "rows": results, "imported": imported, "failed": failed}
+
+
+def _export_booking(conn, user, booking_id, ip):
+    org = _org(user); booking = _assert_owned(conn, "domain_bookings", booking_id, org)
+    rows = [booking, *conn.execute("SELECT * FROM domain_bookings WHERE organization_id = ? AND parent_booking_id = ? ORDER BY child_sequence", (org, booking_id)).fetchall()]
+    fields = ["id", "booking_reference", "status", "booking_type", "parent_booking_id", "scheduled_at", "start_at", "end_at", "duty_type", "passenger_name", "passenger_phone", "customer_id", "flat_rate_paise", "advance_paise", "allotment_mode"]
+    output = io.StringIO(); writer = csv.DictWriter(output, fieldnames=fields); writer.writeheader()
+    for row in rows:
+        data = dict(row); writer.writerow({field: data.get(field, "") for field in fields})
+    _record_action(conn, user, org, booking_id, "export", {"format": "csv"}, ip)
+    return {"ok": True, "format": "csv", "filename": f"{booking['booking_reference']}.csv", "content": output.getvalue(), "count": len(rows)}
+
+
+def _temporary_passenger(conn, user, booking_id, payload, ip):
+    org = _org(user); _require_role(user); booking = _assert_owned(conn, "domain_bookings", booking_id, org)
+    passenger = payload.get("passenger") if isinstance(payload.get("passenger"), dict) else payload
+    name = str(passenger.get("name") or passenger.get("passenger_name") or "").strip()
+    if not name: raise DomainError(400, "Temporary passenger name is required", "validation_error")
+    expires = payload.get("expires_at") or (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat().replace("+00:00", "Z")
+    _iso_datetime(expires, "expires_at")
+    pid = new_id("temporary_passenger"); now = now_iso()
+    conn.execute("INSERT INTO domain_temporary_passengers(id,organization_id,customer_id,name,phone,email,metadata_json,status,expires_at,created_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (pid, org, booking["customer_id"], name, str(passenger.get("phone") or passenger.get("passenger_phone") or ""), str(passenger.get("email") or passenger.get("passenger_email") or ""), json.dumps(passenger), "active", expires, user["id"], now, now))
+    conn.execute("UPDATE domain_bookings SET temporary_passenger_id = ?, passenger_name = ?, passenger_phone = ?, passenger_email = ?, passenger_json = ?, updated_at = ? WHERE id = ?", (pid, name, str(passenger.get("phone") or ""), str(passenger.get("email") or ""), json.dumps(passenger), now, booking_id))
+    action, replay = _record_action(conn, user, org, booking_id, "temporary_passenger", {**payload, "temporary_passenger_id": pid}, ip)
+    return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_temporary_passengers WHERE id = ?", (pid,)).fetchone(), ("metadata_json",)), "booking": _booking(conn, booking_id, org), "idempotent_replay": replay}
+
+
+def _temporary_allotment(conn, user, booking_id, payload, ip):
+    org = _org(user); _require_role(user); booking = _assert_owned(conn, "domain_bookings", booking_id, org)
+    mode = str(payload.get("allotment_mode") or payload.get("mode") or "owned").lower()
+    if mode == "own": mode = "owned"
+    if mode not in ALLOTMENT_MODES: raise DomainError(400, "Invalid allotment mode", "validation_error")
+    expires = payload.get("expires_at") or (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat().replace("+00:00", "Z")
+    _iso_datetime(expires, "expires_at")
+    supplier_id = str(payload.get("supplier_id") or "").strip() or None
+    if supplier_id: _assert_owned(conn, "domain_suppliers", supplier_id, org)
+    aid = new_id("temporary_allotment"); now = now_iso()
+    conn.execute("INSERT INTO domain_temporary_allotments(id,organization_id,booking_id,allotment_mode,supplier_id,driver_id,vehicle_id,status,details_json,expires_at,created_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", (aid, org, booking_id, mode, supplier_id, payload.get("driver_id"), payload.get("vehicle_id"), "active", json.dumps(payload), expires, user["id"], now, now))
+    conn.execute("UPDATE domain_bookings SET allotment_mode = ?, updated_at = ? WHERE id = ?", (mode, now, booking_id))
+    _record_action(conn, user, org, booking_id, "temporary_allotment", {**payload, "temporary_allotment_id": aid}, ip)
+    return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_temporary_allotments WHERE id = ?", (aid,)).fetchone(), ("details_json",))}
+
+
+def _expire_temporary(conn, org: str | None = None):
+    now = now_iso()
+    scope = " AND organization_id = ?" if org else ""
+    args = (now, now, org) if org else (now, now)
+    conn.execute(f"UPDATE domain_temporary_passengers SET status = 'expired', updated_at = ? WHERE status = 'active' AND expires_at <= ?{scope}", args)
+    conn.execute(f"UPDATE domain_temporary_allotments SET status = 'expired', updated_at = ? WHERE status = 'active' AND expires_at <= ?{scope}", args)
+
+
+def _pricing_routes(conn, user, method, route, payload, ip):
+    if not (route.startswith("/api/pricing/") or route in {"/api/fuel-rates", "/api/fuel-surcharge-rules"}): return None
+    org = _org(user); _require_role(user); _expire_temporary(conn, org)
+    if route == "/api/pricing/contracts":
+        if method == "GET":
+            rows = conn.execute("SELECT * FROM domain_booking_pricing_contracts WHERE organization_id = ? ORDER BY updated_at DESC", (org,)).fetchall()
+            return {"ok": True, "items": [_serialize(row, ("terms_json",)) for row in rows]}
+        if method == "POST":
+            contract_id = str(payload.get("id") or "").strip() or new_id("pricing_contract")
+            if payload.get("customer_id"): _assert_owned(conn, "domain_customers", str(payload["customer_id"]), org)
+            if payload.get("supplier_id"): _assert_owned(conn, "domain_suppliers", str(payload["supplier_id"]), org)
+            now = now_iso()
+            conn.execute("INSERT INTO domain_booking_pricing_contracts(id,organization_id,contract_type,customer_id,supplier_id,name,version,status,effective_from,effective_to,currency,terms_json,created_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name, status=excluded.status, effective_from=excluded.effective_from, effective_to=excluded.effective_to, currency=excluded.currency, terms_json=excluded.terms_json, updated_at=excluded.updated_at", (contract_id, org, str(payload.get("contract_type") or "customer"), payload.get("customer_id"), payload.get("supplier_id"), str(payload.get("name") or "Contract")[:160], int(payload.get("version") or 1), str(payload.get("status") or "active"), payload.get("effective_from") or now, payload.get("effective_to"), str(payload.get("currency") or "INR").upper(), json.dumps(payload.get("terms") if isinstance(payload.get("terms"), dict) else {}), user["id"], now, now))
+            _audit(conn, user, "pricing.contract_upserted", "pricing_contract", contract_id, ip, {"version": int(payload.get("version") or 1)})
+            return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_booking_pricing_contracts WHERE id = ?", (contract_id,)).fetchone(), ("terms_json",))}
+    match = re.match(r"^/api/pricing/contracts/([^/]+)/rules$", route)
+    if match:
+        contract_id = match.group(1); contract = _assert_owned(conn, "domain_booking_pricing_contracts", contract_id, org)
+        if method == "GET":
+            rows = conn.execute("SELECT * FROM domain_booking_pricing_rules WHERE organization_id = ? AND contract_id = ? ORDER BY id", (org, contract_id)).fetchall()
+            return {"ok": True, "items": [_serialize(row, ("auto_switch_json", "extras_json")) for row in rows]}
+        if method == "POST":
+            rule_id = str(payload.get("id") or "").strip() or new_id("pricing_rule"); now = now_iso()
+            conn.execute("INSERT INTO domain_booking_pricing_rules(id,organization_id,contract_id,city,vehicle_group,duty_type,package_minutes,included_km,base_paise,extra_km_paise,extra_hour_paise,extra_half_hour_paise,waiting_paise,allowance_paise,auto_switch_json,extras_json,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET city=excluded.city, vehicle_group=excluded.vehicle_group, duty_type=excluded.duty_type, package_minutes=excluded.package_minutes, included_km=excluded.included_km, base_paise=excluded.base_paise, extra_km_paise=excluded.extra_km_paise, extra_hour_paise=excluded.extra_hour_paise, extra_half_hour_paise=excluded.extra_half_hour_paise, waiting_paise=excluded.waiting_paise, allowance_paise=excluded.allowance_paise, auto_switch_json=excluded.auto_switch_json, extras_json=excluded.extras_json, updated_at=excluded.updated_at", (rule_id, org, contract_id, str(payload.get("city") or "").lower(), str(payload.get("vehicle_group") or "").lower(), str(payload.get("duty_type") or "").lower(), int(payload.get("package_minutes") or 0), _number(payload.get("included_km")), int(payload.get("base_paise") or 0), int(payload.get("extra_km_paise") or 0), int(payload.get("extra_hour_paise") or 0), int(payload.get("extra_half_hour_paise") or 0), int(payload.get("waiting_paise") or 0), int(payload.get("allowance_paise") or 0), json.dumps(payload.get("auto_switch") if isinstance(payload.get("auto_switch"), dict) else {}), json.dumps(payload.get("extras") if isinstance(payload.get("extras"), dict) else {}), now, now))
+            return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_booking_pricing_rules WHERE id = ?", (rule_id,)).fetchone(), ("auto_switch_json", "extras_json"))}
+    if route == "/api/pricing/quote" and method == "POST":
+        booking = None
+        booking_id = str(payload.get("booking_id") or "").strip()
+        if booking_id: booking = _assert_owned(conn, "domain_bookings", booking_id, org)
+        quote = calculate_pricing(conn, org, payload, booking=booking)
+        key = str(payload.get("idempotency_key") or "").strip() or None
+        if key:
+            replay = conn.execute("SELECT * FROM domain_booking_pricing_quotes WHERE organization_id = ? AND idempotency_key = ?", (org, key)).fetchone()
+            if replay: return {"ok": True, "item": _serialize(replay, ("breakdown_json",)), "idempotent_replay": True}
+        quote_id = new_id("pricing_quote"); now = now_iso()
+        conn.execute("INSERT INTO domain_booking_pricing_quotes(id,organization_id,booking_id,contract_id,duty_type,total_paise,breakdown_json,idempotency_key,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)", (quote_id, org, booking_id or None, quote["contract_id"], quote["duty_type"], quote["total_paise"], json.dumps(quote["breakdown"]), key, user["id"], now))
+        if booking_id:
+            conn.execute("UPDATE domain_bookings SET pricing_contract_id = ?, pricing_snapshot_json = ?, duty_type = ?, updated_at = ? WHERE id = ?", (quote["contract_id"], json.dumps(quote), quote["duty_type"], now, booking_id))
+        return {"ok": True, "item": {**quote, "id": quote_id, "booking_id": booking_id}}
+    if route == "/api/fuel-rates":
+        if method == "GET":
+            rows = conn.execute("SELECT * FROM domain_fuel_rates WHERE organization_id = ? ORDER BY effective_at DESC", (org,)).fetchall()
+            return {"ok": True, "items": [_serialize(row) for row in rows]}
+        if method == "POST":
+            rate_id = str(payload.get("id") or "").strip() or new_id("fuel_rate"); now = now_iso()
+            conn.execute("INSERT INTO domain_fuel_rates(id,organization_id,city,fuel_type,price_paise,effective_at,source,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?)", (rate_id, org, str(payload.get("city") or "").lower(), str(payload.get("fuel_type") or "petrol").lower(), int(payload.get("price_paise") or 0), payload.get("effective_at") or now, str(payload.get("source") or "manual"), user["id"], now))
+            return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_fuel_rates WHERE id = ?", (rate_id,)).fetchone())}
+    if route == "/api/fuel-surcharge-rules":
+        if method == "GET":
+            rows = conn.execute("SELECT * FROM domain_customer_fuel_rules WHERE organization_id = ? ORDER BY updated_at DESC", (org,)).fetchall()
+            return {"ok": True, "items": [_serialize(row) for row in rows]}
+        if method == "POST":
+            if payload.get("customer_id"): _assert_owned(conn, "domain_customers", str(payload["customer_id"]), org)
+            rule_id = str(payload.get("id") or "").strip() or new_id("fuel_rule"); now = now_iso()
+            conn.execute("INSERT INTO domain_customer_fuel_rules(id,organization_id,customer_id,contract_id,vehicle_group,fuel_type,included_fuel_price_paise,average_km_per_litre,surcharge_mode,rate_percent_bps,status,effective_from,effective_to,created_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (rule_id, org, payload.get("customer_id"), payload.get("contract_id"), str(payload.get("vehicle_group") or "").lower(), str(payload.get("fuel_type") or "petrol").lower(), int(payload.get("included_fuel_price_paise") or 0), _number(payload.get("average_km_per_litre"), 10), str(payload.get("surcharge_mode") or "difference"), int(payload.get("rate_percent_bps") or 0), str(payload.get("status") or "active"), payload.get("effective_from") or now, payload.get("effective_to"), user["id"], now, now))
+            return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_customer_fuel_rules WHERE id = ?", (rule_id,)).fetchone())}
+    return None
+
+
+def _action_routes(conn, user, method, route, payload, ip):
+    match = re.match(r"^/api/bookings/([^/]+)/(.*)$", route)
+    if not match: return None
+    booking_id, suffix = match.group(1), match.group(2)
+    org = _org(user)
+    booking = _assert_owned(conn, "domain_bookings", booking_id, org)
+    _expire_temporary(conn, org)
+    if suffix == "children" and method == "GET":
+        rows = conn.execute("SELECT * FROM domain_bookings WHERE organization_id = ? AND (parent_booking_id = ? OR (booking_group_id = ? AND id <> ?)) ORDER BY child_sequence, scheduled_at, id", (org, booking_id, booking_id, booking_id)).fetchall()
+        return {"ok": True, "items": [_serialize(row, ("pickup_json", "dropoff_json", "passenger_json", "pricing_snapshot_json")) for row in rows]}
+    if suffix in {"children", "split"} and method == "POST":
+        return _children_payload(conn, user, booking, payload, ip, action_type="split" if suffix == "split" else "children")
+    if suffix in {"confirm", "confirmation"} and method == "POST":
+        action, replay = _record_action(conn, user, org, booking_id, "confirm", payload, ip)
+        if not replay:
+            conn.execute("UPDATE domain_bookings SET status = 'confirmed', confirmation_status = 'confirmed', confirmed_at = ?, updated_at = ? WHERE id = ?", (now_iso(), now_iso(), booking_id))
+        return {"ok": True, "item": _booking(conn, booking_id, org), "action": action, "idempotent_replay": replay}
+    if suffix == "unconfirm" and method == "POST":
+        action, replay = _record_action(conn, user, org, booking_id, "unconfirm", payload, ip)
+        if not replay: conn.execute("UPDATE domain_bookings SET status = 'requested', confirmation_status = 'pending', confirmed_at = NULL, updated_at = ? WHERE id = ?", (now_iso(), booking_id))
+        return {"ok": True, "item": _booking(conn, booking_id, org), "action": action, "idempotent_replay": replay}
+    if suffix == "delete" and method == "POST":
+        action, replay = _record_action(conn, user, org, booking_id, "delete", payload, ip)
+        if not replay: conn.execute("UPDATE domain_bookings SET status = 'deleted', deleted_at = ?, deleted_by = ?, updated_at = ? WHERE id = ?", (now_iso(), user["id"], now_iso(), booking_id))
+        return {"ok": True, "item": _booking(conn, booking_id, org), "action": action, "idempotent_replay": replay}
+    if suffix == "restore" and method == "POST":
+        action, replay = _record_action(conn, user, org, booking_id, "restore", payload, ip)
+        if not replay: conn.execute("UPDATE domain_bookings SET status = 'requested', deleted_at = NULL, deleted_by = NULL, updated_at = ? WHERE id = ?", (now_iso(), booking_id))
+        return {"ok": True, "item": _booking(conn, booking_id, org), "action": action, "idempotent_replay": replay}
+    if suffix == "print" and method in {"GET", "POST"}:
+        action, _ = _record_action(conn, user, org, booking_id, "print", payload, ip)
+        item = _booking(conn, booking_id, org)
+        return {"ok": True, "format": "html", "action": action, "item": item, "print_html": f"<article><h1>{item['booking_reference']}</h1><p>{item.get('passenger_name','')}</p><p>{item.get('scheduled_at') or ''}</p></article>"}
+    if suffix == "briefing":
+        if method == "GET":
+            rows = conn.execute("SELECT * FROM domain_booking_briefings WHERE organization_id = ? AND booking_id = ? ORDER BY version DESC", (org, booking_id)).fetchall()
+            return {"ok": True, "items": [_serialize(row, ("briefing_json",)) for row in rows]}
+        if method == "POST":
+            version = int(conn.execute("SELECT COALESCE(MAX(version),0)+1 AS version FROM domain_booking_briefings WHERE organization_id = ? AND booking_id = ?", (org, booking_id)).fetchone()["version"])
+            briefing = payload.get("briefing") if isinstance(payload.get("briefing"), dict) else payload
+            bid = new_id("briefing"); now = now_iso()
+            conn.execute("INSERT INTO domain_booking_briefings(id,organization_id,booking_id,version,status,briefing_json,created_by,created_at) VALUES (?,?,?,?,?,?,?,?)", (bid, org, booking_id, version, str(payload.get("status") or "published"), json.dumps(briefing), user["id"], now))
+            action, _ = _record_action(conn, user, org, booking_id, "briefing", {"briefing_id": bid, "version": version}, ip)
+            return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_booking_briefings WHERE id = ?", (bid,)).fetchone(), ("briefing_json",)), "action": action}
+    if suffix == "advance" and method == "POST":
+        amount = int(payload.get("amount_paise") or payload.get("amount") or 0)
+        if amount < 0: raise DomainError(400, "Advance cannot be negative", "validation_error")
+        key = str(payload.get("idempotency_key") or "").strip() or None
+        if key:
+            replay = conn.execute("SELECT * FROM domain_booking_advances WHERE organization_id = ? AND idempotency_key = ?", (org, key)).fetchone()
+            if replay: return {"ok": True, "item": _serialize(replay, ("payload_json",)), "idempotent_replay": True}
+        advance_id = new_id("advance"); now = now_iso()
+        conn.execute("INSERT INTO domain_booking_advances(id,organization_id,booking_id,amount_paise,currency,status,mode,reference,payload_json,idempotency_key,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (advance_id, org, booking_id, amount, str(payload.get("currency") or "INR"), str(payload.get("status") or "requested"), str(payload.get("mode") or "manual"), str(payload.get("reference") or ""), json.dumps(payload), key, user["id"], now))
+        conn.execute("UPDATE domain_bookings SET advance_paise = COALESCE(advance_paise,0) + ?, updated_at = ? WHERE id = ?", (amount, now, booking_id))
+        action, _ = _record_action(conn, user, org, booking_id, "advance", {"advance_id": advance_id, "amount_paise": amount}, ip)
+        return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_booking_advances WHERE id = ?", (advance_id,)).fetchone(), ("payload_json",)), "action": action}
+    if suffix == "attachments":
+        if method == "GET":
+            rows = conn.execute("SELECT * FROM domain_booking_attachments WHERE organization_id = ? AND booking_id = ? ORDER BY created_at DESC", (org, booking_id)).fetchall()
+            return {"ok": True, "items": [_serialize(row, ("metadata_json",)) for row in rows]}
+        if method == "POST":
+            content = payload.get("content") or payload.get("data") or ""
+            raw = str(content).encode()
+            attachment_id = new_id("attachment"); now = now_iso()
+            conn.execute("INSERT INTO domain_booking_attachments(id,organization_id,booking_id,filename,content_type,storage_path,sha256,size_bytes,status,metadata_json,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (attachment_id, org, booking_id, str(payload.get("filename") or "attachment"), str(payload.get("content_type") or "application/octet-stream"), str(payload.get("storage_path") or f"bookings/{booking_id}/{attachment_id}"), __import__("hashlib").sha256(raw).hexdigest(), len(raw), "active", json.dumps(payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}), user["id"], now))
+            action, _ = _record_action(conn, user, org, booking_id, "attachment", {"attachment_id": attachment_id, "filename": payload.get("filename")}, ip)
+            return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_booking_attachments WHERE id = ?", (attachment_id,)).fetchone(), ("metadata_json",)), "action": action}
+    if suffix == "export" and method == "GET": return _export_booking(conn, user, booking_id, ip)
+    if suffix == "allot-all" and method == "POST": return _allot_all(conn, user, booking_id, payload, ip)
+    if suffix in {"reallot", "re-allot"} and method == "POST": return _allot_all(conn, user, booking_id, payload, ip, reallot=True)
+    if suffix == "dispatches" and method == "GET":
+        rows = conn.execute("SELECT * FROM domain_booking_dispatches WHERE organization_id = ? AND booking_id = ? ORDER BY updated_at DESC", (org, booking_id)).fetchall()
+        return {"ok": True, "items": [_serialize(row, ("dispatch_details_json",)) for row in rows]}
+    if suffix in {"dispatch", "supplier-dispatch"} and method == "POST": return _create_dispatch(conn, user, booking_id, payload, ip)
+    if suffix in {"temporary-passenger", "temporary-passengers"} and method == "POST": return _temporary_passenger(conn, user, booking_id, payload, ip)
+    if suffix in {"temporary-allotment", "temporary-allotments"} and method == "POST": return _temporary_allotment(conn, user, booking_id, payload, ip)
+    if suffix == "pricing" and method == "POST":
+        quote = calculate_pricing(conn, org, payload, booking=booking)
+        conn.execute("UPDATE domain_bookings SET pricing_contract_id = ?, pricing_snapshot_json = ?, duty_type = ?, updated_at = ? WHERE id = ?", (quote["contract_id"], json.dumps(quote), quote["duty_type"], now_iso(), booking_id))
+        return {"ok": True, "item": quote, "booking": _booking(conn, booking_id, org)}
+    if suffix == "actions" and method == "GET":
+        rows = conn.execute("SELECT * FROM domain_booking_actions WHERE organization_id = ? AND booking_id = ? ORDER BY created_at DESC", (org, booking_id)).fetchall()
+        return {"ok": True, "items": [_serialize(row, ("payload_json",)) for row in rows]}
+    return None
+
+
+def _duty_state_routes(conn, user, method, route, payload, ip):
+    duty_match = re.match(r"^/api/duties/([^/]+)/arrival$", route)
+    if duty_match and method == "POST":
+        org = _org(user); _require_role(user)
+        duty_id = duty_match.group(1)
+        duty = _assert_owned(conn, "domain_duties", duty_id, org)
+        key = str(payload.get("idempotency_key") or "").strip() or None
+        if key:
+            replay = conn.execute("SELECT * FROM domain_duty_events WHERE organization_id = ? AND duty_id = ? AND idempotency_key = ?", (org, duty_id, key)).fetchone()
+            if replay:
+                return {"ok": True, "item": _serialize(replay, ("payload_json",)), "idempotent_replay": True}
+        event_id = new_id("duty_event"); now = now_iso()
+        conn.execute("INSERT INTO domain_duty_events(id,organization_id,duty_id,event_type,source,payload_json,idempotency_key,event_at,created_by) VALUES (?,?,?,?,?,?,?,?,?)", (event_id, org, duty_id, "arrival", str(payload.get("source") or "web"), json.dumps(payload), key, payload.get("arrival_at") or now, user["id"]))
+        conn.execute("UPDATE domain_duties SET arrival_at = ?, arrival_status = ?, status = CASE WHEN status IN ('draft','assigned','dispatched') THEN 'arrived' ELSE status END, updated_at = ? WHERE id = ?", (payload.get("arrival_at") or now, str(payload.get("arrival_status") or "arrived"), now, duty_id))
+        booking_id = duty["booking_id"]
+        _record_action(conn, user, org, booking_id, "arrival", {"duty_id": duty_id, **payload}, ip)
+        return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_duties WHERE id = ?", (duty_id,)).fetchone()), "event": _serialize(conn.execute("SELECT * FROM domain_duty_events WHERE id = ?", (event_id,)).fetchone(), ("payload_json",))}
+    dispatch_match = re.match(r"^/api/booking-dispatches/([^/]+)/respond$", route)
+    if dispatch_match and method == "POST":
+        org = _org(user); _require_role(user)
+        dispatch_id = dispatch_match.group(1)
+        dispatch = _assert_owned(conn, "domain_booking_dispatches", dispatch_id, org)
+        response = str(payload.get("response_status") or payload.get("status") or "accepted").lower()
+        if response not in {"accepted", "rejected", "expired", "countered"}:
+            raise DomainError(400, "response_status must be accepted, rejected, expired or countered", "validation_error")
+        now = now_iso()
+        conn.execute("UPDATE domain_booking_dispatches SET response_status = ?, status = ?, dispatch_details_json = ?, updated_at = ? WHERE id = ?", (response, "accepted" if response == "accepted" else "rejected" if response == "rejected" else "requested", json.dumps({**_json(dispatch["dispatch_details_json"], {}), "response": payload}), now, dispatch_id))
+        _audit(conn, user, "booking.dispatch_responded", "booking_dispatch", dispatch_id, ip, {"response_status": response})
+        return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_booking_dispatches WHERE id = ?", (dispatch_id,)).fetchone(), ("dispatch_details_json",))}
+    if route == "/api/booking-dispatches" and method == "GET":
+        org = _org(user); _require_role(user)
+        rows = conn.execute("SELECT * FROM domain_booking_dispatches WHERE organization_id = ? ORDER BY updated_at DESC", (org,)).fetchall()
+        return {"ok": True, "items": [_serialize(row, ("dispatch_details_json",)) for row in rows]}
+    return None
+
+
+def handle_booking_parity(conn, user, method: str, raw_route: str, payload: dict, ip: str):
+    route = urlsplit(raw_route).path.rstrip("/") or "/"
+    duty_result = _duty_state_routes(conn, user, method, route, payload, ip)
+    if duty_result is not None: return duty_result
+    pricing_result = _pricing_routes(conn, user, method, route, payload, ip)
+    if pricing_result is not None: return pricing_result
+    if route == "/api/bookings" and method == "POST":
+        return _create_enriched_booking(conn, user, payload, ip)
+    booking_root = re.match(r"^/api/bookings/([^/]+)$", route)
+    if booking_root and method == "PATCH":
+        booking_id = booking_root.group(1)
+        standard_fields = {"customer_id", "passenger_name", "passenger_phone", "passenger_email", "scheduled_at", "duty_type", "notes", "status", "pickup", "dropoff"}
+        result = _update_booking(conn, user, booking_id, {key: value for key, value in payload.items() if key in standard_fields}, ip) if standard_fields.intersection(payload) else {"ok": True, "item": _booking(conn, booking_id, _org(user))}
+        item = apply_booking_metadata(conn, user, booking_id, payload, ip)
+        return {**result, "item": item}
+    if route == "/api/bookings/import" and method == "POST": return _import_bookings(conn, user, payload, ip)
+    if route == "/api/bookings/imports" and method == "GET":
+        org = _org(user); _require_role(user)
+        rows = conn.execute("SELECT * FROM domain_booking_imports WHERE organization_id = ? ORDER BY created_at DESC", (org,)).fetchall()
+        return {"ok": True, "items": [_serialize(row, ("rows_json", "result_json")) for row in rows]}
+    if route == "/api/temporary-passengers" and method == "GET":
+        org = _org(user); _require_role(user)
+        rows = conn.execute("SELECT * FROM domain_temporary_passengers WHERE organization_id = ? ORDER BY created_at DESC", (org,)).fetchall()
+        return {"ok": True, "items": [_serialize(row, ("metadata_json",)) for row in rows]}
+    if route == "/api/temporary-allotments" and method == "GET":
+        org = _org(user); _require_role(user)
+        rows = conn.execute("SELECT * FROM domain_temporary_allotments WHERE organization_id = ? ORDER BY created_at DESC", (org,)).fetchall()
+        return {"ok": True, "items": [_serialize(row, ("details_json",)) for row in rows]}
+    action_result = _action_routes(conn, user, method, route, payload, ip)
+    if action_result is not None: return action_result
+    return None
+
+
+def cleanup_expired_booking_state(conn):
+    """Public helper for maintenance jobs and tests."""
+    _expire_temporary(conn)
+
+
+__all__ = [
+    "initialize_booking_parity_schema", "handle_booking_parity", "apply_booking_metadata",
+    "calculate_pricing", "calculate_fuel_surcharge", "cleanup_expired_booking_state",
+]

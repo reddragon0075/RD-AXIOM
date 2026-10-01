@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 import uuid
 from datetime import datetime, timezone
 from urllib.parse import parse_qs, urlsplit
@@ -12,12 +13,18 @@ from domain_engine import CalculationError, calculate_duty
 from provider_adapters import DEFAULT_PROVIDERS
 
 
+MAX_EXPENSE_PAISE = 100_000_000
+EXPENSE_CATEGORIES = {"parking", "toll", "fuel", "other"}
+MAX_PROOF_NOTE_LENGTH = 500
+
+
 class DomainError(Exception):
-    def __init__(self, status: int, message: str, code: str = "domain_error"):
+    def __init__(self, status: int, message: str, code: str = "domain_error", details=None):
         super().__init__(message)
         self.status = status
         self.message = message
         self.code = code
+        self.details = details
 
 
 def now_iso() -> str:
@@ -94,6 +101,7 @@ def initialize_domain_schema(conn) -> None:
             status TEXT NOT NULL DEFAULT 'requested',
             passenger_name TEXT NOT NULL DEFAULT '',
             passenger_phone TEXT NOT NULL DEFAULT '',
+            passenger_email TEXT NOT NULL DEFAULT '',
             pickup_json TEXT NOT NULL DEFAULT '{}',
             dropoff_json TEXT NOT NULL DEFAULT '{}',
             scheduled_at TEXT,
@@ -247,6 +255,9 @@ def initialize_domain_schema(conn) -> None:
     # Additive local migrations keep existing SQLite previews usable while the
     # Supabase vehicles table remains the production source of truth.
     vehicle_columns = {row["name"] for row in conn.execute("PRAGMA table_info(domain_vehicles)").fetchall()}
+    booking_columns = {row["name"] for row in conn.execute("PRAGMA table_info(domain_bookings)").fetchall()}
+    if "passenger_email" not in booking_columns:
+        conn.execute("ALTER TABLE domain_bookings ADD COLUMN passenger_email TEXT NOT NULL DEFAULT ''")
     for column, definition in {
         "vehicle_group": "TEXT NOT NULL DEFAULT ''",
         "year": "INTEGER",
@@ -313,9 +324,11 @@ def _int(payload, key, default=0):
     value = payload.get(key, default)
     if value in (None, ""):
         return default
+    if isinstance(value, bool) or isinstance(value, float) and not value.is_integer():
+        raise DomainError(400, f"{key} must be an integer", "validation_error")
     try:
         value = int(value)
-    except (ValueError, TypeError) as exc:
+    except (ValueError, TypeError, OverflowError) as exc:
         raise DomainError(400, f"{key} must be an integer", "validation_error") from exc
     if value < 0:
         raise DomainError(400, f"{key} cannot be negative", "validation_error")
@@ -427,6 +440,30 @@ def _invoice(conn, invoice_id, org):
     return data
 
 
+def _update_booking(conn, user, booking_id, payload, ip):
+    org = _org(user)
+    _require_role(user)
+    row = _assert_owned(conn, "domain_bookings", booking_id, org)
+    updates = []
+    if "customer_id" in payload:
+        customer_id = _text(payload, "customer_id") or None
+        if customer_id:
+            _assert_owned(conn, "domain_customers", customer_id, org)
+        updates.append(("customer_id", customer_id))
+    for key in ("passenger_name", "passenger_phone", "passenger_email", "scheduled_at", "duty_type", "notes", "status"):
+        if key in payload:
+            updates.append((key, _text(payload, key, maximum=500)))
+    for key, json_key in (("pickup_json", "pickup"), ("dropoff_json", "dropoff")):
+        if json_key in payload and isinstance(payload[json_key], dict):
+            updates.append((key, json.dumps(payload[json_key])))
+    if not updates:
+        raise DomainError(400, "No booking fields supplied", "validation_error")
+    updates.append(("updated_at", now_iso()))
+    conn.execute(f"UPDATE domain_bookings SET {', '.join(f'{key} = ?' for key, _ in updates)} WHERE id = ?", [value for _, value in updates] + [booking_id])
+    _audit(conn, user, "booking.updated", "booking", booking_id, ip, {key: value for key, value in updates if key not in {"pickup_json", "dropoff_json"}})
+    return {"ok": True, "item": _booking(conn, booking_id, org)}
+
+
 def _create_customer(conn, user, payload, ip):
     org = _org(user)
     _require_role(user)
@@ -512,10 +549,10 @@ def _create_booking(conn, user, payload, ip):
     booking_id = new_id("book")
     conn.execute(
         """
-        INSERT INTO domain_bookings(id, organization_id, customer_id, booking_reference, status, passenger_name, passenger_phone, pickup_json, dropoff_json, scheduled_at, duty_type, notes, created_by, created_at, updated_at)
-        VALUES (?, ?, ?, ?, 'requested', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO domain_bookings(id, organization_id, customer_id, booking_reference, status, passenger_name, passenger_phone, passenger_email, pickup_json, dropoff_json, scheduled_at, duty_type, notes, created_by, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 'requested', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (booking_id, org, customer_id, reference, _text(payload, "passenger_name"), _text(payload, "passenger_phone"), json.dumps(pickup), json.dumps(dropoff), _text(payload, "scheduled_at") or None, _text(payload, "duty_type", "local"), _text(payload, "notes"), user["id"], now, now),
+        (booking_id, org, customer_id, reference, _text(payload, "passenger_name"), _text(payload, "passenger_phone"), _text(payload, "passenger_email", maximum=254).lower(), json.dumps(pickup), json.dumps(dropoff), _text(payload, "scheduled_at") or None, _text(payload, "duty_type", "local"), _text(payload, "notes"), user["id"], now, now),
     )
     _audit(conn, user, "booking.created", "booking", booking_id, ip, {"reference": reference})
     return {"ok": True, "item": _booking(conn, booking_id, org)}
@@ -561,7 +598,9 @@ def _create_duty(conn, user, payload, ip):
     org = _org(user)
     _require_role(user)
     booking_id = _text(payload, "booking_id")
-    _assert_owned(conn, "domain_bookings", booking_id, org)
+    booking = _assert_owned(conn, "domain_bookings", booking_id, org)
+    if booking["status"] == "pending_approval":
+        raise DomainError(409, "Booking approval is required before a duty can be assigned", "booking_approval_required")
     driver_id = _text(payload, "driver_id") or None
     vehicle_id = _text(payload, "vehicle_id") or None
     if driver_id:
@@ -652,13 +691,16 @@ def _create_expense(conn, user, duty_id, payload, ip):
     else: _require_role(user)
     amount = _int(payload, "amount_paise")
     if amount <= 0: raise DomainError(400, "Expense amount must be greater than zero", "validation_error")
-    category = _text(payload, "category", "other", maximum=40)
+    if amount > MAX_EXPENSE_PAISE: raise DomainError(400, "Expense amount exceeds the allowed business limit", "amount_limit_exceeded")
+    category = _text(payload, "category", "other", maximum=40).lower()
+    if category not in EXPENSE_CATEGORIES: raise DomainError(400, "Unsupported expense category", "validation_error")
+    note = _text(payload, "note", maximum=MAX_PROOF_NOTE_LENGTH)
     key = _text(payload, "idempotency_key", maximum=160) or None
     if key:
         existing = conn.execute("SELECT * FROM domain_expenses WHERE organization_id = ? AND idempotency_key = ?", (org, key)).fetchone()
         if existing: return {"ok": True, "item": _serialize(existing, ("attachment_json",)), "idempotent": True}
     expense_id = new_id("expense"); now = now_iso()
-    conn.execute("INSERT INTO domain_expenses(id, organization_id, duty_id, category, amount_paise, note, attachment_json, idempotency_key, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (expense_id, org, duty_id, category, amount, _text(payload, "note", maximum=500), json.dumps(payload.get("attachment") if isinstance(payload.get("attachment"), dict) else {}), key, user["id"], now))
+    conn.execute("INSERT INTO domain_expenses(id, organization_id, duty_id, category, amount_paise, note, attachment_json, idempotency_key, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (expense_id, org, duty_id, category, amount, note, json.dumps(payload.get("attachment") if isinstance(payload.get("attachment"), dict) else {}), key, user["id"], now))
     _audit(conn, user, "duty.expense_submitted", "expense", expense_id, ip, {"duty_id": duty_id, "amount_paise": amount, "category": category})
     return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_expenses WHERE id = ?", (expense_id,)).fetchone(), ("attachment_json",))}
 
@@ -684,6 +726,13 @@ def _create_duty_proof(conn, user, duty_id, payload, ip):
     proof_data = payload.get("proof_data") if isinstance(payload.get("proof_data"), dict) else {}
     if not proof_data:
         proof_data = {key: payload[key] for key in ("otp", "recipient_name", "signature_text", "attachment_name", "attachment_size", "note") if key in payload}
+    if proof_type == "otp":
+        otp = str(proof_data.get("code") or proof_data.get("otp") or "").strip()
+        if not re.fullmatch(r"[0-9]{4,6}", otp):
+            raise DomainError(400, "OTP must contain 4 to 6 digits", "validation_error")
+        proof_data = {**proof_data, "code": otp}
+    if "note" in proof_data and len(str(proof_data.get("note") or "")) > MAX_PROOF_NOTE_LENGTH:
+        raise DomainError(400, "Proof note is too long", "validation_error")
     encoded = json.dumps(proof_data, separators=(",", ":"))
     if len(encoded) > 100_000:
         raise DomainError(413, "Proof payload is too large", "payload_too_large")
@@ -904,6 +953,7 @@ def handle_domain(conn, user, method: str, raw_route: str, payload: dict, ip: st
         resource, entity_id = parts[2], parts[3]
         if resource == "bookings" and method == "GET":
             return {"ok": True, "item": _booking(conn, entity_id, _org(user))}
+        if resource == "bookings" and method == "PATCH": return _update_booking(conn, user, entity_id, payload, ip)
         if resource == "duties" and method == "GET": return {"ok": True, "item": _duty(conn, entity_id, _org(user))}
         if resource == "duties" and len(parts) == 5 and parts[4] == "events" and method == "GET":
             org = _org(user); _assert_owned(conn, "domain_duties", entity_id, org); return {"ok": True, "items": [_serialize(row, ("payload_json",)) for row in conn.execute("SELECT * FROM domain_duty_events WHERE organization_id = ? AND duty_id = ? ORDER BY event_at DESC", (org, entity_id)).fetchall()]}

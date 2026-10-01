@@ -92,6 +92,30 @@ class MockMapsProvider:
             "polyline": "mock-polyline",
         })
 
+    def places(self, *, query: str, location: dict[str, Any] | None = None) -> ProviderResult:
+        """Google Places-compatible contract without making a network call."""
+        digest = hashlib.sha256(query.strip().lower().encode()).hexdigest()
+        latitude = round(8 + int(digest[:2], 16) / 255 * 22, 6)
+        longitude = round(68 + int(digest[2:4], 16) / 255 * 30, 6)
+        return ProviderResult(True, "resolved", self.name, "mock_place_" + digest[:16], {
+            "query": query,
+            "location": location or {},
+            "predictions": [{
+                "place_id": "mock_place_id_" + digest[:18],
+                "description": query.strip(),
+                "location": {"latitude": latitude, "longitude": longitude},
+                "provider": self.name,
+            }],
+        })
+
+    def navigation(self, *, pickup: dict[str, Any], dropoff: dict[str, Any], waypoints: list[dict[str, Any]] | None = None, mode: str = "driving") -> ProviderResult:
+        routed = self.route(pickup=pickup, dropoff=dropoff, waypoints=waypoints)
+        return ProviderResult(routed.ok, "ready", self.name, "mock_nav_" + hashlib.sha256(repr([pickup, dropoff, waypoints, mode]).encode()).hexdigest()[:16], {
+            **routed.payload,
+            "mode": mode,
+            "deep_link": "https://maps.google.com/?api=1&destination=" + str(dropoff.get("label") or dropoff.get("latitude") or ""),
+        })
+
 
 class MockEInvoiceProvider:
     name = "mock_einvoice"

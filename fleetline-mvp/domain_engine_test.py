@@ -42,12 +42,17 @@ def main() -> None:
     else:
         raise AssertionError("negative monetary input should be rejected")
 
-    try:
-        calculate_duty({"base_paise": 1_000_000_001})
-    except CalculationError:
-        print("PASS monetary input exceeding 1,000,000,000 is rejected")
-    else:
-        raise AssertionError("monetary input exceeding 1,000,000,000 should be rejected")
+    for invalid, label in [
+        ({"distance_km": 1_000_001}, "distance business ceiling"),
+        ({"base_paise": 1.5}, "fractional monetary input"),
+        ({"tax_rate_bps": 10_001}, "tax-rate ceiling"),
+    ]:
+        try:
+            calculate_duty(invalid)
+        except CalculationError:
+            print("PASS", label, "is rejected")
+        else:
+            raise AssertionError(f"{label} should be rejected")
 
     print("RESULT calculation engine tests passed")
 

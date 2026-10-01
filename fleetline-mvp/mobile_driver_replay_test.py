@@ -32,7 +32,7 @@ def main() -> None:
     base = f"http://127.0.0.1:{port}"
     with tempfile.TemporaryDirectory(prefix="axiom-fleet-driver-replay-") as temp_dir:
         env = os.environ.copy()
-        env.update({"PORT": str(port), "AXIOM_DB_PATH": str(Path(temp_dir) / "axiom.sqlite3")})
+        env.update({"AXIOM_TEST_FIXTURES": "1", "PORT": str(port), "AXIOM_DB_PATH": str(Path(temp_dir) / "axiom.sqlite3")})
         process = subprocess.Popen(["python3", "server.py"], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         try:
             for _ in range(60):

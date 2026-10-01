@@ -7,7 +7,7 @@ A clickable first slice of the Car Rental Operations Platform described in `tech
 The prototype now has a public/private split:
 
 - Public marketing site is the default view for unauthenticated visitors.
-- The public site now covers the full ecosystem input: corporate travel, car-rental operations, passenger and driver apps, offline operations, live tracking, approvals, duty proofs, GST/e-invoice/Tally, payments and collections, reporting, network transactions and white-label readiness.
+- The public site now covers the full ecosystem input: corporate travel, car-rental operations, passenger and driver apps, offline operations, live tracking, approvals, duty proofs, GST/e-invoice, CSV/JSON exports, payments and collections, reporting, network transactions and white-label readiness.
 - Added solution split for **For corporates** and **For car rentals**.
 - Added a monthly impact calculator and a walkthrough/contact form.
 - Added public pages for About Us, Blogs, NewsRoom, Career, Contact Us and Success Stories.
@@ -17,7 +17,7 @@ The prototype now has a public/private split:
 - Vendor, driver and corporate users can create accounts from the auth surface.
 - Email/password login, logout, profile lookup and profile updates are connected to the local backend.
 - Sessions use an httpOnly cookie backed by SQLite; the browser no longer treats localStorage as authentication.
-- Prototype credentials are seeded for review: `admin@blueorbit.in` / `motion2026`.
+- Development-only authentication fixtures are created by the local smoke harness; no demo credentials are rendered in the product UI or documentation.
 - Supabase is the target production backend: Supabase Auth for identity, PostgreSQL/RLS for tenant data, Storage for evidence, Edge Functions for server-side workflows and scheduled jobs for operational automation.
 - The local backend remains a development fallback until a Supabase project URL and anon key are configured.
 - The Supabase foundation is in `supabase/`; service-role credentials must never be placed in browser code.
@@ -38,7 +38,9 @@ The private console focuses on the PRD's MVP release gate, **One Fleet Live**:
 - Settings surface for workspace profile, operational policies and role/permission summary
 - Resumable onboarding modal, a three-move Today operating path and Workflow Center for supplier bills, fleet costs, payouts, report exports, network edges, retention locks, polling updates, security factors and operator KPIs
 - Progressive navigation keeps the daily loop visible while grouping advanced tools; driver sessions land directly in the field-mode walkthrough
-- Live duty/fleet context now drives route, driver, vehicle, capacity and document views, with demo fixtures only as a graceful fallback
+- Live duty/fleet context now drives route, driver, vehicle, capacity and document views from tenant API/state data; empty, loading and recovery states never substitute demo operational records
+- Corporate account workspace now prioritizes direct/delegated booking approvals, Super Admin → employee-admin → booker/passenger access, policy/SLA scope, supplier/Network coverage, duty-slip governance, finance evidence and audit activity
+- Axiom Network presents an invite-only lifecycle: partner qualification, versioned demand, deterministic matching, confidential quotes, approval and Fleet-linked handoff
 - Role-specific three-step product tour from the help action for vendors, drivers and corporate users
 - `USABILITY-IMPROVEMENTS.md` — shipped usability decisions, guided vendor/driver walkthroughs and remaining moderated-test gates
 - `MOBILE-APP-STRATEGY.md` — application count, Driver v1 scope, mobile readiness assessment and phased delivery plan
@@ -46,7 +48,7 @@ The private console focuses on the PRD's MVP release gate, **One Fleet Live**:
 - P0 control-room surfaces for route planning, dispatch offers/replacements, incident response and policy versioning, with tenant-scoped permission checks and explicit lifecycle actions
 - Phase 1/2 control-room extensions for a unified master registry, roster versions, live ETA/GPS health, safety evidence and closure approvals, Network activation/replacement/scorecard reconciliation, permission bundles, saved views and idempotent bulk actions
 - Mobile Operations home contracts are shared by the web driver mode, dependency-free Driver PWA and React Native Driver surface; forms use visible sections, sticky actions and offline-safe replay
-- Mock-first interactions: navigation, filters, search, drawers, modals, toasts, allotment state changes and CSV export
+- Connected local workflows: navigation, filters, search, drawers, modals, toasts, allotment state changes and CSV export use the current tenant session
 
 ### P0 domain foundation
 
@@ -111,6 +113,7 @@ For a plain static server, `python3 -m http.server 4173 --bind 0.0.0.0` also wor
 - `PATCH /api/auth/me` — updates profile and organization fields.
 - `POST /api/auth/logout` — revokes the current session.
 - `GET /api/overview` — returns organization-scoped duty and invoice aggregates.
+- `GET /api/workspace/next-actions` and `POST /api/workspace/next-actions/:action_id/status` — exception-first, explainable operator queue over canonical bookings, duties, field readiness, safety, evidence and finance records; action state is per-user, tenant-scoped and auditable.
 - `GET/POST /api/customers` — customer directory operations.
 - `GET/POST /api/drivers` — driver directory operations.
 - `GET/POST /api/vehicles` — vehicle directory operations.
@@ -125,7 +128,12 @@ For a plain static server, `python3 -m http.server 4173 --bind 0.0.0.0` also wor
 - `POST /api/sync/replay` — offline operation replay with per-user idempotency and conflict-safe results.
 - `POST /api/duties/:id/expenses` — offline-capable toll, parking, fuel and other expense records.
 - `GET/POST /api/branches`, `/api/suppliers`, `/api/price-books` — organization masters and versioned rates.
-- `GET/POST /api/employees`, `/api/employees/import`, `/api/policies` — corporate employee and policy workflows.
+- `GET/POST /api/employees`, `/api/employees/import`, `/api/policies` — legacy/general employee and policy workflows.
+- `GET/POST/PATCH /api/corporate/account`, `/api/corporate/account/setup`, `/api/corporate/account/activate` — tenant-scoped corporate connection, immutable copied scope/pricing snapshots and activation guard.
+- `GET/POST/PATCH /api/corporate/users` — employee-admin and booker/passenger entitlements, explicit grants/denies and branch/customer/city/vehicle-group/duty visibility.
+- `GET/POST/PATCH /api/corporate/policies`, `POST /api/corporate/policies/evaluate`, `/api/corporate/visibility/evaluate` — versioned lead-time, cancellation, approval, supplier and policy explainability contracts.
+- `GET/POST /api/corporate/duty-slip-approvals`, `POST /api/corporate/duty-slip-approvals/:id/approve|reject|action`, `/auto-approve` — hashed signed links, passenger decisions, audit state and configured 48-hour auto-approval.
+- `GET/POST/PATCH /api/corporate/masters`, `/api/corporate/allotment/rules`, `POST /api/corporate/allotment/evaluate` — versioned duty types, vehicle groups, billing/tax/company/pricing/document masters plus deterministic supplier and document-validity guards.
 - `POST /api/bookings/:id/approve|reject|cancel|assign` — booking approvals and assignment actions.
 - `POST /api/invoices/:id/e-invoice|dispatch` — mock e-invoice and invoice dispatch adapters.
 - `GET /api/reports/summary`, `/api/audit`, `/api/integrations` — operational reporting, audit and provider health.
@@ -143,7 +151,7 @@ For a plain static server, `python3 -m http.server 4173 --bind 0.0.0.0` also wor
 - `GET/POST /api/billing-notes`, `/api/payment-links`, `/api/jobs` — notes, collections links and queued mock workers.
 - `GET/POST /api/drivers/preferences`, `/api/devices`, `/api/practice-duties`, `/api/passenger/*`, `/api/alerts`, `/api/geofences`, `/api/webhooks/payments` — driver, passenger, alert and integration contracts.
 - `/api/security/2fa`, `/api/security/api-keys`, `/api/security/sessions`, `/api/security/events` — local security-factor, API-key, session and audit contracts.
-- `/driver-app/` — standalone mobile-first Axiom Fleet Driver PWA vertical slice with sign-in, demo mode, duty lifecycle, offline queue, sync center, proof, expenses, masked call and SOS controls.
+- `/driver-app/` — standalone mobile-first Axiom Fleet Driver PWA vertical slice with sign-in, tenant-assigned duty lifecycle, offline queue, sync center, proof, expenses, masked call and SOS controls; it does not expose demo duty data.
 - `GET/POST /api/network/*`, `/api/reports/export|views|schedules|drilldown`, `/api/privacy/consents|retention`, `/api/admin/*` — network, reporting, privacy and operator workflows.
 - Phase 1/2 routes include `/api/masters/registry`, `/api/operations/live-board`, `/api/mobile/home`, `/api/safety/monitor`, `/api/network/v1/service-orders/*`, `/api/views`, `/api/operations/bulk` and `/api/integrations/catalog|config|sync|events`.
 
@@ -157,10 +165,20 @@ The production-oriented database/auth foundation is now prepared in `supabase/`:
 - `supabase/client.js` — browser adapter used when Supabase configuration is enabled; it covers Auth, profile onboarding, organization-scoped overview, domain collection reads, core RPC writes and the extended finance/reporting/network/privacy/admin workflows.
 - `supabase/functions/calculate-duty/index.ts` — authenticated Edge Function for the paise-exact production calculation path.
 - `supabase/functions/phase12-orchestrator/index.ts` — authenticated Phase 1/2 boundary for tenant-scoped reads, lifecycle writes, idempotent bulk work and provider events.
+- `supabase/migrations/20260930010000_corporate_account_policy_foundation.sql` — corporate account, entitlement, visibility, immutable copied pricing evidence, policy, approval, versioned-master, allotment and RLS schema; includes the scheduled auto-approval and audit RPC boundaries.
+- `supabase/migrations/20261001010000_workspace_action_center.sql` — per-user action state, permission, RLS and audit trigger for the exception-first operating queue.
+- `supabase/functions/workspace-orchestrator/index.ts` — authenticated Edge projection for action-center reads and acknowledge/snooze/resolve mutations.
+- `supabase/functions/corporate-orchestrator/index.ts` — authenticated corporate boundary for setup snapshots, policy evaluation, entitlement permissions, signed duty-slip links, master/allotment-rule versions and deterministic allotment checks.
 - `supabase/config.example.js` — public URL/anon-key configuration template.
 - `supabase/README.md` — setup, Auth metadata and security instructions.
 
 Copy `supabase/config.example.js` to `supabase/config.js`, add the Supabase project URL and anon key, apply the migration with `supabase db push`, then restart `server.py`. Until configured, the frontend continues to use the local backend fallback.
+
+## Indecab parity completion (2026-10-01)
+
+The additive completion slice is documented in `docs/indecab-gap-completion-20261001.md` and covered by `gap_completion_smoke_test.py`. It adds employee/passenger booking requests, availability auto-assignment, route/location evidence, Driver readiness and alert policies, provider-neutral maps/communications/payments/e-invoicing contracts, expense budgets/forecasting, lifecycle sync, closed Network supplier exchange and enterprise custom-field values. Tally/Tally Prime export is intentionally excluded. The matching Supabase migration is `supabase/migrations/20261001000000_gap_completion_contracts.sql` and the Edge boundary is `supabase/functions/gap-completion-orchestrator/`.
+
+The follow-on usability slice adds the **Axiom action center**: an exception-first queue with source, reason, next step, priority, blocking state and one-click open/snooze/resolve actions. It is implemented locally in `backend_command_center.py`, mirrored by `supabase/migrations/20261001010000_workspace_action_center.sql` and `supabase/functions/workspace-orchestrator/`, and covered by `command_center_smoke_test.py` plus `command_center_contract_test.py`. This is an intentional product advantage over dashboard-heavy operations software: operators see what needs a decision before they learn the whole system.
 
 ## Assumptions and production gates
 
@@ -172,9 +190,10 @@ Copy `supabase/config.example.js` to `supabase/config.js`, add the Supabase proj
 
 ## Recommended production handoff sequence
 
-1. Apply the Supabase migration to a non-production project and validate Auth, PostgREST, RLS and the browser adapter.
-2. Deploy `phase12-orchestrator` and `calculate-duty`, configure Supabase Storage, email templates and provider secrets without exposing service-role credentials.
-3. Expand Workflow Center actions into dedicated supplier, finance, network, passenger and admin screens.
+1. Apply the Supabase migrations, including `20260930010000_corporate_account_policy_foundation.sql`, to a non-production project and validate Auth, PostgREST, RLS and the browser adapter.
+2. Deploy `corporate-orchestrator`, `phase12-orchestrator` and `calculate-duty`; configure Supabase Storage, signed passenger-link delivery, email templates and provider secrets without exposing service-role credentials.
+3. Run corporate setup in a tenant fixture: connect the account, capture copied scope/pricing, activate it, version a policy/master, evaluate a blocked and allowed booking, verify signed duty-slip approve/reject and invoke the 48-hour worker.
+4. Expand Workflow Center actions into dedicated supplier, finance, network, passenger and admin screens.
 4. Add Realtime plus polling fallback, signed provider webhooks, Redis throttling and production security headers.
 5. Run the generated calculation corpus, shadow billing, financial reconciliation, load tests and two-fleet UAT.
 6. Build native driver/passenger clients and complete DPDP retention/export/deletion evidence.
@@ -193,8 +212,14 @@ Copy `supabase/config.example.js` to `supabase/config.js`, add the Supabase proj
 - `domain_smoke_test.py` — end-to-end booking → duty → calculation → invoice → payment test.
 - `execution_smoke_test.py` — driver assignment, execution milestones, offline replay/idempotency, OTP proof and location tracking test.
 - `provider_adapters.py` — mock-first payment, messaging, telephony, maps, e-invoice and storage contracts.
+- `backend_gap_completion.py` — additive Indecab-parity contracts for passenger requests, availability, route/location evidence, alerts, device readiness, provider connections, auto-collect, sync, Network exchange and expense forecasting.
+- `backend_command_center.py` — exception-first action projection and per-user acknowledge/snooze/resolve state over canonical tenant records.
+- `command_center_smoke_test.py` and `command_center_contract_test.py` — local behavior and local/Supabase/OpenAPI contract coverage for the action center.
+- `gap_completion_smoke_test.py` — regression coverage for the additive parity completion slice.
+- `gap_completion_contract_test.py` — static local/Supabase/OpenAPI/RLS parity guard for the completion slice.
 - `provider_adapter_test.py` — deterministic mock provider contract tests.
 - `feature_smoke_test.py` — branches, suppliers, pricing, employees, policies, approvals, documents, notifications, invitations, tickets, privacy, reports and settings test.
+- `corporate_foundation_smoke_test.py` — corporate setup snapshot, idempotent replay, activation, entitlements, enforced policy SLAs, governed duty completion, versioned masters, signed passenger decisions and deterministic document guards.
 - `uncovered_smoke_test.py` — focused booking-import and password-reset request coverage.
 - `deep_feature_smoke_test.py` — broad extended PRD workflow coverage across onboarding, finance, approvals, driver/passenger, alerts, network, reports, privacy and admin.
 - `supabase_contract_test.py` — static parity guard for extended Supabase tables, RLS generation and browser route families.
@@ -204,6 +229,7 @@ Copy `supabase/config.example.js` to `supabase/config.js`, add the Supabase proj
 - `phase12_smoke_test.py` — fresh-database Phase 1/2 tenant, lifecycle, evidence, adapter and idempotency smoke suite.
 - `supabase/migrations/20260924000000_axiom_phase12_foundations.sql` — Phase 1/2 PostgreSQL tables, permission keys, RLS policies and audit-trigger wiring.
 - `openapi.yaml` — published contract for the implemented same-origin API.
+- `docs/corporate-account-policy-foundation.md` — implementation notes, state contracts, security boundary and focused validation for the corporate foundation slice.
 - `PRD-GAPS-AND-IMPROVEMENT-PLAN.md` — current feature coverage matrix and production gates.
 - `supabase/` — Supabase/PostgreSQL foundation, extended RLS migration, browser adapter and setup documentation.
 - `driver-sw.js` and `driver-manifest.json` — dependency-free offline shell for the driver surface.

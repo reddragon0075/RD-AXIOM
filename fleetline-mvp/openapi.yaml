@@ -15,6 +15,7 @@ tags:
   - name: Auth
   - name: Operations
   - name: Execution
+  - name: Enterprise
   - name: Finance
   - name: Governance
   - name: Network
@@ -47,11 +48,46 @@ paths:
           application/json: {schema: {$ref: '#/components/schemas/SignupRequest'}}
       responses:
         '201': {description: Account created}
+  /api/auth/password-reset:
+    post:
+      security: []
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {type: object, required: [email], properties: {email: {type: string, format: email}}}}
+      responses:
+        '202': {description: Reset request accepted without account enumeration}
+  /api/auth/password-reset/confirm:
+    post:
+      security: []
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {type: object, required: [token, password], properties: {token: {type: string}, password: {type: string, minLength: 8}}}}
+      responses:
+        '200': {description: Password updated and existing sessions revoked}
+        '400': {description: Invalid or expired token}
   /api/auth/me:
     get:
       tags: [Auth]
       responses:
         '200': {description: Current user}
+  /api/webhooks/payments:
+    post:
+      security: []
+      tags: [Finance]
+      parameters:
+        - {in: header, name: X-Payment-Signature, required: true, schema: {type: string}}
+        - {in: header, name: X-Payment-Timestamp, required: false, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {type: object, required: [event_id, event_type, organization_id], properties: {event_id: {type: string}, event_type: {type: string}, organization_id: {type: string}, payment_link_id: {type: string}, provider_reference: {type: string}}}}
+      responses:
+        '200': {description: Verified, replay-safe webhook result}
+        '401': {description: Invalid, missing or stale signature}
   /api/onboarding:
     get:
       tags: [Operations]
@@ -77,6 +113,39 @@ paths:
           application/json: {schema: {$ref: '#/components/schemas/BookingRequest'}}
       responses:
         '201': {description: Booking created}
+        '409': {description: Active corporate policy blocked the request; response includes explainable evaluation details}
+  /api/bookings/{bookingId}:
+    parameters: [{in: path, name: bookingId, required: true, schema: {type: string}}]
+    get:
+      tags: [Operations]
+      responses: {'200': {description: Organization-scoped booking}}
+    patch:
+      tags: [Operations]
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/BookingRequest'}}
+      responses:
+        '200': {description: Booking updated}
+        '409': {description: Active corporate policy blocked a related mutation}
+  /api/bookings/{bookingId}/{action}:
+    parameters:
+      - in: path
+        name: bookingId
+        required: true
+        schema: {type: string}
+      - in: path
+        name: action
+        required: true
+        schema: {type: string, enum: [approve, confirm, reject, cancel, assign]}
+    post:
+      tags: [Operations]
+      requestBody:
+        content:
+          application/json: {schema: {type: object}}
+      responses:
+        '201': {description: Booking action applied}
+        '409': {description: Corporate cancellation cutoff or transition guard blocked the action}
   /api/bookings/recurring:
     get:
       tags: [Operations]
@@ -308,6 +377,87 @@ paths:
         content:
           application/json: {schema: {$ref: '#/components/schemas/NetworkSettlementRequest'}}
       responses: {'200': {description: Settlement recorded}}
+  /api/network/v1/partner-directory:
+    get:
+      tags: [Network]
+      summary: List verified invite-derived partner profiles
+      parameters: [{name: q, in: query, schema: {type: string}}, {name: status, in: query, schema: {type: string}}, {name: limit, in: query, schema: {type: integer, maximum: 500}}]
+      responses: {'200': {description: Verified tenant-scoped partner directory}}
+  /api/network/v1/associates:
+    get: {tags: [Network], summary: List buyer and associate relationship states, responses: {'200': {description: Associate lifecycle records}}}
+  /api/network/v1/associates/{associate_id}/{action}:
+    post:
+      tags: [Network]
+      parameters: [{name: associate_id, in: path, required: true, schema: {type: string}}, {name: action, in: path, required: true, schema: {type: string, enum: [accept, reject, revoke]}}]
+      requestBody: {content: {application/json: {schema: {type: object, properties: {acceptance_note: {type: string}}}}}}
+      responses: {'200': {description: Associate lifecycle transition}}
+  /api/network/v1/invites/{invite_id}/{action}:
+    post:
+      tags: [Network]
+      parameters: [{name: invite_id, in: path, required: true, schema: {type: string}}, {name: action, in: path, required: true, schema: {type: string, enum: [accept, reject, revoke]}}]
+      responses: {'200': {description: Invite acceptance or revocation}}
+  /api/network/v1/contracts:
+    get: {tags: [Network], responses: {'200': {description: Network contracts and synchronization state}}}
+  /api/network/v1/contracts/{contract_id}:
+    get:
+      tags: [Network]
+      parameters: [{name: contract_id, in: path, required: true, schema: {type: string}}]
+      responses: {'200': {description: Contract with immutable versions and rate cards}}
+  /api/network/v1/contracts/{contract_id}/versions:
+    get: {tags: [Network], parameters: [{name: contract_id, in: path, required: true, schema: {type: string}}], responses: {'200': {description: Contract versions}}}
+    post:
+      tags: [Network]
+      parameters: [{name: contract_id, in: path, required: true, schema: {type: string}}]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/NetworkContractVersionRequest'}}}}
+      responses: {'200': {description: Published or associate-accepted contract version}}
+  /api/network/v1/contracts/{contract_id}/sync:
+    get: {tags: [Network], parameters: [{name: contract_id, in: path, required: true, schema: {type: string}}], responses: {'200': {description: Contract synchronization envelopes}}}
+    post:
+      tags: [Network]
+      parameters: [{name: contract_id, in: path, required: true, schema: {type: string}}]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/IdempotentCommand'}}}}
+      responses: {'200': {description: Idempotent contract synchronization request}}
+  /api/network/v1/service-orders/{service_order_id}/exchanges:
+    parameters: [{name: service_order_id, in: path, required: true, schema: {type: string}}]
+    get: {tags: [Network], responses: {'200': {description: Booking, duty-slip, invoice and operational-message envelopes}}}
+    post:
+      tags: [Network]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/NetworkExchangeRequest'}}}}
+      responses: {'200': {description: Idempotent exchange envelope}}
+  /api/network/v1/exchanges/{exchange_id}/{action}:
+    post:
+      tags: [Network]
+      parameters: [{name: exchange_id, in: path, required: true, schema: {type: string}}, {name: action, in: path, required: true, schema: {type: string, enum: [acknowledge, reject, process]}}]
+      responses: {'200': {description: Exchange acknowledgement or rejection}}
+  /api/network/v1/service-orders/{service_order_id}/sla-observations:
+    get: {tags: [Network], responses: {'200': {description: Supplier SLA observations}}}
+    post:
+      tags: [Network]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/NetworkSlaObservationRequest'}}}}
+      responses: {'200': {description: SLA observation}}
+  /api/network/v1/service-orders/{service_order_id}/issues:
+    get: {tags: [Network], responses: {'200': {description: Supplier issue and rejection workflow}}}
+    post:
+      tags: [Network]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/NetworkSupplierIssueRequest'}}}}
+      responses: {'200': {description: Supplier issue}}
+  /api/network/v1/service-orders/{service_order_id}/rate-discrepancies:
+    get: {tags: [Network], responses: {'200': {description: Supplier rate discrepancies}}}
+    post:
+      tags: [Network]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/NetworkRateDiscrepancyRequest'}}}}
+      responses: {'200': {description: Rate discrepancy}}
+  /api/network/v1/service-orders/{service_order_id}/settlement-resolutions:
+    get: {tags: [Network], responses: {'200': {description: Settlement dispute resolutions}}}
+    post:
+      tags: [Network]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/NetworkSettlementResolutionRequest'}}}}
+      responses: {'200': {description: Proposed settlement resolution}}
+  /api/network/v1/{resource}/{resource_id}/{action}:
+    post:
+      tags: [Network]
+      parameters: [{name: resource, in: path, required: true, schema: {type: string, enum: [issues, rate-discrepancies, settlement-resolutions]}}, {name: resource_id, in: path, required: true, schema: {type: string}}, {name: action, in: path, required: true, schema: {type: string, enum: [resolve, decide]}}]
+      responses: {'200': {description: Supplier issue or settlement resolution decision}}
   /api/reports/export:
     post:
       tags: [Governance]
@@ -681,6 +831,295 @@ paths:
     post:
       tags: [Operations]
       responses: {'200': {description: Provider event accepted idempotently}}
+  /api/corporate/account:
+    get:
+      tags: [Governance]
+      responses:
+        '200': {description: Tenant-scoped corporate account and readiness summary}
+    post:
+      tags: [Governance]
+      requestBody:
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/CorporateAccountRequest'}}
+      responses:
+        '201': {description: Corporate account connection}
+    patch:
+      tags: [Governance]
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/CorporateAccountRequest'}}
+      responses:
+        '200': {description: Corporate account updated}
+        '404': {description: Corporate account not found}
+  /api/corporate/account/setup:
+    post:
+      tags: [Governance]
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/CorporateSetupRequest'}}
+      responses:
+        '201': {description: Immutable copied setup snapshot}
+        '409': {description: Setup ownership or validation failure}
+  /api/corporate/account/activate:
+    post:
+      tags: [Governance]
+      requestBody:
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/IdempotencyRequest'}}
+      responses:
+        '201': {description: Account activated}
+        '409': {description: Activation guard blocked the transition}
+  /api/corporate/account/activation-guard:
+    get:
+      tags: [Governance]
+      responses:
+        '200': {description: Account activation readiness and blocking reasons}
+  /api/corporate/users:
+    get:
+      tags: [Governance]
+      responses:
+        '200': {description: Corporate account users and entitlement profiles}
+    post:
+      tags: [Governance]
+      requestBody:
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/CorporateUserRequest'}}
+      responses:
+        '201': {description: Invited account user}
+  /api/corporate/users/{user_id}:
+    get:
+      tags: [Governance]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Corporate entitlement profile}
+    patch:
+      tags: [Governance]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/CorporateUserRequest'}}
+      responses:
+        '200': {description: Updated corporate entitlement profile}
+  /api/corporate/users/{user_id}/{action}:
+    post:
+      tags: [Governance]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema: {type: string}
+        - name: action
+          in: path
+          required: true
+          schema: {type: string, enum: [activate, deactivate]}
+      responses:
+        '201': {description: Corporate entitlement status changed}
+  /api/corporate/policies:
+    get:
+      tags: [Governance]
+      responses:
+        '200': {description: Versioned corporate policy records}
+    post:
+      tags: [Governance]
+      requestBody:
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/CorporatePolicyRequest'}}
+      responses:
+        '201': {description: Corporate policy version}
+  /api/corporate/policies/{policy_id}:
+    get:
+      tags: [Governance]
+      parameters:
+        - name: policy_id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Corporate policy version}
+    patch:
+      tags: [Governance]
+      parameters:
+        - name: policy_id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/CorporatePolicyRequest'}}
+      responses:
+        '200': {description: Updated or newly versioned corporate policy}
+  /api/corporate/policies/evaluate:
+    post:
+      tags: [Governance]
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/CorporateBookingEvaluationRequest'}}
+      responses:
+        '200': {description: Explainable allow, approval or block result}
+  /api/corporate/visibility/evaluate:
+    post:
+      tags: [Governance]
+      requestBody:
+        content:
+          application/json: {schema: {type: object}}
+      responses:
+        '200': {description: Branch, customer, company, city, vehicle and duty visibility result}
+  /api/corporate/permissions/evaluate:
+    post:
+      tags: [Governance]
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {type: object, required: [permission], properties: {permission: {type: string}, resource: {type: object}}}}
+      responses:
+        '200': {description: Tenant account permission and visibility decision}
+  /api/corporate/duty-slip-approvals:
+    get:
+      tags: [Governance]
+      responses:
+        '200': {description: Passenger duty-slip approval queue}
+    post:
+      tags: [Governance]
+      requestBody:
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/DutySlipApprovalRequest'}}
+      responses:
+        '201': {description: Signed approval link and pending state}
+  /api/corporate/duty-slip-approvals/auto-approve:
+    post:
+      tags: [Governance]
+      responses:
+        '200': {description: Pending slips auto-approved after the configured expiry window}
+  /api/corporate/duty-slip-approvals/{approval_id}/action:
+    get:
+      security: []
+      tags: [Governance]
+      parameters:
+        - name: approval_id
+          in: path
+          required: true
+          schema: {type: string}
+        - name: token
+          in: query
+          required: true
+          description: High-entropy signed passenger capability; never store or log the raw value.
+          schema: {type: string, minLength: 32}
+      responses:
+        '200': {description: Sanitized passenger duty-slip preview}
+        '403': {description: Invalid signed link}
+        '410': {description: Expired signed link}
+    post:
+      security: []
+      tags: [Governance]
+      parameters:
+        - name: approval_id
+          in: path
+          required: true
+          schema: {type: string}
+        - name: token
+          in: query
+          required: true
+          description: High-entropy signed passenger capability; never store or log the raw value.
+          schema: {type: string, minLength: 32}
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {type: object, required: [decision], properties: {decision: {type: string, enum: [approve, reject]}, comment: {type: string, maxLength: 500}}}}
+      responses:
+        '200': {description: Idempotent passenger duty-slip decision}
+        '403': {description: Invalid signed link}
+        '410': {description: Expired signed link}
+  /api/corporate/duty-slip-approvals/{approval_id}/{action}:
+    post:
+      tags: [Governance]
+      parameters:
+        - name: approval_id
+          in: path
+          required: true
+          schema: {type: string}
+        - name: action
+          in: path
+          required: true
+          schema: {type: string, enum: [approve, reject]}
+      requestBody:
+        content:
+          application/json: {schema: {type: object}}
+      responses:
+        '200': {description: Dashboard duty-slip decision}
+        '403': {description: Invalid entitlement}
+  /api/corporate/masters:
+    get:
+      tags: [Governance]
+      parameters:
+        - name: kind
+          in: query
+          schema: {type: string, enum: [duty_types, vehicle_groups, billing_items, taxes, company_scopes, pricing_rules, document_requirements]}
+      responses:
+        '200': {description: Latest active version per corporate master}
+    post:
+      tags: [Governance]
+      requestBody:
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/CorporateMasterRequest'}}
+      responses:
+        '201': {description: New immutable master version}
+  /api/corporate/masters/{master_id}:
+    get:
+      tags: [Governance]
+      parameters:
+        - name: master_id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Master record and immutable version history}
+    patch:
+      tags: [Governance]
+      parameters:
+        - name: master_id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {type: object, properties: {status: {type: string, enum: [archived]}}}}
+      responses:
+        '200': {description: Archived master record}
+  /api/corporate/allotment/rules:
+    get:
+      tags: [Governance]
+      responses:
+        '200': {description: Versioned tenant-scoped allotment rules}
+    post:
+      tags: [Governance]
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/AllotmentRuleRequest'}}
+      responses:
+        '201': {description: Versioned allotment rule}
+  /api/corporate/allotment/evaluate:
+    post:
+      tags: [Governance]
+      requestBody:
+        content:
+          application/json: {schema: {$ref: '#/components/schemas/AllotmentEvaluationRequest'}}
+      responses:
+        '200': {description: Deterministic supplier and document-validity eligibility result}
   /api/phase3/predictive-alerts:
     get:
       tags: [Phase 3 intelligence]
@@ -867,6 +1306,1062 @@ paths:
     post:
       tags: [Phase 3 intelligence]
       responses: {'200': {description: Regional tax preview}}
+  /api/bill-intelligence:
+    get:
+      tags: [Finance]
+      parameters:
+        - {$ref: '#/components/parameters/StatusQuery'}
+      responses: {'200': {description: Tenant-scoped extraction and review queue}}
+    post:
+      tags: [Finance]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/BillIntelligenceCaptureRequest'}}}
+      responses:
+        '201': {description: Reviewable extraction created}
+        '409': {description: Idempotent replay or duplicate evidence}
+  /api/bill-intelligence/summary:
+    get:
+      tags: [Finance]
+      responses: {'200': {description: Review queue, posting and match metrics}}
+  /api/bill-intelligence/{bill_id}:
+    parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema: {type: string}
+    get:
+      tags: [Finance]
+      responses:
+        '200': {description: Extraction detail with validation, provenance and timeline}
+  /api/bill-intelligence/{bill_id}/review:
+    parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema: {type: string}
+    post:
+      tags: [Finance]
+      requestBody:
+        content: {application/json: {schema: {$ref: '#/components/schemas/BillIntelligenceReviewRequest'}}}
+      responses: {'200': {description: Corrected review state}}
+  /api/bill-intelligence/{bill_id}/approve:
+    parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema: {type: string}
+    post:
+      tags: [Finance]
+      requestBody:
+        content: {application/json: {schema: {$ref: '#/components/schemas/BillIntelligenceReviewRequest'}}}
+      responses:
+        '200': {description: Idempotent canonical posting result}
+        '422': {description: Blocking validation or vehicle selection error}
+  /api/bill-intelligence/{bill_id}/reject:
+    parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema: {type: string}
+    post:
+      tags: [Finance]
+      requestBody:
+        content: {application/json: {schema: {type: object, properties: {note: {type: string, maxLength: 500}}}}}
+      responses: {'200': {description: Retained rejected evidence}}
+  /api/bill-intelligence/{bill_id}/undo:
+    parameters:
+      - name: bill_id
+        in: path
+        required: true
+        schema: {type: string}
+    post:
+      tags: [Finance]
+      requestBody:
+        content: {application/json: {schema: {type: object, properties: {note: {type: string, maxLength: 500}}}}}
+      responses: {'200': {description: Reversal record without destructive deletion}}
+  /api/bill-intelligence/vehicles/{vehicle_id}/timeline:
+    parameters:
+      - name: vehicle_id
+        in: path
+        required: true
+        schema: {type: string}
+    get:
+      tags: [Finance]
+      responses: {'200': {description: Source-attributed bill and vehicle timeline}}
+  /api/bookings/batches:
+    get:
+      tags: [Operations]
+      summary: List booking batches
+      responses: {'200': {description: Tenant-scoped booking batches}}
+    post:
+      tags: [Operations]
+      summary: Create a bulk, itinerary or monthly booking batch
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/BookingBatchRequest'}}}}
+      responses: {'201': {description: Batch created with row-level outcomes}}
+  /api/bookings/batches/{batch_id}:
+    get:
+      tags: [Operations]
+      summary: Read a booking batch and row outcomes
+      parameters: [{in: path, name: batch_id, required: true, schema: {type: string}}]
+      responses: {'200': {description: Booking batch}}
+  /api/bookings/batches/{batch_id}/cancel:
+    post:
+      tags: [Operations]
+      summary: Cancel an unfinished booking batch
+      parameters: [{in: path, name: batch_id, required: true, schema: {type: string}}]
+      responses: {'200': {description: Batch cancelled}}
+  /api/availability:
+    get:
+      tags: [Operations]
+      summary: List tenant availability resources and capacity holds
+      responses: {'200': {description: Availability resources}}
+  /api/availability/evaluate:
+    post:
+      tags: [Operations]
+      summary: Evaluate deterministic driver and vehicle availability
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/AvailabilityRequest'}}}}
+      responses: {'200': {description: Availability candidates and reasons}}
+  /api/bookings/{booking_id}/allot:
+    post:
+      tags: [Operations]
+      summary: Deterministically allot a booking and create its duty
+      parameters: [{in: path, name: booking_id, required: true, schema: {type: string}}]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/AllotmentRequest'}}}}
+      responses: {'201': {description: Allotment decision and duty}}
+  /api/duties/{duty_id}/close:
+    post:
+      tags: [Execution]
+      summary: Submit a unified duty closure and evidence bundle
+      parameters: [{in: path, name: duty_id, required: true, schema: {type: string}}]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/DutyClosureRequest'}}}}
+      responses: {'201': {description: Completed duty closure}}
+  /api/duties/{duty_id}/closure:
+    get:
+      tags: [Execution]
+      summary: Read the latest duty closure and evidence
+      parameters: [{in: path, name: duty_id, required: true, schema: {type: string}}]
+      responses: {'200': {description: Duty closure evidence bundle}}
+  /api/invoices/generate:
+    post:
+      tags: [Finance]
+      summary: Generate idempotent invoice run for completed duties
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/InvoiceRunRequest'}}}}
+      responses: {'200': {description: Invoice run and generated invoices}}
+  /api/invoice-runs:
+    get:
+      tags: [Finance]
+      summary: List invoice generation runs
+      responses: {'200': {description: Tenant-scoped invoice runs}}
+  /api/collections/dunning/run:
+    post:
+      tags: [Finance]
+      summary: Run overdue invoice collection actions
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/DunningRunRequest'}}}}
+      responses: {'200': {description: Dunning actions queued through the messaging adapter}}
+  /api/reports/ageing:
+    get:
+      tags: [Finance]
+      summary: Return invoice ageing buckets
+      responses: {'200': {description: Current, overdue and 90-plus ageing buckets}}
+  /api/reports/definitions:
+    get:
+      tags: [Finance]
+      summary: List saved report definitions
+      responses: {'200': {description: Saved report definitions}}
+    post:
+      tags: [Finance]
+      summary: Save a report definition
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ReportDefinitionRequest'}}}}
+      responses: {'200': {description: Saved report definition}}
+  /api/reports/definitions/{definition_id}/run:
+    post:
+      tags: [Finance]
+      summary: Run a saved report definition
+      parameters: [{in: path, name: definition_id, required: true, schema: {type: string}}]
+      responses: {'200': {description: Report result}}
+  /api/export-profiles:
+    get:
+      tags: [Finance]
+      summary: List finance export profiles
+      responses: {'200': {description: Tenant-scoped export profiles}}
+    post:
+      tags: [Finance]
+      summary: Create a finance export profile
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/ExportProfileRequest'}}}}
+      responses: {'200': {description: Export profile}}
+  /api/export-profiles/{profile_id}/run:
+    post:
+      tags: [Finance]
+      summary: Generate a reviewable finance export
+      parameters: [{in: path, name: profile_id, required: true, schema: {type: string}}]
+      responses: {'200': {description: Export content and expiry metadata}}
+  /api/communications/templates:
+    get:
+      tags: [Operations]
+      summary: List active tenant communication templates
+      responses: {'200': {description: Versioned templates}}
+    post:
+      tags: [Operations]
+      summary: Create a new immutable communication template version
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/CommunicationTemplateRequest'}}}}
+      responses: {'200': {description: Versioned communication template}}
+  /api/communications/dispatch:
+    post:
+      tags: [Operations]
+      summary: Dispatch a tenant template through the configured provider adapter
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/CommunicationDispatchRequest'}}}}
+      responses: {'200': {description: Idempotent delivery record}}
+  /api/communications/deliveries:
+    get:
+      tags: [Operations]
+      summary: List communication delivery evidence
+      responses: {'200': {description: Delivery and suppression records}}
+  /api/communications/suppressions:
+    get:
+      tags: [Operations]
+      summary: List communication suppressions
+      responses: {'200': {description: Suppression records}}
+    post:
+      tags: [Operations]
+      summary: Suppress a recipient and channel
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/CommunicationSuppressionRequest'}}}}
+      responses: {'200': {description: Suppression record}}
+  /api/supplier-purchases:
+    get:
+      tags: [Finance]
+      summary: List supplier purchase duties
+      responses: {'200': {description: Tenant-scoped supplier purchases}}
+    post:
+      tags: [Finance]
+      summary: Create an evidence-linked supplier purchase
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/SupplierPurchaseRequest'}}}}
+      responses: {'200': {description: Supplier purchase record}}
+  /api/supplier-ageing:
+    get:
+      tags: [Finance]
+      summary: Return supplier bill ageing buckets
+      responses: {'200': {description: Supplier ageing buckets}}
+  /api/supplier-settlements/generate:
+    post:
+      tags: [Finance]
+      summary: Generate an idempotent supplier settlement statement
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/SupplierSettlementRequest'}}}}
+      responses: {'200': {description: Supplier settlement statement}}
+  /api/fuel-entries:
+    get:
+      tags: [Finance]
+      summary: List vehicle fuel entries
+      responses: {'200': {description: Fuel ledger entries}}
+    post:
+      tags: [Finance]
+      summary: Record a vehicle fuel entry
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/FuelEntryRequest'}}}}
+      responses: {'200': {description: Fuel ledger entry}}
+  /api/petty-cash/entries:
+    get:
+      tags: [Finance]
+      summary: List petty cash entries
+      responses: {'200': {description: Petty cash ledger entries}}
+    post:
+      tags: [Finance]
+      summary: Record a petty cash credit or debit
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/PettyCashRequest'}}}}
+      responses: {'200': {description: Petty cash entry}}
+  /api/driver-allowances:
+    get:
+      tags: [Finance]
+      summary: List driver allowances
+      responses: {'200': {description: Allowance records}}
+    post:
+      tags: [Finance]
+      summary: Submit a driver allowance
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/DriverAllowanceRequest'}}}}
+      responses: {'200': {description: Driver allowance record}}
+  /api/payroll/runs:
+    get:
+      tags: [Finance]
+      summary: List payroll runs
+      responses: {'200': {description: Payroll run summaries}}
+    post:
+      tags: [Finance]
+      summary: Generate an idempotent driver payroll run
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/PayrollRunRequest'}}}}
+      responses: {'200': {description: Payroll run summary}}
+  /api/payroll/runs/{run_id}/lines:
+    get:
+      tags: [Finance]
+      summary: List payroll lines
+      parameters: [{in: path, name: run_id, required: true, schema: {type: string}}]
+      responses: {'200': {description: Payroll lines}}
+  /api/supplier-payment-requests:
+    get: {tags: [Finance], summary: List supplier payment requests, responses: {'200': {description: Tenant-scoped payment requests}}}
+    post:
+      tags: [Finance]
+      summary: Create a supplier payment request
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/SupplierPaymentRequest'}}}}
+      responses: {'201': {description: Payment request created}}
+  /api/supplier-payment-requests/{request_id}/{action}:
+    post:
+      tags: [Finance]
+      summary: Approve, reject or execute a supplier payment request
+      parameters: [{name: request_id, in: path, required: true, schema: {type: string}}, {name: action, in: path, required: true, schema: {type: string, enum: [approve, reject, execute]}}]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/FinanceActionRequest'}}}}
+      responses: {'200': {description: Idempotent finance action}}
+  /api/supplier-advances:
+    get: {tags: [Finance], summary: List supplier advances, responses: {'200': {description: Tenant-scoped advances}}}
+    post:
+      tags: [Finance]
+      summary: Request a supplier advance
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/SupplierAdvanceRequest'}}}}
+      responses: {'201': {description: Advance requested}}
+  /api/supplier-advances/{advance_id}/{action}:
+    post:
+      tags: [Finance]
+      parameters: [{name: advance_id, in: path, required: true, schema: {type: string}}, {name: action, in: path, required: true, schema: {type: string, enum: [approve, reject, execute]}}]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/FinanceActionRequest'}}}}
+      responses: {'200': {description: Advance action}}
+  /api/supplier-settlement-approvals:
+    get: {tags: [Finance], summary: List settlement approvals, responses: {'200': {description: Settlement approval queue}}}
+    post:
+      tags: [Finance]
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [settlement_id], properties: {settlement_id: {type: string}, comments: {type: string}}}}}}
+      responses: {'201': {description: Settlement queued for approval}}
+  /api/supplier-settlement-approvals/{approval_id}/{action}:
+    post:
+      tags: [Finance]
+      parameters: [{name: approval_id, in: path, required: true, schema: {type: string}}, {name: action, in: path, required: true, schema: {type: string, enum: [approve, reject, execute]}}]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/FinanceActionRequest'}}}}
+      responses: {'200': {description: Settlement decision}}
+  /api/driver-payouts/requests:
+    get: {tags: [Finance], summary: List driver payout approvals, responses: {'200': {description: Driver payout queue}}}
+    post:
+      tags: [Finance]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/DriverPayoutRequest'}}}}
+      responses: {'201': {description: Driver payout request}}
+  /api/driver-payouts/{payout_id}/{action}:
+    post:
+      tags: [Finance]
+      parameters: [{name: payout_id, in: path, required: true, schema: {type: string}}, {name: action, in: path, required: true, schema: {type: string, enum: [approve, reject, disburse]}}]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/FinanceActionRequest'}}}}
+      responses: {'200': {description: Driver payout approval or disbursement}}
+  /api/payroll/exports:
+    get: {tags: [Finance], summary: List bank-file payroll exports, responses: {'200': {description: Private payroll export jobs}}}
+    post:
+      tags: [Finance]
+      summary: Generate a provider-neutral bank CSV payroll export
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/PayrollExportRequest'}}}}
+      responses: {'200': {description: Signed private export URL}}
+  /api/payroll/compliance:
+    get: {tags: [Finance], summary: List statutory payroll reports, responses: {'200': {description: Payroll deductions and compliance reports}}}
+    post:
+      tags: [Finance]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/PayrollComplianceRequest'}}}}
+      responses: {'201': {description: Statutory deductions report}}
+  /api/fuel-stations:
+    get: {tags: [Finance], summary: List tenant fuel stations, responses: {'200': {description: Fuel-station master}}}
+    post:
+      tags: [Finance]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/FuelStationRequest'}}}}
+      responses: {'201': {description: Fuel station}}
+  /api/fuel-prices:
+    get: {tags: [Finance], summary: List append-only fuel price history, responses: {'200': {description: Fuel price history}}}
+    post:
+      tags: [Finance]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/FuelPriceRequest'}}}}
+      responses: {'201': {description: Fuel price record}}
+  /api/fuel-analytics:
+    get: {tags: [Finance], summary: Return price variance and vehicle fuel-efficiency analytics, responses: {'200': {description: Fuel analytics}}}
+  /api/petty-cash/reconciliations:
+    get: {tags: [Finance], summary: List petty-cash reconciliations, responses: {'200': {description: Reconciliation records}}}
+    post:
+      tags: [Finance]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/ReconciliationRequest'}}}}
+      responses: {'201': {description: Petty-cash reconciliation}}
+  /api/finance/reconciliations:
+    get: {tags: [Finance], summary: List supplier and customer financial reconciliations, responses: {'200': {description: Financial reconciliation records}}}
+    post:
+      tags: [Finance]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/ReconciliationRequest'}}}}
+      responses: {'201': {description: Financial reconciliation}}
+  /api/reports/builder:
+    get: {tags: [Finance], summary: List saved report-builder configurations, responses: {'200': {description: Report configurations}}}
+    post:
+      tags: [Finance]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ReportBuilderRequest'}}}}
+      responses: {'201': {description: Saved report configuration}}
+  /api/reports/builder/{config_id}/run:
+    post:
+      tags: [Finance]
+      parameters: [{name: config_id, in: path, required: true, schema: {type: string}}]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/ReportRunRequest'}}}}
+      responses: {'200': {description: Synchronous rows or asynchronous export job}}
+  /api/reports/profitability:
+    get:
+      tags: [Finance]
+      summary: Return supplier or complete vehicle profitability
+      parameters: [{name: report_type, in: query, schema: {type: string, enum: [supplier_profitability, vehicle_profitability, pricing_export, bill_to_duty]}}]
+      responses: {'200': {description: Filtered profitability or pricing rows}}
+  /api/reports/favorites:
+    get: {tags: [Finance], summary: List saved report favourites, responses: {'200': {description: Report favourites}}}
+    post:
+      tags: [Finance]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/ReportFavoriteRequest'}}}}
+      responses: {'201': {description: Saved report favourite}}
+  /api/reports/favorites/{favorite_id}/refresh:
+    post:
+      tags: [Finance]
+      parameters: [{name: favorite_id, in: path, required: true, schema: {type: string}}]
+      responses: {'200': {description: Refreshed favourite result}}
+  /api/reports/exports:
+    get: {tags: [Finance], summary: List asynchronous export jobs, responses: {'200': {description: Export jobs with signed URLs}}}
+    post:
+      tags: [Finance]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/ReportExportRequest'}}}}
+      responses: {'202': {description: Asynchronous export job}}
+  /api/reporting/import-templates:
+    get: {tags: [Finance], summary: List rich driver, vehicle and duty import templates, responses: {'200': {description: Import templates}}}
+    post:
+      tags: [Finance]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/ImportTemplateRequest'}}}}
+      responses: {'201': {description: Import template}}
+  /api/imports/preview:
+    post:
+      tags: [Finance]
+      summary: Validate an import and return row-level correction errors
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ImportPreviewRequest'}}}}
+      responses: {'200': {description: Validation preview}}
+  /api/imports/{job_id}/corrections:
+    post:
+      tags: [Finance]
+      parameters: [{name: job_id, in: path, required: true, schema: {type: string}}]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/ImportCorrectionRequest'}}}}
+      responses: {'200': {description: Revalidated row-level corrections}}
+  /api/imports/{job_id}/commit:
+    post:
+      tags: [Finance]
+      parameters: [{name: job_id, in: path, required: true, schema: {type: string}}]
+      responses: {'200': {description: Validated import committed}}
+
+  /api/feedback/public-links:
+    get: {tags: [Operations], summary: List token-bound passenger feedback links, responses: {'200': {description: Feedback links}}}
+    post:
+      tags: [Operations]
+      summary: Issue an anonymous or token-only passenger feedback link
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PublicFeedbackLinkRequest'}}}}
+      responses: {'201': {description: Raw token is returned once; only its hash is stored}}
+  /api/feedback/analytics:
+    get: {tags: [Operations], summary: Return customer-satisfaction trend analytics, responses: {'200': {description: Feedback trends}}}
+  /api/feedback/corrective-actions:
+    get: {tags: [Operations], summary: List automated corrective-action routing, responses: {'200': {description: Corrective actions}}}
+    post: {tags: [Operations], requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/RecoveryActionRequest'}}}}, responses: {'201': {description: Corrective action}}}
+  /api/feedback/notifications/run:
+    post:
+      tags: [Operations]
+      summary: Process queued feedback notification deliveries through the provider adapter
+      requestBody: {content: {application/json: {schema: {type: object, properties: {limit: {type: integer, minimum: 1, maximum: 500}}}}}}
+      responses: {'200': {description: Delivery attempts and retry boundary}}
+  /api/feedback/delivery-policies:
+    get: {tags: [Operations], summary: List customer-specific feedback delivery policies, responses: {'200': {description: Delivery policies}}}
+    post:
+      tags: [Operations]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/FeedbackDeliveryPolicyRequest'}}}}
+      responses: {'200': {description: Delivery policy}}
+  /api/feedback/delivery-policies/{policy_id}/{action}:
+    post:
+      tags: [Operations]
+      parameters: [{name: policy_id, in: path, required: true, schema: {type: string}}, {name: action, in: path, required: true, schema: {type: string, enum: [archive, pause, activate]}}]
+      responses: {'200': {description: Updated delivery policy}}
+  /api/feedback/escalation-policies:
+    get: {tags: [Operations], summary: List automated feedback escalation policies, responses: {'200': {description: Escalation policies}}}
+    post:
+      tags: [Operations]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/FeedbackEscalationPolicyRequest'}}}}
+      responses: {'200': {description: Escalation policy}}
+  /api/feedback/escalation-policies/{policy_id}/{action}:
+    post:
+      tags: [Operations]
+      parameters: [{name: policy_id, in: path, required: true, schema: {type: string}}, {name: action, in: path, required: true, schema: {type: string, enum: [archive, pause, activate]}}]
+      responses: {'200': {description: Updated escalation policy}}
+  /api/feedback/delivery-attempts:
+    get: {tags: [Operations], summary: List provider delivery attempts and retry states, responses: {'200': {description: Delivery attempts}}}
+  /api/feedback/notifications:
+    get: {tags: [Operations], summary: List feedback notification queue state, responses: {'200': {description: Feedback notifications}}}
+  /api/feedback/notifications/{notification_id}/receipt:
+    post:
+      tags: [Operations]
+      parameters: [{name: notification_id, in: path, required: true, schema: {type: string}}]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/FeedbackDeliveryReceiptRequest'}}}}
+      responses: {'200': {description: Provider delivery receipt applied}}
+  /api/feedback/v1/{token}:
+    get:
+      security: []
+      tags: [Operations]
+      parameters: [{name: token, in: path, required: true, schema: {type: string}}]
+      responses: {'200': {description: Public form metadata without organization membership}}
+    post:
+      security: []
+      tags: [Operations]
+      parameters: [{name: token, in: path, required: true, schema: {type: string}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PublicFeedbackSubmitRequest'}}}}
+      responses: {'200': {description: Single-use anonymous feedback response}}
+
+  /api/feedback/forms:
+    get:
+      tags: [Operations]
+      summary: List tenant feedback forms
+      responses: {'200': {description: Feedback forms}}
+    post:
+      tags: [Operations]
+      summary: Create a versioned feedback form
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/FeedbackFormRequest'}}}}
+      responses: {'200': {description: Feedback form}}
+  /api/feedback/forms/{form_id}/{action}:
+    post:
+      tags: [Operations]
+      summary: Publish or archive a feedback form
+      parameters: [{in: path, name: form_id, required: true, schema: {type: string}}, {in: path, name: action, required: true, schema: {type: string, enum: [publish, archive]}}]
+      responses: {'200': {description: Updated feedback form}}
+  /api/feedback/requests:
+    post:
+      tags: [Operations]
+      summary: Create a hashed, expiring feedback request
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/FeedbackRequest'}}}}
+      responses: {'200': {description: Feedback request and action token}}
+  /api/feedback/requests/{request_id}/submit:
+    post:
+      tags: [Operations]
+      summary: Submit a feedback response idempotently
+      parameters: [{in: path, name: request_id, required: true, schema: {type: string}}]
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/FeedbackResponseRequest'}}}}
+      responses: {'200': {description: Feedback response}}
+  /api/feedback/responses:
+    get:
+      tags: [Operations]
+      summary: List feedback responses
+      responses: {'200': {description: Feedback responses}}
+  /api/feedback/summary:
+    get:
+      tags: [Operations]
+      summary: Return feedback rating and sentiment summary
+      responses: {'200': {description: Feedback summary}}
+  /api/feedback/recovery:
+    get:
+      tags: [Operations]
+      summary: List service recovery actions
+      responses: {'200': {description: Service recovery actions}}
+    post:
+      tags: [Operations]
+      summary: Create a service recovery action
+      requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/RecoveryActionRequest'}}}}
+      responses: {'200': {description: Recovery action}}
+  /api/feedback/recovery/{action_id}/resolve:
+    post:
+      tags: [Operations]
+      summary: Resolve a service recovery action
+      parameters: [{in: path, name: action_id, required: true, schema: {type: string}}]
+      responses: {'200': {description: Resolved recovery action}}
+
+  /api/enterprise/groups:
+    get:
+      tags: [Enterprise]
+      responses: {'200': {description: Tenant-scoped company and customer groups}}
+    post:
+      tags: [Enterprise]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/EnterpriseGroupRequest'}}}}
+      responses: {'201': {description: Group created}}
+  /api/enterprise/companies:
+    get: {tags: [Enterprise], responses: {'200': {description: Sister-company hierarchy}}}
+    post:
+      tags: [Enterprise]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/EnterpriseCompanyRequest'}}}}
+      responses: {'201': {description: Company created}}
+  /api/enterprise/billing-profiles:
+    get: {tags: [Enterprise], responses: {'200': {description: Multi-company billing profiles}}}
+    post: {tags: [Enterprise], requestBody: {required: true, content: {application/json: {schema: {type: object}}}}, responses: {'201': {description: Billing profile created}}}
+  /api/enterprise/groups/members:
+    post: {tags: [Enterprise], requestBody: {required: true, content: {application/json: {schema: {type: object, required: [group_id, entity_type, entity_id]}}}}, responses: {'201': {description: Group member attached}}}
+  /api/enterprise/bank-accounts:
+    get: {tags: [Enterprise], responses: {'200': {description: Bank-account masters}}}
+    post: {tags: [Enterprise], requestBody: {required: true, content: {application/json: {schema: {type: object}}}}, responses: {'201': {description: Bank account created}}}
+  /api/enterprise/tax-entities:
+    get: {tags: [Enterprise], responses: {'200': {description: Tax-entity masters}}}
+    post: {tags: [Enterprise], requestBody: {required: true, content: {application/json: {schema: {type: object}}}}, responses: {'201': {description: Tax entity created}}}
+  /api/enterprise/billing-items:
+    get: {tags: [Enterprise], responses: {'200': {description: Billing-item masters}}}
+    post: {tags: [Enterprise], requestBody: {required: true, content: {application/json: {schema: {type: object}}}}, responses: {'201': {description: Billing item created}}}
+  /api/enterprise/custom-fields:
+    get: {tags: [Enterprise], responses: {'200': {description: Custom field definitions}}}
+    post: {tags: [Enterprise], requestBody: {required: true, content: {application/json: {schema: {type: object}}}}, responses: {'201': {description: Custom field created}}}
+  /api/enterprise/company-profile:
+    get: {tags: [Enterprise], responses: {'200': {description: Company profile and signature metadata}}}
+    post: {tags: [Enterprise], requestBody: {required: true, content: {application/json: {schema: {type: object}}}}, responses: {'200': {description: Profile saved}}}
+  /api/enterprise/plans:
+    get: {tags: [Enterprise], responses: {'200': {description: Plan and add-on entitlements}}}
+    post: {tags: [Enterprise], requestBody: {required: true, content: {application/json: {schema: {type: object}}}}, responses: {'201': {description: Plan saved}}}
+  /api/enterprise/usage:
+    get: {tags: [Enterprise], responses: {'200': {description: Usage-entitlement events}}}
+    post: {tags: [Enterprise], requestBody: {required: true, content: {application/json: {schema: {type: object}}}}, responses: {'201': {description: Usage recorded}}}
+  /api/enterprise/sso/config:
+    get: {tags: [Enterprise], responses: {'200': {description: Company-email SSO boundary}}}
+    post: {tags: [Enterprise], requestBody: {required: true, content: {application/json: {schema: {type: object}}}}, responses: {'200': {description: SSO boundary saved}}}
+  /api/enterprise/booking-controls:
+    get: {tags: [Enterprise], responses: {'200': {description: Half-hour, switching and allotment rules}}}
+    post: {tags: [Enterprise], requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/BookingControlRequest'}}}}, responses: {'200': {description: Booking controls saved}}}
+  /api/passenger/portal-links:
+    get: {tags: [Enterprise], responses: {'200': {description: Issued invite-only passenger links}}}
+    post: {tags: [Enterprise], requestBody: {required: true, content: {application/json: {schema: {type: object}}}}, responses: {'201': {description: Portal link issued}}}
+  /api/passenger/v1/portal/{token}:
+    get:
+      security: []
+      tags: [Enterprise]
+      parameters: [{name: token, in: path, required: true, schema: {type: string}}]
+      responses: {'200': {description: Passenger portal metadata}, '403': {description: Invalid or expired token}}
+    post:
+      security: []
+      tags: [Enterprise]
+      parameters: [{name: token, in: path, required: true, schema: {type: string}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PassengerBookingRequest'}}}}
+      responses: {'200': {description: Passenger booking request created}}
+  /api/availability/calendar:
+    get:
+      tags: [Enterprise]
+      parameters: [{name: start, in: query, schema: {type: string, format: date}}, {name: end, in: query, schema: {type: string, format: date}}]
+      responses: {'200': {description: Driver and vehicle availability calendar}}
+  /api/bookings/{bookingId}/quote:
+    post:
+      tags: [Enterprise]
+      parameters: [{name: bookingId, in: path, required: true, schema: {type: string, format: uuid}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/QuoteRequest'}}}}
+      responses: {'200': {description: Half-hour and overage quote}}
+  /api/bookings/{bookingId}/allotment-requests:
+    get: {tags: [Enterprise], parameters: [{name: bookingId, in: path, required: true, schema: {type: string}}], responses: {'200': {description: Multi-supplier requests}}}
+    post: {tags: [Enterprise], parameters: [{name: bookingId, in: path, required: true, schema: {type: string}}], requestBody: {required: true, content: {application/json: {schema: {type: object}}}}, responses: {'201': {description: Allotment requests created}}}
+  /api/allotment-requests/{requestId}/respond:
+    post: {tags: [Enterprise], parameters: [{name: requestId, in: path, required: true, schema: {type: string}}], requestBody: {required: true, content: {application/json: {schema: {type: object, required: [status]}}}}, responses: {'200': {description: Supplier response recorded}}}
+  /api/allotment-exceptions:
+    get: {tags: [Enterprise], responses: {'200': {description: Open allotment violations and exceptions}}}
+    post: {tags: [Enterprise], requestBody: {required: true, content: {application/json: {schema: {type: object, required: [booking_id, reason]}}}}, responses: {'201': {description: Allotment exception created}}}
+  /api/duties/{dutyId}/execution-profile:
+    get: {tags: [Execution], parameters: [{name: dutyId, in: path, required: true, schema: {type: string}}], responses: {'200': {description: DCO, attached-driver, garage and Network execution profile}}}
+    post: {tags: [Execution], parameters: [{name: dutyId, in: path, required: true, schema: {type: string}}], requestBody: {content: {application/json: {schema: {type: object}}}}, responses: {'200': {description: Execution profile saved}}}
+  /api/duties/{dutyId}/otp:
+    post: {tags: [Execution], parameters: [{name: dutyId, in: path, required: true, schema: {type: string}}], requestBody: {content: {application/json: {schema: {type: object, properties: {otp_type: {type: string, enum: [start, end]}}}}}}, responses: {'200': {description: Start or end OTP issued}}}
+  /api/duties/{dutyId}/media:
+    post: {tags: [Execution], parameters: [{name: dutyId, in: path, required: true, schema: {type: string}}], requestBody: {content: {application/json: {schema: {type: object}}}}, responses: {'200': {description: Signed media object recorded}}}
+  /api/duties/{dutyId}/slip:
+    get: {tags: [Execution], parameters: [{name: dutyId, in: path, required: true, schema: {type: string}}], responses: {'200': {description: Combined duty-slip printable document}}}
+  /api/duties/{dutyId}/adjustments:
+    post: {tags: [Execution], parameters: [{name: dutyId, in: path, required: true, schema: {type: string}}], requestBody: {content: {application/json: {schema: {type: object, required: [adjustment_type, amount_paise, reason]}}}}, responses: {'200': {description: Evidence-tied credit or debit adjustment}}}
+  /api/duties/{dutyId}/sms-close:
+    post: {tags: [Execution], parameters: [{name: dutyId, in: path, required: true, schema: {type: string}}], responses: {'200': {description: SMS closure action link}}}
+  /api/duty-close/v1/{token}:
+    get: {security: [], tags: [Execution], parameters: [{name: token, in: path, required: true, schema: {type: string}}], responses: {'200': {description: SMS closure form}}}
+    post: {security: [], tags: [Execution], parameters: [{name: token, in: path, required: true, schema: {type: string}}], requestBody: {content: {application/json: {schema: {type: object, required: [start_odometer, end_odometer]}}}}, responses: {'200': {description: Duty closed with evidence}}}
+  /api/duties/{duty_id}/evidence-bundle:
+    get:
+      tags: [Execution]
+      summary: Return or replay an immutable canonical duty evidence bundle
+      parameters: [{$ref: '#/components/parameters/DutyId'}]
+      responses: {'200': {description: Content-addressed evidence bundle and signed private object URL}}
+    post:
+      tags: [Execution]
+      summary: Canonicalize closure, media and adjustments into an immutable evidence bundle
+      parameters: [{$ref: '#/components/parameters/DutyId'}]
+      responses: {'200': {description: Immutable bundle created}}
+
+  /api/duty-closure-jobs/run:
+    post: {tags: [Execution], requestBody: {content: {application/json: {schema: {type: object}}}}, responses: {'200': {description: Idempotent closure worker batch}}}
+
+  /api/bookings/import:
+    post:
+      tags: [Operations]
+      summary: Idempotently import JSON or CSV booking rows
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/BookingImportRequest'}}}}
+      responses: {'200': {description: Import result with per-row status}}
+  /api/bookings/{bookingId}/children:
+    get: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], responses: {'200': {description: Child bookings in the parent group}}}
+    post: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/BookingChildrenRequest'}}}}, responses: {'200': {description: Child bookings created}}}
+  /api/bookings/{bookingId}/split:
+    post: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/BookingChildrenRequest'}}}}, responses: {'200': {description: Booking split into an auditable parent/child group}}}
+  /api/bookings/{bookingId}/confirm:
+    post: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], responses: {'200': {description: Booking confirmed and action recorded}}}
+  /api/bookings/{bookingId}/briefing:
+    get: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], responses: {'200': {description: Versioned booking briefings}}}
+    post: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], requestBody: {content: {application/json: {schema: {type: object}}}}, responses: {'200': {description: Briefing published}}}
+  /api/bookings/{bookingId}/advance:
+    post: {tags: [Finance], parameters: [{$ref: '#/components/parameters/BookingId'}], requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/AdvanceRequest'}}}}, responses: {'200': {description: Booking advance recorded}}}
+  /api/bookings/{bookingId}/attachments:
+    get: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], responses: {'200': {description: Booking attachments}}}
+    post: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/AttachmentRequest'}}}}, responses: {'200': {description: Attachment metadata recorded}}}
+  /api/bookings/{bookingId}/delete:
+    post: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], responses: {'200': {description: Soft-deleted booking and audit action}}}
+  /api/bookings/{bookingId}/print:
+    get: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], responses: {'200': {description: Printable confirmation representation}}}
+  /api/bookings/{bookingId}/export:
+    get: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], responses: {'200': {description: CSV export content}}}
+  /api/bookings/{bookingId}/allot-all:
+    post: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/AllotmentRequest'}}}}, responses: {'200': {description: Booking-wide allotment result}}}
+  /api/bookings/{bookingId}/reallot:
+    post: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/AllotmentRequest'}}}}, responses: {'200': {description: Re-allotment result with released previous assignments}}}
+  /api/bookings/{bookingId}/dispatch:
+    post: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/AllotmentRequest'}}}}, responses: {'200': {description: Supplier or fleet dispatch state}}}
+  /api/bookings/{bookingId}/dispatches:
+    get: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], responses: {'200': {description: Supplier response and dispatch history}}}
+  /api/bookings/{bookingId}/temporary-passenger:
+    post: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/TemporaryPassengerRequest'}}}}, responses: {'200': {description: Expiring temporary passenger attached}}}
+  /api/bookings/{bookingId}/temporary-allotment:
+    post: {tags: [Operations], parameters: [{$ref: '#/components/parameters/BookingId'}], requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/TemporaryAllotmentRequest'}}}}, responses: {'200': {description: Expiring temporary allotment attached}}}
+  /api/bookings/{bookingId}/pricing:
+    post: {tags: [Finance], parameters: [{$ref: '#/components/parameters/BookingId'}], requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/PricingQuoteRequest'}}}}, responses: {'200': {description: Versioned contract calculation and automatic duty-type switch}}}
+  /api/bookings/{bookingId}/actions:
+    get: {tags: [Governance], parameters: [{$ref: '#/components/parameters/BookingId'}], responses: {'200': {description: Append-only booking action history}}}
+  /api/pricing/contracts:
+    get: {tags: [Finance], responses: {'200': {description: Versioned customer and supplier contracts}}}
+    post: {tags: [Finance], requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/PricingContractRequest'}}}}, responses: {'200': {description: Contract version saved}}}
+  /api/pricing/contracts/{contractId}/rules:
+    get: {tags: [Finance], parameters: [{name: contractId, in: path, required: true, schema: {type: string}}], responses: {'200': {description: Contract pricing rules}}}
+    post: {tags: [Finance], parameters: [{name: contractId, in: path, required: true, schema: {type: string}}], requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/PricingRuleRequest'}}}}, responses: {'200': {description: Pricing rule version saved}}}
+  /api/pricing/quote:
+    post: {tags: [Finance], requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/PricingQuoteRequest'}}}}, responses: {'200': {description: Explainable package, extra-rate and surcharge calculation}}}
+  /api/fuel-rates:
+    get: {tags: [Finance], responses: {'200': {description: Fuel rate history}}}
+    post: {tags: [Finance], requestBody: {content: {application/json: {schema: {type: object, required: [fuel_type, price_paise]}}}}, responses: {'200': {description: Fuel rate recorded}}}
+  /api/fuel-surcharge-rules:
+    get: {tags: [Finance], responses: {'200': {description: Customer fuel surcharge rules}}}
+    post: {tags: [Finance], requestBody: {content: {application/json: {schema: {$ref: '#/components/schemas/FuelSurchargeRuleRequest'}}}}, responses: {'200': {description: Fuel surcharge rule recorded}}}
+  /api/booking-dispatches:
+    get: {tags: [Operations], responses: {'200': {description: Dispatches across the tenant}}}
+  /api/booking-dispatches/{dispatchId}/respond:
+    post: {tags: [Operations], parameters: [{name: dispatchId, in: path, required: true, schema: {type: string}}], requestBody: {content: {application/json: {schema: {type: object, required: [response_status]}}}}, responses: {'200': {description: Supplier response recorded}}}
+  /api/duties/{dutyId}/arrival:
+    post: {tags: [Execution], parameters: [{$ref: '#/components/parameters/DutyId'}], requestBody: {content: {application/json: {schema: {type: object}}}}, responses: {'200': {description: Arrival event and duty state recorded}}}
+
+  /api/passenger/booking-requests:
+    get:
+      tags: [Passenger]
+      summary: List tenant-scoped employee/passenger booking requests
+      responses:
+        "200": {description: Booking requests returned}
+    post:
+      tags: [Passenger]
+      summary: Request a booking for an employee or another passenger
+      operationId: createPassengerBookingRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/PassengerBookingRequest"}
+      responses:
+        "200": {description: Request created or idempotently replayed}
+        "409": {description: Tenant or idempotency conflict}
+  /api/passenger/book-for-others:
+    post:
+      tags: [Passenger]
+      summary: Corporate book-for-others workflow
+      operationId: bookForOthers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/PassengerBookingRequest"}
+      responses:
+        "200": {description: Approval request created}
+  /api/passenger/booking-requests/{request_id}/{action}:
+    post:
+      tags: [Passenger]
+      summary: Approve, reject or cancel a passenger booking request
+      parameters:
+        - {$ref: "#/components/parameters/RequestId"}
+        - name: action
+          in: path
+          required: true
+          schema: {type: string, enum: [approve, reject, cancel]}
+      responses:
+        "200": {description: Decision recorded}
+  /api/availability/optimize:
+    post:
+      tags: [Operations]
+      summary: Evaluate compatible driver/vehicle availability and optionally assign
+      operationId: evaluateAvailability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/AvailabilityRequest"}
+      responses:
+        "200": {description: Candidates and deterministic selection returned}
+  /api/duties/{duty_id}/route-log:
+    get:
+      tags: [Execution]
+      summary: Read route log and background location evidence
+      parameters: [{$ref: "#/components/parameters/DutyId"}]
+      responses: {"200": {description: Route log returned}}
+    post:
+      tags: [Execution]
+      summary: Append idempotent background location points
+      parameters: [{$ref: "#/components/parameters/DutyId"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/RouteLogRequest"}
+      responses: {"200": {description: Points appended}}
+  /api/duties/{duty_id}/route-log/{action}:
+    post:
+      tags: [Execution]
+      summary: Start or stop a route log
+      parameters:
+        - {$ref: "#/components/parameters/DutyId"}
+        - name: action
+          in: path
+          required: true
+          schema: {type: string, enum: [start, stop]}
+      responses: {"200": {description: Route state changed}}
+  /api/duties/{duty_id}/location-share:
+    get:
+      tags: [Passenger, Execution]
+      summary: List active passenger location shares
+      parameters: [{$ref: "#/components/parameters/DutyId"}]
+      responses: {"200": {description: Shares returned}}
+    post:
+      tags: [Passenger, Execution]
+      summary: Issue an expiring passenger live-location token
+      parameters: [{$ref: "#/components/parameters/DutyId"}]
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object, properties: {recipient: {type: string}, expires_hours: {type: integer, minimum: 1, maximum: 72}}}
+      responses: {"200": {description: Share token created}}
+  /api/location-shares/{token}:
+    get:
+      security: []
+      tags: [Passenger]
+      summary: Read a scoped live passenger location share
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200": {description: Latest trip location returned}
+        "404": {description: Invalid or expired share}
+  /api/driver-alert-policies:
+    get:
+      tags: [Execution]
+      summary: List driver alert policies
+      responses: {"200": {description: Policies returned}}
+    post:
+      tags: [Execution]
+      summary: Create a driver alert threshold and localized guidance policy
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/DriverAlertPolicy"}
+      responses: {"200": {description: Policy created}}
+  /api/duties/{duty_id}/driver-alerts:
+    get:
+      tags: [Execution]
+      parameters: [{$ref: "#/components/parameters/DutyId"}]
+      responses: {"200": {description: Driver alerts returned}}
+    post:
+      tags: [Execution]
+      parameters: [{$ref: "#/components/parameters/DutyId"}]
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/DriverAlertEvent"}
+      responses: {"200": {description: Alert created}}
+  /api/driver/device-readiness:
+    get:
+      tags: [Execution]
+      summary: Read the signed-in Driver device readiness matrix
+      responses: {"200": {description: Readiness records returned}}
+    post:
+      tags: [Execution]
+      summary: Evaluate push, background location, media and notification permissions
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/DeviceReadinessRequest"}
+      responses: {"200": {description: Ready or blocked with explicit blockers}}
+  /api/provider-connections:
+    get:
+      tags: [Governance]
+      summary: List tenant provider adapter configurations
+      responses: {"200": {description: Provider configurations returned}}
+    post:
+      tags: [Governance]
+      summary: Configure a replaceable provider adapter without persisting raw secrets
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ProviderConnectionRequest"}
+      responses: {"200": {description: Provider configured}}
+  /api/provider-connections/{connection_id}/test:
+    post:
+      tags: [Governance]
+      summary: Test a mock, sandbox or credential-referenced provider connection
+      parameters:
+        - name: connection_id
+          in: path
+          required: true
+          schema: {type: string}
+      responses: {"200": {description: Adapter health returned; mock does not claim production validation}}
+  /api/maps/places:
+    get:
+      tags: [Operations]
+      summary: Google Places-compatible search through the maps adapter
+      parameters:
+        - {name: q, in: query, required: true, schema: {type: string}}
+      responses: {"200": {description: Place predictions returned}}
+  /api/maps/navigation:
+    post:
+      tags: [Operations]
+      summary: Provider-neutral navigation route and deep link
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object, required: [pickup, dropoff], properties: {pickup: {type: object}, dropoff: {type: object}, waypoints: {type: array, items: {type: object}}, mode: {type: string}}}
+      responses: {"200": {description: Navigation estimate returned}}
+  /api/communications/click-to-call:
+    post:
+      tags: [Operations]
+      summary: Request a masked duty-context call through a telephony adapter
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object, required: [to_number], properties: {to_number: {type: string}, from_number: {type: string}, context: {type: string}, idempotency_key: {type: string}}}
+      responses: {"200": {description: Masked call queued}}
+  /api/payment-authorizations:
+    get:
+      tags: [Finance]
+      responses: {"200": {description: Tokenized authorizations returned}}
+    post:
+      tags: [Finance]
+      summary: Register a payment-method token; raw card data is rejected
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/PaymentAuthorizationRequest"}
+      responses: {"200": {description: Authorization registered}}
+  /api/invoices/{invoice_id}/auto-collect:
+    post:
+      tags: [Finance]
+      summary: Execute an idempotent authorized auto-collection attempt
+      parameters:
+        - name: invoice_id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object, required: [authorization_id], properties: {authorization_id: {type: string}, amount_paise: {type: integer}, idempotency_key: {type: string}}}
+      responses: {"200": {description: Provider result and reconciliation attempt returned}}
+  /api/invoice-automation/policies:
+    get:
+      tags: [Finance]
+      responses: {"200": {description: Automation policies returned}}
+    post:
+      tags: [Finance]
+      summary: Configure duty-completion invoice/e-invoice/collection automation
+      responses: {"200": {description: Policy saved}}
+  /api/invoice-automation/run:
+    post:
+      tags: [Finance]
+      summary: Run invoice automation for a completed duty
+      responses: {"200": {description: Idempotent invoice automation result}}
+  /api/integrations/sync:
+    get:
+      tags: [Governance]
+      responses: {"200": {description: Lifecycle sync runs returned}}
+    post:
+      tags: [Governance]
+      summary: Accept HRMS, passenger-lifecycle or corporate-provisioning records through an adapter
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/SyncRequest"}
+      responses: {"200": {description: Sync accepted; production provider validation is explicit}}
+  /api/network/supplier-exchange:
+    get:
+      tags: [Network]
+      responses: {"200": {description: Closed-network exchange jobs returned}}
+    post:
+      tags: [Network]
+      summary: Exchange supplier qualification, contract and rate data inside an invite-only Network program
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/SupplierExchangeRequest"}
+      responses: {"200": {description: Exchange queued}}
+  /api/enterprise/custom-field-values:
+    get:
+      tags: [Enterprise]
+      responses: {"200": {description: Custom field values returned}}
+    post:
+      tags: [Enterprise]
+      summary: Upsert values for an enterprise custom field
+      responses: {"200": {description: Values saved}}
+  /api/finance/budgets:
+    get:
+      tags: [Finance]
+      responses: {"200": {description: Budgets returned}}
+    post:
+      tags: [Finance]
+      summary: Save a corporate expense budget
+      responses: {"200": {description: Budget saved}}
+  /api/finance/expense-forecast:
+    get:
+      tags: [Finance]
+      summary: Return an explainable three-month deterministic expense forecast
+      responses: {"200": {description: Forecast returned}}
+
+  /api/workspace/next-actions:
+    get:
+      tags: [Operations]
+      summary: Return the tenant-scoped exception-first action queue
+      description: >-
+        Projects canonical bookings, duties, driver readiness, safety,
+        evidence and finance records into explainable next actions. The
+        projection does not create a second trip ledger.
+      parameters:
+        - in: query
+          name: limit
+          schema: {type: integer, minimum: 1, maximum: 50, default: 12}
+      responses:
+        '200':
+          description: Explainable action queue and summary
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/WorkspaceActionCenterResponse'}
+        '401': {description: Authentication required}
+  /api/workspace/next-actions/{action_id}/status:
+    post:
+      tags: [Operations]
+      summary: Acknowledge, snooze, resolve or reopen a workspace action
+      parameters:
+        - in: path
+          name: action_id
+          required: true
+          schema: {type: string, maxLength: 180}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: {type: string, enum: [acknowledged, snoozed, resolved, reopened]}
+                snooze_until: {type: string, format: date-time}
+                note: {type: string, maxLength: 500}
+      responses:
+        '200': {description: Per-user action state saved with an audit reference}
+        '400': {description: Invalid action state}
+        '403': {description: Action-center permission required}
+
 components:
   securitySchemes:
     sessionCookie:
@@ -879,8 +2374,18 @@ components:
       in: path
       required: true
       schema: {type: string}
+    RequestId:
+      name: request_id
+      in: path
+      required: true
+      schema: {type: string}
     DutyId:
       name: duty_id
+      in: path
+      required: true
+      schema: {type: string}
+    BookingId:
+      name: bookingId
       in: path
       required: true
       schema: {type: string}
@@ -945,6 +2450,636 @@ components:
       required: false
       schema: {type: string}
   schemas:
+    WorkspaceAction:
+      type: object
+      required: [id, category, priority, title, why, next_step, page, entity_type, entity_id, source, status]
+      properties:
+        id: {type: string}
+        category: {type: string, enum: [booking, dispatch, field, safety, finance, evidence, setup, readiness]}
+        priority: {type: string, enum: [critical, high, medium, low]}
+        title: {type: string}
+        why: {type: string}
+        next_step: {type: string}
+        page: {type: string}
+        entity_type: {type: string}
+        entity_id: {type: string}
+        source: {type: string}
+        due_at: {type: string, format: date-time, nullable: true}
+        owner_role: {type: string}
+        blocking: {type: boolean}
+        signals: {type: array, items: {type: string}}
+        status: {type: string, enum: [open, acknowledged]}
+        note: {type: string}
+        snoozed_until: {type: string, format: date-time}
+    WorkspaceActionCenterResponse:
+      type: object
+      required: [ok, items, summary]
+      properties:
+        ok: {type: boolean}
+        items: {type: array, items: {$ref: '#/components/schemas/WorkspaceAction'}}
+        total_available: {type: integer, minimum: 0}
+        summary:
+          type: object
+          required: [open, critical, high, blocking, acknowledged, contract_version]
+          properties:
+            open: {type: integer, minimum: 0}
+            critical: {type: integer, minimum: 0}
+            high: {type: integer, minimum: 0}
+            blocking: {type: integer, minimum: 0}
+            acknowledged: {type: integer, minimum: 0}
+            contract_version: {type: string}
+            generated_at: {type: string, format: date-time}
+            model: {type: string}
+    PassengerBookingRequest:
+      type: object
+      required: [passenger_name, scheduled_at, pickup, dropoff]
+      properties:
+        passenger_name: {type: string}
+        passenger_phone: {type: string}
+        passenger_email: {type: string, format: email}
+        customer_id: {type: string}
+        scheduled_at: {type: string, format: date-time}
+        pickup: {type: object}
+        dropoff: {type: object}
+        duty_type: {type: string}
+        notes: {type: string}
+        idempotency_key: {type: string}
+    AvailabilityRequest:
+      type: object
+      properties:
+        booking_id: {type: string}
+        city: {type: string}
+        vehicle_type: {type: string}
+        passenger_count: {type: integer, minimum: 1}
+        auto_assign: {type: boolean}
+        idempotency_key: {type: string}
+    RoutePoint:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude: {type: number, minimum: -90, maximum: 90}
+        longitude: {type: number, minimum: -180, maximum: 180}
+        recorded_at: {type: string, format: date-time}
+        accuracy_m: {type: number}
+        speed_kph: {type: number}
+        heading: {type: number}
+        battery_pct: {type: number}
+        idempotency_key: {type: string}
+    RouteLogRequest:
+      type: object
+      properties:
+        tracking_mode: {type: string, enum: [foreground, background]}
+        provider: {type: string}
+        stop: {type: boolean}
+        points: {type: array, items: {$ref: "#/components/schemas/RoutePoint"}}
+        idempotency_key: {type: string}
+    DriverAlertPolicy:
+      type: object
+      required: [name, alert_type]
+      properties:
+        name: {type: string}
+        alert_type: {type: string}
+        severity: {type: string, enum: [info, warning, critical]}
+        threshold: {type: object}
+        channels: {type: array, items: {type: string}}
+        localized_guidance: {type: object}
+        enabled: {type: boolean}
+    DriverAlertEvent:
+      type: object
+      required: [alert_type]
+      properties:
+        alert_type: {type: string}
+        severity: {type: string}
+        payload: {type: object}
+        idempotency_key: {type: string}
+    DeviceReadinessRequest:
+      type: object
+      required: [device_id, permissions]
+      properties:
+        device_id: {type: string}
+        platform: {type: string}
+        app_version: {type: string}
+        os_version: {type: string}
+        push_token: {type: string}
+        permissions: {type: object}
+    ProviderConnectionRequest:
+      type: object
+      required: [provider_type]
+      properties:
+        provider_type: {type: string, enum: [maps, messaging, telephony, payments, einvoice, hrms, gps, storage]}
+        name: {type: string}
+        mode: {type: string, enum: [mock, sandbox, production]}
+        credential_ref: {type: string, description: Secret-manager reference, not a raw secret}
+        config: {type: object}
+        capabilities: {type: array, items: {type: string}}
+    PaymentAuthorizationRequest:
+      type: object
+      required: [payment_method_token]
+      properties:
+        payment_method_token: {type: string, writeOnly: true}
+        customer_id: {type: string}
+        payer_email: {type: string, format: email}
+        provider: {type: string}
+        max_amount_paise: {type: integer, minimum: 0}
+        currency: {type: string, default: INR}
+        expires_at: {type: string, format: date-time}
+        idempotency_key: {type: string}
+    SyncRequest:
+      type: object
+      required: [sync_type]
+      properties:
+        sync_type: {type: string, enum: [hrms, passenger_lifecycle, corporate_provisioning]}
+        provider: {type: string}
+        records: {type: array, items: {type: object}}
+        idempotency_key: {type: string}
+    SupplierExchangeRequest:
+      type: object
+      required: [network_program_id, supplier_id]
+      properties:
+        network_program_id: {type: string}
+        supplier_id: {type: string}
+        visibility: {type: string, enum: [invite_only, closed_b2b], default: invite_only}
+        direction: {type: string, enum: [outbound, inbound]}
+        qualification: {type: object}
+        contract: {type: object}
+        rate_card: {type: object}
+        idempotency_key: {type: string}
+    BookingBatchRequest:
+      type: object
+      required: [mode]
+      properties:
+        mode: {type: string, enum: [bulk, itinerary, monthly]}
+        rows: {type: array, items: {type: object}}
+        segments: {type: array, items: {type: object}}
+        template: {type: object}
+        start_at: {type: string, format: date-time}
+        end_at: {type: string, format: date-time}
+        occurrences: {type: integer, minimum: 1, maximum: 365}
+        idempotency_key: {type: string}
+    InvoiceRunRequest:
+      type: object
+      required: [mode]
+      properties:
+        mode: {type: string, enum: [per_duty, monthly, cover, proforma]}
+        duty_ids: {type: array, items: {type: string}}
+        customer_id: {type: string}
+        period_start: {type: string, format: date-time}
+        period_end: {type: string, format: date-time}
+        due_at: {type: string, format: date-time}
+        idempotency_key: {type: string}
+    DunningRunRequest:
+      type: object
+      properties:
+        channel: {type: string, enum: [email, sms, whatsapp]}
+    ReportDefinitionRequest:
+      type: object
+      required: [name, report_type]
+      properties:
+        name: {type: string}
+        report_type: {type: string, enum: [ageing, duty_count, vehicle_profitability, customer_summary]}
+        filters: {type: object}
+        columns: {type: array, items: {type: string}}
+    ExportProfileRequest:
+      type: object
+      required: [name]
+      properties:
+        name: {type: string}
+        target: {type: string, enum: [csv, json]}
+        mapping: {type: object}
+    CommunicationTemplateRequest:
+      type: object
+      required: [template_key, channel, body]
+      properties:
+        template_key: {type: string}
+        name: {type: string}
+        channel: {type: string, enum: [email, sms, whatsapp, push]}
+        subject: {type: string}
+        body: {type: string}
+    CommunicationDispatchRequest:
+      type: object
+      required: [template_key, channel, recipient]
+      properties:
+        template_key: {type: string}
+        channel: {type: string, enum: [email, sms, whatsapp, push]}
+        recipient: {type: string}
+        variables: {type: object}
+        idempotency_key: {type: string}
+    CommunicationSuppressionRequest:
+      type: object
+      required: [recipient, channel]
+      properties:
+        recipient: {type: string}
+        channel: {type: string, enum: [email, sms, whatsapp, push]}
+        reason: {type: string}
+        expires_at: {type: string, format: date-time}
+    SupplierPurchaseRequest:
+      type: object
+      required: [amount_paise]
+      properties:
+        supplier_id: {type: string}
+        duty_id: {type: string}
+        purchase_reference: {type: string}
+        amount_paise: {type: integer, minimum: 0}
+        due_at: {type: string, format: date-time}
+        supplier_bill_id: {type: string}
+        idempotency_key: {type: string}
+    SupplierSettlementRequest:
+      type: object
+      required: [period_start, period_end]
+      properties:
+        supplier_id: {type: string}
+        period_start: {type: string, format: date}
+        period_end: {type: string, format: date}
+    FuelEntryRequest:
+      type: object
+      required: [vehicle_id, amount_paise]
+      properties:
+        vehicle_id: {type: string}
+        duty_id: {type: string}
+        driver_id: {type: string}
+        fuel_station: {type: string}
+        fuel_type: {type: string, enum: [petrol, diesel, cng, ev, electric, other]}
+        quantity_millilitres: {type: integer, minimum: 1}
+        quantity_litres: {type: number, minimum: 0}
+        amount_paise: {type: integer, minimum: 1}
+        odometer_km: {type: integer, minimum: 0}
+        idempotency_key: {type: string}
+    PettyCashRequest:
+      type: object
+      required: [amount_paise, category]
+      properties:
+        driver_id: {type: string}
+        duty_id: {type: string}
+        direction: {type: string, enum: [credit, debit]}
+        category: {type: string}
+        amount_paise: {type: integer, minimum: 1}
+        note: {type: string}
+        idempotency_key: {type: string}
+    DriverAllowanceRequest:
+      type: object
+      required: [driver_id, amount_paise]
+      properties:
+        driver_id: {type: string}
+        duty_id: {type: string}
+        category: {type: string, enum: [meal, night, outstation, parking, toll, phone, other]}
+        amount_paise: {type: integer, minimum: 1}
+        period_start: {type: string, format: date}
+        period_end: {type: string, format: date}
+        idempotency_key: {type: string}
+    PayrollRunRequest:
+      type: object
+      required: [period_start, period_end]
+      properties:
+        period_start: {type: string, format: date}
+        period_end: {type: string, format: date}
+        lines: {type: array, items: {type: object}}
+        idempotency_key: {type: string}
+    FinanceActionRequest:
+      type: object
+      properties:
+        comments: {type: string}
+        reason: {type: string}
+        idempotency_key: {type: string}
+    SupplierPaymentRequest:
+      type: object
+      required: [amount_paise]
+      properties:
+        supplier_id: {type: string}
+        settlement_id: {type: string}
+        amount_paise: {type: integer, minimum: 1}
+        due_at: {type: string, format: date-time}
+        idempotency_key: {type: string}
+        metadata: {type: object}
+    SupplierAdvanceRequest:
+      type: object
+      required: [amount_paise]
+      properties:
+        supplier_id: {type: string}
+        amount_paise: {type: integer, minimum: 1}
+        purpose: {type: string}
+        idempotency_key: {type: string}
+    DriverPayoutRequest:
+      type: object
+      required: [driver_id, period_start, period_end]
+      properties:
+        driver_id: {type: string}
+        period_start: {type: string, format: date}
+        period_end: {type: string, format: date}
+        gross_paise: {type: integer, minimum: 0}
+        deductions_paise: {type: integer, minimum: 0}
+        idempotency_key: {type: string}
+    PayrollExportRequest:
+      type: object
+      properties:
+        payroll_run_id: {type: string}
+        export_format: {type: string, enum: [bank_csv]}
+    PayrollComplianceRequest:
+      type: object
+      required: [period_start, period_end]
+      properties:
+        period_start: {type: string, format: date}
+        period_end: {type: string, format: date}
+        report_type: {type: string, enum: [statutory_deductions, payroll_tax, compliance_summary]}
+    FuelStationRequest:
+      type: object
+      required: [code, name]
+      properties:
+        code: {type: string}
+        name: {type: string}
+        city: {type: string}
+        address: {type: string}
+        fuel_types: {type: array, items: {type: string}}
+    FuelPriceRequest:
+      type: object
+      required: [station_id, fuel_type, price_paise, effective_from]
+      properties:
+        station_id: {type: string}
+        fuel_type: {type: string, enum: [petrol, diesel, cng, electric, hybrid]}
+        price_paise: {type: integer, minimum: 1}
+        effective_from: {type: string, format: date-time}
+        source: {type: string}
+    ReconciliationRequest:
+      type: object
+      required: [reconciliation_type]
+      properties:
+        reconciliation_type: {type: string, enum: [supplier_customer, supplier, customer, petty_cash, payroll]}
+        period_start: {type: string, format: date}
+        period_end: {type: string, format: date}
+        filters: {type: object}
+        summary: {type: object}
+        unmatched: {type: array, items: {type: object}}
+    ReportBuilderRequest:
+      type: object
+      required: [name, report_type]
+      properties:
+        name: {type: string}
+        report_type: {type: string, enum: [supplier_profitability, vehicle_profitability, pricing_export, bill_to_duty, duty_count, customer_summary, custom]}
+        filters:
+          type: object
+          properties:
+            customer_id: {type: string}
+            supplier_id: {type: string}
+            city: {type: string}
+            branch: {type: string}
+            company_id: {type: string}
+            vehicle_group: {type: string}
+        columns: {type: array, items: {type: string}}
+        sort: {type: object}
+    ReportFavoriteRequest:
+      type: object
+      required: [config_id, name]
+      properties:
+        config_id: {type: string}
+        name: {type: string}
+        refresh_cadence: {type: string, enum: [manual, hourly, daily, weekly]}
+    ReportRunRequest:
+      type: object
+      properties:
+        async: {type: boolean}
+        export_type: {type: string, enum: [csv, json, pricing_csv, bill_to_duty_csv]}
+        filters: {type: object}
+    ReportExportRequest:
+      type: object
+      properties:
+        config_id: {type: string}
+        export_type: {type: string, enum: [csv, json, pricing_csv, bill_to_duty_csv]}
+        filters: {type: object}
+    ImportTemplateRequest:
+      type: object
+      required: [entity_type, name, columns]
+      properties:
+        entity_type: {type: string, enum: [drivers, vehicles, duties, customers, suppliers, fuel_stations]}
+        name: {type: string}
+        columns: {type: array, items: {type: object}}
+        validation: {type: object}
+    ImportPreviewRequest:
+      type: object
+      required: [entity_type, rows]
+      properties:
+        entity_type: {type: string, enum: [drivers, vehicles, duties, customers, suppliers, fuel_stations]}
+        template_id: {type: string}
+        rows: {type: array, items: {type: object}}
+    ImportCorrectionRequest:
+      type: object
+      required: [corrections]
+      properties:
+        corrections: {type: array, items: {type: object, required: [row, values], properties: {row: {type: integer, minimum: 0}, values: {type: object}}}}
+    PublicFeedbackLinkRequest:
+      type: object
+      required: [form_id]
+      properties:
+        form_id: {type: string}
+        duty_id: {type: string}
+        booking_id: {type: string}
+        label: {type: string}
+        recipient: {type: string}
+        channel: {type: string, enum: [email, sms, whatsapp, internal]}
+        expires_at: {type: string, format: date-time}
+        allow_anonymous: {type: boolean, default: true}
+    PublicFeedbackSubmitRequest:
+      type: object
+      required: [rating]
+      properties:
+        rating: {type: integer, minimum: 1, maximum: 5}
+        answers: {type: object}
+        tags: {type: array, items: {type: string}}
+        comment: {type: string, maxLength: 2000}
+
+    FeedbackFormRequest:
+      type: object
+      required: [name, questions]
+      properties:
+        name: {type: string}
+        trigger_event: {type: string}
+        questions: {type: array, items: {type: object}}
+    FeedbackRequest:
+      type: object
+      required: [form_id]
+      properties:
+        form_id: {type: string}
+        duty_id: {type: string}
+        booking_id: {type: string}
+        recipient: {type: string}
+        expires_at: {type: string, format: date-time}
+    FeedbackResponseRequest:
+      type: object
+      required: [rating]
+      properties:
+        rating: {type: integer, minimum: 1, maximum: 5}
+        answers: {type: object}
+        tags: {type: array, items: {type: string}}
+        comment: {type: string}
+    RecoveryActionRequest:
+      type: object
+      required: [response_id, action_type]
+      properties:
+        response_id: {type: string}
+        action_type: {type: string, enum: [call_customer, coach_driver, investigate, refund_review, supplier_review, close_loop]}
+        owner_id: {type: string}
+        due_at: {type: string, format: date-time}
+        notes: {type: string}
+    AvailabilityRequest:
+      type: object
+      required: [starts_at]
+      properties:
+        starts_at: {type: string, format: date-time}
+        ends_at: {type: string, format: date-time}
+        duration_hours: {type: number, minimum: 0.5}
+        city: {type: string}
+        vehicle_group: {type: string}
+    AllotmentRequest:
+      type: object
+      properties:
+        driver_id: {type: string}
+        vehicle_id: {type: string}
+        idempotency_key: {type: string}
+    DutyClosureRequest:
+      type: object
+      required: [start_odometer, end_odometer]
+      properties:
+        start_odometer: {type: integer, minimum: 0}
+        end_odometer: {type: integer, minimum: 0}
+        required_evidence: {type: array, items: {type: string}}
+        evidence: {type: array, items: {type: object}}
+        idempotency_key: {type: string}
+    CorporateAccountRequest:
+      type: object
+      required: [name]
+      properties:
+        name: {type: string}
+        connection_type: {type: string, enum: [manual, customer, supplier, network, api]}
+        external_account_id: {type: string}
+        customer_id: {type: string}
+        scope: {type: object}
+        pricing_scope: {type: object}
+        copy_pricing: {type: boolean}
+    CorporateSetupRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorporateAccountRequest'
+        - type: object
+          properties:
+            source_price_book_ids: {type: array, items: {type: string}}
+            idempotency_key: {type: string, maxLength: 160}
+    CorporateUserRequest:
+      type: object
+      required: [email, account_type]
+      properties:
+        email: {type: string, format: email}
+        full_name: {type: string}
+        account_type: {type: string, enum: [admin, employee_admin, booker_passenger]}
+        permission_profile: {type: string}
+        grants: {type: array, items: {type: string}}
+        denies: {type: array, items: {type: string}}
+        visibility: {type: object}
+    CorporatePolicyRequest:
+      type: object
+      required: [name]
+      properties:
+        name: {type: string}
+        status: {type: string, enum: [draft, active, archived]}
+        booking_lead_time_minutes: {type: integer, minimum: 0}
+        cancellation_cutoff_minutes: {type: integer, minimum: 0}
+        approval_required: {type: boolean}
+        approval_route: {type: array, items: {type: object}}
+        supplier_mode: {type: string, enum: [any, allowlist, preferred, requested_only]}
+        allowed_supplier_ids: {type: array, items: {type: string}}
+        auto_allotment_enabled: {type: boolean}
+        passenger_duty_slip_approval: {type: boolean}
+        duty_slip_auto_approval_hours: {type: integer, minimum: 1, maximum: 720, default: 48}
+        visibility: {type: object}
+        rules: {type: object}
+    CorporateBookingEvaluationRequest:
+      type: object
+      required: [scheduled_at]
+      properties:
+        action: {type: string, enum: [book, create, request, cancel]}
+        scheduled_at: {type: string, format: date-time}
+        city: {type: string}
+        branch_id: {type: string}
+        customer_entity_id: {type: string}
+        vehicle_group_code: {type: string}
+        duty_type_code: {type: string}
+        supplier_id: {type: string}
+    DutySlipApprovalRequest:
+      type: object
+      required: [passenger_email]
+      properties:
+        booking_id: {type: string}
+        duty_id: {type: string}
+        passenger_email: {type: string, format: email}
+        passenger_name: {type: string}
+    CorporateMasterRequest:
+      type: object
+      required: [kind, code, name]
+      properties:
+        kind: {type: string, enum: [duty_types, vehicle_groups, billing_items, taxes, company_scopes, pricing_rules, document_requirements]}
+        code: {type: string}
+        name: {type: string}
+        effective_from: {type: string, format: date}
+        effective_to: {type: string, format: date}
+        scope: {type: object}
+        config: {type: object}
+    AllotmentRuleRequest:
+      type: object
+      required: [name]
+      properties:
+        name: {type: string}
+        version: {type: integer, minimum: 1}
+        status: {type: string, enum: [draft, active, archived]}
+        priority: {type: integer, minimum: 0}
+        supplier_ids: {type: array, items: {type: string}}
+        vehicle_group_codes: {type: array, items: {type: string}}
+        duty_type_codes: {type: array, items: {type: string}}
+        cities: {type: array, items: {type: string}}
+        required_document_types: {type: array, items: {type: string}}
+        auto_allot: {type: boolean}
+        fallback_supplier_id: {type: string}
+        max_attempts: {type: integer, minimum: 1, maximum: 20}
+        rules: {type: object}
+        idempotency_key: {type: string, maxLength: 160}
+    AllotmentEvaluationRequest:
+      type: object
+      properties:
+        policy_id: {type: string}
+        city: {type: string}
+        supplier_id: {type: string}
+        vehicle_id: {type: string}
+        required_document_types: {type: array, items: {type: string}}
+    BillIntelligenceCaptureRequest:
+      type: object
+      required: [filename]
+      properties:
+        filename: {type: string, maxLength: 255}
+        content_type: {type: string}
+        storage_reference: {type: string}
+        file_sha256: {type: string}
+        ocr_text: {type: string}
+        extracted: {type: object, description: Strict structured extraction overrides for mock or reviewed fields}
+        vehicle_id: {type: string}
+        supplier_id: {type: string}
+        duty_id: {type: string}
+        idempotency_key: {type: string, maxLength: 160}
+    BillIntelligenceReviewRequest:
+      type: object
+      properties:
+        vehicle_id: {type: string}
+        fields: {type: object}
+        overrides: {type: object}
+        note: {type: string, maxLength: 500}
+    BillIntelligenceRecord:
+      type: object
+      properties:
+        id: {type: string}
+        organization_id: {type: string}
+        bill_type: {type: string, enum: [fuel, maintenance, toll, insurance, tyre, other]}
+        status: {type: string, enum: [draft, needs_review, posted, rejected, reversed]}
+        extracted: {type: object}
+        confidence: {type: object}
+        validation: {type: object}
+        posting: {type: object}
+        storage_reference: {type: string}
+        vehicle_id: {type: string}
+        created_at: {type: string, format: date-time}
     Phase3EvaluateRequest:
       type: object
       properties:
@@ -1155,6 +3290,7 @@ components:
             full_name: {type: string}
             phone: {type: string}
             city: {type: string}
+            timezone: {type: string, description: IANA time zone identifier used for greetings and localized date/time display}
             organization_name: {type: string}
     OnboardingPatch:
       type: object
@@ -1170,6 +3306,7 @@ components:
         customer_id: {type: string}
         passenger_name: {type: string}
         passenger_phone: {type: string}
+        passenger_email: {type: string, format: email}
         pickup: {type: object}
         dropoff: {type: object}
         scheduled_at: {type: string, format: date-time}
@@ -1341,6 +3478,109 @@ components:
         period_end: {type: string, format: date}
         evidence: {type: object}
         idempotency_key: {type: string}
+    NetworkContractVersionRequest:
+      type: object
+      properties:
+        action: {type: string, enum: [publish, accept]}
+        version_id: {type: string}
+        terms: {type: object}
+        rate_cards: {type: array, items: {type: object}}
+        effective_from: {type: string, format: date-time}
+        effective_to: {type: string, format: date-time}
+        idempotency_key: {type: string}
+    NetworkExchangeRequest:
+      type: object
+      required: [exchange_type]
+      properties:
+        exchange_type: {type: string, enum: [booking, duty_slip, invoice, operational_message]}
+        direction: {type: string, enum: [inbound, outbound]}
+        external_reference: {type: string}
+        payload: {type: object}
+        attachments: {type: array, items: {type: object}}
+        send_now: {type: boolean}
+        idempotency_key: {type: string}
+    NetworkSlaObservationRequest:
+      type: object
+      required: [metric, target_value, observed_value]
+      properties:
+        sla_id: {type: string}
+        metric: {type: string}
+        target_value: {type: number}
+        observed_value: {type: number}
+        unit: {type: string}
+        evidence: {type: object}
+        observed_at: {type: string, format: date-time}
+        idempotency_key: {type: string}
+    NetworkSupplierIssueRequest:
+      type: object
+      required: [issue_type, description]
+      properties:
+        issue_type: {type: string, enum: [rejection, sla_breach, rate_discrepancy, settlement_dispute, operational]}
+        severity: {type: string}
+        reason_code: {type: string}
+        description: {type: string}
+        evidence: {type: object}
+        proposed_resolution: {type: object}
+        idempotency_key: {type: string}
+    NetworkRateDiscrepancyRequest:
+      type: object
+      required: [expected_paise, actual_paise]
+      properties:
+        contract_id: {type: string}
+        rate_card_id: {type: string}
+        issue_id: {type: string}
+        expected_paise: {type: integer, minimum: 0}
+        actual_paise: {type: integer, minimum: 0}
+        currency: {type: string}
+        reason: {type: string}
+        evidence: {type: object}
+        idempotency_key: {type: string}
+    NetworkSettlementResolutionRequest:
+      type: object
+      required: [settlement_id]
+      properties:
+        settlement_id: {type: string}
+        issue_id: {type: string}
+        discrepancy_id: {type: string}
+        resolution_type: {type: string}
+        adjustment_paise: {type: integer}
+        notes: {type: string}
+        evidence: {type: object}
+        idempotency_key: {type: string}
+    FeedbackDeliveryPolicyRequest:
+      type: object
+      required: [name]
+      properties:
+        customer_id: {type: string}
+        name: {type: string}
+        trigger_event: {type: string}
+        channels: {type: array, items: {type: string, enum: [sms, email, whatsapp]}}
+        fallback_channels: {type: array, items: {type: string, enum: [sms, email, whatsapp]}}
+        delay_minutes: {type: integer, minimum: 0}
+        quiet_hours: {type: object}
+        template_keys: {type: object}
+        max_attempts: {type: integer, minimum: 1, maximum: 10}
+    FeedbackEscalationPolicyRequest:
+      type: object
+      required: [name]
+      properties:
+        customer_id: {type: string}
+        name: {type: string}
+        conditions: {type: object, example: {rating_lte: 2}}
+        action_type: {type: string}
+        priority: {type: string}
+        owner_id: {type: string}
+        due_minutes: {type: integer, minimum: 1}
+        channels: {type: array, items: {type: string}}
+    FeedbackDeliveryReceiptRequest:
+      type: object
+      required: [status]
+      properties:
+        status: {type: string, enum: [sent, delivered, bounced, failed]}
+        provider_reference: {type: string}
+        provider_event_id: {type: string}
+        bounce_code: {type: string}
+        error: {type: string}
     ExportRequest:
       type: object
       properties:
@@ -1432,3 +3672,164 @@ components:
       type: object
       properties:
         idempotency_key: {type: string, maxLength: 160}
+    EnterpriseGroupRequest:
+      type: object
+      required: [name]
+      properties:
+        name: {type: string, maxLength: 160}
+        code: {type: string, maxLength: 80}
+        group_type: {type: string, enum: [customer, supplier, sister_company]}
+        parent_id: {type: string}
+        metadata: {type: object}
+    EnterpriseCompanyRequest:
+      type: object
+      required: [legal_name, code]
+      properties:
+        legal_name: {type: string, maxLength: 200}
+        code: {type: string, maxLength: 60}
+        trading_name: {type: string}
+        gstin: {type: string}
+        pan: {type: string}
+        is_sister_company: {type: boolean}
+    BookingControlRequest:
+      type: object
+      properties:
+        name: {type: string}
+        package_minutes: {type: integer, minimum: 1}
+        package_base_paise: {type: integer, minimum: 0}
+        extra_km_paise: {type: integer, minimum: 0}
+        extra_half_hour_paise: {type: integer, minimum: 0}
+        eta_guard_minutes: {type: integer, minimum: 0}
+        price_guard_paise: {type: integer, minimum: 0}
+        temporary_allotment: {type: boolean}
+        customer_controlled_allotment: {type: boolean}
+        auto_switch: {type: object}
+        supplier_city: {type: object}
+    PassengerBookingRequest:
+      type: object
+      required: [passenger_name, pickup, dropoff, scheduled_at]
+      properties:
+        passenger_name: {type: string}
+        passenger_phone: {type: string}
+        passenger_email: {type: string, format: email}
+        pickup: {type: object}
+        dropoff: {type: object}
+        scheduled_at: {type: string, format: date-time}
+        duty_type: {type: string}
+        notes: {type: string}
+    QuoteRequest:
+      type: object
+      properties:
+        duration_minutes: {type: integer, minimum: 0}
+        distance_km: {type: number, minimum: 0}
+        included_km: {type: number, minimum: 0}
+        package_minutes: {type: integer, minimum: 1}
+    BookingImportRequest:
+      type: object
+      properties:
+        idempotency_key: {type: string}
+        source_format: {type: string, enum: [json, csv]}
+        bookings: {type: array, items: {$ref: '#/components/schemas/PassengerBookingRequest'}}
+        rows: {type: array, items: {type: object}}
+        csv: {type: string}
+    BookingChildrenRequest:
+      type: object
+      properties:
+        idempotency_key: {type: string}
+        children: {type: array, items: {type: object}}
+        dates: {type: array, items: {type: string, format: date-time}}
+    AdvanceRequest:
+      type: object
+      required: [amount_paise]
+      properties:
+        amount_paise: {type: integer, minimum: 0}
+        currency: {type: string, default: INR}
+        mode: {type: string}
+        reference: {type: string}
+        idempotency_key: {type: string}
+    AttachmentRequest:
+      type: object
+      required: [filename]
+      properties:
+        filename: {type: string}
+        content_type: {type: string}
+        storage_path: {type: string}
+        content: {type: string}
+        metadata: {type: object}
+    AllotmentRequest:
+      type: object
+      properties:
+        allotment_mode: {type: string, enum: [owned, company_supplier, dco, network]}
+        supplier_id: {type: string}
+        driver_id: {type: string}
+        vehicle_id: {type: string}
+        network_vendor_profile_id: {type: string, description: Required for invite-only Network allotment}
+        idempotency_key: {type: string}
+        expires_at: {type: string, format: date-time}
+    TemporaryPassengerRequest:
+      type: object
+      required: [name]
+      properties:
+        name: {type: string}
+        phone: {type: string}
+        email: {type: string, format: email}
+        expires_at: {type: string, format: date-time}
+        metadata: {type: object}
+    TemporaryAllotmentRequest:
+      allOf:
+        - $ref: '#/components/schemas/AllotmentRequest'
+        - type: object
+          required: [expires_at]
+          properties:
+            expires_at: {type: string, format: date-time}
+    PricingContractRequest:
+      type: object
+      required: [name]
+      properties:
+        name: {type: string}
+        contract_type: {type: string, enum: [customer, supplier]}
+        customer_id: {type: string}
+        supplier_id: {type: string}
+        version: {type: integer, minimum: 1}
+        status: {type: string, enum: [draft, active, archived]}
+        effective_from: {type: string, format: date-time}
+        effective_to: {type: string, format: date-time}
+        terms: {type: object}
+    PricingRuleRequest:
+      type: object
+      properties:
+        city: {type: string}
+        vehicle_group: {type: string}
+        duty_type: {type: string}
+        package_minutes: {type: integer, minimum: 0}
+        included_km: {type: number, minimum: 0}
+        base_paise: {type: integer, minimum: 0}
+        extra_km_paise: {type: integer, minimum: 0}
+        extra_hour_paise: {type: integer, minimum: 0}
+        extra_half_hour_paise: {type: integer, minimum: 0}
+        waiting_paise: {type: integer, minimum: 0}
+        allowance_paise: {type: integer, minimum: 0}
+        auto_switch: {type: object}
+        extras: {type: object}
+    PricingQuoteRequest:
+      type: object
+      properties:
+        booking_id: {type: string}
+        contract_id: {type: string}
+        duration_minutes: {type: integer, minimum: 0}
+        distance_km: {type: number, minimum: 0}
+        vehicle_group: {type: string}
+        duty_type: {type: string}
+        idempotency_key: {type: string}
+    FuelSurchargeRuleRequest:
+      type: object
+      properties:
+        customer_id: {type: string}
+        contract_id: {type: string}
+        vehicle_group: {type: string}
+        fuel_type: {type: string}
+        included_fuel_price_paise: {type: integer, minimum: 0}
+        average_km_per_litre: {type: number, exclusiveMinimum: 0}
+        surcharge_mode: {type: string, enum: [difference, percent]}
+        rate_percent_bps: {type: integer, minimum: 0}
+        effective_from: {type: string, format: date-time}

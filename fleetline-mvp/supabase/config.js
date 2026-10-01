@@ -1,6 +1,6 @@
-// Active Supabase configuration for Axiom Fleet.
+// Local development fallback. Copy values from config.example.js when a Supabase project is ready.
 window.AXIOM_SUPABASE_CONFIG = window.AXIOM_SUPABASE_CONFIG || {
-  enabled: true,
-  url: 'https://girbtmzictppugunfpoe.supabase.co',
-  anonKey: 'sb_publishable_pBBDTJ9P_QUBj2XvdWpBnA_ewhFUZZw'
+  enabled: false,
+  url: '',
+  anonKey: ''
 };

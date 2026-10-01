@@ -1,0 +1,1992 @@
+{
+  "source": "https://help.indecab.com/",
+  "fetched_at": "2026-09-30T13:14:28Z",
+  "scope": "Public internal help-center links discovered recursively from the home page.",
+  "discovered_count": 282,
+  "fetched_count": 282,
+  "error_pages": [
+    {
+      "url": "https://help.indecab.com/en/article/dlt-platform-sms-template-registration-process-et1laz",
+      "status": 404,
+      "error": "HTTP 404"
+    }
+  ],
+  "unique_embedded_gif_count": 490,
+  "unique_embedded_video_count": 0,
+  "pages": [
+    {
+      "url": "https://help.indecab.com/",
+      "title": "Indecab Help Center",
+      "media_count": 0,
+      "word_count": 533,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/adding-a-booking",
+      "title": "Adding a booking",
+      "media_count": 1,
+      "word_count": 310,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/alloting-a-booking",
+      "title": "Alloting a booking",
+      "media_count": 0,
+      "word_count": 330,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/an-introduction-to-the-indecab-go-driver-app",
+      "title": "An Introduction to the Indecab Go - Driver App",
+      "media_count": 4,
+      "word_count": 558,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/availability",
+      "title": "Availability",
+      "media_count": 0,
+      "word_count": 60,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/bank-accounts",
+      "title": "Bank Accounts",
+      "media_count": 0,
+      "word_count": 70,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/billing",
+      "title": "Billing",
+      "media_count": 0,
+      "word_count": 216,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/billing-and-receipts-articles",
+      "title": "Billing and Receipts",
+      "media_count": 0,
+      "word_count": 659,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/billing-items",
+      "title": "Billing items",
+      "media_count": 0,
+      "word_count": 99,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/billing-items-and-how-to-create-them",
+      "title": "Billing Items and how to create them",
+      "media_count": 1,
+      "word_count": 378,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/booking-and-allotment",
+      "title": "Booking and Allotment",
+      "media_count": 0,
+      "word_count": 300,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/bookings",
+      "title": "Bookings",
+      "media_count": 0,
+      "word_count": 124,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/branches",
+      "title": "Branches",
+      "media_count": 0,
+      "word_count": 77,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/business-settings",
+      "title": "Business Settings",
+      "media_count": 0,
+      "word_count": 99,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/car-rental-companies",
+      "title": "Car Rental Companies",
+      "media_count": 0,
+      "word_count": 128,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/changing-extra-km-time-rates-and-booker-passenger-details-in-a-saved-invoice",
+      "title": "Changing extra KM/ Time rates and booker/ passenger details in a saved invoice",
+      "media_count": 2,
+      "word_count": 265,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/closing-a-duty",
+      "title": "Closing a duty",
+      "media_count": 0,
+      "word_count": 246,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/common-errors-while-creating-e-invoices",
+      "title": "Common errors while creating E-invoices",
+      "media_count": 3,
+      "word_count": 381,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/controlling-employee-access-to-information",
+      "title": "Controlling employee access to information",
+      "media_count": 2,
+      "word_count": 827,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/corporate-accounts",
+      "title": "Corporate Accounts",
+      "media_count": 0,
+      "word_count": 213,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/create-update-passenger-api",
+      "title": "Create/update passenger API",
+      "media_count": 0,
+      "word_count": 231,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/creating-vehicle-fuel-entries-via-the-indecab-go-driver-app",
+      "title": "Creating Vehicle Fuel Entries via the Indecab Go Driver App",
+      "media_count": 0,
+      "word_count": 319,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/credit-debit-notes",
+      "title": "Credit/Debit Notes",
+      "media_count": 0,
+      "word_count": 91,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/custom-fields-how-to-create-and-use-them",
+      "title": "Custom Fields - How to create and use them",
+      "media_count": 2,
+      "word_count": 587,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/customer-invoice-ageing-report",
+      "title": "Customer Invoice ageing report",
+      "media_count": 0,
+      "word_count": 155,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/customers",
+      "title": "Customers",
+      "media_count": 0,
+      "word_count": 118,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/customising-saved-invoices-and-creating-a-cover-invoice",
+      "title": "Customising Saved Invoices and Creating a Cover Invoice",
+      "media_count": 2,
+      "word_count": 381,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/different-ways-to-use-branches-for-access-visibility",
+      "title": "Different ways to use Branches for access/visibility",
+      "media_count": 7,
+      "word_count": 704,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/dispatching-a-duty",
+      "title": "Dispatching a duty",
+      "media_count": 0,
+      "word_count": 223,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/driver-app-and-location-tracking",
+      "title": "Driver App and Location Tracking",
+      "media_count": 0,
+      "word_count": 274,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/driver-efficiency-alerts-and-controls",
+      "title": "Driver efficiency alerts & controls",
+      "media_count": 3,
+      "word_count": 1043,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/driver-manual-for-indecab-go-driver-app",
+      "title": "Driver Manual for Indecab Go Driver App",
+      "media_count": 0,
+      "word_count": 390,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/driver-payroll",
+      "title": "Driver Payroll",
+      "media_count": 0,
+      "word_count": 64,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/driver-phone-battery-settings-for-the-indecab-go-driver-app",
+      "title": "Driver phone battery settings for the Indecab Go Driver App",
+      "media_count": 1,
+      "word_count": 927,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/duties",
+      "title": "Duties",
+      "media_count": 0,
+      "word_count": 124,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/duty-supporters",
+      "title": "Duty Supporters",
+      "media_count": 0,
+      "word_count": 72,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/duty-types",
+      "title": "Duty Types",
+      "media_count": 0,
+      "word_count": 121,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/employees",
+      "title": "Employees",
+      "media_count": 0,
+      "word_count": 125,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/en/article/dlt-platform-sms-template-registration-process-et1laz",
+      "title": "",
+      "media_count": 0,
+      "word_count": 0,
+      "status": 404
+    },
+    {
+      "url": "https://help.indecab.com/en/article/how-to-export-to-tally-4h69e",
+      "title": "How to export to Tally",
+      "media_count": 1,
+      "word_count": 679,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/en/article/labels-1kug4qz",
+      "title": "Labels- How to create and use them",
+      "media_count": 7,
+      "word_count": 495,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/exporting-duties",
+      "title": "Exporting duties",
+      "media_count": 0,
+      "word_count": 195,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/exporting-invoices",
+      "title": "Exporting invoices",
+      "media_count": 0,
+      "word_count": 185,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/exporting-payment-gateway-transactions",
+      "title": "Exporting Payment gateway transactions",
+      "media_count": 0,
+      "word_count": 194,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/exporting-receipts",
+      "title": "Exporting receipts",
+      "media_count": 0,
+      "word_count": 182,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/feedback-forms",
+      "title": "Feedback Forms",
+      "media_count": 0,
+      "word_count": 100,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/feedback-forms-and-how-to-use-them",
+      "title": "Feedback Forms and how to use them",
+      "media_count": 3,
+      "word_count": 335,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/generating-business-reports",
+      "title": "Generating business reports",
+      "media_count": 0,
+      "word_count": 171,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/getting-started",
+      "title": "Getting Started",
+      "media_count": 0,
+      "word_count": 69,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/getting-started-masters-and-data-migration",
+      "title": "Getting started - Part 1 - Masters and data migration",
+      "media_count": 7,
+      "word_count": 1589,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/hindi-driver-manual-for-indecab-go-driver-app",
+      "title": "Hindi Driver Manual for Indecab Go Driver App- (हिंदी)",
+      "media_count": 2,
+      "word_count": 509,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-accept-a-network-associate-request",
+      "title": "How to accept a network associate request",
+      "media_count": 2,
+      "word_count": 297,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-accept-a-network-booking",
+      "title": "How to accept a network booking",
+      "media_count": 1,
+      "word_count": 313,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-accept-a-supplier-account-invite",
+      "title": "How to accept a supplier account invite",
+      "media_count": 1,
+      "word_count": 455,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-add-a-booking",
+      "title": "How to add a booking",
+      "media_count": 2,
+      "word_count": 1003,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-add-a-bulk-booking",
+      "title": "How to add a bulk booking",
+      "media_count": 2,
+      "word_count": 450,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-add-a-company-as-a-supplier",
+      "title": "How to add a company as a supplier",
+      "media_count": 1,
+      "word_count": 1103,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-add-a-monthly-booking",
+      "title": "How to add a monthly booking",
+      "media_count": 4,
+      "word_count": 572,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-add-advance-payments-to-an-invoice",
+      "title": "How to add advance payments to an invoice",
+      "media_count": 2,
+      "word_count": 492,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-add-an-associate",
+      "title": "How to add an associate",
+      "media_count": 3,
+      "word_count": 380,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-allot-a-vehicle-from-a-different-vehicle-group-to-a-duty",
+      "title": "How to allot a vehicle from a different vehicle group to a duty",
+      "media_count": 1,
+      "word_count": 260,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-allot-all-duties-in-a-booking-in-a-single-click",
+      "title": "How to allot all duties in a booking in a single click",
+      "media_count": 1,
+      "word_count": 179,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-allow-user-access-only-from-specific-locations",
+      "title": "How to allow user access only from specific locations",
+      "media_count": 2,
+      "word_count": 334,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-allow-your-customers-to-allot-duties-to-specific-vehicles-and-drivers",
+      "title": "How to allow your customers to allot duties to specific vehicles and drivers",
+      "media_count": 6,
+      "word_count": 648,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-apply-a-credit-note-to-an-e-invoice",
+      "title": "How to apply a credit note to an E-invoice",
+      "media_count": 4,
+      "word_count": 341,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-apply-and-use-billing-items",
+      "title": "How to apply and use billing items",
+      "media_count": 1,
+      "word_count": 295,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-apply-credit-debit-notes-to-invoices",
+      "title": "How to apply Credit/Debit Notes to invoices",
+      "media_count": 4,
+      "word_count": 386,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-assign-a-default-company-to-a-customer",
+      "title": "How to assign a default company to a customer",
+      "media_count": 1,
+      "word_count": 229,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-auto-sync-contract-with-your-vendor-accounts",
+      "title": "How to auto sync contract with your vendor accounts",
+      "media_count": 7,
+      "word_count": 482,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-automate-calculations-for-agent-commission-amount",
+      "title": "How to automate calculations for agent commission amount",
+      "media_count": 2,
+      "word_count": 208,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-automate-duty-type-and-vehicle-group-matching",
+      "title": "How to automate duty type and vehicle group matching",
+      "media_count": 2,
+      "word_count": 413,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-automate-sending-of-sms-whatsapp-and-email-messages",
+      "title": "How to automate sending of SMS, WhatsApp and Email messages",
+      "media_count": 2,
+      "word_count": 246,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-automatically-add-a-credit-card-surcharge-on-invoices",
+      "title": "How to automatically add a credit card surcharge on invoices",
+      "media_count": 2,
+      "word_count": 271,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-automatically-assign-a-company-based-on-the-city-of-a-duty",
+      "title": "How to automatically assign a company based on the city of a duty",
+      "media_count": 3,
+      "word_count": 330,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-automatically-calculate-and-apply-fuel-surcharge-on-invoices",
+      "title": "How to automatically calculate and apply fuel surcharge on invoices",
+      "media_count": 3,
+      "word_count": 497,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-automatically-generate-an-invoice-once-a-duty-is-completed",
+      "title": "How to automatically generate an invoice once a duty is completed",
+      "media_count": 4,
+      "word_count": 544,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-calculate-and-export-driver-payroll-data",
+      "title": "How to calculate and export Driver Payroll data",
+      "media_count": 3,
+      "word_count": 948,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-change-a-driver-app-account-to-a-dco-attached-app-account",
+      "title": "How to change a driver app account to a DCO/Attached app account",
+      "media_count": 2,
+      "word_count": 343,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-change-bank-account-details-on-an-invoice",
+      "title": "How to change bank account details on an invoice",
+      "media_count": 1,
+      "word_count": 254,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-change-billing-name-for-a-completed-duty",
+      "title": "How to change billing name for a completed duty",
+      "media_count": 3,
+      "word_count": 358,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-change-the-company-on-a-generated-invoice",
+      "title": "How to change the company on a generated invoice",
+      "media_count": 2,
+      "word_count": 332,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-change-the-supplier-for-a-duty-when-an-invoice-has-already-been-created",
+      "title": "How to change the supplier for a duty when an invoice has already been created",
+      "media_count": 3,
+      "word_count": 392,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-close-a-duty",
+      "title": "How to close a duty",
+      "media_count": 5,
+      "word_count": 909,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-close-a-duty-via-an-sms-link",
+      "title": "How to close a duty via an SMS link",
+      "media_count": 6,
+      "word_count": 575,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-close-driver-app-duty-through-your-dashboard",
+      "title": "How to close driver app duty through your dashboard",
+      "media_count": 1,
+      "word_count": 301,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-communicate-changes-in-duty-particulars-to-a-network-associate",
+      "title": "How to communicate changes in duty particulars to a network associate",
+      "media_count": 3,
+      "word_count": 270,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-convert-a-proforma-invoice-to-a-tax-invoice",
+      "title": "How to convert a proforma invoice to a tax invoice?",
+      "media_count": 2,
+      "word_count": 280,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-copy-data-between-different-entries-of-the-same-section-in-masters",
+      "title": "How to copy data between different entries of the same section in Masters.",
+      "media_count": 5,
+      "word_count": 598,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-a-carbon-emissions-report",
+      "title": "How to create a carbon emissions report",
+      "media_count": 4,
+      "word_count": 459,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-a-carbon-emissions-report-faqs",
+      "title": "How to create a carbon emissions report-FAQs",
+      "media_count": 4,
+      "word_count": 420,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-a-customer",
+      "title": "How to create a customer",
+      "media_count": 1,
+      "word_count": 1174,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-a-dco-supplier",
+      "title": "How to create a DCO supplier",
+      "media_count": 1,
+      "word_count": 1089,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-a-duty-start-checklist-on-the-indecab-go-driver-app",
+      "title": "How To Create A Duty Start Checklist On The Indecab Go Driver App",
+      "media_count": 2,
+      "word_count": 322,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-a-vehicle-fuel-entry",
+      "title": "How to create a Vehicle Fuel entry",
+      "media_count": 2,
+      "word_count": 1119,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-an-e-invoice",
+      "title": "How To Create an E-invoice",
+      "media_count": 3,
+      "word_count": 421,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-an-e-invoice-for-credit-debit-notes",
+      "title": "How to create an e-invoice for credit/debit notes",
+      "media_count": 1,
+      "word_count": 157,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-an-export-profile",
+      "title": "How to create an export profile",
+      "media_count": 6,
+      "word_count": 389,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-an-indecab-go-driver-app-user-for-a-dco-supplier",
+      "title": "How to create an Indecab Go Driver App user for a DCO supplier",
+      "media_count": 2,
+      "word_count": 326,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-an-invoice-for-a-monthly-booking",
+      "title": "How to create an invoice for a monthly booking",
+      "media_count": 3,
+      "word_count": 312,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-an-invoice-for-each-duty-in-a-booking",
+      "title": "How to create an invoice for each duty in a booking",
+      "media_count": 2,
+      "word_count": 290,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-an-itinerary-booking",
+      "title": "How to create an itinerary booking",
+      "media_count": 3,
+      "word_count": 236,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-and-manage-invoices",
+      "title": "How to create and manage invoices",
+      "media_count": 2,
+      "word_count": 690,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-and-setup-feedback-forms",
+      "title": "How to create and setup feedback forms",
+      "media_count": 4,
+      "word_count": 678,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-bank-accounts",
+      "title": "How to create bank accounts",
+      "media_count": 1,
+      "word_count": 149,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-booker-passenger-accounts",
+      "title": "How to create booker/passenger accounts",
+      "media_count": 1,
+      "word_count": 671,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-credit-debit-notes-for-non-taxable-amounts",
+      "title": "How to create Credit/Debit notes for non-taxable amounts",
+      "media_count": 1,
+      "word_count": 150,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-customer-groups",
+      "title": "How to create customer groups",
+      "media_count": 3,
+      "word_count": 190,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-create-duty-types",
+      "title": "How to create Duty Types",
+      "media_count": 0,
+      "word_count": 1105,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-deactivate-a-corporate-customer-account",
+      "title": "How to deactivate a corporate customer account",
+      "media_count": 1,
+      "word_count": 163,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-disable-invoice-editing-before-a-certain-date",
+      "title": "How to disable invoice editing before a certain date",
+      "media_count": 1,
+      "word_count": 202,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-display-each-duty-separately-in-the-invoice-description",
+      "title": "How to display each duty separately in the invoice description",
+      "media_count": 4,
+      "word_count": 420,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-display-taxes-on-an-invoice-without-charging-for-them",
+      "title": "How to display taxes on an invoice without charging for them",
+      "media_count": 1,
+      "word_count": 301,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-display-the-duty-summary-on-an-invoice",
+      "title": "How to display the duty summary on an invoice",
+      "media_count": 1,
+      "word_count": 238,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-display-vehicle-group-based-on-the-number-of-passengers",
+      "title": "How to display vehicle group based on the number of passengers",
+      "media_count": 2,
+      "word_count": 204,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-edit-invoice-numbers-and-dates",
+      "title": "How to edit invoice numbers and dates",
+      "media_count": 2,
+      "word_count": 229,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-enable-and-send-whatsapp-messages-through-indecab",
+      "title": "How to enable and send WhatsApp messages through Indecab",
+      "media_count": 2,
+      "word_count": 406,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-enable-and-use-otps-to-start-and-stop-a-duty",
+      "title": "How to enable and use OTPs to start and stop a duty",
+      "media_count": 3,
+      "word_count": 234,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-enable-and-use-route-logging",
+      "title": "How to enable and use route logging",
+      "media_count": 7,
+      "word_count": 580,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-enable-or-disable-location-sharing",
+      "title": "How to enable or disable location sharing",
+      "media_count": 2,
+      "word_count": 311,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-enter-a-custom-field-when-deny-booked-by-passenger-and-additional-contact-info-to-be-added-to-masters-is-selected",
+      "title": "How to enter a Custom field when ‘Deny Booked by, Passenger and Additional contact info to be added to Masters’ is selected?",
+      "media_count": 1,
+      "word_count": 251,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-enter-cost-of-fuel-and-fuel-stations",
+      "title": "How to enter Cost of fuel and Fuel stations",
+      "media_count": 2,
+      "word_count": 235,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-enter-pricing",
+      "title": "How to enter pricing",
+      "media_count": 4,
+      "word_count": 638,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-export-customer-and-supplier-pricing-to-csv",
+      "title": "How to export customer and supplier pricing to .CSV",
+      "media_count": 2,
+      "word_count": 271,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-export-data",
+      "title": "Learn how to export valuable data from Indecab for use in your business.",
+      "media_count": 2,
+      "word_count": 579,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-export-e-invoice-data",
+      "title": "How to export E-Invoice data",
+      "media_count": 1,
+      "word_count": 145,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-export-invoices-and-create-reports",
+      "title": "How to export invoices and create reports",
+      "media_count": 2,
+      "word_count": 341,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-export-to-tally",
+      "title": "How to export to Tally",
+      "media_count": 1,
+      "word_count": 679,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-export-to-tally-prime",
+      "title": "How to export to Tally Prime",
+      "media_count": 3,
+      "word_count": 328,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-find-and-apply-receipts",
+      "title": "How to find and apply receipts",
+      "media_count": 5,
+      "word_count": 519,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-fix-page-stuck-on-loading-502-bad-gateway",
+      "title": "How to fix - Page stuck on loading/ 502 Bad Gateway",
+      "media_count": 2,
+      "word_count": 302,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-generate-a-vehicle-profitability-report",
+      "title": "How to generate a Vehicle Profitability Report",
+      "media_count": 2,
+      "word_count": 484,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-generate-an-invoice",
+      "title": "How to generate an invoice?",
+      "media_count": 3,
+      "word_count": 324,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-generate-business-reports",
+      "title": "How to generate Business Reports",
+      "media_count": 2,
+      "word_count": 341,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-get-your-bookings-to-reflect-in-your-corporate-customer-s-dashboard-by-default",
+      "title": "How to get your bookings to reflect in your corporate customer’s dashboard by default",
+      "media_count": 1,
+      "word_count": 244,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-import-bookings-and-duties",
+      "title": "How to import bookings and duties",
+      "media_count": 4,
+      "word_count": 457,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-import-masters",
+      "title": "How to Import Masters",
+      "media_count": 2,
+      "word_count": 315,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-invite-a-supplier-to-the-indecab-network",
+      "title": "How to invite a supplier to the Indecab Network",
+      "media_count": 1,
+      "word_count": 284,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-keep-track-of-expiry-dates-for-vehicle-certification-and-driving-licenses",
+      "title": "How to keep track of expiry dates for vehicle certification and driving licenses",
+      "media_count": 4,
+      "word_count": 361,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-limit-a-duty-type-for-use-in-select-cities-only",
+      "title": "How to limit a duty type for use in select cities only",
+      "media_count": 2,
+      "word_count": 210,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-manage-advances-given-to-suppliers",
+      "title": "How to manage advances given to suppliers",
+      "media_count": 3,
+      "word_count": 329,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-manage-auto-collect-payment-request",
+      "title": "How to manage auto collect payment request",
+      "media_count": 0,
+      "word_count": 352,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-modify-an-existing-invoice-with-a-different-gst-entity",
+      "title": "How to modify an existing invoice with a different GST entity",
+      "media_count": 2,
+      "word_count": 292,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-print-invoices-on-a-custom-letterhead",
+      "title": "How to print invoices on a custom letterhead",
+      "media_count": 1,
+      "word_count": 190,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-receive-a-copy-of-all-emails-sent-using-indecab",
+      "title": "How to receive a copy of all emails sent using Indecab",
+      "media_count": 1,
+      "word_count": 211,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-remove-indecab-branding-from-printed-invoices",
+      "title": "How to remove Indecab branding from printed invoices",
+      "media_count": 1,
+      "word_count": 199,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-restrict-city-duty-type-vehicle-group-selection-based-on-pricing",
+      "title": "How to restrict City/Duty Type/Vehicle Group selection based on pricing",
+      "media_count": 3,
+      "word_count": 194,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-restrict-employee-from-updating-past-dated-duties",
+      "title": "How to restrict employee from updating past dated duties",
+      "media_count": 3,
+      "word_count": 190,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-round-off-duty-slip-timings-to-the-nearest-hour",
+      "title": "How to round off duty slip timings to the nearest hour",
+      "media_count": 2,
+      "word_count": 288,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-round-off-the-timings-displayed-on-an-invoice",
+      "title": "How to round off the timings displayed on an invoice",
+      "media_count": 2,
+      "word_count": 248,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-round-off-totals-on-invoices",
+      "title": "How to round off totals on invoices",
+      "media_count": 1,
+      "word_count": 197,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-send-a-booking-request-to-an-associate",
+      "title": "How to send a booking request to an associate",
+      "media_count": 2,
+      "word_count": 342,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-send-a-payment-request-under-a-sister-company",
+      "title": "How to send a payment request under a sister company",
+      "media_count": 2,
+      "word_count": 321,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-send-a-single-booking-request-to-multiple-network-suppliers",
+      "title": "How to send a single booking request to multiple network suppliers",
+      "media_count": 2,
+      "word_count": 238,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-send-and-manage-payment-requests",
+      "title": "How to send and manage payment requests",
+      "media_count": 2,
+      "word_count": 700,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-set-a-booking-cancellation-time-sla",
+      "title": "How to set a booking cancellation time SLA",
+      "media_count": 3,
+      "word_count": 369,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-set-a-default-company-for-a-specific-customer",
+      "title": "How to set a default company for a specific customer",
+      "media_count": 2,
+      "word_count": 287,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-set-up-a-custom-sla-for-bookings",
+      "title": "How to set up a custom SLA for bookings",
+      "media_count": 3,
+      "word_count": 377,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-set-up-a-garage-to-garage-duty",
+      "title": "How to set up a garage to garage duty",
+      "media_count": 4,
+      "word_count": 435,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-set-up-an-admin-employee-account",
+      "title": "How to set up an Admin Employee Account",
+      "media_count": 3,
+      "word_count": 719,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-set-up-and-send-overdue-close-duty-reminders-to-suppliers",
+      "title": "How to set up and send overdue close duty reminders to suppliers",
+      "media_count": 1,
+      "word_count": 342,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-set-up-up-duty-slip-approval-by-passengers",
+      "title": "How to set up up duty slip approval by passengers",
+      "media_count": 2,
+      "word_count": 298,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-set-up-your-payment-gateway",
+      "title": "How to set up your Payment Gateway",
+      "media_count": 2,
+      "word_count": 275,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-setup-and-use-auto-collect",
+      "title": "How to setup and use auto-collect",
+      "media_count": 5,
+      "word_count": 696,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-setup-and-use-automated-allotment",
+      "title": "How to setup and use automated allotment",
+      "media_count": 5,
+      "word_count": 724,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-setup-and-use-company-profiles",
+      "title": "How to setup and use Company Profiles",
+      "media_count": 4,
+      "word_count": 552,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-setup-and-use-duty-based-tracking",
+      "title": "How to setup and use Duty-based tracking",
+      "media_count": 0,
+      "word_count": 402,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-setup-and-use-fixed-garage-rental-fgr",
+      "title": "How to setup and use fixed garage rental (FGR)",
+      "media_count": 3,
+      "word_count": 360,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-setup-and-use-indecall",
+      "title": "How to setup and use Indecall",
+      "media_count": 5,
+      "word_count": 326,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-setup-and-use-overdue-invoice-payment-reminders",
+      "title": "How to setup and use overdue invoice payment reminders",
+      "media_count": 3,
+      "word_count": 592,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-setup-and-use-proforma-invoices",
+      "title": "How to setup and create proforma invoices",
+      "media_count": 5,
+      "word_count": 539,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-setup-auto-selection-of-tax-on-invoices",
+      "title": "How to setup auto selection of tax on invoices",
+      "media_count": 3,
+      "word_count": 375,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-setup-auto-selection-of-taxes-on-a-purchase-invoice",
+      "title": "How to setup auto selection of taxes on a purchase invoice",
+      "media_count": 3,
+      "word_count": 411,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-setup-my-companies-and-sister-companies",
+      "title": "How to setup My Companies and Sister Companies",
+      "media_count": 3,
+      "word_count": 869,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-share-multiple-gst-entities-with-your-customer-associate-for-invoicing",
+      "title": "How to share multiple GST entities with your customer associate for invoicing.",
+      "media_count": 6,
+      "word_count": 405,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-start-using-the-indecab-network",
+      "title": "How to start using the Indecab Network",
+      "media_count": 0,
+      "word_count": 292,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-stop-sending-sms-and-emails-to-specific-customers",
+      "title": "How to stop sending SMS and Emails to specific customers",
+      "media_count": 1,
+      "word_count": 252,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-tokenise-your-credit-card",
+      "title": "How to tokenise your credit card",
+      "media_count": 2,
+      "word_count": 261,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-update-a-duty-slip-after-an-invoice-has-been-generated",
+      "title": "How to update a duty slip after an invoice has been generated",
+      "media_count": 3,
+      "word_count": 346,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-use-a-corporate-account",
+      "title": "How to use a corporate account",
+      "media_count": 2,
+      "word_count": 953,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-use-a-corporate-account-passenger-app-login",
+      "title": "How to use a corporate account - passenger app login",
+      "media_count": 5,
+      "word_count": 658,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-use-a-corporate-account-passenger-login",
+      "title": "How to use a Corporate Account - Passenger Login",
+      "media_count": 2,
+      "word_count": 354,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-use-company-profile-to-set-an-email-signature",
+      "title": "How to use Company Profile to set an email signature",
+      "media_count": 2,
+      "word_count": 243,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-use-the-availability-feature",
+      "title": "How to use the Availability feature",
+      "media_count": 2,
+      "word_count": 214,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-use-the-employees-feature",
+      "title": "How to use the Employees feature",
+      "media_count": 2,
+      "word_count": 194,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-use-the-indecab-chat-feature",
+      "title": "How to use the Indecab Chat feature",
+      "media_count": 2,
+      "word_count": 208,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-view-customer-feedback",
+      "title": "How to view customer feedback",
+      "media_count": 2,
+      "word_count": 218,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/how-to-view-reports-on-number-of-duties",
+      "title": "How to view reports on number of duties",
+      "media_count": 1,
+      "word_count": 212,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/implementing-auto-switch-for-duty-types",
+      "title": "Implementing Auto Switch for Duty Types",
+      "media_count": 3,
+      "word_count": 611,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/import-export-and-reports",
+      "title": "Import, Export and Reports",
+      "media_count": 0,
+      "word_count": 178,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/indecab-go-driver-app",
+      "title": "Indecab Go Driver App",
+      "media_count": 0,
+      "word_count": 240,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/indecab-plans",
+      "title": "Indecab Plans",
+      "media_count": 0,
+      "word_count": 713,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/invoice-due-date-and-how-to-use-it",
+      "title": "Invoice due date and how to use it",
+      "media_count": 2,
+      "word_count": 246,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/join-indecab-whatsapp-channel-for-updates",
+      "title": "Join Indecab WhatsApp Channel for Updates",
+      "media_count": 0,
+      "word_count": 240,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/labels",
+      "title": "Labels",
+      "media_count": 0,
+      "word_count": 64,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/labels-how-to-create-and-use-them",
+      "title": "Labels- How to create and use them",
+      "media_count": 7,
+      "word_count": 495,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/latest-updates",
+      "title": "Latest Updates",
+      "media_count": 0,
+      "word_count": 244,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/location-tracking",
+      "title": "Location Tracking",
+      "media_count": 0,
+      "word_count": 102,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/managing-bookings",
+      "title": "Managing Bookings",
+      "media_count": 1,
+      "word_count": 165,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/masters",
+      "title": "Masters",
+      "media_count": 0,
+      "word_count": 209,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/multiple-ways-to-manage-allotment",
+      "title": "Multiple ways to manage allotment",
+      "media_count": 6,
+      "word_count": 782,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/my-companies",
+      "title": "My Companies",
+      "media_count": 0,
+      "word_count": 79,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/my-drivers",
+      "title": "My Drivers",
+      "media_count": 0,
+      "word_count": 63,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/my-vehicles",
+      "title": "My Vehicles",
+      "media_count": 0,
+      "word_count": 72,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/network",
+      "title": "Network",
+      "media_count": 0,
+      "word_count": 220,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/network-tutorials",
+      "title": "Network Tutorials",
+      "media_count": 0,
+      "word_count": 114,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/number-of-duties-report",
+      "title": "Number of duties report",
+      "media_count": 0,
+      "word_count": 153,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/omnisearch-what-it-is-and-how-to-use-it",
+      "title": "Omnisearch - What it is and how to use it",
+      "media_count": 1,
+      "word_count": 171,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/operations",
+      "title": "Operations",
+      "media_count": 0,
+      "word_count": 187,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/others",
+      "title": "Others",
+      "media_count": 0,
+      "word_count": 194,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/part-2-pricing",
+      "title": "Part 2 Pricing",
+      "media_count": 0,
+      "word_count": 111,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/part-3-booking-to-billing",
+      "title": "Part 3 Booking to Billing",
+      "media_count": 0,
+      "word_count": 227,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/part-4-reports",
+      "title": "Part 4 Reports",
+      "media_count": 0,
+      "word_count": 205,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/part-5-others",
+      "title": "Part 5 Others",
+      "media_count": 0,
+      "word_count": 148,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/payment-gateway",
+      "title": "Payment Gateway",
+      "media_count": 0,
+      "word_count": 161,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/petty-cash",
+      "title": "Petty Cash",
+      "media_count": 0,
+      "word_count": 64,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/pricing",
+      "title": "Pricing",
+      "media_count": 0,
+      "word_count": 89,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/purcahse-duties",
+      "title": "Purcahse Duties",
+      "media_count": 0,
+      "word_count": 65,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/purchase-and-payments",
+      "title": "Purchase and Payments",
+      "media_count": 0,
+      "word_count": 85,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/purchase-invoices",
+      "title": "Purchase Invoice",
+      "media_count": 0,
+      "word_count": 90,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/purchase-payments",
+      "title": "Purchase Payments",
+      "media_count": 0,
+      "word_count": 82,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/raising-an-invoice",
+      "title": "Raising an invoice",
+      "media_count": 0,
+      "word_count": 192,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/receipts",
+      "title": "Receipts",
+      "media_count": 0,
+      "word_count": 72,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/reduce-your-time-spent-typing-emails",
+      "title": "Reduce your time spent typing emails",
+      "media_count": 1,
+      "word_count": 258,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/reports",
+      "title": "Reports",
+      "media_count": 0,
+      "word_count": 190,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/restrict-duty-allotment-to-driver-vehicle-on-estimated-drop-time-violation",
+      "title": "Restrict duty allotment to Driver/Vehicle on estimated drop time violation",
+      "media_count": 3,
+      "word_count": 188,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/sending-driver-location-info-to-customers-passengers-and-bookers",
+      "title": "Sending driver location info to customers, passengers & bookers",
+      "media_count": 3,
+      "word_count": 430,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/sms-details",
+      "title": "SMS Details",
+      "media_count": 0,
+      "word_count": 66,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/supplier-groups-and-how-to-use-them",
+      "title": "Supplier Groups and how to use them",
+      "media_count": 3,
+      "word_count": 230,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/supplier-invoice-ageing-report",
+      "title": "Supplier invoice ageing report",
+      "media_count": 0,
+      "word_count": 178,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/suppliers",
+      "title": "Suppliers",
+      "media_count": 0,
+      "word_count": 126,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/taxes",
+      "title": "Taxes",
+      "media_count": 0,
+      "word_count": 64,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/tutorials",
+      "title": "Tutorials",
+      "media_count": 0,
+      "word_count": 136,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-allowances-charged-to-customers",
+      "title": "Understanding allowances charged to customers",
+      "media_count": 1,
+      "word_count": 535,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-allowances-paid-to-suppliers",
+      "title": "Understanding allowances paid to suppliers",
+      "media_count": 0,
+      "word_count": 477,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-automatic-garage-to-garage-duty-slip",
+      "title": "Understanding automatic garage-to-garage duty slips",
+      "media_count": 0,
+      "word_count": 557,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-copy-pricing-functionality-in-depth",
+      "title": "Understanding copy pricing functionality in depth",
+      "media_count": 4,
+      "word_count": 560,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-corporate-accounts",
+      "title": "Understanding Corporate Accounts",
+      "media_count": 2,
+      "word_count": 520,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-credit-debit-notes",
+      "title": "Understanding Credit/Debit Notes",
+      "media_count": 1,
+      "word_count": 387,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-customer-groups",
+      "title": "Understanding Customer Groups",
+      "media_count": 0,
+      "word_count": 185,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-customer-invoice-ageing-reports",
+      "title": "Understanding Customer Invoice Ageing Reports",
+      "media_count": 2,
+      "word_count": 356,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-dispatch-center-branches-and-how-to-use-it",
+      "title": "Understanding Dispatch Center/Branches and how to use it",
+      "media_count": 1,
+      "word_count": 351,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-driver-allowances",
+      "title": "Understanding Driver Allowances",
+      "media_count": 1,
+      "word_count": 552,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-duty-supporters-and-how-to-use-it",
+      "title": "Understanding Duty Supporters and how to use it",
+      "media_count": 1,
+      "word_count": 359,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-duty-types",
+      "title": "Understanding Duty Types",
+      "media_count": 1,
+      "word_count": 556,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-employee-permissions-and-profiles",
+      "title": "Understanding Employee permissions and profiles",
+      "media_count": 4,
+      "word_count": 566,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-indecab-exports",
+      "title": "Understanding Indecab exports",
+      "media_count": 0,
+      "word_count": 141,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-indecab-go-driver-app-audio-alerts",
+      "title": "Understanding Indecab Go Driver App audio alerts",
+      "media_count": 1,
+      "word_count": 486,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-my-companies",
+      "title": "Understanding My Companies",
+      "media_count": 2,
+      "word_count": 353,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-petty-cash",
+      "title": "Understanding Petty Cash",
+      "media_count": 1,
+      "word_count": 561,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-purchase-duties",
+      "title": "Understanding Purchase - Duties",
+      "media_count": 1,
+      "word_count": 592,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-purchase-invoices",
+      "title": "Understanding Purchase - Invoices",
+      "media_count": 2,
+      "word_count": 889,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-purchase-payments",
+      "title": "Understanding Purchase - Payments",
+      "media_count": 3,
+      "word_count": 482,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-receipts-in-indecab",
+      "title": "Understanding Receipts in Indecab",
+      "media_count": 1,
+      "word_count": 410,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-reports",
+      "title": "Understanding Reports",
+      "media_count": 8,
+      "word_count": 567,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-supplier-reports",
+      "title": "Understanding Supplier Reports",
+      "media_count": 2,
+      "word_count": 402,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-the-bookings-section",
+      "title": "Understanding the Bookings section",
+      "media_count": 3,
+      "word_count": 658,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-the-my-drivers-section",
+      "title": "Understanding the My Drivers section",
+      "media_count": 1,
+      "word_count": 983,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-the-my-vehicles-section",
+      "title": "Understanding the My Vehicles section",
+      "media_count": 1,
+      "word_count": 421,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-the-pricing-section",
+      "title": "Understanding the Pricing section",
+      "media_count": 1,
+      "word_count": 216,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-the-reports-section",
+      "title": "Understanding the reports section",
+      "media_count": 0,
+      "word_count": 355,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-the-sms-details-section",
+      "title": "Understanding the SMS Details section",
+      "media_count": 1,
+      "word_count": 367,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-the-structure-of-corporate-accounts",
+      "title": "Understanding the structure of Corporate Accounts",
+      "media_count": 0,
+      "word_count": 384,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-the-suppliers-section",
+      "title": "Understanding the Suppliers Section",
+      "media_count": 0,
+      "word_count": 365,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-the-taxes-section",
+      "title": "Understanding the Taxes section",
+      "media_count": 1,
+      "word_count": 205,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/understanding-the-vehicle-expenses-section",
+      "title": "Understanding the Vehicle Expenses section",
+      "media_count": 1,
+      "word_count": 449,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/updates-for-april-2025",
+      "title": "Updates for April 2025",
+      "media_count": 0,
+      "word_count": 569,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/updates-for-december-2024",
+      "title": "Updates for December 2024",
+      "media_count": 4,
+      "word_count": 404,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/updates-for-february-2025",
+      "title": "Updates for February 2025",
+      "media_count": 4,
+      "word_count": 722,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/updates-for-january-2025",
+      "title": "Updates for January 2025",
+      "media_count": 5,
+      "word_count": 509,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/updates-for-july-to-august-2024",
+      "title": "Updates for July to August 2024",
+      "media_count": 9,
+      "word_count": 1146,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/updates-for-march-2025",
+      "title": "Updates for March 2025",
+      "media_count": 2,
+      "word_count": 575,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/updates-for-may-2025",
+      "title": "Updates for May 2025",
+      "media_count": 3,
+      "word_count": 500,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/updates-for-november-2024",
+      "title": "Updates for November 2024",
+      "media_count": 6,
+      "word_count": 662,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/updates-for-october-2024",
+      "title": "Updates for October 2024",
+      "media_count": 7,
+      "word_count": 920,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/updates-for-sep-2026",
+      "title": "Updates for Sep 2026",
+      "media_count": 6,
+      "word_count": 979,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/updates-for-september-2024",
+      "title": "Updates for September 2024",
+      "media_count": 6,
+      "word_count": 1166,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/vehicle-expenses",
+      "title": "Vehicle Expenses",
+      "media_count": 0,
+      "word_count": 65,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/vehicle-fuel",
+      "title": "Vehicle Fuel",
+      "media_count": 0,
+      "word_count": 111,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/vehicle-groups",
+      "title": "Vehicle Groups",
+      "media_count": 0,
+      "word_count": 102,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/vehicle-profitability-report",
+      "title": "Vehicle profitability report",
+      "media_count": 0,
+      "word_count": 203,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/what-are-categories-vehicle-groups",
+      "title": "What are Categories - Vehicle Groups?",
+      "media_count": 1,
+      "word_count": 307,
+      "status": 200
+    },
+    {
+      "url": "https://help.indecab.com/whatsapp-details",
+      "title": "WhatsApp Details",
+      "media_count": 0,
+      "word_count": 108,
+      "status": 200
+    }
+  ]
+}

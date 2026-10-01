@@ -215,11 +215,15 @@ def _ensure_default_region(conn, organization_id):
         return conn.execute("SELECT * FROM phase3_regions WHERE id = ?", (existing["id"],)).fetchone()
     profile = _default_region()
     region_id = new_id("region3")
+    created_at = now_iso()
+    # Several dashboard surfaces request localization concurrently on first
+    # load. The organization/region unique key is the idempotency boundary;
+    # ignore a competing insert and return the row that won the race.
     conn.execute(
-        "INSERT INTO phase3_regions(id, organization_id, country_code, region_code, name, currency, timezone, locale, tax_regime, distance_unit, is_default, status, metadata_json, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'active', '{}', NULL, ?, ?)",
-        (region_id, organization_id, profile["country_code"], profile["region_code"], profile["name"], profile["currency"], profile["timezone"], profile["locale"], profile["tax_regime"], profile["distance_unit"], now_iso(), now_iso()),
+        "INSERT OR IGNORE INTO phase3_regions(id, organization_id, country_code, region_code, name, currency, timezone, locale, tax_regime, distance_unit, is_default, status, metadata_json, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'active', '{}', NULL, ?, ?)",
+        (region_id, organization_id, profile["country_code"], profile["region_code"], profile["name"], profile["currency"], profile["timezone"], profile["locale"], profile["tax_regime"], profile["distance_unit"], created_at, created_at),
     )
-    return conn.execute("SELECT * FROM phase3_regions WHERE id = ?", (region_id,)).fetchone()
+    return conn.execute("SELECT * FROM phase3_regions WHERE organization_id = ? AND region_code = ?", (organization_id, profile["region_code"])).fetchone()
 
 
 def initialize_phase3_schema(conn) -> None:
@@ -1141,25 +1145,26 @@ def _query_value(query, key, default=""):
 
 
 def _sustainability_rows(conn, organization_id, query):
-    clauses = ["organization_id = ?"]
+    clauses = ["t.organization_id = ?"]
     args = [organization_id]
     period_start = _query_value(query, "period_start")
     period_end = _query_value(query, "period_end")
     region_code = _query_value(query, "region_code")
     fuel_type = _query_value(query, "fuel_type")
+    service_at = "COALESCE(d.reporting_at, t.calculated_at)"
     if period_start:
-        clauses.append("calculated_at >= ?")
+        clauses.append(f"{service_at} >= ?")
         args.append(period_start)
     if period_end:
-        clauses.append("calculated_at < ?")
+        clauses.append(f"{service_at} < ?")
         args.append(period_end + "T23:59:59Z")
     if region_code:
-        clauses.append("region_code = ?")
+        clauses.append("t.region_code = ?")
         args.append(region_code)
     if fuel_type:
-        clauses.append("fuel_type = ?")
+        clauses.append("t.fuel_type = ?")
         args.append(fuel_type)
-    return conn.execute(f"SELECT * FROM phase3_sustainability_trips WHERE {' AND '.join(clauses)} ORDER BY calculated_at DESC", args).fetchall()
+    return conn.execute(f"SELECT t.* FROM phase3_sustainability_trips t LEFT JOIN domain_duties d ON d.id = t.duty_id AND d.organization_id = t.organization_id WHERE {' AND '.join(clauses)} ORDER BY {service_at} DESC, t.calculated_at DESC", args).fetchall()
 
 
 def _sustainability_summary(rows, region, target):

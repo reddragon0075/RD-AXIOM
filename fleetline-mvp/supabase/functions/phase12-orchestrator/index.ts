@@ -10,8 +10,9 @@ import { createClient, type SupabaseClient, type User } from "https://esm.sh/@su
  * but it must preserve the idempotency and organization checks below.
  */
 
+const allowedOrigin = (Deno.env.get("AXIOM_ALLOWED_ORIGIN") || Deno.env.get("AXIOM_ALLOWED_ORIGINS")?.split(",")[0] || "").trim();
 const cors = {
-  "Access-Control-Allow-Origin": "*",
+  ...(allowedOrigin ? { "Access-Control-Allow-Origin": allowedOrigin, "Vary": "Origin" } : {}),
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
@@ -41,12 +42,9 @@ function required(value: unknown, name: string): string {
   return result;
 }
 function asObject(value: unknown): Json { return value && typeof value === "object" && !Array.isArray(value) ? value as Json : {}; }
-function safeInt(value: unknown, fallback = 0, min?: number, max?: number): number {
+function safeInt(value: unknown, fallback = 0): number {
   const number = Number(value);
-  const resolved = Number.isSafeInteger(number) ? number : fallback;
-  if (min !== undefined && resolved < min) return min;
-  if (max !== undefined && resolved > max) return max;
-  return resolved;
+  return Number.isSafeInteger(number) ? number : fallback;
 }
 function cleanSearch(value: unknown): string {
   return String(value || "").replace(/[(),.*]/g, " ").trim().slice(0, 80);
@@ -249,10 +247,9 @@ async function operations(supabase: SupabaseClient, organizationId: string, meth
     if (dutyError) throw new Error(dutyError.message);
     if (!duty) throw new Error("Duty not found");
     const seed = [...dutyId].reduce((sum, char) => sum + char.charCodeAt(0), 0);
-    const duration = safeInt(body.duration_minutes, 18 + (seed % 28), 0, 10080);
-    const rawDistance = Math.max(0, Math.min(10000, Number(body.distance_km || (3 + (seed % 19)))));
-    const distance = Number.isFinite(rawDistance) ? rawDistance.toFixed(2) : "0.00";
-    const item = await insertRow(supabase, "phase12_eta_snapshots", { organization_id: organizationId, duty_id: dutyId, source: body.source || "mock_maps", latitude: body.latitude ?? null, longitude: body.longitude ?? null, distance_km: Number(distance), duration_minutes: duration, eta_at: new Date(Date.now() + duration * 60_000).toISOString(), deviation_minutes: safeInt(body.deviation_minutes, seed % 7, 0, 1440), status: body.status || "estimated", payload: { ...body, deterministic: true }, });
+    const duration = safeInt(body.duration_minutes, 18 + (seed % 28));
+    const distance = Number(body.distance_km || (3 + (seed % 19))).toFixed(2);
+    const item = await insertRow(supabase, "phase12_eta_snapshots", { organization_id: organizationId, duty_id: dutyId, source: body.source || "mock_maps", latitude: body.latitude ?? null, longitude: body.longitude ?? null, distance_km: Number(distance), duration_minutes: duration, eta_at: new Date(Date.now() + duration * 60_000).toISOString(), deviation_minutes: safeInt(body.deviation_minutes, seed % 7), status: body.status || "estimated", payload: { ...body, deterministic: true }, });
     return { ok: true, item, provider: "mock_maps" };
   }
   if (path === "/api/operations/bulk" && method === "POST") {

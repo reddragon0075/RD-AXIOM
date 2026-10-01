@@ -69,7 +69,7 @@ def main():
     base = f"http://127.0.0.1:{port}"
     with tempfile.TemporaryDirectory(prefix="axiom-network-") as temp_dir:
         env = os.environ.copy()
-        env.update({"PORT": str(port), "AXIOM_DB_PATH": str(Path(temp_dir) / "network.sqlite3")})
+        env.update({"AXIOM_TEST_FIXTURES": "1", "PORT": str(port), "AXIOM_DB_PATH": str(Path(temp_dir) / "network.sqlite3")})
         process = subprocess.Popen(["python3", "server.py"], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         try:
             for _ in range(60):
@@ -218,6 +218,29 @@ def main():
             scorecard_id = scorecard["item"]["id"]
             status, settlement = call(buyer, base, "POST", f"/api/network/v1/service-orders/{service_order_id}/settlements", {"scorecard_id": scorecard_id, "period_start": "2026-10-01", "period_end": "2026-10-31", "gross_paise": 125000, "deductions_paise": 5000, "evidence": {"scorecard_id": scorecard_id, "invoice": "mock-invoice-1"}, "idempotency_key": "settlement-v1"})
             expect(status == 200 and settlement["item"]["net_paise"] == 120000, "settlement is evidence-backed and calculates net")
+            status, directory = call(buyer, base, "GET", "/api/network/v1/partner-directory")
+            expect(status == 200 and any(item.get("vendor_profile_id") == profile_id for item in directory["items"]), "verified partner directory is invite-derived")
+            status, associates = call(vendor, base, "GET", "/api/network/v1/associates")
+            expect(status == 200 and any(item.get("invite_id") for item in associates["items"]), "associate acceptance workspace is visible to the invited vendor")
+            status, version_sync = call(buyer, base, "POST", f"/api/network/v1/contracts/{contract_id}/versions", {"terms": {"rate_cards": [{"rate_code": "blr_sedan", "amount_paise": 125000, "city": "Bengaluru"}]}, "rate_cards": [{"rate_code": "blr_sedan", "amount_paise": 125000, "city": "Bengaluru"}], "idempotency_key": "contract-version-v2"})
+            expect(status == 200 and version_sync["item"]["version"] == 2 and version_sync["sync"]["status"] == "sent", "contract and rate version synchronization is recorded")
+            exchange_ids = []
+            for exchange_type in ("booking", "duty_slip", "invoice", "operational_message"):
+                status, exchange = call(buyer, base, "POST", f"/api/network/v1/service-orders/{service_order_id}/exchanges", {"exchange_type": exchange_type, "payload": {"reference": exchange_type}, "idempotency_key": f"exchange-{exchange_type}"})
+                expect(status == 200 and exchange["item"]["status"] == "sent", f"{exchange_type} exchange envelope is sent")
+                exchange_ids.append(exchange["item"]["id"])
+            status, acknowledged = call(vendor, base, "POST", f"/api/network/v1/exchanges/{exchange_ids[0]}/acknowledge", {})
+            expect(status == 200 and acknowledged["item"]["status"] == "acknowledged", "associate can acknowledge a booking exchange")
+            status, sla = call(vendor, base, "POST", f"/api/network/v1/service-orders/{service_order_id}/sla-observations", {"metric": "on_time_start_pct", "target_value": 95, "observed_value": 90, "evidence": {"source": "mock"}, "idempotency_key": "sla-observation-v1"})
+            expect(status == 200 and sla["item"]["status"] == "breached", "supplier SLA breach records evidence")
+            status, issue = call(vendor, base, "POST", f"/api/network/v1/service-orders/{service_order_id}/issues", {"issue_type": "rejection", "reason_code": "vehicle_unavailable", "description": "Vehicle rejection before dispatch", "idempotency_key": "supplier-rejection-v1"})
+            expect(status == 200 and issue["item"]["issue_type"] == "rejection", "supplier rejection is a tracked issue")
+            status, discrepancy = call(buyer, base, "POST", f"/api/network/v1/service-orders/{service_order_id}/rate-discrepancies", {"expected_paise": 125000, "actual_paise": 135000, "reason": "Supplier invoice differs from synchronized rate", "idempotency_key": "rate-discrepancy-v1"})
+            expect(status == 200 and discrepancy["item"]["variance_paise"] == 10000, "rate discrepancy captures variance")
+            status, resolution = call(buyer, base, "POST", f"/api/network/v1/service-orders/{service_order_id}/settlement-resolutions", {"settlement_id": settlement["item"]["id"], "discrepancy_id": discrepancy["item"]["id"], "resolution_type": "credit_note", "adjustment_paise": 10000, "notes": "Apply supplier credit", "idempotency_key": "settlement-resolution-v1"})
+            expect(status == 200 and resolution["item"]["status"] == "proposed", "settlement resolution can be proposed")
+            status, decided = call(buyer, base, "POST", f"/api/network/v1/settlement-resolutions/{resolution['item']['id']}/decide", {"status": "accepted", "notes": "Accepted"})
+            expect(status == 200 and decided["item"]["status"] == "accepted", "settlement resolution decision is auditable")
             status, events = call(buyer, base, "GET", "/api/network/v1/events")
             expect(status == 200 and any(event["event_type"] == "service_order.activated" for event in events["items"]), "Network events retain the Fleet activation audit trail")
 

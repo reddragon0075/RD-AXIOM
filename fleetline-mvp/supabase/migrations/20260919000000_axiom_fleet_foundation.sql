@@ -1220,9 +1220,7 @@ begin
   if not (public.has_permission(invoice_row.organization_id, 'payments.write') or public.is_platform_user()) then
     raise exception 'Payment recording is not permitted';
   end if;
-  if p_amount_paise <= 0 or p_amount_paise > 100000000000 then
-    raise exception 'Payment amount must be between 1 and 100,000,000,000 paise';
-  end if;
+  if p_amount_paise <= 0 then raise exception 'Payment amount must be positive'; end if;
   if invoice_row.status = 'void' then raise exception 'Cannot pay a void invoice'; end if;
 
   if p_idempotency_key is not null then
@@ -1270,9 +1268,7 @@ begin
   if not (public.has_permission(duty_row.organization_id, 'duties.write') or exists (select 1 from public.drivers driver_row where driver_row.id = duty_row.driver_id and driver_row.user_id = auth.uid()) or public.is_platform_user()) then
     raise exception 'Duty expense capture is not permitted';
   end if;
-  if p_amount_paise <= 0 or p_amount_paise > 100000000 then
-    raise exception 'Expense amount must be between 1 and 100,000,000 paise';
-  end if;
+  if p_amount_paise <= 0 then raise exception 'Expense amount must be positive'; end if;
   if p_idempotency_key is not null then
     select * into expense_row from public.expenses where organization_id = duty_row.organization_id and idempotency_key = p_idempotency_key;
     if expense_row.id is not null then return expense_row; end if;

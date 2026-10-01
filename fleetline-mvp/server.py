@@ -32,19 +32,38 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from functools import lru_cache, partial
 from urllib.parse import urlsplit
+from zoneinfo import available_timezones
 
 from backend_domain import DEFAULT_PROVIDERS, DomainError, handle_domain, initialize_domain_schema, seed_domain_data
 from backend_features import handle_feature, initialize_feature_schema, seed_feature_data
-from backend_extended import handle_extended, initialize_extended_schema
+from backend_extended import handle_extended, handle_verified_payment_webhook, initialize_extended_schema
 from backend_network import handle_network, initialize_network_schema
 from backend_p0 import handle_p0, initialize_p0_schema
 from backend_phase12 import handle_phase12, initialize_phase12_schema
 from backend_phase3 import handle_phase3, initialize_phase3_schema
+from backend_bill_intelligence import handle_bill_intelligence, initialize_bill_intelligence_schema
+from backend_operations_parity import handle_operations_parity, initialize_operations_parity_schema
+from backend_finance_parity import handle_finance_parity, initialize_finance_parity_schema
+from backend_communications import handle_communications, initialize_communications_schema
+from backend_supplier_finance import handle_supplier_finance, initialize_supplier_finance_schema
+from backend_feedback import handle_feedback, initialize_feedback_schema
+from backend_finance_controls import handle_finance_controls, handle_finance_controls_public, initialize_finance_controls_schema
+from backend_corporate import apply_corporate_booking_decision, evaluate_corporate_booking_write, handle_corporate, handle_corporate_public, initialize_corporate_schema, maybe_create_duty_slip_approval, require_corporate_booking_permission
+from backend_enterprise_controls import handle_enterprise_controls, handle_enterprise_public, initialize_enterprise_controls_schema
+from backend_booking_parity import handle_booking_parity, initialize_booking_parity_schema
+from backend_gap_completion import handle_gap_completion, handle_gap_public, initialize_gap_completion_schema
+from backend_command_center import handle_command_center, initialize_command_center_schema
 
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = Path(os.environ.get("AXIOM_DATA_DIR", ROOT / "data"))
 DB_PATH = Path(os.environ.get("AXIOM_DB_PATH", DATA_DIR / "axiom_fleet.sqlite3"))
 COMPRESSIBLE = {".css", ".html", ".js", ".json", ".svg", ".txt", ".xml"}
+PUBLIC_FILES = {
+    "index.html", "axiom-fleet-logo.png", "driver-sw.js", "driver-manifest.json",
+    "supabase/config.js", "supabase/client.js",
+}
+PUBLIC_PREFIXES = {"driver-app"}
+PUBLIC_EXTENSIONS = {".html", ".js", ".css", ".png", ".svg", ".ico", ".webmanifest", ".json"}
 ROLES = {"vendor", "driver", "corporate"}
 SESSION_COOKIE = "axiom_session"
 SESSION_DAYS = 30
@@ -52,12 +71,31 @@ PASSWORD_ITERATIONS = 180_000
 MAX_BODY_BYTES = 1_048_576
 LOGIN_FAILURE_LIMIT = 5
 LOGIN_FAILURE_WINDOW = 15 * 60
+IANA_TIMEZONES = frozenset(available_timezones()) | {"UTC"}
 
 # Small in-process guard for the local prototype. Production should use Redis.
 LOGIN_FAILURES: dict[str, list[float]] = {}
 LOGIN_FAILURE_LOCK = threading.Lock()
 DB_PRAGMA_LOCK = threading.Lock()
 WAL_DATABASES: set[str] = set()
+
+
+def is_production() -> bool:
+    return os.environ.get("AXIOM_ENV", "development").strip().lower() in {"production", "prod", "staging"}
+
+
+def demo_account_allowed() -> bool:
+    return os.environ.get("AXIOM_ALLOW_DEMO_ACCOUNT", "0") == "1" or not is_production()
+
+
+def test_fixtures_enabled() -> bool:
+    """Keep deterministic records available only to explicit test processes."""
+    return os.environ.get("AXIOM_TEST_FIXTURES", "0") == "1" and not is_production()
+
+
+def configured_origins() -> set[str]:
+    values = os.environ.get("AXIOM_ALLOWED_ORIGINS", "").split(",")
+    return {value.strip().rstrip("/") for value in values if value.strip()}
 
 
 class APIError(Exception):
@@ -74,6 +112,10 @@ def utc_now() -> str:
 
 def utc_after_days(days: int) -> str:
     return (dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=days)).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def utc_after_seconds(seconds: int) -> str:
+    return (dt.datetime.now(dt.timezone.utc) + dt.timedelta(seconds=seconds)).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def new_id(prefix: str) -> str:
@@ -138,35 +180,20 @@ def optional_int(value: object, field: str, *, maximum: int = 10_000_000) -> int
     return number
 
 
-DISPOSABLE_EMAIL_DOMAINS = {
-    "mailinator.com", "tempmail.com", "temp-mail.org", "10minutemail.com",
-    "guerrillamail.com", "throwawaymail.com", "sharklasers.com", "yopmail.com",
-    "getairmail.com", "dispostable.com", "trashmail.com", "fakeinbox.com",
-    "mytemp.email", "tempail.com", "mohmal.com", "burnermail.io",
-    "crazymailing.com", "generator.email", "inboxkitten.com", "dropmail.me",
-    "tempinbox.com", "disposablemail.com", "emailondeck.com", "guerrillamail.biz",
-    "guerrillamail.net", "guerrillamail.org", "guerrillamailblock.com", "pokemail.net",
-    "spam4.me", "grr.la", "tempmail.net", "tempmailaddress.com", "fakemailgenerator.com"
-}
-
-
-def is_disposable_email(email: str) -> bool:
-    if not email or "@" not in email:
-        return False
-    parts = email.lower().strip().split("@")
-    if len(parts) != 2:
-        return False
-    domain = parts[1]
-    if domain in DISPOSABLE_EMAIL_DOMAINS:
-        return True
-    return bool(re.search(r"(temp|trash|fake|disposable|throwaway|burner|guerrilla|10minute|mailinator)", domain, re.I))
-
-
 def validate_email(email: str) -> None:
     if len(email) > 254 or not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
         raise APIError(400, "Enter a valid email address", "validation_error")
-    if is_disposable_email(email):
-        raise APIError(400, "Temporary or disposable email addresses are not permitted. Please use your official or corporate email.", "validation_error")
+
+
+def validate_timezone(value: object, field: str = "timezone", *, required: bool = False) -> str:
+    timezone_name = clean_text(value, field, maximum=80)
+    if not timezone_name:
+        if required:
+            raise APIError(400, f"{field} is required", "validation_error")
+        return "UTC"
+    if timezone_name not in IANA_TIMEZONES:
+        raise APIError(400, f"Choose a valid IANA time zone for {field}", "validation_error")
+    return timezone_name
 
 
 def validate_signup(data: dict) -> dict:
@@ -199,6 +226,7 @@ def validate_signup(data: dict) -> dict:
         "full_name": full_name,
         "phone": phone,
         "city": city,
+        "timezone": validate_timezone(data.get("timezone")),
         "organization_name": organization_name,
         "gstin": clean_text(data.get("gstin"), "gstin", maximum=32).upper(),
         "license_number": clean_text(data.get("license_number"), "license_number", maximum=80).upper(),
@@ -239,6 +267,7 @@ def initialize_database() -> None:
             CREATE TABLE IF NOT EXISTS profiles (
                 user_id TEXT PRIMARY KEY,
                 city TEXT NOT NULL DEFAULT '',
+                timezone TEXT NOT NULL DEFAULT 'UTC',
                 license_number TEXT NOT NULL DEFAULT '',
                 fleet_size INTEGER,
                 employee_count INTEGER,
@@ -256,6 +285,22 @@ def initialize_database() -> None:
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
 
+            CREATE TABLE IF NOT EXISTS password_resets (
+                token_hash TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                used_at TEXT,
+                request_ip TEXT NOT NULL DEFAULT '',
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS rate_limit_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                bucket TEXT NOT NULL,
+                created_at REAL NOT NULL
+            );
+
             CREATE TABLE IF NOT EXISTS audit_events (
                 id TEXT PRIMARY KEY,
                 user_id TEXT,
@@ -271,23 +316,103 @@ def initialize_database() -> None:
             CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
             CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
             CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions(expires_at);
+            CREATE INDEX IF NOT EXISTS idx_password_resets_user ON password_resets(user_id, expires_at);
+            CREATE INDEX IF NOT EXISTS idx_rate_limit_bucket ON rate_limit_events(bucket, created_at);
             CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_events(user_id, created_at);
             """
         )
-        seed_demo_account(conn)
+        # Keep the local fallback compatible with databases created before
+        # per-user timezone preferences were introduced.
+        try:
+            conn.execute("ALTER TABLE profiles ADD COLUMN timezone TEXT NOT NULL DEFAULT 'UTC'")
+        except sqlite3.OperationalError as error:
+            if "duplicate column name" not in str(error).lower():
+                raise
         initialize_domain_schema(conn)
-        seed_domain_data(conn)
         initialize_feature_schema(conn)
-        seed_feature_data(conn)
+        if test_fixtures_enabled():
+            # Test fixtures are opt-in and never run in a normal workspace.
+            seed_demo_account(conn)
+            seed_domain_data(conn)
+            seed_feature_data(conn)
         initialize_extended_schema(conn)
         initialize_network_schema(conn)
         initialize_p0_schema(conn)
         initialize_phase12_schema(conn)
         initialize_phase3_schema(conn)
-        conn.execute("DELETE FROM sessions WHERE expires_at <= ?", (utc_now(),))
+        initialize_bill_intelligence_schema(conn)
+        initialize_corporate_schema(conn)
+        initialize_operations_parity_schema(conn)
+        initialize_finance_parity_schema(conn)
+        initialize_communications_schema(conn)
+        initialize_supplier_finance_schema(conn)
+        initialize_feedback_schema(conn)
+        initialize_finance_controls_schema(conn)
+        initialize_enterprise_controls_schema(conn)
+        initialize_booking_parity_schema(conn)
+        initialize_gap_completion_schema(conn)
+        initialize_command_center_schema(conn)
+        if not test_fixtures_enabled():
+            purge_demo_records(conn)
+        now = utc_now()
+        conn.execute("DELETE FROM sessions WHERE expires_at <= ?", (now,))
+        conn.execute("DELETE FROM password_resets WHERE expires_at <= ? OR used_at IS NOT NULL", (now,))
+        conn.execute("DELETE FROM rate_limit_events WHERE created_at < ?", (time.time() - 24 * 60 * 60,))
+
+
+def purge_demo_records(conn: sqlite3.Connection) -> None:
+    """Remove legacy review fixtures when a database is opened normally.
+
+    Fixture data is useful to explicit smoke tests, but a copied local database
+    must not make a new operator believe that another organisation is theirs.
+    Only the historical fixture identifiers are targeted; user-created tenants
+    are left untouched.
+    """
+    target_ids = {
+        "org_demo_blueorbit",
+        "usr_demo_admin",
+        "cust_demo_northstar",
+        "drv_demo_mahesh",
+        "veh_demo_ka03mn4821",
+        "book_demo_airport",
+        "duty_demo_airport",
+        "inv_demo_2026_083",
+        "branch_demo_mumbai",
+        "supplier_demo_network",
+        "pricebook_demo_september",
+        "priceitem_demo_airport",
+        "employee_demo_rohit",
+        "policy_demo_travel",
+    }
+    conn.execute("PRAGMA foreign_keys = OFF")
+    try:
+        tables = [row["name"] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()]
+        for table in tables:
+            if table.startswith("sqlite_"):
+                continue
+            columns = conn.execute(f'PRAGMA table_info("{table}")').fetchall()
+            column_names = {row["name"] for row in columns}
+            predicates = []
+            values: list[str] = []
+            for column in column_names & {"organization_id", "org_id", "company_id", "tenant_id", "user_id", "created_by", "updated_by"}:
+                predicates.append(f'"{column}" IN ({",".join("?" for _ in target_ids)})')
+                values.extend(sorted(target_ids))
+            text_columns = [row["name"] for row in columns if str(row["type"] or "").upper().startswith("TEXT")]
+            for column in text_columns:
+                predicates.append(f'"{column}" IN ({",".join("?" for _ in target_ids)})')
+                values.extend(sorted(target_ids))
+            if predicates:
+                conn.execute(f'DELETE FROM "{table}" WHERE {" OR ".join(predicates)}', values)
+        conn.commit()
+    finally:
+        conn.execute("PRAGMA foreign_keys = ON")
 
 
 def seed_demo_account(conn: sqlite3.Connection) -> None:
+    if not demo_account_allowed():
+        # A database copied from development must not retain the known demo login.
+        conn.execute("UPDATE users SET status = 'disabled' WHERE email = ?", ("admin@blueorbit.in",))
+        return
     existing = conn.execute("SELECT id FROM users WHERE email = ?", ("admin@blueorbit.in",)).fetchone()
     if existing:
         return
@@ -307,8 +432,8 @@ def seed_demo_account(conn: sqlite3.Connection) -> None:
         (user_id, "admin@blueorbit.in", password_hash, salt, "vendor", "Aditi Rao", "+91 90000 00000", organization_id, now),
     )
     conn.execute(
-        "INSERT INTO profiles(user_id, city, fleet_size, metadata_json) VALUES (?, ?, ?, ?)",
-        (user_id, "Mumbai", 120, json.dumps({"seed": True})),
+        "INSERT INTO profiles(user_id, city, timezone, fleet_size, metadata_json) VALUES (?, ?, ?, ?, ?)",
+        (user_id, "Mumbai", "Asia/Kolkata", 120, json.dumps({"seed": True})),
     )
 
 
@@ -319,7 +444,7 @@ def user_select_sql(include_password: bool = False) -> str:
                u.organization_id, u.created_at, u.last_login_at,
                o.kind AS organization_type, o.name AS organization_name,
                o.phone AS organization_phone, o.city AS organization_city, o.gstin AS organization_gstin,
-               p.city AS profile_city, p.license_number, p.fleet_size, p.employee_count
+               p.city AS profile_city, p.timezone AS profile_timezone, p.license_number, p.fleet_size, p.employee_count
                {password_columns}
         FROM users u
         LEFT JOIN organizations o ON o.id = u.organization_id
@@ -350,6 +475,7 @@ def serialize_user(row: sqlite3.Row) -> dict:
         "organization": organization,
         "profile": {
             "city": row["profile_city"] or "",
+            "timezone": row["profile_timezone"] or "UTC",
             "license_number": row["license_number"] or "",
             "fleet_size": row["fleet_size"],
             "employee_count": row["employee_count"],
@@ -386,13 +512,18 @@ def request_token(handler: SimpleHTTPRequestHandler) -> str | None:
     return morsel.value if morsel else None
 
 
+def secure_cookie_enabled() -> bool:
+    return os.environ.get("AXIOM_COOKIE_SECURE") == "1" or is_production()
+
+
 def make_cookie(token: str, max_age: int = SESSION_DAYS * 24 * 60 * 60) -> str:
-    secure = "; Secure" if os.environ.get("AXIOM_COOKIE_SECURE") == "1" else ""
+    secure = "; Secure" if secure_cookie_enabled() else ""
     return f"{SESSION_COOKIE}={token}; Max-Age={max_age}; Path=/; HttpOnly; SameSite=Lax{secure}"
 
 
 def clear_cookie() -> str:
-    return f"{SESSION_COOKIE}=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax"
+    secure = "; Secure" if secure_cookie_enabled() else ""
+    return f"{SESSION_COOKIE}=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax{secure}"
 
 
 def current_user(conn: sqlite3.Connection, handler: SimpleHTTPRequestHandler) -> sqlite3.Row | None:
@@ -429,8 +560,12 @@ def create_session(conn: sqlite3.Connection, user_id: str, handler: SimpleHTTPRe
 
 
 def login_key(email: str, handler: SimpleHTTPRequestHandler) -> str:
-    ip = handler.client_address[0] if handler.client_address else "unknown"
-    return f"{email}|{ip}"
+    return f"{email}|{client_ip(handler)}"
+
+
+def login_keys(email: str, handler: SimpleHTTPRequestHandler) -> tuple[str, str, str]:
+    ip = client_ip(handler)
+    return login_key(email, handler), f"email:{email}", f"ip:{ip}"
 
 
 def locked_out(key: str) -> bool:
@@ -452,6 +587,24 @@ def record_login_failure(key: str) -> None:
 def clear_login_failures(key: str) -> None:
     with LOGIN_FAILURE_LOCK:
         LOGIN_FAILURES.pop(key, None)
+
+
+def client_ip(handler: SimpleHTTPRequestHandler) -> str:
+    return (handler.client_address[0] if handler.client_address else "unknown")[:64]
+
+
+def enforce_rate_limit(conn: sqlite3.Connection, bucket: str, limit: int, window_seconds: int) -> None:
+    now = time.time()
+    cutoff = now - window_seconds
+    conn.execute("DELETE FROM rate_limit_events WHERE created_at < ?", (cutoff,))
+    count = conn.execute("SELECT COUNT(*) AS count FROM rate_limit_events WHERE bucket = ? AND created_at >= ?", (bucket, cutoff)).fetchone()["count"]
+    if count >= limit:
+        raise APIError(429, "Too many requests. Try again later.", "rate_limited")
+    conn.execute("INSERT INTO rate_limit_events(bucket, created_at) VALUES (?, ?)", (bucket, now))
+
+
+def clear_rate_limit(conn: sqlite3.Connection, bucket: str) -> None:
+    conn.execute("DELETE FROM rate_limit_events WHERE bucket = ?", (bucket,))
 
 
 @lru_cache(maxsize=64)
@@ -480,6 +633,7 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
         if length > MAX_BODY_BYTES:
             raise APIError(413, "Request body is too large", "payload_too_large")
         raw = self.rfile.read(length) if length else b"{}"
+        self._raw_request_body = raw
         try:
             data = json.loads(raw.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
@@ -488,12 +642,26 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             raise APIError(400, "Request body must be a JSON object", "bad_json")
         return data
 
+    def _check_origin(self) -> None:
+        origin = self.headers.get("Origin", "").strip().rstrip("/")
+        referer = self.headers.get("Referer", "").strip()
+        candidate = origin or (f"{urlsplit(referer).scheme}://{urlsplit(referer).netloc}" if referer else "")
+        if not candidate:
+            return
+        allowed = configured_origins()
+        host_origin = f"{urlsplit(candidate).scheme}://{self.headers.get('Host', '')}".rstrip("/")
+        if candidate == host_origin or candidate in allowed:
+            return
+        raise APIError(403, "Cross-site request origin is not allowed", "csrf_origin_denied")
+
     def _common_headers(self) -> None:
         self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
         self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=(self)")
         self.send_header("Cross-Origin-Resource-Policy", "same-origin")
-        if os.environ.get("AXIOM_COOKIE_SECURE") == "1":
+        self.send_header("Content-Security-Policy", "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co https://*.supabase.in; worker-src 'self' blob:")
+        if secure_cookie_enabled():
             self.send_header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
         self.send_header("X-Request-ID", self.headers.get("X-Request-ID", new_id("req"))[:100])
 
@@ -510,7 +678,11 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
         self.wfile.write(raw)
 
     def _error(self, error: APIError) -> None:
-        self._json(error.status, {"ok": False, "error": error.message, "code": error.code})
+        payload = {"ok": False, "error": error.message, "code": error.code}
+        details = getattr(error, "details", None)
+        if details is not None:
+            payload["details"] = details
+        self._json(error.status, payload)
 
     def _require_user(self, conn: sqlite3.Connection) -> sqlite3.Row:
         row = current_user(conn, self)
@@ -535,6 +707,8 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 return
             if method != "POST" or data.get("action", "pay") != "pay":
                 raise APIError(400, "Use action=pay to complete this link", "validation_error")
+            if is_production() and os.environ.get("AXIOM_ALLOW_MOCK_PAYMENTS") != "1":
+                raise APIError(503, "Payment provider is not configured", "payment_provider_required")
             if row["status"] != "paid":
                 reference = f"mock_public_payment_{row['id'][-8:]}"
                 conn.execute("UPDATE domain_payment_links SET status = 'paid', paid_at = ?, provider_reference = ? WHERE id = ?", (utc_now(), reference, row["id"]))
@@ -542,21 +716,93 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 reference = row["provider_reference"]
             self._json(200, {"ok": True, "status": "paid", "reference": reference})
 
+    def _api_payment_webhook(self) -> None:
+        payload = self._read_json()
+        provider = clean_text(payload.get("provider"), "provider", maximum=40) or "payment_provider"
+        raw = getattr(self, "_raw_request_body", b"{}")
+        signature = self.headers.get("X-Payment-Signature") or self.headers.get("X-Webhook-Signature") or self.headers.get("X-Razorpay-Signature")
+        timestamp = self.headers.get("X-Payment-Timestamp", "").strip()
+        verified = False
+        if not is_production() and provider == "mock_payment" and payload.get("signature") == "mock-signature":
+            verified = True
+        else:
+            secret = os.environ.get("AXIOM_PAYMENT_WEBHOOK_SECRET", "")
+            if not secret:
+                raise APIError(503, "Payment webhook secret is not configured", "webhook_secret_required")
+            if not signature:
+                raise APIError(401, "Payment webhook signature is required", "invalid_webhook_signature")
+            signed = f"{timestamp}.".encode("utf-8") + raw if timestamp else raw
+            expected = hmac.new(secret.encode("utf-8"), signed, hashlib.sha256).hexdigest()
+            presented = signature.strip()
+            if presented.startswith("sha256="):
+                presented = presented[7:]
+            elif "=" in presented:
+                presented = presented.rsplit("=", 1)[-1]
+            if timestamp:
+                try:
+                    if abs(int(timestamp) - int(time.time())) > 300:
+                        raise APIError(401, "Payment webhook timestamp is outside the replay window", "stale_webhook")
+                except ValueError as exc:
+                    raise APIError(401, "Payment webhook timestamp is invalid", "invalid_webhook_timestamp") from exc
+            verified = hmac.compare_digest(presented.lower(), expected.lower())
+        if not verified:
+            raise APIError(401, "Payment webhook signature is invalid", "invalid_webhook_signature")
+        with db_connection() as conn:
+            organization_id = clean_text(payload.get("organization_id"), "organization_id", maximum=160) or None
+            if not organization_id and not is_production():
+                session_user = current_user(conn, self)
+                organization_id = session_user["organization_id"] if session_user else None
+            if not organization_id:
+                raise APIError(400, "organization_id is required for a payment webhook", "organization_required")
+            payload["_signature_verified"] = True
+            payload["provider"] = provider
+            result = handle_verified_payment_webhook(conn, payload, organization_id, client_ip(self))
+            self._json(200, result)
+
     def _api_password_reset(self) -> None:
         data = self._read_json()
         email = normalize_email(data.get("email"))
         if email:
             validate_email(email)
         with db_connection() as conn:
-            row = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone() if email else None
+            enforce_rate_limit(conn, f"password-reset-ip:{client_ip(self)}", 10, LOGIN_FAILURE_WINDOW)
+            if email:
+                enforce_rate_limit(conn, f"password-reset-email:{email}", 5, LOGIN_FAILURE_WINDOW)
+            row = conn.execute("SELECT id FROM users WHERE email = ? AND status = 'active'", (email,)).fetchone() if email else None
             if row:
-                message = DEFAULT_PROVIDERS.messaging.send(channel="email", recipient=email, template="password_reset", idempotency_key=f"reset:{email}")
-                audit(conn, row["id"], "auth.password_reset_requested", "user", row["id"], self.client_address[0], {"provider_reference": message.reference})
-        self._json(202, {"ok": True, "message": "If that address exists, a reset link will be sent shortly."})
+                raw_token = secrets.token_urlsafe(32)
+                conn.execute("UPDATE password_resets SET used_at = ? WHERE user_id = ? AND used_at IS NULL", (utc_now(), row["id"]))
+                conn.execute("INSERT INTO password_resets(token_hash, user_id, created_at, expires_at, request_ip) VALUES (?, ?, ?, ?, ?)", (token_hash(raw_token), row["id"], utc_now(), utc_after_seconds(15 * 60), client_ip(self)))
+                message = DEFAULT_PROVIDERS.messaging.send(channel="email", recipient=email, template="password_reset", variables={"reset_token": raw_token, "expires_minutes": 15}, idempotency_key=f"reset:{email}:{raw_token[:12]}")
+                audit(conn, row["id"], "auth.password_reset_requested", "user", row["id"], client_ip(self), {"provider_reference": message.reference, "expires_minutes": 15})
+                response = {"ok": True, "message": "If that address exists, a reset link will be sent shortly."}
+                if os.environ.get("AXIOM_EXPOSE_RESET_TOKEN") == "1" and not is_production():
+                    response["debug_token"] = raw_token
+            else:
+                response = {"ok": True, "message": "If that address exists, a reset link will be sent shortly."}
+        self._json(202, response)
+
+    def _api_password_reset_confirm(self) -> None:
+        data = self._read_json()
+        token = clean_text(data.get("token"), "token", required=True, maximum=256)
+        password = str(data.get("password") or "")
+        if len(password) < 8 or len(password) > 128:
+            raise APIError(400, "Password must be between 8 and 128 characters", "validation_error")
+        with db_connection() as conn:
+            row = conn.execute("SELECT user_id FROM password_resets WHERE token_hash = ? AND used_at IS NULL AND expires_at > ?", (token_hash(token), utc_now())).fetchone()
+            if not row:
+                raise APIError(400, "Reset link is invalid or expired", "invalid_reset_token")
+            salt, password_digest = hash_password(password)
+            conn.execute("UPDATE users SET password_hash = ?, password_salt = ?, last_login_at = NULL WHERE id = ?", (password_digest, salt, row["user_id"]))
+            conn.execute("UPDATE password_resets SET used_at = ? WHERE token_hash = ?", (utc_now(), token_hash(token)))
+            conn.execute("DELETE FROM sessions WHERE user_id = ?", (row["user_id"],))
+            audit(conn, row["user_id"], "auth.password_reset_confirmed", "user", row["user_id"], client_ip(self), {})
+        self._json(200, {"ok": True, "message": "Password updated. Sign in with the new password."})
 
     def _api_signup(self) -> None:
         data = validate_signup(self._read_json())
         with db_connection() as conn:
+            enforce_rate_limit(conn, f"signup-ip:{client_ip(self)}", 20, 60 * 60)
             if conn.execute("SELECT 1 FROM users WHERE email = ?", (data["email"],)).fetchone():
                 raise APIError(409, "An account with this email already exists", "email_in_use")
 
@@ -583,10 +829,10 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             )
             conn.execute(
                 """
-                INSERT INTO profiles(user_id, city, license_number, fleet_size, employee_count, metadata_json)
-                VALUES (?, ?, ?, ?, ?, '{}')
+                INSERT INTO profiles(user_id, city, timezone, license_number, fleet_size, employee_count, metadata_json)
+                VALUES (?, ?, ?, ?, ?, ?, '{}')
                 """,
-                (user_id, data["city"], data["license_number"], data["fleet_size"], data["employee_count"]),
+                (user_id, data["city"], data["timezone"], data["license_number"], data["fleet_size"], data["employee_count"]),
             )
             audit(conn, user_id, "auth.signup", "user", user_id, self.client_address[0], {"role": data["role"]})
             session = create_session(conn, user_id, self)
@@ -600,21 +846,27 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
         validate_email(email)
         if not password:
             raise APIError(400, "Password is required", "validation_error")
-        key = login_key(email, self)
-        if locked_out(key):
+        failure_keys = login_keys(email, self)
+        if any(locked_out(key) for key in failure_keys):
             raise APIError(429, "Too many failed attempts. Try again in 15 minutes.", "login_locked")
 
         with db_connection() as conn:
+            enforce_rate_limit(conn, f"login-ip:{client_ip(self)}", 30, LOGIN_FAILURE_WINDOW)
+            enforce_rate_limit(conn, f"login-email:{email}", 15, LOGIN_FAILURE_WINDOW)
             row = conn.execute(user_select_sql(include_password=True) + " WHERE u.email = ?", (email,)).fetchone()
             role = clean_text(data.get("role"), "role", maximum=20).lower() if data.get("role") else ""
             valid_role = not role or role in ROLES
             valid = row is not None and valid_role and verify_password(password, row["password_salt"], row["password_hash"])
             if not valid:
-                record_login_failure(key)
-                audit(conn, row["id"] if row else None, "auth.login_failed", "user", row["id"] if row else None, self.client_address[0], {})
+                for failure_key in failure_keys:
+                    record_login_failure(failure_key)
+                audit(conn, row["id"] if row else None, "auth.login_failed", "user", row["id"] if row else None, client_ip(self), {})
                 raise APIError(401, "Email or password is incorrect", "invalid_credentials")
 
-            clear_login_failures(key)
+            for failure_key in failure_keys:
+                clear_login_failures(failure_key)
+            clear_rate_limit(conn, f"login-email:{email}")
+            clear_rate_limit(conn, f"login-ip:{client_ip(self)}")
             now = utc_now()
             conn.execute("UPDATE users SET last_login_at = ? WHERE id = ?", (now, row["id"]))
             audit(conn, row["id"], "auth.login", "user", row["id"], self.client_address[0], {"method": "password"})
@@ -640,30 +892,13 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             if "phone" in data:
                 user_updates.append("phone = ?")
                 user_values.append(clean_text(data.get("phone"), "phone", maximum=32))
-            if "email" in data:
-                new_email = normalize_email(data.get("email"))
-                validate_email(new_email)
-                if new_email != row["email"]:
-                    existing = conn.execute("SELECT 1 FROM users WHERE email = ? AND id != ?", (new_email, user_id)).fetchone()
-                    if existing:
-                        raise APIError(409, "An account with this email already exists", "email_in_use")
-                    user_updates.append("email = ?")
-                    user_values.append(new_email)
-            if "password" in data and data.get("password"):
-                new_pw = str(data["password"])
-                if len(new_pw) < 8:
-                    raise APIError(400, "Password must be at least 8 characters", "validation_error")
-                if len(new_pw) > 128:
-                    raise APIError(400, "Password is too long", "validation_error")
-                salt, password_digest = hash_password(new_pw)
-                user_updates.extend(["password_hash = ?", "password_salt = ?"])
-                user_values.extend([password_digest, salt])
             if user_updates:
                 user_values.append(user_id)
                 conn.execute(f"UPDATE users SET {', '.join(user_updates)} WHERE id = ?", user_values)
 
             profile_values = {
                 "city": clean_text(data.get("city"), "city", maximum=80) if "city" in data else None,
+                "timezone": validate_timezone(data.get("timezone"), required=True) if "timezone" in data else None,
                 "license_number": clean_text(data.get("license_number"), "license_number", maximum=80).upper() if "license_number" in data else None,
                 "fleet_size": optional_int(data.get("fleet_size"), "fleet_size") if "fleet_size" in data else None,
                 "employee_count": optional_int(data.get("employee_count"), "employee_count") if "employee_count" in data else None,
@@ -709,6 +944,62 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 audit(conn, row["id"], "auth.logout", "user", row["id"], self.client_address[0], {})
             self._json(200, {"ok": True}, cookie=clear_cookie())
 
+    def _api_public_corporate_duty_slip(self, method: str) -> None:
+        payload = self._read_json() if method == "POST" else {}
+        try:
+            with db_connection() as conn:
+                result = handle_corporate_public(conn, method, self.path, payload, self.client_address[0])
+                if result is None:
+                    raise APIError(404, "Signed duty-slip action not found", "not_found")
+                self._json(200, result)
+        except (APIError, DomainError) as error:
+            self._error(error)
+        except Exception:
+            self._error(APIError(500, "The signed action could not be completed", "server_error"))
+
+    def _api_public_enterprise(self, method: str) -> None:
+        payload = self._read_json() if method in {"POST", "PATCH"} else {}
+        try:
+            with db_connection() as conn:
+                result = handle_enterprise_public(conn, method, self.path, payload, self.client_address[0])
+                if result is None:
+                    raise APIError(404, "Public enterprise route not found", "not_found")
+                self._json(200, result)
+        except (APIError, DomainError) as error:
+            self._error(error)
+        except sqlite3.IntegrityError:
+            self._error(APIError(409, "This public request conflicts with an existing booking", "conflict"))
+        except Exception:
+            self._error(APIError(500, "The public workflow could not be completed", "server_error"))
+
+    def _api_public_gap(self, method: str) -> None:
+        payload = self._read_json() if method in {"POST", "PATCH"} else {}
+        try:
+            with db_connection() as conn:
+                result = handle_gap_public(conn, method, self.path, payload, self.client_address[0])
+                if result is None:
+                    raise APIError(404, "Public location-share route not found", "not_found")
+                self._json(200, result)
+        except (APIError, DomainError) as error:
+            self._error(error)
+        except Exception:
+            self._error(APIError(500, "The public location workflow could not be completed", "server_error"))
+
+    def _api_public_feedback(self, method: str) -> None:
+        payload = self._read_json() if method in {"POST", "PATCH"} else {}
+        try:
+            with db_connection() as conn:
+                result = handle_finance_controls_public(conn, method, self.path, payload, self.client_address[0])
+                if result is None:
+                    raise APIError(404, "Public feedback route not found", "not_found")
+                self._json(200, result)
+        except (APIError, DomainError) as error:
+            self._error(error)
+        except sqlite3.IntegrityError:
+            self._error(APIError(409, "Feedback has already been submitted", "conflict"))
+        except Exception:
+            self._error(APIError(500, "The public feedback workflow could not be completed", "server_error"))
+
     def _api_domain(self, method: str) -> None:
         payload = self._read_json() if method in {"POST", "PATCH", "DELETE"} else {}
         with db_connection() as conn:
@@ -716,7 +1007,51 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             route = urlsplit(self.path).path.rstrip("/") or "/"
             mutation = method in {"POST", "PATCH", "DELETE"}
             before_audit = conn.execute("SELECT id FROM audit_events WHERE user_id = ? ORDER BY rowid DESC LIMIT 1", (user["id"],)).fetchone() if mutation else None
-            result = handle_phase3(conn, user, method, self.path, payload, self.client_address[0])
+            corporate_evaluation = None
+            if method == "POST" and route == "/api/bookings":
+                corporate_evaluation = evaluate_corporate_booking_write(conn, user, payload, "book", self.client_address[0])
+            else:
+                cancel_match = re.match(r"^/api/bookings/([^/]+)/cancel$", route)
+                if method == "POST" and cancel_match:
+                    booking_for_cancel = conn.execute("SELECT * FROM domain_bookings WHERE id = ? AND organization_id = ?", (cancel_match.group(1), user["organization_id"])).fetchone()
+                    if booking_for_cancel:
+                        corporate_evaluation = evaluate_corporate_booking_write(conn, user, payload, "cancel", self.client_address[0], booking_for_cancel)
+                decision_match = re.match(r"^/api/bookings/([^/]+)/(approve|confirm|reject)$", route)
+                if method == "POST" and decision_match:
+                    require_corporate_booking_permission(conn, user, "booking.approve")
+            if corporate_evaluation and corporate_evaluation.get("outcome") == "block":
+                raise DomainError(409, "Corporate booking policy blocked this request", "corporate_policy_blocked", corporate_evaluation)
+            booking_approval_route = re.match(r"^/api/bookings/([^/]+)/approve$", route)
+            booking_approval_created = bool(booking_approval_route and conn.execute("SELECT 1 FROM domain_booking_approvals WHERE organization_id = ? AND booking_id = ? AND status = 'pending' LIMIT 1", (user["organization_id"], booking_approval_route.group(1))).fetchone()) if user["organization_id"] else False
+            # Network owns its role guard before generic domain handlers. This
+            # keeps a driver account from being misreported as organization-
+            # missing when it attempts a closed Network route.
+            result = handle_network(conn, user, method, self.path, payload, self.client_address[0]) if route.startswith("/api/network/v1") else None
+            result = result if result is not None else handle_bill_intelligence(conn, user, method, self.path, payload, self.client_address[0])
+            if result is None:
+                result = handle_corporate(conn, user, method, self.path, payload, self.client_address[0])
+            if result is None:
+                result = handle_enterprise_controls(conn, user, method, self.path, payload, self.client_address[0])
+            if result is None:
+                result = handle_command_center(conn, user, method, self.path, payload, self.client_address[0])
+            if result is None:
+                result = handle_gap_completion(conn, user, method, self.path, payload, self.client_address[0])
+            if result is None:
+                result = handle_booking_parity(conn, user, method, self.path, payload, self.client_address[0])
+            if result is None:
+                result = handle_finance_controls(conn, user, method, self.path, payload, self.client_address[0])
+            if result is None:
+                result = handle_operations_parity(conn, user, method, self.path, payload, self.client_address[0])
+            if result is None:
+                result = handle_finance_parity(conn, user, method, self.path, payload, self.client_address[0])
+            if result is None:
+                result = handle_communications(conn, user, method, self.path, payload, self.client_address[0])
+            if result is None:
+                result = handle_supplier_finance(conn, user, method, self.path, payload, self.client_address[0])
+            if result is None:
+                result = handle_feedback(conn, user, method, self.path, payload, self.client_address[0])
+            if result is None:
+                result = handle_phase3(conn, user, method, self.path, payload, self.client_address[0])
             if result is None:
                 result = handle_phase12(conn, user, method, self.path, payload, self.client_address[0])
             if result is None:
@@ -729,17 +1064,32 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 result = handle_feature(conn, user, method, self.path, payload, self.client_address[0])
             if result is None:
                 result = handle_domain(conn, user, method, self.path, payload, self.client_address[0])
+            if result is not None and corporate_evaluation and route == "/api/bookings" and method == "POST" and corporate_evaluation.get("outcome") == "needs_approval":
+                created_booking_id = (result.get("item") or {}).get("id") if isinstance(result, dict) else None
+                if created_booking_id:
+                    applied_evaluation = apply_corporate_booking_decision(conn, user, created_booking_id, corporate_evaluation, self.client_address[0])
+                    result = {**result, "item": {**result["item"], "status": "pending_approval"}, "corporate_evaluation": applied_evaluation}
+            if result is not None and method == "PATCH" and route.startswith("/api/duties/") and route.count("/") == 3 and str(payload.get("status") or "").lower() == "completed":
+                duty_id = route.split("/")[3]
+                slip = maybe_create_duty_slip_approval(conn, user, duty_id, self.client_address[0])
+                if slip:
+                    result = {**result, "duty_slip_approval": slip}
             if mutation and isinstance(result, dict):
                 latest = conn.execute("SELECT id FROM audit_events WHERE user_id = ? ORDER BY rowid DESC LIMIT 1", (user["id"],)).fetchone()
                 if latest is None or (before_audit and latest["id"] == before_audit["id"]):
                     audit(conn, user["id"], "mutation.completed", "http_mutation", route, self.client_address[0], {"method": method})
                     latest = conn.execute("SELECT id FROM audit_events WHERE user_id = ? ORDER BY rowid DESC LIMIT 1", (user["id"],)).fetchone()
                 result = {**result, "audit_reference": result.get("audit_reference") or (latest["id"] if latest else None), "request_reference": self.headers.get("X-Request-ID") or new_id("req")}
-            created = method == "POST" and (route in {"/api/customers", "/api/drivers", "/api/vehicles", "/api/bookings", "/api/duties", "/api/invoices", "/api/payments", "/api/branches", "/api/suppliers", "/api/price-books", "/api/employees", "/api/policies", "/api/documents", "/api/invitations", "/api/notifications", "/api/tickets", "/api/privacy/requests"} or route.endswith(("/proof", "/track", "/expenses", "/items")))
+            created = method == "POST" and not route.startswith("/api/network/v1") and (route in {"/api/customers", "/api/drivers", "/api/vehicles", "/api/bookings", "/api/bookings/batches", "/api/duties", "/api/invoices", "/api/payments", "/api/branches", "/api/suppliers", "/api/price-books", "/api/employees", "/api/policies", "/api/documents", "/api/invitations", "/api/notifications", "/api/tickets", "/api/privacy/requests", "/api/bill-intelligence", "/api/availability", "/api/corporate/account", "/api/corporate/account/setup", "/api/corporate/account/activate", "/api/corporate/users", "/api/corporate/policies", "/api/corporate/duty-slip-approvals", "/api/corporate/masters", "/api/corporate/allotment/rules", "/api/supplier-payment-requests", "/api/supplier-advances", "/api/supplier-settlement-approvals", "/api/driver-payouts/requests", "/api/payroll/exports", "/api/payroll/compliance", "/api/fuel-stations", "/api/fuel-prices", "/api/petty-cash/reconciliations", "/api/finance/reconciliations", "/api/reports/builder", "/api/reports/favorites", "/api/reports/exports", "/api/reporting/import-templates", "/api/imports/preview", "/api/feedback/public-links", "/api/feedback/notifications", "/api/feedback/corrective-actions"} or route.endswith(("/proof", "/track", "/expenses", "/items", "/allot")) or (route.startswith("/api/duties/") and route.endswith("/close")) or booking_approval_created)
             self._json(201 if created else 200, result)
 
     def _handle_api(self, method: str) -> None:
         route = urlsplit(self.path).path.rstrip("/") or "/"
+        try:
+            self._check_origin()
+        except APIError as error:
+            self._error(error)
+            return
         if method == "OPTIONS":
             self.send_response(204)
             self.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
@@ -758,15 +1108,27 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 self._api_login()
             elif route == "/api/auth/password-reset" and method == "POST":
                 self._api_password_reset()
+            elif route == "/api/auth/password-reset/confirm" and method == "POST":
+                self._api_password_reset_confirm()
             elif route == "/api/auth/me" and method == "GET":
                 self._api_me()
             elif route == "/api/auth/me" and method == "PATCH":
                 self._api_update_me()
             elif route == "/api/auth/logout" and method == "POST":
                 self._api_logout()
+            elif route == "/api/webhooks/payments" and method == "POST":
+                self._api_payment_webhook()
             elif route.startswith("/api/public/payment-links/") and method in {"GET", "POST"}:
                 self._api_public_payment_link(method, route)
-            elif route.startswith(("/api/overview", "/api/customers", "/api/drivers", "/api/vehicles", "/api/bookings", "/api/duties", "/api/invoices", "/api/payments", "/api/sync", "/api/branches", "/api/suppliers", "/api/price-books", "/api/documents", "/api/invitations", "/api/employees", "/api/policies", "/api/approvals", "/api/notifications", "/api/reports", "/api/audit", "/api/tickets", "/api/privacy", "/api/integrations", "/api/organization", "/api/settings", "/api/onboarding", "/api/setup", "/api/duplicates", "/api/receipts", "/api/supplier-bills", "/api/costs", "/api/vehicle-costs", "/api/supplier-payouts", "/api/driver-payouts", "/api/financial-actions", "/api/reconciliations", "/api/approval-steps", "/api/admin", "/api/network", "/api/alerts", "/api/geofences", "/api/passenger", "/api/devices", "/api/practice-duties", "/api/webhooks", "/api/trips", "/api/updates", "/api/sla", "/api/tax", "/api/capacity", "/api/billing-notes", "/api/payment-links", "/api/jobs", "/api/security", "/api/masters", "/api/operations", "/api/safety", "/api/permissions", "/api/mobile", "/api/views", "/api/phase3")):
+            elif re.match(r"^/api/corporate/duty-slip-approvals/[^/]+/action$", route) and method in {"GET", "POST"}:
+                self._api_public_corporate_duty_slip(method)
+            elif re.match(r"^/api/passenger/v1/portal/[^/]+$", route) or re.match(r"^/api/duty-close/v1/[^/]+$", route):
+                self._api_public_enterprise(method)
+            elif re.match(r"^/api/location-shares/[^/]+$", route):
+                self._api_public_gap(method)
+            elif re.match(r"^/api/feedback/v1/[^/]+$", route):
+                self._api_public_feedback(method)
+            elif route.startswith(("/api/overview",  "/api/customers", "/api/drivers", "/api/vehicles", "/api/bookings", "/api/duties", "/api/invoices", "/api/payments", "/api/sync", "/api/branches", "/api/suppliers", "/api/price-books", "/api/documents", "/api/invitations", "/api/employees", "/api/policies", "/api/approvals", "/api/notifications", "/api/reports", "/api/audit", "/api/tickets", "/api/privacy", "/api/integrations", "/api/organization", "/api/settings", "/api/onboarding", "/api/setup", "/api/duplicates", "/api/receipts", "/api/supplier-bills", "/api/costs", "/api/vehicle-costs", "/api/supplier-payouts", "/api/driver-payouts", "/api/financial-actions", "/api/reconciliations", "/api/approval-steps", "/api/admin", "/api/network", "/api/alerts", "/api/geofences", "/api/passenger", "/api/devices", "/api/practice-duties", "/api/webhooks", "/api/trips", "/api/updates", "/api/sla", "/api/tax", "/api/capacity", "/api/availability", "/api/allotment", "/api/billing-notes", "/api/payment-links", "/api/payment-authorizations", "/api/auto-collect", "/api/invoice-automation", "/api/provider-connections", "/api/maps", "/api/driver", "/api/driver-alert-policies", "/api/jobs", "/api/security", "/api/masters", "/api/operations", "/api/safety", "/api/permissions", "/api/mobile", "/api/views", "/api/bill-intelligence", "/api/corporate", "/api/enterprise", "/api/duty-closure-jobs", "/api/phase3", "/api/invoice-runs", "/api/collections", "/api/export-profiles", "/api/workspace", "/api/finance", "/api/communications", "/api/supplier-purchases", "/api/supplier-ageing", "/api/supplier-settlements", "/api/supplier-payment-requests", "/api/supplier-advances", "/api/supplier-settlement-approvals", "/api/fuel-entries", "/api/fuel-stations", "/api/fuel-prices", "/api/fuel-analytics", "/api/petty-cash", "/api/driver-allowances", "/api/payroll", "/api/reporting", "/api/imports", "/api/feedback")):
                 self._api_domain(method)
             else:
                 raise APIError(404, "API route not found", "not_found")
@@ -778,14 +1140,32 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             # Do not expose implementation details or credential material.
             self._error(APIError(500, "The backend could not complete that request", "server_error"))
 
+    def _public_path(self) -> Path | None:
+        requested = urlsplit(self.path).path
+        raw_path = Path(self.translate_path(requested)).resolve()
+        try:
+            relative = raw_path.relative_to(ROOT.resolve()).as_posix()
+        except ValueError:
+            return None
+        if raw_path.is_dir():
+            relative = "" if relative == "." else relative
+            relative = f"{relative.rstrip('/')}/index.html" if relative else "index.html"
+            raw_path = (ROOT / relative).resolve()
+        if relative in PUBLIC_FILES:
+            return raw_path
+        parts = relative.split("/")
+        if parts and parts[0] in PUBLIC_PREFIXES and raw_path.suffix.lower() in PUBLIC_EXTENSIONS:
+            return raw_path
+        return None
+
+    def list_directory(self, path: str):  # noqa: N802 - stdlib handler API
+        self.send_error(404, "Directory listing is disabled")
+        return None
+
     def _serve_file(self, head_only: bool = False) -> None:
-        path = Path(self.translate_path(self.path))
-        if path.is_dir():
-            index = path / "index.html"
-            if index.is_file():
-                path = index
-        if not path.is_file():
-            super().do_HEAD() if head_only else super().do_GET()
+        path = self._public_path()
+        if path is None or not path.is_file():
+            self.send_error(404, "File not found")
             return
 
         stat_result = path.stat()
@@ -862,11 +1242,18 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             self.end_headers()
 
 
+class AxiomFleetHTTPServer(ThreadingHTTPServer):
+    """Threaded local server with enough accept backlog for dashboard bursts."""
+
+    allow_reuse_address = True
+    request_queue_size = 128
+
+
 def main() -> None:
     initialize_database()
     port = int(os.environ.get("PORT", "4173"))
     handler = partial(AxiomFleetHandler, directory=str(ROOT))
-    server = ThreadingHTTPServer(("0.0.0.0", port), handler)
+    server = AxiomFleetHTTPServer(("0.0.0.0", port), handler)
     print(f"Axiom Fleet backend listening on 0.0.0.0:{port} · SQLite at {DB_PATH}", flush=True)
     try:
         server.serve_forever()

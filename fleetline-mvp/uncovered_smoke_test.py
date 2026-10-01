@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import os
 import subprocess
-import sys
 import tempfile
 import time
 from pathlib import Path
@@ -20,9 +19,9 @@ def main() -> None:
     base = f"http://127.0.0.1:{port}"
     with tempfile.TemporaryDirectory(prefix="axiom-fleet-uncovered-") as temp_dir:
         env = os.environ.copy()
-        env.update({"PORT": str(port), "AXIOM_DB_PATH": str(Path(temp_dir) / "axiom.sqlite3")})
+        env.update({"AXIOM_TEST_FIXTURES": "1", "PORT": str(port), "AXIOM_DB_PATH": str(Path(temp_dir) / "axiom.sqlite3"), "AXIOM_EXPOSE_RESET_TOKEN": "1"})
         process = subprocess.Popen(
-            [sys.executable, "server.py"],
+            ["python3", "server.py"],
             cwd=ROOT,
             env=env,
             stdout=subprocess.PIPE,
@@ -67,10 +66,23 @@ def main() -> None:
             status, known_reset = call(client, base, "POST", "/api/auth/password-reset", {"email": "admin@blueorbit.in"})
             status_unknown, unknown_reset = call(client, base, "POST", "/api/auth/password-reset", {"email": "nobody@example.com"})
             expect(status == 202 and status_unknown == 202, "password reset requests return an accepted response")
-            expect(known_reset["message"] == unknown_reset["message"], "password reset does not disclose account existence")
+            expect(known_reset["message"] == unknown_reset["message"] and known_reset.get("debug_token"), "password reset does not disclose account existence")
+            status, confirmed = call(client, base, "POST", "/api/auth/password-reset/confirm", {"token": known_reset["debug_token"], "password": "new-bill-password"})
+            expect(status == 200, "password reset token changes the password")
+            status, replayed = call(client, base, "POST", "/api/auth/password-reset/confirm", {"token": known_reset["debug_token"], "password": "another-password"})
+            expect(status == 400 and replayed.get("code") == "invalid_reset_token", "password reset token is one-time")
+            login_client = make_client(base)[1]
+            status, relogin = call(login_client, base, "POST", "/api/auth/login", {"email": "admin@blueorbit.in", "password": "new-bill-password"})
+            expect(status == 200, "new password can authenticate")
 
-            status, audit = call(client, base, "GET", "/api/audit")
-            expect(status == 200 and any(row["action"] == "auth.password_reset_requested" for row in audit["items"]), "known password reset request is audited")
+            status, audit = call(login_client, base, "GET", "/api/audit")
+            expect(status == 200 and any(row["action"] == "auth.password_reset_requested" for row in audit["items"]) and any(row["action"] == "auth.password_reset_confirmed" for row in audit["items"]), "password reset lifecycle is audited")
+            status, private_file = call(client, base, "GET", "/server.py")
+            expect(status == 404, "private source files are not statically exposed")
+            status, private_data = call(client, base, "GET", "/data/axiom_fleet.sqlite3")
+            expect(status == 404, "runtime database is not statically exposed")
+            status, bad_origin = call(client, base, "POST", "/api/auth/login", {"email": "admin@blueorbit.in", "password": "wrong"}, headers={"Origin": "https://evil.example"})
+            expect(status == 403, "cross-origin mutating requests are rejected")
             print("RESULT focused uncovered smoke test passed")
         finally:
             if process.poll() is None:

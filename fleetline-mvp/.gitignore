@@ -30,6 +30,17 @@ coverage/
 !.env.example
 supabase/config.js
 
+# Private keys, certificates and host credentials
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+.ssh/
+**/.ssh/
+known_hosts
+**/known_hosts
+
 # Editor/OS files
 .DS_Store
 .vscode/

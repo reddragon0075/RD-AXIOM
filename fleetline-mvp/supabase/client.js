@@ -13,6 +13,7 @@
   );
   const baseUrl = String(config.url || '').replace(/\/$/, '');
   const storageKey = 'axiomfleet_supabase_session';
+  const mfaPendingKey = 'axiomfleet_supabase_mfa_pending_factor';
   const REQUEST_TIMEOUT_MS = 15000;
 
   async function fetchWithTimeout(url, options = {}) {
@@ -23,18 +24,10 @@
   }
 
   function readSession() {
-    try {
-      const parsed = JSON.parse(localStorage.getItem(storageKey) || 'null');
-      if (parsed && typeof parsed === 'object' && parsed.access_token && typeof parsed.access_token === 'string') {
-        return parsed;
-      }
-      return null;
-    } catch (_) {
-      return null;
-    }
+    try { return JSON.parse(localStorage.getItem(storageKey) || 'null'); } catch (_) { return null; }
   }
   function writeSession(session) {
-    if (session && session.access_token) localStorage.setItem(storageKey, JSON.stringify(session));
+    if (session) localStorage.setItem(storageKey, JSON.stringify(session));
     else localStorage.removeItem(storageKey);
   }
   function authHeaders(token) {
@@ -52,23 +45,11 @@
     }
     return String(value);
   }
-  function sanitizeError(msg) {
-    if (!msg || typeof msg !== 'string') return 'Request could not be completed.';
-    // Strip raw internal PostgreSQL details, table names or constraint references
-    if (/relation ".*" does not exist/i.test(msg) || /duplicate key value violates unique constraint/i.test(msg)) {
-      return 'The requested record is invalid or already exists.';
-    }
-    if (/permission denied for table|violates row-level security/i.test(msg)) {
-      return 'You do not have permission to perform this action.';
-    }
-    return msg;
-  }
   async function parseResponse(response) {
     let payload = {};
     try { payload = await response.json(); } catch (_) { payload = {}; }
     if (!response.ok) {
-      const raw = payload.error_description || payload.msg || payload.message || payload.error || 'Supabase request failed.';
-      throw new Error(sanitizeError(raw));
+      throw new Error(payload.error_description || payload.msg || payload.message || payload.error || 'Supabase request failed.');
     }
     return payload;
   }
@@ -170,6 +151,7 @@
         } : null,
         profile: {
           city: driver.city || organization?.city || '',
+          timezone: profile.timezone || organization?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
           license_number: driver.license_number || '',
           fleet_size: organization?.fleet_size ?? null,
           employee_count: organization?.employee_count ?? null
@@ -177,28 +159,7 @@
       }
     };
   }
-  const DISPOSABLE_EMAIL_DOMAINS = new Set([
-    'mailinator.com', 'tempmail.com', 'temp-mail.org', '10minutemail.com',
-    'guerrillamail.com', 'throwawaymail.com', 'sharklasers.com', 'yopmail.com',
-    'getairmail.com', 'dispostable.com', 'trashmail.com', 'fakeinbox.com',
-    'mytemp.email', 'tempail.com', 'mohmal.com', 'burnermail.io',
-    'crazymailing.com', 'generator.email', 'inboxkitten.com', 'dropmail.me',
-    'tempinbox.com', 'disposablemail.com', 'emailondeck.com', 'guerrillamail.biz',
-    'guerrillamail.net', 'guerrillamail.org', 'guerrillamailblock.com', 'pokemail.net',
-    'spam4.me', 'grr.la', 'tempmail.net', 'tempmailaddress.com', 'fakemailgenerator.com'
-  ]);
-  function isDisposableEmail(email) {
-    if (!email || typeof email !== 'string' || !email.includes('@')) return false;
-    const parts = email.toLowerCase().trim().split('@');
-    if (parts.length !== 2) return false;
-    const domain = parts[1];
-    if (DISPOSABLE_EMAIL_DOMAINS.has(domain)) return true;
-    return /(temp|trash|fake|disposable|throwaway|burner|guerrilla|10minute|mailinator)/i.test(domain);
-  }
   async function signUp(payload) {
-    if (isDisposableEmail(payload.email)) {
-      throw new Error('Temporary or disposable email addresses are not permitted. Please use your official or corporate email.');
-    }
     const authData = await authRequest('/signup', {
       method: 'POST',
       body: JSON.stringify({
@@ -207,7 +168,8 @@
         data: {
           full_name: payload.full_name,
           phone: payload.phone,
-          account_type: payload.role
+          account_type: payload.role,
+          timezone: payload.timezone || 'UTC'
         }
       })
     });
@@ -237,6 +199,12 @@
         p_gstin: payload.gstin || '',
         p_fleet_size: payload.role === 'vendor' && payload.fleet_size ? Number(payload.fleet_size) : null,
         p_employee_count: payload.role === 'corporate' && payload.employee_count ? Number(payload.employee_count) : null
+      }, token);
+    }
+    if (payload.timezone) {
+      await dataRequest(`profiles?id=eq.${encodeURIComponent(authData.user?.id || '')}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ timezone: payload.timezone })
       }, token);
     }
     return currentUser();
@@ -277,12 +245,18 @@
       organization_id: organizationId,
       branch_id: payload.branch_id || null,
       customer_id: payload.customer_id || null,
+      customer_entity_id: payload.customer_entity_id || null,
+      sister_company_id: payload.sister_company_id || null,
+      company_id: payload.company_id || null,
+      vehicle_group_code: payload.vehicle_group_code || null,
+      duty_type_code: payload.duty_type_code || payload.duty_type || 'local',
       requesting_organization_id: payload.requesting_organization_id || null,
       vendor_organization_id: payload.vendor_organization_id || null,
       status: payload.status || 'requested',
       booking_reference: payload.booking_reference || `BK-${new Date().toISOString().slice(0, 7).replace('-', '')}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
       passenger_name: payload.passenger_name || null,
       passenger_phone: payload.passenger_phone || null,
+      passenger_email: payload.passenger_email || null,
       pickup: locationValue(payload.pickup),
       dropoff: locationValue(payload.dropoff),
       stops: Array.isArray(payload.stops) ? payload.stops : [],
@@ -311,6 +285,56 @@
       query: Object.fromEntries(url.searchParams.entries()),
       body
     }, session.access_token);
+  }
+  async function supabaseCorporateRequest(path, options = {}) {
+    const url = new URL(path, window.location.origin);
+    const route = url.pathname.replace(/\/$/, '') || '/';
+    if (!route.startsWith('/api/corporate')) return undefined;
+    const session = await refreshIfNeeded();
+    if (!session?.access_token) throw new Error('Sign in required.');
+    const identity = await currentUser();
+    const organizationId = identity.user.organization?.id || await activeOrganizationId();
+    let body = {};
+    try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
+    return edgeFunction('corporate-orchestrator', {
+      path: route,
+      method: options.method || 'GET',
+      organization_id: organizationId,
+      query: Object.fromEntries(url.searchParams.entries()),
+      body
+    }, session.access_token);
+  }
+  async function supabaseOperationsRequest(path, options = {}) {
+    const url = new URL(path, window.location.origin);
+    const route = url.pathname.replace(/\/$/, '') || '/';
+    const supported = route === '/api/bookings/batches' || route.startsWith('/api/bookings/batches/') || route === '/api/availability' || route === '/api/availability/evaluate' || route === '/api/allotment/decisions' || /^\/api\/bookings\/[^/]+\/allot$/.test(route) || /^\/api\/duties\/[^/]+\/close$/.test(route) || /^\/api\/duties\/[^/]+\/closure(?:\/evidence)?$/.test(route);
+    if (!supported) return undefined;
+    const session = await refreshIfNeeded();
+    if (!session?.access_token) throw new Error('Sign in required.');
+    const identity = await currentUser();
+    const organizationId = identity.user.organization?.id || await activeOrganizationId();
+    let body = {};
+    try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
+    return edgeFunction('operations-orchestrator', {
+      path: route,
+      method: options.method || 'GET',
+      organization_id: organizationId,
+      query: Object.fromEntries(url.searchParams.entries()),
+      body
+    }, session.access_token);
+  }
+  async function supabaseBookingRequest(path, options = {}) {
+    const url = new URL(path, window.location.origin);
+    const route = url.pathname.replace(/\/$/, '') || '/';
+    const supported = (route === '/api/bookings' && (options.method || 'GET') === 'POST') || ((options.method || 'GET') === 'GET' && /^\/api\/bookings\/[^/]+$/.test(route)) || ((options.method || 'GET') === 'PATCH' && /^\/api\/bookings\/[^/]+$/.test(route)) || route === '/api/bookings/import' || route === '/api/bookings/imports' || route === '/api/pricing/contracts' || route === '/api/pricing/quote' || route === '/api/fuel-rates' || route === '/api/fuel-surcharge-rules' || route === '/api/booking-dispatches' || route === '/api/temporary-passengers' || route === '/api/temporary-allotments' || /^\/api\/bookings\/[^/]+\/(children|split|confirm|confirmation|unconfirm|delete|restore|print|briefing|advance|attachments|export|allot-all|reallot|re-allot|dispatch|supplier-dispatch|dispatches|temporary-passenger|temporary-allotment|pricing|actions)$/.test(route) || /^\/api\/pricing\/contracts\/[^/]+\/rules$/.test(route) || /^\/api\/booking-dispatches\/[^/]+\/respond$/.test(route) || /^\/api\/duties\/[^/]+\/arrival$/.test(route);
+    if (!supported) return undefined;
+    const session = await refreshIfNeeded();
+    if (!session?.access_token) throw new Error('Sign in required.');
+    const identity = await currentUser();
+    const organizationId = identity.user.organization?.id || await activeOrganizationId();
+    let body = {};
+    try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
+    return edgeFunction('booking-orchestrator', { path: route, method: options.method || 'GET', organization_id: organizationId, query: Object.fromEntries(url.searchParams.entries()), body }, session.access_token);
   }
   async function supabaseP0Request(path, options = {}) {
     const url = new URL(path, window.location.origin);
@@ -500,6 +524,10 @@
     try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
     const identity = await currentUser();
     const organizationId = identity.user.organization?.id || await activeOrganizationId();
+    const governedNetwork = route === '/api/network/v1/partner-directory' || route === '/api/network/v1/associates' || route === '/api/network/v1/invites' || /^\/api\/network\/v1\/(associates|invites)\/[^/]+\/(accept|reject|revoke)$/.test(route) || route === '/api/network/v1/contracts' || /^\/api\/network\/v1\/contracts\/[^/]+(?:\/(versions|sync|sign))?$/.test(route) || /^\/api\/network\/v1\/service-orders\/[^/]+\/(exchanges|sla-observations|issues|rate-discrepancies|settlement-resolutions)$/.test(route) || /^\/api\/network\/v1\/(exchanges|issues|rate-discrepancies|settlement-resolutions)\/[^/]+\/(acknowledge|reject|process|resolve|decide)$/.test(route);
+    if (governedNetwork || (route === '/api/network/v1/invites' && method === 'POST')) {
+      return edgeFunction('network-orchestrator', { path: route, method, organization_id: organizationId, query: Object.fromEntries(url.searchParams.entries()), body }, session.access_token);
+    }
     const list = async (table, filter = '') => {
       const rows = await dataRequest(`${table}?organization_id=eq.${encodeURIComponent(organizationId)}&select=*&order=created_at.desc&limit=100${filter}`, {}, session.access_token);
       return { ok: true, items: rows, count: rows.length };
@@ -569,6 +597,177 @@
     throw new Error(`Supabase Network route not implemented: ${method} ${path}`);
   }
 
+  async function supabaseBillIntelligenceRequest(path, options = {}) {
+    const url = new URL(path, window.location.origin);
+    const route = url.pathname.replace(/\/$/, '') || '/';
+    if (!route.startsWith('/api/bill-intelligence')) return undefined;
+    const session = await refreshIfNeeded();
+    if (!session?.access_token) throw new Error('Sign in required.');
+    const identity = await currentUser();
+    const organizationId = identity.user.organization?.id || await activeOrganizationId();
+    let body = {};
+    try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
+    return edgeFunction('bill-intelligence-orchestrator', {
+      path: route,
+      method: options.method || 'GET',
+      organization_id: organizationId,
+      query: Object.fromEntries(url.searchParams.entries()),
+      body
+    }, session.access_token);
+  }
+
+  async function supabaseFinanceReportingRequest(path, options = {}) {
+    const url = new URL(path, window.location.origin);
+    const route = url.pathname.replace(/\/$/, '') || '/';
+    const supported = route === '/api/invoices/generate' || route === '/api/invoice-runs' || route === '/api/collections/dunning' || route === '/api/collections/dunning/run' || route === '/api/reports/ageing' || route === '/api/finance/ageing' || route === '/api/reports/definitions' || route.startsWith('/api/reports/definitions/') || route === '/api/export-profiles' || route.startsWith('/api/export-profiles/');
+    if (!supported) return undefined;
+    const session = await refreshIfNeeded();
+    if (!session?.access_token) throw new Error('Sign in required.');
+    const identity = await currentUser();
+    const organizationId = identity.user.organization?.id || await activeOrganizationId();
+    let body = {};
+    try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
+    return edgeFunction('finance-reporting-orchestrator', {
+      path: route,
+      method: options.method || 'GET',
+      organization_id: organizationId,
+      query: Object.fromEntries(url.searchParams.entries()),
+      body
+    }, session.access_token);
+  }
+
+  async function supabaseCommunicationsRequest(path, options = {}) {
+    const url = new URL(path, window.location.origin);
+    const route = url.pathname.replace(/\/$/, '') || '/';
+    const supported = route === '/api/communications/templates' || route === '/api/communications/dispatch' || route === '/api/communications/deliveries' || route.startsWith('/api/communications/deliveries/') || route === '/api/communications/suppressions';
+    if (!supported) return undefined;
+    const session = await refreshIfNeeded();
+    if (!session?.access_token) throw new Error('Sign in required.');
+    const identity = await currentUser();
+    const organizationId = identity.user.organization?.id || await activeOrganizationId();
+    let body = {};
+    try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
+    return edgeFunction('communications-orchestrator', {
+      path: route,
+      method: options.method || 'GET',
+      organization_id: organizationId,
+      query: Object.fromEntries(url.searchParams.entries()),
+      body
+    }, session.access_token);
+  }
+
+  async function supabaseSupplierFinanceRequest(path, options = {}) {
+    const url = new URL(path, window.location.origin);
+    const route = url.pathname.replace(/\/$/, '') || '/';
+    const supported = route === '/api/supplier-purchases' || route === '/api/supplier-ageing' || route === '/api/supplier-settlements' || route === '/api/supplier-settlements/generate' || route === '/api/fuel-entries' || route === '/api/petty-cash/entries' || route === '/api/driver-allowances' || route === '/api/payroll/runs' || /^\/api\/payroll\/runs\/[^/]+\/lines$/.test(route);
+    if (!supported) return undefined;
+    const session = await refreshIfNeeded();
+    if (!session?.access_token) throw new Error('Sign in required.');
+    const identity = await currentUser();
+    const organizationId = identity.user.organization?.id || await activeOrganizationId();
+    let body = {};
+    try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
+    return edgeFunction('supplier-fleet-finance-orchestrator', {
+      path: route,
+      method: options.method || 'GET',
+      organization_id: organizationId,
+      query: Object.fromEntries(url.searchParams.entries()),
+      body
+    }, session.access_token);
+  }
+
+  async function supabaseFinanceControlsRequest(path, options = {}) {
+    const url = new URL(path, window.location.origin);
+    const route = url.pathname.replace(/\/$/, '') || '/';
+    const supported = route === '/api/supplier-payment-requests' || /^\/api\/supplier-payment-requests\/[^/]+\/(approve|reject|execute)$/.test(route) || route === '/api/supplier-advances' || /^\/api\/supplier-advances\/[^/]+\/(approve|reject)$/.test(route) || route === '/api/driver-payouts/requests' || /^\/api\/driver-payouts\/[^/]+\/(approve|reject|disburse)$/.test(route) || route === '/api/supplier-settlement-approvals' || /^\/api\/supplier-settlement-approvals\/[^/]+\/(approve|reject)$/.test(route) || route === '/api/fuel-stations' || route === '/api/fuel-prices' || route === '/api/fuel-analytics' || route === '/api/petty-cash/reconciliations' || route === '/api/finance/reconciliations' || route === '/api/payroll/exports' || /^\/api\/payroll\/exports\/[^/]+\/download$/.test(route) || route === '/api/payroll/compliance' || route === '/api/reports/profitability' || route === '/api/reports/exports' || /^\/api\/reports\/exports\/[^/]+(?:\/download)?$/.test(route) || route === '/api/reports/builder' || /^\/api\/reports\/builder\/[^/]+\/run$/.test(route) || route === '/api/reports/favorites' || /^\/api\/reports\/favorites\/[^/]+\/refresh$/.test(route) || route === '/api/reporting/import-templates' || route === '/api/imports/preview' || /^\/api\/imports\/[^/]+\/(corrections|commit)$/.test(route);
+    if (!supported) return undefined;
+    const session = await refreshIfNeeded();
+    if (!session?.access_token) throw new Error('Sign in required.');
+    const identity = await currentUser();
+    const organizationId = identity.user.organization?.id || await activeOrganizationId();
+    let body = {};
+    try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
+    return edgeFunction('finance-controls-orchestrator', { path: route, method: options.method || 'GET', organization_id: organizationId, query: Object.fromEntries(url.searchParams.entries()), body }, session.access_token);
+  }
+
+  async function supabaseFeedbackRequest(path, options = {}) {
+    const url = new URL(path, window.location.origin);
+    const route = url.pathname.replace(/\/$/, '') || '/';
+    const supported = route === '/api/feedback/forms' || route.startsWith('/api/feedback/forms/') || route === '/api/feedback/requests' || /^\/api\/feedback\/requests\/[^/]+\/submit$/.test(route) || route === '/api/feedback/responses' || route === '/api/feedback/summary' || route === '/api/feedback/public-links' || route === '/api/feedback/analytics' || route === '/api/feedback/corrective-actions' || route === '/api/feedback/recovery' || route === '/api/feedback/notifications' || route === '/api/feedback/notifications/run' || /^\/api\/feedback\/notifications\/[^/]+\/receipt$/.test(route) || route === '/api/feedback/delivery-policies' || /^\/api\/feedback\/delivery-policies\/[^/]+\/(archive|pause|activate)$/.test(route) || route === '/api/feedback/escalation-policies' || /^\/api\/feedback\/escalation-policies\/[^/]+\/(archive|pause|activate)$/.test(route) || route === '/api/feedback/delivery-attempts' || /^\/api\/feedback\/recovery\/[^/]+\/resolve$/.test(route);
+    if (!supported) return undefined;
+    const session = await refreshIfNeeded();
+    if (!session?.access_token) throw new Error('Sign in required.');
+    const identity = await currentUser();
+    const organizationId = identity.user.organization?.id || await activeOrganizationId();
+    let body = {};
+    try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
+    return edgeFunction('feedback-orchestrator', {
+      path: route,
+      method: options.method || 'GET',
+      organization_id: organizationId,
+      query: Object.fromEntries(url.searchParams.entries()),
+      body
+    }, session.access_token);
+  }
+
+  async function supabaseEnterpriseRequest(path, options = {}) {
+    const url = new URL(path, window.location.origin);
+    const route = url.pathname.replace(/\/$/, '') || '/';
+    const supported = route.startsWith('/api/enterprise') || route === '/api/passenger/portal-links' || route === '/api/availability/calendar' || /^\/api\/bookings\/[^/]+\/quote$/.test(route) || /^\/api\/bookings\/[^/]+\/allotment-requests$/.test(route) || /^\/api\/allotment-requests\/[^/]+\/respond$/.test(route) || route === '/api/allotment-exceptions' || route === '/api/duty-closure-jobs' || route === '/api/duty-closure-jobs/run' || /^\/api\/duties\/[^/]+\/(execution-profile|otp|otp\/verify|media|evidence-bundle|slip|adjustments|sms-close|network-execution|dco|attached-driver|garage-transfer)$/.test(route);
+    if (!supported) return undefined;
+    const session = await refreshIfNeeded();
+    if (!session?.access_token) throw new Error('Sign in required.');
+    const identity = await currentUser();
+    const organizationId = identity.user.organization?.id || await activeOrganizationId();
+    let body = {};
+    try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
+    return edgeFunction('enterprise-orchestrator', {
+      path: route,
+      method: options.method || 'GET',
+      organization_id: organizationId,
+      query: Object.fromEntries(url.searchParams.entries()),
+      body
+    }, session.access_token);
+  }
+
+  async function supabaseWorkspaceRequest(path, options = {}) {
+    const url = new URL(path, window.location.origin);
+    const route = url.pathname.replace(/\/$/, '') || '/';
+    const supported = route === '/api/workspace/next-actions' || /^\/api\/workspace\/next-actions\/[^/]+\/status$/.test(route);
+    if (!supported) return undefined;
+    const session = await refreshIfNeeded();
+    if (!session?.access_token) throw new Error('Sign in required.');
+    const identity = await currentUser();
+    let body = {};
+    try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
+    return edgeFunction('workspace-orchestrator', {
+      path: route,
+      method: options.method || 'GET',
+      organization_id: identity.user.organization?.id || await activeOrganizationId(),
+      query: Object.fromEntries(url.searchParams.entries()),
+      body
+    }, session.access_token);
+  }
+
+  async function supabaseGapRequest(path, options = {}) {
+    const url = new URL(path, window.location.origin);
+    const route = url.pathname.replace(/\/$/, '') || '/';
+    const supported = route === '/api/passenger/booking-requests' || route === '/api/passenger/book-for-others' || /^\/api\/passenger\/booking-requests\/[^/]+\/(approve|reject|cancel)$/.test(route) || route === '/api/availability/optimize' || /^\/api\/duties\/[^/]+\/(route-log(?:\/(start|stop))?|location-share|driver-alerts(?:\/(acknowledge|resolve))?)$/.test(route) || route === '/api/driver-alert-policies' || route === '/api/driver/device-readiness' || route === '/api/provider-connections' || /^\/api\/provider-connections\/[^/]+\/test$/.test(route) || route === '/api/maps/places' || route === '/api/maps/navigation' || route === '/api/communications/click-to-call' || route === '/api/payment-authorizations' || /^\/api\/invoices\/[^/]+\/auto-collect$/.test(route) || route === '/api/auto-collect/runs' || route === '/api/invoice-automation/policies' || route === '/api/invoice-automation/run' || route === '/api/enterprise/custom-field-values' || route === '/api/integrations/sync' || route === '/api/network/supplier-exchange' || route === '/api/finance/budgets' || route === '/api/finance/expense-forecast';
+    if (!supported) return undefined;
+    const session = await refreshIfNeeded();
+    if (!session?.access_token) throw new Error('Sign in required.');
+    const identity = await currentUser();
+    let body = {};
+    try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
+    return edgeFunction('gap-completion-orchestrator', {
+      path: route,
+      method: options.method || 'GET',
+      organization_id: identity.user.organization?.id || await activeOrganizationId(),
+      query: Object.fromEntries(url.searchParams.entries()),
+      body
+    }, session.access_token);
+  }
+
   async function supabaseDomainRequest(path, options = {}) {
     const session = await refreshIfNeeded();
     if (!session?.access_token) throw new Error('Sign in required.');
@@ -577,16 +776,70 @@
     const route = url.pathname;
     let body = {};
     try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
+    const operationsResult = await supabaseOperationsRequest(path, options);
+    if (operationsResult !== undefined) return operationsResult;
+    const corporateBookingEvaluation = async (requestBody, action = 'book') => {
+      const accountResponse = await supabaseCorporateRequest('/api/corporate/account');
+      const account = accountResponse?.account;
+      if (!account || account.status !== 'active') return null;
+      const evaluation = await supabaseCorporateRequest('/api/corporate/policies/evaluate', { method: 'POST', body: JSON.stringify({ ...requestBody, action }) });
+      if (evaluation?.outcome === 'block') { const error = new Error('Corporate booking policy blocked this request.'); error.details = evaluation; throw error; }
+      return evaluation;
+    };
+    const persistCorporateApproval = async (bookingId, evaluation) => {
+      if (!evaluation || evaluation.outcome !== 'needs_approval') return;
+      // The production booking trigger creates this row atomically with the
+      // pending booking.  Read first so the browser adapter remains compatible
+      // with the older Edge-only deployment without duplicating approvals.
+      let pending;
+      try {
+        pending = await dataRequest(`booking_approvals?booking_id=eq.${encodeURIComponent(bookingId)}&status=eq.pending&approver_id=is.null&select=id&order=created_at.asc&limit=1`, {}, session.access_token);
+      } catch (_) {
+        // A booker without approval-read permission cannot repair or duplicate
+        // the server-created row; the transaction above is authoritative.
+        return null;
+      }
+      if (pending[0]) return pending[0];
+      const route = evaluation.reasons?.find(item => item.code === 'approval_required')?.approval_route || [];
+      return dataRequest('booking_approvals', { method: 'POST', body: JSON.stringify({ organization_id: await activeOrganizationId(), booking_id: bookingId, approver_id: null, status: 'pending', comment: JSON.stringify({ source: 'corporate_policy', policy_id: evaluation.policy_id, policy_version: evaluation.policy_version, approval_route: route }) }) }, session.access_token);
+    };
+    if (route === '/api/bookings' && method === 'POST') {
+      const evaluation = await corporateBookingEvaluation(body, 'book');
+      const bookingBody = { ...body, status: evaluation?.outcome === 'needs_approval' ? 'pending_approval' : body.status, policy_context: evaluation || body.policy_context || {} };
+      const result = await supabaseBookingRequest(path, { ...options, body: JSON.stringify(bookingBody) });
+      if (result?.item?.id) await persistCorporateApproval(result.item.id, evaluation);
+      return { ...result, corporate_evaluation: evaluation };
+    }
+    const corporateLegacyAction = route.match(/^\/api\/bookings\/[^/]+\/(approve|reject|cancel|assign)$/);
+    const bookingConfirm = route.match(/^\/api\/bookings\/([^/]+)\/confirm$/);
+    if (!corporateLegacyAction && !bookingConfirm && !(route === '/api/bookings/import' && method === 'POST')) {
+      const bookingActionResult = await supabaseBookingRequest(path, options);
+      if (bookingActionResult !== undefined) return bookingActionResult;
+    }
+    if (bookingConfirm && method === 'POST') {
+      const accountResponse = await supabaseCorporateRequest('/api/corporate/account');
+      if (accountResponse?.account?.status === 'active') {
+        const access = await supabaseCorporateRequest('/api/corporate/permissions/evaluate', { method: 'POST', body: JSON.stringify({ permission: 'booking.approve' }) });
+        if (!access?.allowed) throw new Error('Corporate booking approval permission is required.');
+      }
+      const confirmed = await supabaseBookingRequest(path, options);
+      if (confirmed !== undefined) return confirmed;
+    }
     const bookingImport = route === '/api/bookings/import' && method === 'POST';
     if (bookingImport) {
+      const durableImport = await supabaseBookingRequest(path, options);
+      if (durableImport !== undefined) return durableImport;
       const organizationId = await activeOrganizationId();
       const sourceRows = Array.isArray(body.bookings) ? body.bookings : [];
       const rows = [];
       for (const [index, source] of sourceRows.entries()) {
         try {
-          const inserted = await dataRequest('bookings', { method: 'POST', body: JSON.stringify(normalizedBooking(source || {}, organizationId)) }, session.access_token);
+          const evaluation = await corporateBookingEvaluation(source || {}, 'book');
+          const bookingPayload = normalizedBooking({ ...(source || {}), status: evaluation?.outcome === 'needs_approval' ? 'pending_approval' : (source || {}).status, policy_context: evaluation || {} }, organizationId);
+          const inserted = await dataRequest('bookings', { method: 'POST', body: JSON.stringify(bookingPayload) }, session.access_token);
           const item = Array.isArray(inserted) ? inserted[0] : inserted;
-          rows.push({ row: index + 1, status: 'imported', item });
+          await persistCorporateApproval(item.id, evaluation);
+          rows.push({ row: index + 1, status: 'imported', item, corporate_evaluation: evaluation });
         } catch (error) {
           rows.push({ row: index + 1, status: 'error', error: error.message, code: 'import_error' });
         }
@@ -601,6 +854,15 @@
       const selected = await dataRequest(`bookings?id=eq.${encodeURIComponent(bookingId)}&select=*`, {}, session.access_token);
       const booking = selected[0];
       if (!booking) throw new Error('Booking not found.');
+      if (action === 'cancel') await corporateBookingEvaluation({ ...booking, ...body, scheduled_at: booking.scheduled_at }, 'cancel');
+      if (['approve', 'confirm', 'reject'].includes(action)) {
+        const accountResponse = await supabaseCorporateRequest('/api/corporate/account');
+        if (accountResponse?.account?.status === 'active') {
+          const access = await supabaseCorporateRequest('/api/corporate/permissions/evaluate', { method: 'POST', body: JSON.stringify({ permission: 'booking.approve' }) });
+          if (!access?.allowed) throw new Error('Corporate booking approval permission is required.');
+        }
+      }
+      if (action === 'assign' && booking.status === 'pending_approval') throw new Error('Booking approval is required before a duty can be assigned.');
       if (action === 'assign') {
         const dutyPayload = {
           organization_id: organizationId,
@@ -619,10 +881,16 @@
       const updated = await dataRequest(`bookings?id=eq.${encodeURIComponent(bookingId)}`, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) }, session.access_token);
       const item = Array.isArray(updated) ? updated[0] : updated;
       if (action === 'approve' || action === 'confirm' || action === 'reject') {
-        await dataRequest('booking_approvals', {
-          method: 'POST',
-          body: JSON.stringify({ organization_id: organizationId, booking_id: bookingId, approver_id: session.user?.id || null, status: action === 'reject' ? 'rejected' : 'approved', comment: body.comment || '' })
-        }, session.access_token);
+        const decisionStatus = action === 'reject' ? 'rejected' : 'approved';
+        const pendingRows = await dataRequest(`booking_approvals?booking_id=eq.${encodeURIComponent(bookingId)}&status=eq.pending&approver_id=is.null&select=id&order=created_at.asc&limit=1`, {}, session.access_token);
+        if (pendingRows[0]) {
+          await dataRequest(`booking_approvals?id=eq.${encodeURIComponent(pendingRows[0].id)}`, { method: 'PATCH', body: JSON.stringify({ approver_id: session.user?.id || null, status: decisionStatus, comment: body.comment || '' }) }, session.access_token);
+        } else {
+          await dataRequest('booking_approvals', {
+            method: 'POST',
+            body: JSON.stringify({ organization_id: organizationId, booking_id: bookingId, approver_id: session.user?.id || null, status: decisionStatus, comment: body.comment || '' })
+          }, session.access_token);
+        }
       }
       return { ok: true, item, status: nextStatus };
     }
@@ -896,10 +1164,10 @@
     if (jobRun && method === 'POST') { const organizationId = await activeOrganizationId(); await dataRequest(`jobs?id=eq.${encodeURIComponent(jobRun[1])}&organization_id=eq.${encodeURIComponent(organizationId)}`, { method: 'PATCH', body: JSON.stringify({ status: 'completed', attempts: 1, completed_at: new Date().toISOString(), result: { mode: 'supabase_mock_worker', processed_at: new Date().toISOString() } }) }, session.access_token); return { ok: true, status: 'completed' }; }
     if (route === '/api/devices' && method === 'GET') { const rows = await dataRequest(`device_bindings?user_id=eq.${encodeURIComponent(session.user.id)}&select=*&order=last_seen_at.desc`, {}, session.access_token); return { ok: true, items: rows }; }
     if (route === '/api/devices' && method === 'POST') { const organizationId = await activeOrganizationId(); const deviceId = body.device_id || `device-${crypto.randomUUID ? crypto.randomUUID() : Date.now()}`; const write = { organization_id: organizationId, user_id: session.user.id, device_id: deviceId, platform: body.platform || 'mobile', push_token: body.push_token || '', status: 'active', last_seen_at: new Date().toISOString() }; const existing = await dataRequest(`device_bindings?user_id=eq.${encodeURIComponent(session.user.id)}&device_id=eq.${encodeURIComponent(deviceId)}&select=id`, {}, session.access_token); const result = existing[0] ? await dataRequest(`device_bindings?id=eq.${encodeURIComponent(existing[0].id)}`, { method: 'PATCH', body: JSON.stringify(write) }, session.access_token) : await dataRequest('device_bindings', { method: 'POST', body: JSON.stringify(write) }, session.access_token); return { ok: true, item: Array.isArray(result) ? result[0] : result }; }
-    if (route === '/api/security/2fa' && method === 'GET') { const rows = await dataRequest(`auth_factors?user_id=eq.${encodeURIComponent(session.user.id)}&select=user_id,factor_type,status,created_at,verified_at,last_used_at`, {}, session.access_token); return { ok: true, enabled: rows[0]?.status === 'enabled', factor: rows[0] || null }; }
-    if (route === '/api/security/2fa/setup' && method === 'POST') { const secret = crypto.randomUUID ? crypto.randomUUID().replaceAll('-', '').slice(0, 24).toUpperCase() : `AXIOM${Date.now()}`; const recovery = Array.from({ length: 8 }, () => crypto.randomUUID().slice(0, 8).toUpperCase()); await dataRequest('auth_factors', { method: 'POST', body: JSON.stringify({ user_id: session.user.id, organization_id: await activeOrganizationId(), factor_type: 'totp', secret_hash: await sha256(secret), status: 'pending', recovery_codes: recovery }) }, session.access_token); return { ok: true, factor_type: 'totp', otpauth_url: `otpauth://totp/AxiomFleet:${session.user.email}?secret=${secret}&issuer=AxiomFleet`, recovery_codes: recovery, mock_verification_code: '246810' }; }
-    if (route === '/api/security/2fa/verify' && method === 'POST') { if (!['246810', '000000'].includes(String(body.code || ''))) throw new Error('The authenticator code is invalid.'); await dataRequest(`auth_factors?user_id=eq.${encodeURIComponent(session.user.id)}`, { method: 'PATCH', body: JSON.stringify({ status: 'enabled', verified_at: new Date().toISOString() }) }, session.access_token); return { ok: true, enabled: true }; }
-    if (route === '/api/security/2fa/disable' && method === 'POST') { await dataRequest(`auth_factors?user_id=eq.${encodeURIComponent(session.user.id)}`, { method: 'PATCH', body: JSON.stringify({ status: 'disabled' }) }, session.access_token); return { ok: true, enabled: false }; }
+    if (route === '/api/security/2fa' && method === 'GET') { const factorResponse = await authRequest('/factors', {}, session.access_token); const factors = Array.isArray(factorResponse) ? factorResponse : (factorResponse.all || factorResponse.totp || []); const factor = factors.find(item => item.factor_type === 'totp' || item.type === 'totp') || null; return { ok: true, provider: 'supabase_auth_mfa', enabled: factors.some(item => item.status === 'verified' && (item.factor_type === 'totp' || item.type === 'totp')), factor }; }
+    if (route === '/api/security/2fa/setup' && method === 'POST') { const factor = await authRequest('/factors', { method: 'POST', body: JSON.stringify({ factor_type: 'totp', friendly_name: 'Axiom Fleet operator' }) }, session.access_token); if (!factor?.id) throw new Error('Supabase Auth did not return an MFA factor.'); localStorage.setItem(mfaPendingKey, factor.id); return { ok: true, provider: 'supabase_auth_mfa', factor_id: factor.id, factor_type: 'totp', otpauth_url: factor.totp?.uri || '', qr_code: factor.totp?.qr_code || '', secret: factor.totp?.secret || '' }; }
+    if (route === '/api/security/2fa/verify' && method === 'POST') { const factorId = body.factor_id || localStorage.getItem(mfaPendingKey); const code = String(body.code || '').trim(); if (!factorId || !/^[0-9]{6}$/.test(code)) throw new Error('A six digit authenticator code and pending factor are required.'); const challenge = await authRequest(`/factors/${encodeURIComponent(factorId)}/challenge`, { method: 'POST', body: '{}' }, session.access_token); await authRequest(`/factors/${encodeURIComponent(factorId)}/verify`, { method: 'POST', body: JSON.stringify({ code, challenge_id: challenge.id }) }, session.access_token); localStorage.removeItem(mfaPendingKey); if (session.refresh_token) { const refreshed = await authRequest('/token?grant_type=refresh_token', { method: 'POST', body: JSON.stringify({ refresh_token: session.refresh_token }) }); writeSession({ access_token: refreshed.access_token, refresh_token: refreshed.refresh_token || session.refresh_token, expires_at: refreshed.expires_at || Math.floor(Date.now() / 1000) + (refreshed.expires_in || 3600), user: refreshed.user || session.user }); } return { ok: true, provider: 'supabase_auth_mfa', enabled: true, aal: 'aal2' }; }
+    if (route === '/api/security/2fa/disable' && method === 'POST') { const factorId = body.factor_id || localStorage.getItem(mfaPendingKey); if (!factorId) throw new Error('No Supabase Auth MFA factor is enrolled.'); await authRequest(`/factors/${encodeURIComponent(factorId)}`, { method: 'DELETE' }, session.access_token); localStorage.removeItem(mfaPendingKey); return { ok: true, provider: 'supabase_auth_mfa', enabled: false }; }
     const apiKeyRoute = route.match(/^\/api\/security\/api-keys(?:\/([^/]+)\/revoke)?$/);
     if (apiKeyRoute && method === 'GET') { const organizationId = await activeOrganizationId(); const rows = await dataRequest(`api_keys?organization_id=eq.${encodeURIComponent(organizationId)}&select=id,name,key_prefix,scopes,status,last_used_at,created_by,created_at,revoked_at&order=created_at.desc`, {}, session.access_token); return { ok: true, items: rows }; }
     if (apiKeyRoute && method === 'POST' && apiKeyRoute[1]) { const organizationId = await activeOrganizationId(); await dataRequest(`api_keys?id=eq.${encodeURIComponent(apiKeyRoute[1])}&organization_id=eq.${encodeURIComponent(organizationId)}`, { method: 'PATCH', body: JSON.stringify({ status: 'revoked', revoked_at: new Date().toISOString() }) }, session.access_token); return { ok: true, status: 'revoked' }; }
@@ -1014,6 +1282,15 @@
       const invoiceSummary = {}; invoices.forEach(item => { invoiceSummary[item.status] ||= { count: 0, total_paise: 0 }; invoiceSummary[item.status].count += 1; invoiceSummary[item.status].total_paise += Number(item.total_paise || 0); });
       return { ok: true, period: url.searchParams.get('period') || 'current', summary: { customers: customers.length, duties: dutySummary, invoices: invoiceSummary, payments: { count: payments.length, total_paise: payments.reduce((sum, item) => sum + Number(item.amount_paise || 0), 0) } } };
     }
+    if (route === '/api/bookings' && method === 'POST') {
+      const organizationId = await activeOrganizationId();
+      const evaluation = await corporateBookingEvaluation(body, 'book');
+      const bookingPayload = normalizedBooking({ ...body, status: evaluation?.outcome === 'needs_approval' ? 'pending_approval' : body.status, policy_context: evaluation || body.policy_context || {} }, organizationId);
+      const inserted = await dataRequest('bookings', { method: 'POST', body: JSON.stringify(bookingPayload) }, session.access_token);
+      const item = Array.isArray(inserted) ? inserted[0] : inserted;
+      await persistCorporateApproval(item.id, evaluation);
+      return { ok: true, item, corporate_evaluation: evaluation };
+    }
     const table = resourceMap[route];
     if (!table) throw new Error(`Supabase adapter route not implemented: ${method} ${path}`);
     if (method === 'GET') {
@@ -1036,31 +1313,10 @@
     const session = await refreshIfNeeded();
     if (!session?.access_token) throw new Error('Sign in required.');
     const current = await currentUser();
-
-    const authUpdates = {};
-    if (payload.password) {
-      if (typeof payload.password !== 'string' || payload.password.length < 8) {
-        throw new Error('Password must be at least 8 characters long.');
-      }
-      authUpdates.password = payload.password;
-    }
-    if (payload.email && payload.email !== current.user.email) {
-      if (isDisposableEmail(payload.email)) {
-        throw new Error('Temporary or disposable email addresses are not permitted.');
-      }
-      authUpdates.email = payload.email;
-    }
-    if (Object.keys(authUpdates).length) {
-      await authRequest('/user', {
-        method: 'PUT',
-        body: JSON.stringify(authUpdates)
-      }, session.access_token);
-    }
-
     const profilePatch = {};
     if (payload.full_name !== undefined) profilePatch.full_name = payload.full_name;
     if (payload.phone !== undefined) profilePatch.phone = payload.phone;
-    if (payload.email !== undefined && payload.email !== current.user.email) profilePatch.email = payload.email;
+    if (payload.timezone !== undefined) profilePatch.timezone = payload.timezone;
     if (Object.keys(profilePatch).length) {
       await dataRequest(`profiles?id=eq.${encodeURIComponent(current.user.id)}`, {
         method: 'PATCH',
@@ -1081,6 +1337,15 @@
     }
     return currentUser();
   }
+  async function publicRequest(path, options = {}) {
+    if (!enabled) throw new Error('Supabase is not configured.');
+    const url = new URL(path, window.location.origin);
+    const route = url.pathname.replace(/\/$/, '') || '/';
+    let body = {};
+    try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
+    const functionName = route.startsWith('/api/feedback/v1/') ? 'feedback-public' : route.startsWith('/api/location-shares/') ? 'gap-completion-orchestrator' : 'enterprise-orchestrator';
+    return edgeFunction(functionName, { path: route, method: options.method || 'GET', query: Object.fromEntries(url.searchParams.entries()), body }, config.anonKey);
+  }
   async function request(path, options = {}) {
     if (!enabled) throw new Error('Supabase is not configured.');
     const method = options.method || 'GET';
@@ -1094,13 +1359,33 @@
     if (path === '/api/auth/me' && method === 'GET') return currentUser();
     if (path === '/api/auth/me' && method === 'PATCH') return updateMe(payload);
     if (path === '/api/auth/logout' && method === 'POST') return signOut();
+    const billIntelligenceResult = await supabaseBillIntelligenceRequest(path, options);
+    if (billIntelligenceResult !== undefined) return billIntelligenceResult;
+    const financeReportingResult = await supabaseFinanceReportingRequest(path, options);
+    if (financeReportingResult !== undefined) return financeReportingResult;
+    const communicationsResult = await supabaseCommunicationsRequest(path, options);
+    if (communicationsResult !== undefined) return communicationsResult;
+    const supplierFinanceResult = await supabaseSupplierFinanceRequest(path, options);
+    if (supplierFinanceResult !== undefined) return supplierFinanceResult;
+    const financeControlsResult = await supabaseFinanceControlsRequest(path, options);
+    if (financeControlsResult !== undefined) return financeControlsResult;
+    const feedbackResult = await supabaseFeedbackRequest(path, options);
+    if (feedbackResult !== undefined) return feedbackResult;
+    const gapResult = await supabaseGapRequest(path, options);
+    if (gapResult !== undefined) return gapResult;
+    const workspaceResult = await supabaseWorkspaceRequest(path, options);
+    if (workspaceResult !== undefined) return workspaceResult;
+    const enterpriseResult = await supabaseEnterpriseRequest(path, options);
+    if (enterpriseResult !== undefined) return enterpriseResult;
     const phase3Result = await supabasePhase3Request(path, options);
     if (phase3Result !== undefined) return phase3Result;
+    const corporateResult = await supabaseCorporateRequest(path, options);
+    if (corporateResult !== undefined) return corporateResult;
     const p0Result = await supabaseP0Request(path, options);
     if (p0Result !== undefined) return p0Result;
     if (path.startsWith('/api/network/v1')) return supabaseNetworkRequest(path, options);
-    if (path.startsWith('/api/overview') || /^\/api\/(customers|drivers|vehicles|bookings|duties|invoices|payments|sync|branches|suppliers|price-books|documents|invitations|employees|policies|approvals|notifications|devices|reports|audit|tickets|privacy|integrations|organization|settings|onboarding|setup|network|supplier-bills|costs|vehicle-costs|driver-payouts|supplier-payouts|financial-actions|alerts|geofences|sla|tax|admin|capacity|billing-notes|payment-links|jobs|security)/.test(path)) return supabaseDomainRequest(path, options);
+    if (path.startsWith('/api/overview') || /^\/api\/(customers|drivers|vehicles|bookings|duties|invoices|payments|sync|branches|suppliers|price-books|documents|invitations|employees|policies|approvals|notifications|devices|reports|audit|tickets|privacy|integrations|organization|settings|onboarding|setup|network|supplier-bills|costs|vehicle-costs|driver-payouts|supplier-payouts|financial-actions|alerts|geofences|sla|tax|admin|capacity|availability|allotment|billing-notes|payment-links|jobs|security)/.test(path)) return supabaseDomainRequest(path, options);
     throw new Error(`Supabase adapter route not implemented: ${method} ${path}`);
   }
-  window.AxiomSupabaseAdapter = { enabled, request };
+  window.AxiomSupabaseAdapter = { enabled, request, publicRequest };
 })();

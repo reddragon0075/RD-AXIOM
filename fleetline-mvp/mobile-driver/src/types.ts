@@ -13,6 +13,8 @@ export type Duty = {
   booking_id?: string;
   driver_id?: string | null;
   vehicle_id?: string | null;
+  duty_type?: string;
+  booking_reference?: string;
   calculation_snapshot?: { total_paise?: number };
 };
 
@@ -39,7 +41,7 @@ export type SessionUser = {
   role: string;
   full_name: string;
   phone?: string;
-  profile?: { city?: string; license_number?: string };
+  profile?: { city?: string; timezone?: string; license_number?: string };
 };
 
 /** Read-only native contract for Phase 3 field context. Mutations remain in the web/operator boundary. */

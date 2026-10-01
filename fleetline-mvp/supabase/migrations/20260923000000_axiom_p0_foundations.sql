@@ -56,7 +56,7 @@ create table if not exists public.p0_role_permissions (
   unique (organization_id, role, permission_key)
 );
 
-create or replace function public.has_permission(target_org uuid, permission_key text)
+create or replace function public.has_permission(target_org uuid, requested_permission text)
 returns boolean
 language sql
 stable
@@ -67,10 +67,10 @@ as $$
     select 1
     from public.organization_memberships m
     left join public.role_permissions rp on rp.role = m.role
-      and rp.permission_key = has_permission.permission_key
+      and rp.permission_key = requested_permission
     left join public.p0_role_permissions p0rp on p0rp.organization_id = m.organization_id
       and p0rp.role = m.role::text
-      and p0rp.permission_key = has_permission.permission_key
+      and p0rp.permission_key = requested_permission
       and p0rp.allowed
     where m.organization_id = target_org
       and m.user_id = auth.uid()

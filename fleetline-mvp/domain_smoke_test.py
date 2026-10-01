@@ -21,7 +21,7 @@ def main() -> None:
     with tempfile.TemporaryDirectory(prefix="axiom-fleet-domain-") as temp_dir:
         db_path = Path(temp_dir) / "axiom.sqlite3"
         env = os.environ.copy()
-        env.update({"PORT": str(port), "AXIOM_DB_PATH": str(db_path)})
+        env.update({"AXIOM_TEST_FIXTURES": "1", "PORT": str(port), "AXIOM_DB_PATH": str(db_path)})
         process = subprocess.Popen(["python3", "server.py"], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         try:
             health = None

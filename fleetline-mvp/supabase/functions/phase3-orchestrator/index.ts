@@ -9,8 +9,9 @@ import { createClient, type SupabaseClient, type User } from "https://esm.sh/@su
  * never replaced. Provider work is deterministic/mock-first until a reviewed
  * provider adapter is configured.
  */
+const allowedOrigin = (Deno.env.get("AXIOM_ALLOWED_ORIGIN") || Deno.env.get("AXIOM_ALLOWED_ORIGINS")?.split(",")[0] || "").trim();
 const cors = {
-  "Access-Control-Allow-Origin": "*",
+  ...(allowedOrigin ? { "Access-Control-Allow-Origin": allowedOrigin, "Vary": "Origin" } : {}),
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };

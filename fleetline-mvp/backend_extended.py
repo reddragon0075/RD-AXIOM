@@ -952,6 +952,37 @@ def _passenger(conn, user, route, method, payload, ip):
     return None
 
 
+
+def handle_verified_payment_webhook(conn, payload: dict, organization_id: str | None, ip: str) -> dict:
+    """Persist a provider webhook only after the HTTP boundary verifies HMAC.
+
+    The server owns signature verification because it has access to the raw
+    request bytes and provider secret. This helper only handles replay-safe
+    persistence and optional payment-link reconciliation.
+    """
+    event_id = _text(payload, "event_id", maximum=160) or _text(payload, "id", maximum=160)
+    if not event_id:
+        raise DomainError(400, "event_id is required", "validation_error")
+    provider = _text(payload, "provider", "payment_provider", 40)
+    if not organization_id:
+        raise DomainError(400, "organization_id is required for a payment webhook", "organization_required")
+    organization = conn.execute("SELECT id FROM organizations WHERE id = ?", (organization_id,)).fetchone()
+    if not organization:
+        raise DomainError(400, "Webhook organization is not recognized", "organization_not_found")
+    existing = conn.execute("SELECT * FROM domain_webhook_events WHERE provider = ? AND external_id = ?", (provider, event_id)).fetchone()
+    if existing:
+        if existing["organization_id"] and existing["organization_id"] != organization_id:
+            raise DomainError(409, "Webhook replay belongs to another organization", "webhook_tenant_conflict")
+        return {"ok": True, "status": "duplicate", "item": _serialize(existing, ("payload_json",)), "replayed": True}
+    clean_payload = {key: value for key, value in payload.items() if not str(key).startswith("_") and key not in {"signature", "webhook_signature"}}
+    webhook_id = new_id("webhook")
+    conn.execute("INSERT INTO domain_webhook_events(id, organization_id, provider, event_type, external_id, payload_json, signature_valid, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, 'processed', ?)", (webhook_id, organization_id, provider, _text(payload, "event_type", "payment.succeeded", 80), event_id, json.dumps(clean_payload), now_iso()))
+    payment_link_id = _text(payload, "payment_link_id", maximum=160)
+    if payment_link_id and _text(payload, "event_type", "payment.succeeded", 80) in {"payment.succeeded", "payment.captured"}:
+        conn.execute("UPDATE domain_payment_links SET status = 'paid', paid_at = ?, provider_reference = ? WHERE id = ? AND organization_id = ?", (now_iso(), _text(payload, "provider_reference", event_id, 160), payment_link_id, organization_id))
+    item = conn.execute("SELECT * FROM domain_webhook_events WHERE id = ?", (webhook_id,)).fetchone()
+    return {"ok": True, "status": "processed", "item": _serialize(item, ("payload_json",)), "replayed": False}
+
 def _communications(conn, user, route, method, payload, ip):
     org = _org(user)
     if route == "/api/updates" and method == "GET":
@@ -975,9 +1006,9 @@ def _communications(conn, user, route, method, payload, ip):
         event_id = new_id("notification_event"); conn.execute("INSERT INTO domain_notification_events(id, organization_id, notification_id, event_type, provider_reference, payload_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)", (event_id, org, event_match.group(1), _text(payload, "event_type", "delivered", 40), _text(payload, "provider_reference", maximum=160), json.dumps(payload), now_iso())); return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_notification_events WHERE id = ?", (event_id,)).fetchone(), ("payload_json",))}
     webhook = route == "/api/webhooks/payments" and method == "POST"
     if webhook:
-        event_id = _text(payload, "event_id", maximum=160) or new_id("provider_event"); existing = conn.execute("SELECT * FROM domain_webhook_events WHERE provider = ? AND external_id = ?", (_text(payload, "provider", "mock_payment", 40), event_id)).fetchone();
-        if existing: return {"ok": True, "status": "duplicate", "item": _serialize(existing, ("payload_json",))}
-        webhook_id = new_id("webhook"); conn.execute("INSERT INTO domain_webhook_events(id, organization_id, provider, event_type, external_id, payload_json, signature_valid, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'processed', ?)", (webhook_id, org, _text(payload, "provider", "mock_payment", 40), _text(payload, "event_type", "payment.succeeded", 80), event_id, json.dumps(payload), 1 if payload.get("signature") else 0, now_iso())); return {"ok": True, "status": "processed", "item": _serialize(conn.execute("SELECT * FROM domain_webhook_events WHERE id = ?", (webhook_id,)).fetchone(), ("payload_json",))}
+        if not payload.get("_signature_verified"):
+            raise DomainError(401, "Webhook signature verification required", "invalid_webhook_signature")
+        return handle_verified_payment_webhook(conn, payload, org, ip)
     return None
 
 

@@ -78,8 +78,20 @@ check('backend API health route is wired', 'route == "/api/health"' in Path(ROOT
 check('app route is protected by backend session', "if (!currentUser && !(await restoreSession())) { showLogin(updateHash); return; }" in html)
 check('hashchange route handling', "window.addEventListener('hashchange'" in html and "else if (publicPageTemplates[route]) showPublicPage(route, false);" in html)
 check('all three signup roles are available', all(role in html for role in ('value=\"vendor\"','value=\"driver\"','value=\"corporate\"')))
-check('prototype credentials remain available', 'admin@blueorbit.in' in html and 'motion2026' in html)
-check('httpOnly session cookie is implemented', 'HttpOnly' in Path(ROOT / 'server.py').read_text())
+check('signup exposes a complete timezone selector', 'id=\"signup-timezone\"' in html and 'Intl.supportedValuesOf' in html and 'IANA_TIMEZONE_FALLBACK' in html)
+check('dashboard greeting uses the authenticated name and timezone', 'workspaceGreeting()' in html and 'currentUser?.full_name' in html and 'timeZone: userTimeZone()' in html)
+check('driver surfaces use authenticated profile identity', 'state.user?.full_name' in (ROOT / 'driver-app/index.html').read_text() and 'Airport transfer</h2>' not in (ROOT / 'driver-app/index.html').read_text())
+server_source = Path(ROOT / 'server.py').read_text()
+check('server validates and persists profile timezone', 'available_timezones' in server_source and 'profile_timezone' in server_source and 'validate_timezone' in server_source)
+check('normal runtime purges legacy fixture records', 'purge_demo_records' in server_source and 'if not test_fixtures_enabled()' in server_source)
+check('prototype credentials are not rendered publicly', 'admin@blueorbit.in' not in html and 'motion2026' not in html)
+check('httpOnly session cookie is implemented', 'HttpOnly' in server_source)
+check('static serving uses an explicit public allowlist', 'PUBLIC_FILES' in server_source and 'Directory listing is disabled' in server_source and 'raw_path.relative_to(ROOT.resolve())' in server_source)
+check('password reset has hashed expiring one-time tokens', 'token_hash(raw_token)' in server_source and 'expires_at > ?' in server_source and 'used_at IS NULL' in server_source)
+check('mock payments are disabled in production by default', 'AXIOM_ALLOW_MOCK_PAYMENTS' in server_source and 'payment_provider_required' in server_source)
+check('payment webhooks require HMAC and replay protection', 'hmac.compare_digest' in server_source and 'handle_verified_payment_webhook' in (ROOT / 'backend_extended.py').read_text() and 'invalid_webhook_signature' in server_source)
+edge_sources = [p.read_text() for p in (ROOT / 'supabase/functions').glob('*/index.ts')]
+check('Supabase Edge CORS is configured rather than wildcard', all('Access-Control-Allow-Origin": "*"' not in source for source in edge_sources) and all('AXIOM_ALLOWED_ORIGIN' in source for source in edge_sources if 'Access-Control-Allow-Methods' in source))
 
 # Interaction bindings / key source contracts
 source_contracts = {
@@ -144,6 +156,13 @@ network_backend_path = ROOT / 'backend_network.py'
 check('local Axiom Network handler is present', network_backend_path.is_file() and 'def handle_network' in network_backend_path.read_text())
 check('Network smoke contract test is present', (ROOT / 'network_mvp_smoke_test.py').is_file())
 check('Supabase adapter exposes Network v1 boundary', 'supabaseNetworkRequest' in (ROOT / 'supabase/client.js').read_text() and "path.startsWith('/api/network/v1')" in (ROOT / 'supabase/client.js').read_text())
+network_collaboration_migration = ROOT / 'supabase/migrations/20260930090000_network_exchange_feedback_delivery.sql'
+network_collaboration_sql = network_collaboration_migration.read_text() if network_collaboration_migration.is_file() else ''
+network_edge = ROOT / 'supabase/functions/network-orchestrator/index.ts'
+network_markers = ('public.network_partner_directory', 'public.network_associates', 'public.network_contract_versions', 'public.network_rate_cards', 'public.network_exchange_envelopes', 'public.network_sla_observations', 'public.network_supplier_issues', 'public.network_rate_discrepancies', 'public.network_settlement_resolutions')
+check('Network collaboration migration covers directory, contracts, exchanges and resolution workflows', network_collaboration_migration.is_file() and all(marker in network_collaboration_sql for marker in network_markers) and 'enable row level security' in network_collaboration_sql and 'network_invites_vendor_access' in network_collaboration_sql)
+check('Network production orchestrator and mock exchange adapter are present', network_edge.is_file() and 'network-orchestrator' in (ROOT / 'supabase/client.js').read_text() and all(marker in network_edge.read_text() for marker in ('partner-directory', 'network_exchange_envelopes', 'sla-observations', 'rate-discrepancies', 'settlement-resolutions')))
+check('Network collaboration smoke coverage is present', (ROOT / 'network_mvp_smoke_test.py').is_file() and all(marker in (ROOT / 'network_mvp_smoke_test.py').read_text() for marker in ('verified partner directory', 'exchange envelope', 'supplier SLA breach', 'settlement resolution')))
 p0_backend_path = ROOT / 'backend_p0.py'
 p0_migration_path = ROOT / 'supabase/migrations/20260923000000_axiom_p0_foundations.sql'
 p0_client = (ROOT / 'supabase/client.js').read_text()
@@ -153,6 +172,17 @@ check('P0 Supabase adapter mappings are present', 'supabaseP0Request' in p0_clie
 check('P0 Planning/Safety UI wiring is present', 'handlePlanningAction' in html and 'handleSafetyAction' in html and 'data-planning-action' in html and 'data-safety-action' in html)
 check('P0 smoke coverage is present', (ROOT / 'p0_smoke_test.py').is_file())
 check('focused uncovered smoke coverage is present', (ROOT / 'uncovered_smoke_test.py').is_file())
+check('security regression smoke coverage is present', (ROOT / 'security_smoke_test.py').is_file() and 'RESULT security smoke test passed' in (ROOT / 'security_smoke_test.py').read_text())
+security_sql_path = ROOT / 'supabase/migrations/20260930000000_axiom_security_hardening.sql'
+security_sql = security_sql_path.read_text() if security_sql_path.is_file() else ''
+webhook_function_path = ROOT / 'supabase/functions/webhook-gateway/index.ts'
+webhook_function = webhook_function_path.read_text() if webhook_function_path.is_file() else ''
+vercel_path = ROOT / 'vercel.json'
+vercel_json = vercel_path.read_text() if vercel_path.is_file() else ''
+check('security hardening parity contracts are present', security_sql_path.is_file() and all(marker in security_sql for marker in ('mfa_satisfied_for_role', 'trg_prevent_direct_calculation_snapshot_mutation', 'expenses_amount_business_limit', 'duty_proofs_otp_format')))
+check('Supabase privileged MFA uses native Auth AAL2', 'supabase_auth_mfa' in (ROOT / 'supabase/client.js').read_text() and '/factors/' in (ROOT / 'supabase/client.js').read_text() and 'mock_verification_code' not in (ROOT / 'supabase/client.js').read_text())
+check('multi-provider webhook signing boundary is present', webhook_function_path.is_file() and all(marker in webhook_function for marker in ('payment', 'sms', 'whatsapp', 'telephony', 'crypto.subtle', 'constantTimeEqual', 'webhook_events')))
+check('deployment clickjacking and CSP headers are declared', vercel_path.is_file() and all(marker in vercel_json for marker in ('Content-Security-Policy', 'frame-ancestors', 'X-Frame-Options', 'DENY', 'Strict-Transport-Security')))
 phase12_backend = ROOT / 'backend_phase12.py'
 phase12_migration = ROOT / 'supabase/migrations/20260924000000_axiom_phase12_foundations.sql'
 phase12_client = (ROOT / 'supabase/client.js').read_text()
@@ -177,6 +207,81 @@ check('Phase 3 UI intelligence surface is present', 'data-page="phase3"' in html
 check('Phase 3 OpenAPI routes are declared', openapi_path.is_file() and all(route in openapi_path.read_text() for route in phase3_routes))
 check('Phase 3 smoke coverage is present', (ROOT / 'phase3_smoke_test.py').is_file() and 'RESULT Phase 3 smoke test passed' in (ROOT / 'phase3_smoke_test.py').read_text())
 check('Phase 3 documentation and production gates are present', (ROOT / 'docs/phase3-moat.md').is_file() and 'Supabase production boundary' in (ROOT / 'docs/phase3-moat.md').read_text() and 'physical Android' in (ROOT / 'docs/phase3-moat.md').read_text())
+bill_backend = ROOT / 'backend_bill_intelligence.py'
+bill_migration_path = ROOT / 'supabase/migrations/20260929000000_axiom_bill_intelligence.sql'
+bill_function_path = ROOT / 'supabase/functions/bill-intelligence-orchestrator/index.ts'
+bill_client = (ROOT / 'supabase/client.js').read_text()
+bill_sql = bill_migration_path.read_text() if bill_migration_path.is_file() else ''
+bill_function = bill_function_path.read_text() if bill_function_path.is_file() else ''
+check('Bill intelligence local handler is wired', bill_backend.is_file() and 'def handle_bill_intelligence' in bill_backend.read_text() and 'handle_bill_intelligence(conn' in (ROOT / 'server.py').read_text() and (ROOT / 'bill_intelligence_smoke_test.py').is_file())
+check('Bill intelligence additive schema and RLS are present', bill_migration_path.is_file() and all(f'public.{name}' in bill_sql for name in ('bill_intelligence_records','bill_intelligence_postings','bill_intelligence_fuel_entries','bill_intelligence_timeline')) and 'bill_intelligence.read' in bill_sql and 'organization_id is not null' in bill_sql)
+check('Bill intelligence Supabase Edge/browser boundary is present', bill_function_path.is_file() and 'bill-intelligence-orchestrator' in bill_client and 'supabaseBillIntelligenceRequest' in bill_client and 'getUser' in bill_function and 'supplier_bills' in bill_function)
+check('Bill intelligence protected Finance UI is present', 'AI bill reading' in html and 'openBillUploadModal' in html and 'openBillReviewModal' in html and 'state.billData' in html and 'data-page="finance"' in html)
+check('Bill intelligence OpenAPI and parity docs are present', openapi_path.is_file() and '/api/bill-intelligence/summary:' in openapi_path.read_text() and (ROOT / 'docs/bill-intelligence.md').is_file() and 'Supabase production parity' in (ROOT / 'docs/bill-intelligence.md').read_text())
+operations_backend = ROOT / 'backend_operations_parity.py'
+operations_migration = ROOT / 'supabase/migrations/20260930020000_operations_parity_slice.sql'
+operations_function = ROOT / 'supabase/functions/operations-orchestrator/index.ts'
+operations_client = (ROOT / 'supabase/client.js').read_text()
+check('Operations parity local handler is wired', operations_backend.is_file() and 'def handle_operations_parity' in operations_backend.read_text() and 'handle_operations_parity(conn' in (ROOT / 'server.py').read_text())
+check('Operations parity migration and RLS are present', operations_migration.is_file() and all(f'public.{name}' in operations_migration.read_text() for name in ('booking_batches','booking_batch_rows','allotment_decisions','duty_closures','closure_evidence')) and 'submit_duty_closure' in operations_migration.read_text())
+check('Operations parity Edge/browser boundary is present', operations_function.is_file() and 'operations-orchestrator' in operations_client and 'createBatch' in operations_function.read_text() and 'deterministic' in operations_function.read_text())
+check('Operations parity OpenAPI/docs/smoke coverage is present', all(token in openapi_path.read_text() for token in ('/api/bookings/batches:', '/api/availability/evaluate:', '/api/bookings/{booking_id}/allot:', '/api/duties/{duty_id}/close:')) and (ROOT / 'docs/operations-parity-slice.md').is_file() and (ROOT / 'operations_parity_smoke_test.py').is_file())
+booking_backend = ROOT / 'backend_booking_parity.py'
+booking_migration = ROOT / 'supabase/migrations/20260930100000_booking_allotment_pricing_parity.sql'
+booking_invoice_migration = ROOT / 'supabase/migrations/20260930101000_booking_invoice_fuel_surcharge.sql'
+booking_function = ROOT / 'supabase/functions/booking-orchestrator/index.ts'
+booking_client = (ROOT / 'supabase/client.js').read_text()
+booking_sql = booking_migration.read_text() if booking_migration.is_file() else ''
+check('Booking/allotment/pricing local handler is wired', booking_backend.is_file() and 'def handle_booking_parity' in booking_backend.read_text() and 'handle_booking_parity(conn' in (ROOT / 'server.py').read_text() and (ROOT / 'booking_allotment_smoke_test.py').is_file())
+check('Booking/allotment/pricing additive schema and RLS are present', booking_migration.is_file() and booking_invoice_migration.is_file() and all(name in booking_sql for name in ('booking_request_keys','booking_action_events','booking_dispatches','network_vendor_profile_id','temporary_passengers','temporary_allotments','booking_pricing_contracts','booking_pricing_rules','customer_fuel_surcharge_rules','fuel_rate_history')) and 'enable row level security' in booking_sql and 'bookings.lifecycle' in booking_sql)
+check('Booking/allotment/pricing Edge/browser boundary is present', booking_function.is_file() and 'booking-orchestrator' in booking_client and all(marker in booking_function.read_text() for marker in ('booking_request_keys','booking_action_events','allotment_mode','network_vendor_profiles','contractType','customer_fuel_surcharge_rules','temporary_allotments')))
+check('Booking/allotment/pricing OpenAPI/docs/UI coverage is present', all(token in openapi_path.read_text() for token in ('/api/bookings/import:', '/api/bookings/{bookingId}/allot-all:', '/api/pricing/contracts:', '/api/fuel-surcharge-rules:', '/api/duties/{dutyId}/arrival:')) and (ROOT / 'docs/booking-allotment-pricing-parity.md').is_file() and all(token in html for token in ('openBookingActionsModal','openPricingContractModal','data-booking-field="booking_type"','/api/bookings/import')))
+finance_backend = ROOT / 'backend_finance_parity.py'
+finance_migration = ROOT / 'supabase/migrations/20260930030000_finance_reporting_parity_slice.sql'
+finance_function = ROOT / 'supabase/functions/finance-reporting-orchestrator/index.ts'
+finance_client = (ROOT / 'supabase/client.js').read_text()
+check('Finance/reporting local handler is wired', finance_backend.is_file() and 'def handle_finance_parity' in finance_backend.read_text() and 'handle_finance_parity(conn' in (ROOT / 'server.py').read_text())
+check('Finance/reporting migration and RLS/RPC are present', finance_migration.is_file() and all(f'public.{name}' in finance_migration.read_text() for name in ('invoice_runs','dunning_actions','report_definitions','export_profiles')) and 'generate_invoice_run' in finance_migration.read_text() and 'run_dunning_run' in finance_migration.read_text())
+check('Finance/reporting Edge/browser boundary is present', finance_function.is_file() and 'finance-reporting-orchestrator' in finance_client and 'generate_invoice_run' in finance_function.read_text() and 'ageing' in finance_function.read_text())
+check('Finance/reporting OpenAPI/docs/smoke coverage is present', all(token in openapi_path.read_text() for token in ('/api/invoices/generate:', '/api/reports/ageing:', '/api/reports/definitions:', '/api/export-profiles:')) and (ROOT / 'docs/finance-reporting-parity-slice.md').is_file() and (ROOT / 'finance_reporting_smoke_test.py').is_file())
+followon_migration = ROOT / 'supabase/migrations/20260930080000_finance_reporting_feedback_followon.sql'
+followon_finance_function = ROOT / 'supabase/functions/finance-controls-orchestrator/index.ts'
+followon_feedback_function = ROOT / 'supabase/functions/feedback-orchestrator/index.ts'
+followon_public_function = ROOT / 'supabase/functions/feedback-public/index.ts'
+check('Follow-on finance/reporting/feedback production slice is present', followon_migration.is_file() and all(f'public.{name}' in followon_migration.read_text() for name in ('finance_supplier_payment_requests','finance_payroll_exports','finance_fuel_stations','report_builder_configs','finance_import_jobs','feedback_public_links')) and followon_finance_function.is_file() and '/api/reports/profitability' in followon_finance_function.read_text() and followon_feedback_function.is_file() and '/api/feedback/notifications/run' in followon_feedback_function.read_text() and followon_public_function.is_file() and 'submit_public_feedback' in followon_public_function.read_text())
+check('Follow-on Finance UI exposes import preview/correction and reconciliation controls', all(token in html for token in ('finance-import','openFinanceImportModal','data-import-correction','finance-reconciliation','fuel-station')) and all(token in openapi_path.read_text() for token in ('/api/imports/preview:', '/api/feedback/v1/{token}:', '/api/duties/{duty_id}/evidence-bundle:')) and (ROOT / 'finance_feedback_smoke_test.py').is_file())
+communications_backend = ROOT / 'backend_communications.py'
+communications_migration = ROOT / 'supabase/migrations/20260930040000_communications_parity_slice.sql'
+communications_function = ROOT / 'supabase/functions/communications-orchestrator/index.ts'
+communications_client = (ROOT / 'supabase/client.js').read_text()
+check('Communications local handler is wired', communications_backend.is_file() and 'def handle_communications' in communications_backend.read_text() and 'handle_communications(conn' in (ROOT / 'server.py').read_text())
+check('Communications migration and RLS/RPC are present', communications_migration.is_file() and all(f'public.{name}' in communications_migration.read_text() for name in ('communication_templates','communication_suppressions','communication_dispatches','communication_webhook_events')) and 'queue_communication_dispatch' in communications_migration.read_text() and 'record_communication_delivery' in communications_migration.read_text())
+check('Communications Edge/browser boundary is present', communications_function.is_file() and 'communications-orchestrator' in communications_client and 'queue_communication_dispatch' in communications_function.read_text() and 'suppression' in communications_function.read_text())
+check('Communications OpenAPI/docs/smoke coverage is present', all(token in openapi_path.read_text() for token in ('/api/communications/templates:', '/api/communications/dispatch:', '/api/communications/suppressions:')) and (ROOT / 'docs/communications-parity-slice.md').is_file() and (ROOT / 'communications_smoke_test.py').is_file())
+supplier_finance_backend = ROOT / 'backend_supplier_finance.py'
+supplier_finance_migration = ROOT / 'supabase/migrations/20260930050000_supplier_fleet_finance_slice.sql'
+supplier_finance_function = ROOT / 'supabase/functions/supplier-fleet-finance-orchestrator/index.ts'
+supplier_finance_client = (ROOT / 'supabase/client.js').read_text()
+check('Supplier/fleet finance local handler is wired', supplier_finance_backend.is_file() and 'def handle_supplier_finance' in supplier_finance_backend.read_text() and 'handle_supplier_finance(conn' in (ROOT / 'server.py').read_text())
+check('Supplier/fleet finance migration and RLS/RPC are present', supplier_finance_migration.is_file() and all(f'public.{name}' in supplier_finance_migration.read_text() for name in ('purchase_orders','fuel_entries','petty_cash_entries','driver_allowances','payroll_runs','payroll_lines','supplier_settlements')) and 'generate_payroll_run' in supplier_finance_migration.read_text() and 'generate_supplier_settlement' in supplier_finance_migration.read_text())
+check('Supplier/fleet finance Edge/browser boundary is present', supplier_finance_function.is_file() and 'supplier-fleet-finance-orchestrator' in supplier_finance_client and 'generate_payroll_run' in supplier_finance_function.read_text() and 'supplier-ageing' in supplier_finance_function.read_text())
+check('Supplier/fleet finance OpenAPI/docs/smoke coverage is present', all(token in openapi_path.read_text() for token in ('/api/supplier-purchases:', '/api/fuel-entries:', '/api/driver-allowances:', '/api/payroll/runs:')) and (ROOT / 'docs/supplier-fleet-finance-slice.md').is_file() and (ROOT / 'supplier_finance_smoke_test.py').is_file())
+feedback_backend = ROOT / 'backend_feedback.py'
+feedback_migration = ROOT / 'supabase/migrations/20260930060000_feedback_recovery_slice.sql'
+feedback_function = ROOT / 'supabase/functions/feedback-orchestrator/index.ts'
+feedback_client = (ROOT / 'supabase/client.js').read_text()
+check('Feedback/recovery local handler is wired', feedback_backend.is_file() and 'def handle_feedback' in feedback_backend.read_text() and 'handle_feedback(conn' in (ROOT / 'server.py').read_text())
+check('Feedback/recovery migration and RLS/RPC are present', feedback_migration.is_file() and all(f'public.{name}' in feedback_migration.read_text() for name in ('feedback_forms','feedback_requests','feedback_responses','service_recovery_actions')) and 'create_feedback_form' in feedback_migration.read_text() and 'submit_feedback_response' in feedback_migration.read_text())
+check('Feedback/recovery Edge/browser boundary is present', feedback_function.is_file() and 'feedback-orchestrator' in feedback_client and 'submit_feedback_response' in feedback_function.read_text() and 'sentiment' in feedback_function.read_text())
+check('Feedback/recovery OpenAPI/docs/smoke coverage is present', all(token in openapi_path.read_text() for token in ('/api/feedback/forms:', '/api/feedback/requests:', '/api/feedback/recovery:')) and (ROOT / 'docs/feedback-recovery-slice.md').is_file() and (ROOT / 'feedback_smoke_test.py').is_file())
+feedback_delivery_sql = network_collaboration_sql
+feedback_delivery_function = ROOT / 'supabase/functions/feedback-delivery-webhook/index.ts'
+feedback_orchestrator = feedback_function.read_text() if feedback_function.is_file() else ''
+check('Feedback delivery policies, attempts, receipts and webhook boundary are present', network_collaboration_migration.is_file() and all(marker in feedback_delivery_sql for marker in ('public.feedback_delivery_policies', 'public.feedback_escalation_policies', 'public.feedback_delivery_attempts', 'public.feedback_provider_events')) and feedback_delivery_function.is_file() and 'SUPABASE_SERVICE_ROLE_KEY' in feedback_delivery_function.read_text() and 'feedback_delivery_attempts' in feedback_orchestrator and 'mock_sms_email_whatsapp_adapter' in feedback_orchestrator)
+feedback_webhook_source = feedback_delivery_function.read_text() if feedback_delivery_function.is_file() else ''
+check('Feedback provider callbacks require signed, replay-bounded, idempotent receipts', all(marker in feedback_webhook_source for marker in ('AXIOM_SMS_WEBHOOK_SECRET', 'AXIOM_EMAIL_WEBHOOK_SECRET', 'AXIOM_WHATSAPP_WEBHOOK_SECRET', 'constantTimeEqual', 'REPLAY_WINDOW_SECONDS', 'processed_at', 'retry_scheduled')) and all(marker in (ROOT / 'supabase/functions/webhook-gateway/index.ts').read_text() for marker in ('email:', 'AXIOM_EMAIL_WEBHOOK_SECRET', 'x-email-signature')))
+check('Feedback relationship RLS prevents cross-tenant attachments', all(marker in feedback_delivery_sql for marker in ('feedback_requests_manage', 'feedback_public_links_operator_write', 'feedback_notifications_delivery_write', 'organization_memberships', 'c.id=feedback_delivery_policies.customer_id', 'feedback_responses r where r.id=service_recovery_actions.response_id')))
+check('Feedback delivery UI and smoke coverage are present', all(marker in html for marker in ('feedback-policy', 'feedback-escalation', 'deliveryAttempts')) and all(marker in (ROOT / 'finance_feedback_smoke_test.py').read_text() for marker in ('customer-specific feedback delivery policy', 'provider delivery receipt', 'provider attempts', 'transient feedback delivery schedules a retry', 'hard-bounced feedback delivery is terminal', 'exhausted feedback delivery enters dead letter')))
 # Product acceptance criteria contracts: these are intentionally source-level guards
 # in addition to browser/WCAG testing at the release gate.
 acceptance_contracts = {
@@ -197,6 +302,11 @@ acceptance_contracts = {
 for name, ok in acceptance_contracts.items():
     check(f'Acceptance · {name}', ok)
 check('domain calculation engine is present', (ROOT / 'domain_engine.py').is_file())
+driver_app = (ROOT / 'driver-app/index.html').read_text() if (ROOT / 'driver-app/index.html').is_file() else ''
+calculation_edge = (ROOT / 'supabase/functions/calculate-duty/index.ts').read_text() if (ROOT / 'supabase/functions/calculate-duty/index.ts').is_file() else ''
+check('Driver PWA input bounds and allowlists are present', all(marker in driver_app for marker in ('EXPENSE_CATEGORIES', 'MAX_EXPENSE_RUPEES', 'MAX_NOTE_LENGTH', 'pattern="[0-9]{4,6}"', 'Number.isFinite')))
+check('calculation ceilings are shared across local and Edge engines', all(marker in (ROOT / 'domain_engine.py').read_text() for marker in ('MAX_CALCULATION_PAISE', 'INPUT_LIMITS', '_safe_product')) and all(marker in calculation_edge for marker in ('MAX_CALCULATION_PAISE', 'INPUT_LIMITS', 'safeProduct', 'percentageBps')))
+check('driver execution hardening smoke assertions are present', 'driver expense ceiling is enforced server-side' in (ROOT / 'execution_smoke_test.py').read_text() and 'driver OTP format is enforced server-side' in (ROOT / 'execution_smoke_test.py').read_text())
 check('driver offline shell manifest is present', (ROOT / 'driver-manifest.json').is_file() and (ROOT / 'driver-sw.js').is_file())
 check('service worker registration is wired', "navigator.serviceWorker.register('/driver-sw.js')" in html)
 # Any local href should point to an in-file route, page anchor, or existing asset.

@@ -8,7 +8,6 @@ import os
 import socket
 import sqlite3
 import subprocess
-import sys
 import tempfile
 import time
 import urllib.error
@@ -30,19 +29,26 @@ def make_client(base: str) -> tuple[CookieJar, object]:
     return jar, urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
 
-def call(opener, base: str, method: str, route: str, payload: dict | None = None) -> tuple[int, dict]:
+def call(opener, base: str, method: str, route: str, payload: dict | None = None, headers: dict | None = None) -> tuple[int, dict]:
     body = json.dumps(payload).encode("utf-8") if payload is not None else None
+    request_headers = {"Content-Type": "application/json"} if body is not None else {}
+    request_headers.update(headers or {})
     request = urllib.request.Request(
         f"{base}{route}",
         data=body,
         method=method,
-        headers={"Content-Type": "application/json"} if body is not None else {},
+        headers=request_headers,
     )
     try:
         with opener.open(request, timeout=5) as response:
             return response.status, json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as error:
-        return error.code, json.loads(error.read().decode("utf-8"))
+        raw = error.read().decode("utf-8")
+        try:
+            body = json.loads(raw)
+        except json.JSONDecodeError:
+            body = {"raw": raw}
+        return error.code, body
 
 
 def expect(condition: bool, message: str) -> None:
@@ -57,9 +63,9 @@ def main() -> None:
     with tempfile.TemporaryDirectory(prefix="axiom-fleet-backend-") as temp_dir:
         db_path = Path(temp_dir) / "axiom.sqlite3"
         env = os.environ.copy()
-        env.update({"PORT": str(port), "AXIOM_DB_PATH": str(db_path)})
+        env.update({"AXIOM_TEST_FIXTURES": "1", "PORT": str(port), "AXIOM_DB_PATH": str(db_path)})
         process = subprocess.Popen(
-            [sys.executable, "server.py"],
+            ["python3", "server.py"],
             cwd=ROOT,
             env=env,
             stdout=subprocess.PIPE,
@@ -90,18 +96,21 @@ def main() -> None:
                 "phone": "+919876543210",
                 "organization_name": "Nisha Mobility",
                 "city": "Bengaluru",
+                "timezone": "America/Los_Angeles",
                 "gstin": "29ABCDE1234F1Z5",
                 "fleet_size": 48,
             })
             expect(status == 201 and vendor_result["user"]["role"] == "vendor", "vendor signup creates an authenticated account")
             expect(vendor_result["user"]["organization"]["name"] == "Nisha Mobility", "vendor organization is stored")
             expect(vendor_result["user"]["profile"]["fleet_size"] == 48, "vendor fleet profile is stored")
+            expect(vendor_result["user"]["profile"]["timezone"] == "America/Los_Angeles", "vendor timezone is stored")
 
             status, me = call(vendor, base, "GET", "/api/auth/me")
             expect(status == 200 and me["user"]["email"] == "nisha.vendor@example.com", "vendor session reads the current user")
-            status, updated = call(vendor, base, "PATCH", "/api/auth/me", {"city": "Mysuru", "fleet_size": 52})
+            status, updated = call(vendor, base, "PATCH", "/api/auth/me", {"city": "Mysuru", "fleet_size": 52, "timezone": "Europe/London"})
             expect(status == 200 and updated["user"]["profile"]["city"] == "Mysuru", "profile update persists")
             expect(updated["user"]["profile"]["fleet_size"] == 52, "profile update changes fleet size")
+            expect(updated["user"]["profile"]["timezone"] == "Europe/London", "profile timezone update persists")
 
             status, duplicate = call(vendor, base, "POST", "/api/auth/signup", {
                 "role": "driver", "full_name": "Duplicate", "email": "nisha.vendor@example.com", "password": "strongpass123"
@@ -121,11 +130,13 @@ def main() -> None:
                 "password": "driverpass123",
                 "phone": "+919812345678",
                 "city": "Pune",
+                "timezone": "Asia/Kolkata",
                 "license_number": "KA0120260001234",
             })
             expect(status == 201 and driver_result["user"]["role"] == "driver", "driver signup creates an authenticated account")
             expect(driver_result["user"]["organization"] is None, "driver can register without an organization")
             expect(driver_result["user"]["profile"]["license_number"] == "KA0120260001234", "driver license profile is stored")
+            expect(driver_result["user"]["profile"]["timezone"] == "Asia/Kolkata", "driver timezone is stored")
             call(driver, base, "POST", "/api/auth/logout")
 
             corporate_jar, corporate = make_client(base)

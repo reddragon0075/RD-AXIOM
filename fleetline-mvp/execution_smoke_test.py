@@ -19,7 +19,7 @@ def main() -> None:
     base = f"http://127.0.0.1:{port}"
     with tempfile.TemporaryDirectory(prefix="axiom-fleet-execution-") as temp_dir:
         env = os.environ.copy()
-        env.update({"PORT": str(port), "AXIOM_DB_PATH": str(Path(temp_dir) / "axiom.sqlite3")})
+        env.update({"AXIOM_TEST_FIXTURES": "1", "PORT": str(port), "AXIOM_DB_PATH": str(Path(temp_dir) / "axiom.sqlite3")})
         process = subprocess.Popen(["python3", "server.py"], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         try:
             for _ in range(50):
@@ -69,6 +69,12 @@ def main() -> None:
             expect(status == 201 and point["item"]["latitude"] == 19.0607, "route location point is persisted")
             status, expense = call(driver, base, "POST", f"/api/duties/{duty_id}/expenses", {"category": "toll", "amount_paise": 24000, "note": "Eastern Freeway", "idempotency_key": "expense-1"})
             expect(status == 201 and expense["item"]["amount_paise"] == 24000, "driver expense is persisted")
+            status, bounded_expense = call(driver, base, "POST", f"/api/duties/{duty_id}/expenses", {"category": "toll", "amount_paise": 100000001, "idempotency_key": "expense-too-large"})
+            expect(status == 400 and bounded_expense.get("code") == "amount_limit_exceeded", "driver expense ceiling is enforced server-side")
+            status, invalid_category = call(driver, base, "POST", f"/api/duties/{duty_id}/expenses", {"category": "cash_advance", "amount_paise": 1000, "idempotency_key": "expense-category"})
+            expect(status == 400 and invalid_category.get("code") == "validation_error", "driver expense category allowlist is enforced")
+            status, invalid_otp = call(driver, base, "POST", f"/api/duties/{duty_id}/proof", {"proof_type": "otp", "otp": "12x", "idempotency_key": "proof-invalid"})
+            expect(status == 400 and invalid_otp.get("code") == "validation_error", "driver OTP format is enforced server-side")
             print("RESULT driver execution smoke test passed")
         finally:
             if process.poll() is None:

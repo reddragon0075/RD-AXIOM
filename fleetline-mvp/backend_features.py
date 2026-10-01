@@ -479,7 +479,11 @@ def _booking_action(conn, user, booking_id, action, payload, ip):
     next_status = transitions[action]
     conn.execute("UPDATE domain_bookings SET status = ?, updated_at = ? WHERE id = ? AND organization_id = ?", (next_status, now, booking_id, org))
     approval_status = "approved" if action in {"approve", "confirm"} else "rejected" if action == "reject" else "cancelled"
-    conn.execute("INSERT INTO domain_booking_approvals(id, organization_id, booking_id, approver_id, status, comment, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(organization_id, booking_id, approver_id) DO UPDATE SET status = excluded.status, comment = excluded.comment, updated_at = excluded.updated_at", (new_id("approval"), org, booking_id, user["id"], approval_status, _text(payload, "comment"), now, now))
+    pending_corporate = conn.execute("SELECT id FROM domain_booking_approvals WHERE organization_id = ? AND booking_id = ? AND approver_id IS NULL AND status = 'pending' ORDER BY created_at ASC LIMIT 1", (org, booking_id)).fetchone()
+    if pending_corporate:
+        conn.execute("UPDATE domain_booking_approvals SET approver_id = ?, status = ?, comment = ?, updated_at = ? WHERE id = ?", (user["id"], approval_status, _text(payload, "comment"), now, pending_corporate["id"]))
+    else:
+        conn.execute("INSERT INTO domain_booking_approvals(id, organization_id, booking_id, approver_id, status, comment, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(organization_id, booking_id, approver_id) DO UPDATE SET status = excluded.status, comment = excluded.comment, updated_at = excluded.updated_at", (new_id("approval"), org, booking_id, user["id"], approval_status, _text(payload, "comment"), now, now))
     _audit(conn, user, f"booking.{action}", "booking", booking_id, ip, {"status": next_status})
     return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_bookings WHERE id = ?", (booking_id,)).fetchone()), "status": next_status}
 

@@ -325,6 +325,213 @@ def initialize_network_schema(conn: sqlite3.Connection) -> None:
             created_by TEXT,
             created_at TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS domain_network_partner_directory (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            vendor_organization_id TEXT NOT NULL,
+            vendor_profile_id TEXT NOT NULL UNIQUE,
+            display_name TEXT NOT NULL DEFAULT '',
+            verification_status TEXT NOT NULL DEFAULT 'verified',
+            verified_at TEXT,
+            discovered_via TEXT NOT NULL DEFAULT 'invite',
+            search_document_json TEXT NOT NULL DEFAULT '{}',
+            created_by TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(organization_id, vendor_organization_id)
+        );
+        CREATE TABLE IF NOT EXISTS domain_network_associates (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            vendor_organization_id TEXT NOT NULL,
+            invite_id TEXT NOT NULL UNIQUE,
+            vendor_profile_id TEXT,
+            status TEXT NOT NULL DEFAULT 'pending',
+            buyer_contact TEXT NOT NULL DEFAULT '',
+            vendor_contact TEXT NOT NULL DEFAULT '',
+            acceptance_note TEXT NOT NULL DEFAULT '',
+            accepted_by TEXT,
+            accepted_at TEXT,
+            rejected_at TEXT,
+            revoked_at TEXT,
+            metadata_json TEXT NOT NULL DEFAULT '{}',
+            created_by TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS domain_network_contract_versions (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            contract_id TEXT NOT NULL,
+            version INTEGER NOT NULL,
+            status TEXT NOT NULL DEFAULT 'draft',
+            terms_json TEXT NOT NULL DEFAULT '{}',
+            effective_from TEXT,
+            effective_to TEXT,
+            source TEXT NOT NULL DEFAULT 'network',
+            supersedes_version_id TEXT,
+            created_by TEXT,
+            created_at TEXT NOT NULL,
+            accepted_by TEXT,
+            accepted_at TEXT,
+            UNIQUE(contract_id, version)
+        );
+        CREATE TABLE IF NOT EXISTS domain_network_rate_cards (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            contract_version_id TEXT NOT NULL,
+            rate_code TEXT NOT NULL,
+            service_type TEXT NOT NULL DEFAULT '',
+            vehicle_type TEXT NOT NULL DEFAULT '',
+            city TEXT NOT NULL DEFAULT '',
+            unit TEXT NOT NULL DEFAULT 'trip',
+            amount_paise INTEGER NOT NULL DEFAULT 0,
+            currency TEXT NOT NULL DEFAULT 'INR',
+            effective_from TEXT,
+            effective_to TEXT,
+            status TEXT NOT NULL DEFAULT 'active',
+            terms_json TEXT NOT NULL DEFAULT '{}',
+            created_by TEXT,
+            created_at TEXT NOT NULL,
+            UNIQUE(contract_version_id, rate_code)
+        );
+        CREATE TABLE IF NOT EXISTS domain_network_contract_syncs (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            contract_id TEXT NOT NULL,
+            contract_version_id TEXT,
+            direction TEXT NOT NULL DEFAULT 'outbound',
+            status TEXT NOT NULL DEFAULT 'queued',
+            source_version INTEGER,
+            target_version INTEGER,
+            change_summary_json TEXT NOT NULL DEFAULT '{}',
+            provider_reference TEXT NOT NULL DEFAULT '',
+            idempotency_key TEXT,
+            requested_by TEXT,
+            acknowledged_by TEXT,
+            requested_at TEXT NOT NULL,
+            acknowledged_at TEXT,
+            error TEXT NOT NULL DEFAULT '',
+            UNIQUE(organization_id, idempotency_key)
+        );
+        CREATE TABLE IF NOT EXISTS domain_network_exchange_envelopes (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            service_order_id TEXT NOT NULL,
+            exchange_type TEXT NOT NULL,
+            direction TEXT NOT NULL DEFAULT 'outbound',
+            status TEXT NOT NULL DEFAULT 'queued',
+            schema_version TEXT NOT NULL DEFAULT 'v1',
+            external_reference TEXT NOT NULL DEFAULT '',
+            payload_json TEXT NOT NULL DEFAULT '{}',
+            attachments_json TEXT NOT NULL DEFAULT '[]',
+            idempotency_key TEXT,
+            sender_organization_id TEXT,
+            recipient_organization_id TEXT,
+            provider_reference TEXT NOT NULL DEFAULT '',
+            created_by TEXT,
+            created_at TEXT NOT NULL,
+            sent_at TEXT,
+            acknowledged_at TEXT,
+            processed_at TEXT,
+            error TEXT NOT NULL DEFAULT '',
+            UNIQUE(organization_id, idempotency_key)
+        );
+        CREATE TABLE IF NOT EXISTS domain_network_sla_observations (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            service_order_id TEXT NOT NULL,
+            sla_id TEXT,
+            metric TEXT NOT NULL,
+            target_value REAL NOT NULL DEFAULT 0,
+            observed_value REAL NOT NULL DEFAULT 0,
+            unit TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'met',
+            severity TEXT NOT NULL DEFAULT 'warning',
+            evidence_json TEXT NOT NULL DEFAULT '{}',
+            observed_at TEXT NOT NULL,
+            source TEXT NOT NULL DEFAULT 'operator',
+            idempotency_key TEXT,
+            created_by TEXT,
+            created_at TEXT NOT NULL,
+            UNIQUE(organization_id, idempotency_key)
+        );
+        CREATE TABLE IF NOT EXISTS domain_network_supplier_issues (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            service_order_id TEXT NOT NULL,
+            vendor_profile_id TEXT,
+            issue_type TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'open',
+            severity TEXT NOT NULL DEFAULT 'medium',
+            reason_code TEXT NOT NULL DEFAULT '',
+            description TEXT NOT NULL DEFAULT '',
+            evidence_json TEXT NOT NULL DEFAULT '{}',
+            proposed_resolution_json TEXT NOT NULL DEFAULT '{}',
+            resolution_json TEXT NOT NULL DEFAULT '{}',
+            reported_by TEXT,
+            assigned_to TEXT,
+            due_at TEXT,
+            resolved_by TEXT,
+            resolved_at TEXT,
+            idempotency_key TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(organization_id, idempotency_key)
+        );
+        CREATE TABLE IF NOT EXISTS domain_network_rate_discrepancies (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            service_order_id TEXT NOT NULL,
+            contract_id TEXT,
+            rate_card_id TEXT,
+            issue_id TEXT,
+            expected_paise INTEGER NOT NULL DEFAULT 0,
+            actual_paise INTEGER NOT NULL DEFAULT 0,
+            variance_paise INTEGER NOT NULL DEFAULT 0,
+            currency TEXT NOT NULL DEFAULT 'INR',
+            status TEXT NOT NULL DEFAULT 'open',
+            reason TEXT NOT NULL DEFAULT '',
+            evidence_json TEXT NOT NULL DEFAULT '{}',
+            resolution_json TEXT NOT NULL DEFAULT '{}',
+            idempotency_key TEXT,
+            created_by TEXT,
+            resolved_by TEXT,
+            resolved_at TEXT,
+            created_at TEXT NOT NULL,
+            UNIQUE(organization_id, idempotency_key)
+        );
+        CREATE TABLE IF NOT EXISTS domain_network_settlement_resolutions (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            service_order_id TEXT,
+            settlement_id TEXT NOT NULL,
+            issue_id TEXT,
+            discrepancy_id TEXT,
+            status TEXT NOT NULL DEFAULT 'proposed',
+            resolution_type TEXT NOT NULL DEFAULT 'adjustment',
+            adjustment_paise INTEGER NOT NULL DEFAULT 0,
+            notes TEXT NOT NULL DEFAULT '',
+            evidence_json TEXT NOT NULL DEFAULT '{}',
+            proposed_by TEXT,
+            decided_by TEXT,
+            decided_at TEXT,
+            applied_at TEXT,
+            idempotency_key TEXT,
+            created_at TEXT NOT NULL,
+            UNIQUE(organization_id, idempotency_key)
+        );
+        CREATE INDEX IF NOT EXISTS idx_network_partner_directory_org_status ON domain_network_partner_directory(organization_id, verification_status, updated_at);
+        CREATE INDEX IF NOT EXISTS idx_network_associates_org_status ON domain_network_associates(organization_id, status, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_network_associates_vendor_status ON domain_network_associates(vendor_organization_id, status, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_network_contract_versions_contract ON domain_network_contract_versions(contract_id, version DESC);
+        CREATE INDEX IF NOT EXISTS idx_network_rate_cards_version ON domain_network_rate_cards(contract_version_id, status, rate_code);
+        CREATE INDEX IF NOT EXISTS idx_network_contract_syncs_contract ON domain_network_contract_syncs(contract_id, requested_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_network_exchange_service_order ON domain_network_exchange_envelopes(service_order_id, exchange_type, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_network_sla_observations_order ON domain_network_sla_observations(service_order_id, observed_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_network_supplier_issues_order ON domain_network_supplier_issues(service_order_id, status, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_network_rate_discrepancies_order ON domain_network_rate_discrepancies(service_order_id, status, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_network_settlement_resolutions_settlement ON domain_network_settlement_resolutions(settlement_id, created_at DESC);
         CREATE INDEX IF NOT EXISTS idx_network_programs_org_status ON domain_network_programs(organization_id, status, updated_at);
         CREATE INDEX IF NOT EXISTS idx_network_requirements_org_status ON domain_network_requirements(organization_id, status, updated_at);
         CREATE INDEX IF NOT EXISTS idx_network_versions_requirement ON domain_network_requirement_versions(requirement_id, version DESC);
@@ -344,6 +551,10 @@ def initialize_network_schema(conn: sqlite3.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_network_events_org_time ON domain_network_events(organization_id, created_at DESC);
         """
     )
+    try:
+        conn.execute("ALTER TABLE domain_network_settlement_resolutions ADD COLUMN service_order_id TEXT")
+    except sqlite3.OperationalError:
+        pass
 
 
 def _json_list(value) -> list:
@@ -564,6 +775,20 @@ def _check_requirements_for_activation(conn, award_id: str):
     return rows, failed
 
 
+def _seed_contract_sync_records(conn, user, contract_id: str, organization_id: str, terms: dict, created_at: str) -> str:
+    """Create the first immutable contract/rate snapshot from award terms."""
+    version_id = new_id("network_contract_version")
+    conn.execute("INSERT INTO domain_network_contract_versions(id, organization_id, contract_id, version, status, terms_json, effective_from, effective_to, source, created_by, created_at) VALUES (?, ?, ?, 1, 'draft', ?, ?, ?, 'award', ?, ?)", (version_id, organization_id, contract_id, json.dumps(terms if isinstance(terms, dict) else {}), _text(terms, "starts_at") if isinstance(terms, dict) else None, _text(terms, "ends_at") if isinstance(terms, dict) else None, user["id"], created_at))
+    raw_rates = terms.get("rate_cards", terms.get("rates", [])) if isinstance(terms, dict) else []
+    if isinstance(raw_rates, dict): raw_rates = [raw_rates]
+    if not isinstance(raw_rates, list): raw_rates = []
+    for index, rate in enumerate(raw_rates):
+        if not isinstance(rate, dict): continue
+        code = _text(rate, "rate_code", _text(rate, "code", f"rate_{index + 1}", 80), 80)
+        conn.execute("INSERT OR IGNORE INTO domain_network_rate_cards(id, organization_id, contract_version_id, rate_code, service_type, vehicle_type, city, unit, amount_paise, currency, effective_from, effective_to, status, terms_json, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)", (new_id("network_rate"), organization_id, version_id, code, _text(rate, "service_type", maximum=80), _text(rate, "vehicle_type", maximum=80), _text(rate, "city", maximum=80), _text(rate, "unit", "trip", 30), _positive_int(rate.get("amount_paise", rate.get("total_paise", 0)), "amount_paise"), _text(rate, "currency", "INR", 8), _text(rate, "effective_from", maximum=40) or None, _text(rate, "effective_to", maximum=40) or None, json.dumps(rate.get("terms") if isinstance(rate.get("terms"), dict) else {}), user["id"], created_at))
+    return version_id
+
+
 def _create_fleet_records(conn, user, award, contract, requirement, version, ip, activation_key=None):
     spec = _json(version["payload_json"], {})
     requirement_ref = requirement["reference"]
@@ -637,6 +862,9 @@ def _create_fleet_records(conn, user, award, contract, requirement, version, ip,
             activation_key,
         ),
     )
+    vendor_profile = conn.execute("SELECT vendor_organization_id FROM domain_network_vendor_profiles WHERE id = ?", (award["vendor_profile_id"],)).fetchone()
+    vendor_organization_id = vendor_profile["vendor_organization_id"] if vendor_profile else ""
+    conn.execute("INSERT INTO domain_network_exchange_envelopes(id, organization_id, service_order_id, exchange_type, direction, status, schema_version, external_reference, payload_json, attachments_json, sender_organization_id, recipient_organization_id, provider_reference, created_by, created_at, sent_at) VALUES (?, ?, ?, 'booking', 'outbound', 'sent', 'v1', ?, ?, '[]', ?, ?, ?, ?, ?, ?)", (new_id("network_exchange"), requirement["organization_id"], service_order_id, booking_reference, json.dumps({"fleet_booking_id": booking_id, "booking_reference": booking_reference, "pickup": pickup, "dropoff": dropoff, "scheduled_at": scheduled_at}), requirement["organization_id"], vendor_organization_id, f"mock-exchange-booking-{service_order_id}", user["id"], now, now))
     return service_order_id, booking_id, duty_id
 
 
@@ -667,6 +895,36 @@ def _access_requirement_for_user(conn, requirement_id: str, user):
     if not candidate:
         raise DomainError(404, "Network requirement not found", "not_found")
     return requirement, False
+
+
+def _access_service_order_for_user(conn, service_order_id: str, user):
+    org = _org(user)
+    order = conn.execute("SELECT * FROM domain_network_service_orders WHERE id = ?", (service_order_id,)).fetchone()
+    if not order:
+        raise DomainError(404, "Network service order not found", "not_found")
+    if order["organization_id"] == org:
+        return order, True
+    linked = conn.execute("SELECT 1 FROM domain_network_vendor_profiles WHERE id = ? AND vendor_organization_id = ?", (order["vendor_profile_id"], org)).fetchone()
+    if not linked:
+        raise DomainError(404, "Network service order not found", "not_found")
+    return order, False
+
+
+def _access_contract_for_user(conn, contract_id: str, user):
+    org = _org(user)
+    contract = conn.execute("SELECT * FROM domain_network_contracts WHERE id = ?", (contract_id,)).fetchone()
+    if not contract:
+        raise DomainError(404, "Network contract not found", "not_found")
+    if contract["organization_id"] == org:
+        return contract, True
+    vendor = conn.execute("""
+        SELECT v.id FROM domain_network_awards a
+        JOIN domain_network_vendor_profiles v ON v.id = a.vendor_profile_id
+        WHERE a.id = ? AND v.vendor_organization_id = ?
+    """, (contract["award_id"], org)).fetchone()
+    if not vendor:
+        raise DomainError(404, "Network contract not found", "not_found")
+    return contract, False
 
 
 def _hard_match(spec: dict, profile) -> tuple[bool, list[str], dict]:
@@ -784,21 +1042,64 @@ def handle_network(conn: sqlite3.Connection, user, method: str, raw_route: str, 
         if not vendor_org and not email:
             raise DomainError(400, "vendor_organization_id or invite_email is required", "validation_error")
         expires = payload.get("expires_at") or (datetime.now(timezone.utc) + timedelta(days=14)).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-        conn.execute("INSERT INTO domain_network_invites(id, organization_id, vendor_organization_id, vendor_name, invite_email, status, expires_at, created_by, created_at, idempotency_key) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)", (invite_id, org, vendor_org, vendor_name, email, expires, user["id"], now_iso(), key))
+        now = now_iso()
+        conn.execute("INSERT INTO domain_network_invites(id, organization_id, vendor_organization_id, vendor_name, invite_email, status, expires_at, created_by, created_at, idempotency_key) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)", (invite_id, org, vendor_org, vendor_name, email, expires, user["id"], now, key))
+        conn.execute("INSERT INTO domain_network_associates(id, organization_id, vendor_organization_id, invite_id, status, buyer_contact, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?)", (new_id("network_associate"), org, vendor_org or "", invite_id, email, user["id"], now, now))
         _emit(conn, user, "invite.created", "network_invite", invite_id, ip, {"vendor_organization_id": vendor_org, "invite_email": email})
         return {"ok": True, "item": _row_json(conn.execute("SELECT * FROM domain_network_invites WHERE id = ?", (invite_id,)).fetchone())}
 
-    invite_match = re.fullmatch(r"/invites/([^/]+)/(revoke|accept)", suffix)
-    if invite_match and method == "POST":
-        invite = _owned(conn, "domain_network_invites", invite_match.group(1), org, "Network invite not found")
-        action = invite_match.group(2)
-        if invite["status"] != "pending":
-            raise DomainError(409, "Only pending invites can change state", "invalid_transition")
-        next_status = "revoked" if action == "revoke" else "accepted"
+    if suffix == "/partner-directory" and method == "GET":
+        term = (_text(query, "q", maximum=120) or "").casefold()
+        status_filter = _text(query, "status", maximum=30) or "verified"
+        sql = "SELECT * FROM domain_network_partner_directory WHERE organization_id = ?"
+        args = [org]
+        if status_filter != "all":
+            sql += " AND verification_status = ?"; args.append(status_filter)
+        sql += " ORDER BY display_name COLLATE NOCASE LIMIT ?"; args.append(_limit(query))
+        rows = conn.execute(sql, tuple(args)).fetchall()
+        items = []
+        for row in rows:
+            item = _row_json(row, ("search_document_json",))
+            if term and term not in (item.get("display_name") or "").casefold() and term not in json.dumps(item.get("search_document_json", {})).casefold():
+                continue
+            profile = conn.execute("SELECT * FROM domain_network_vendor_profiles WHERE id = ?", (row["vendor_profile_id"],)).fetchone()
+            item["profile"] = _profile_view(profile) if profile else None
+            items.append(item)
+        return {"ok": True, "items": items, "count": len(items), "mode": "verified_invite_only"}
+
+    if suffix == "/associates" and method == "GET":
+        rows = conn.execute("SELECT * FROM domain_network_associates WHERE organization_id = ? OR vendor_organization_id = ? ORDER BY created_at DESC LIMIT ?", (org, org, _limit(query))).fetchall()
+        return {"ok": True, "items": [_row_json(row, ("metadata_json",)) for row in rows]}
+
+    associate_action = re.fullmatch(r"/associates/([^/]+)/(accept|reject|revoke)", suffix)
+    if associate_action and method == "POST":
+        associate = conn.execute("SELECT * FROM domain_network_associates WHERE id = ? AND (organization_id = ? OR vendor_organization_id = ?)", (associate_action.group(1), org, org)).fetchone()
+        if not associate: raise DomainError(404, "Network associate not found", "not_found")
+        action = associate_action.group(2)
+        if action == "revoke" and associate["organization_id"] != org: raise DomainError(403, "Only the buyer tenant can revoke an associate", "role_forbidden")
+        if associate["status"] != "pending" and action != "revoke": raise DomainError(409, "Only pending associates can change state", "invalid_transition")
+        target = {"accept": "accepted", "reject": "rejected", "revoke": "revoked"}[action]
         now = now_iso()
-        conn.execute("UPDATE domain_network_invites SET status = ?, accepted_at = ?, revoked_at = ? WHERE id = ?", (next_status, now if action == "accept" else None, now if action == "revoke" else None, invite["id"]))
-        _emit(conn, user, f"invite.{ 'accepted' if action == 'accept' else 'revoked' }", "network_invite", invite["id"], ip, {})
-        return {"ok": True, "item": _row_json(conn.execute("SELECT * FROM domain_network_invites WHERE id = ?", (invite["id"],)).fetchone())}
+        conn.execute("UPDATE domain_network_associates SET status = ?, accepted_by = ?, accepted_at = ?, rejected_at = ?, revoked_at = ?, acceptance_note = ?, updated_at = ? WHERE id = ?", (target, user["id"] if target == "accepted" else associate["accepted_by"], now if target == "accepted" else associate["accepted_at"], now if target == "rejected" else associate["rejected_at"], now if target == "revoked" else associate["revoked_at"], _text(payload, "acceptance_note", maximum=500), now, associate["id"]))
+        conn.execute("UPDATE domain_network_invites SET status = ?, accepted_at = ?, revoked_at = ? WHERE id = ?", (target, now if target == "accepted" else None, now if target == "revoked" else None, associate["invite_id"]))
+        _emit(conn, user, f"associate.{action}ed" if action != "revoke" else "associate.revoked", "network_associate", associate["id"], ip, {"invite_id": associate["invite_id"], "status": target}, organization_id=associate["organization_id"])
+        return {"ok": True, "item": _row_json(conn.execute("SELECT * FROM domain_network_associates WHERE id = ?", (associate["id"],)).fetchone(), ("metadata_json",))}
+
+    invite_match = re.fullmatch(r"/invites/([^/]+)/(revoke|accept|reject)", suffix)
+    if invite_match and method == "POST":
+        invite_row = conn.execute("SELECT * FROM domain_network_invites WHERE id = ? AND (organization_id = ? OR vendor_organization_id = ?)", (invite_match.group(1), org, org)).fetchone()
+        if not invite_row: raise DomainError(404, "Network invite not found", "not_found")
+        action = invite_match.group(2)
+        if action == "revoke" and invite_row["organization_id"] != org: raise DomainError(403, "Only the buyer tenant can revoke an invite", "role_forbidden")
+        if invite_row["status"] != "pending": raise DomainError(409, "Only pending invites can change state", "invalid_transition")
+        associate = conn.execute("SELECT * FROM domain_network_associates WHERE invite_id = ?", (invite_row["id"],)).fetchone()
+        target = {"accept": "accepted", "reject": "rejected", "revoke": "revoked"}[action]
+        now = now_iso()
+        conn.execute("UPDATE domain_network_invites SET status = ?, accepted_at = ?, revoked_at = ? WHERE id = ?", (target, now if target == "accepted" else None, now if target == "revoked" else None, invite_row["id"]))
+        if associate:
+            conn.execute("UPDATE domain_network_associates SET status = ?, accepted_by = ?, accepted_at = ?, rejected_at = ?, revoked_at = ?, acceptance_note = ?, updated_at = ? WHERE id = ?", (target, user["id"] if target == "accepted" else associate["accepted_by"], now if target == "accepted" else associate["accepted_at"], now if target == "rejected" else associate["rejected_at"], now if target == "revoked" else associate["revoked_at"], _text(payload, "acceptance_note", maximum=500), now, associate["id"]))
+        _emit(conn, user, f"invite.{action}ed" if action != "revoke" else "invite.revoked", "network_invite", invite_row["id"], ip, {"status": target}, organization_id=invite_row["organization_id"])
+        return {"ok": True, "item": _row_json(conn.execute("SELECT * FROM domain_network_invites WHERE id = ?", (invite_row["id"],)).fetchone())}
 
     if suffix == "/vendor-profiles" and method in {"GET", "POST"}:
         if method == "GET":
@@ -842,6 +1143,8 @@ def handle_network(conn: sqlite3.Connection, user, method: str, raw_route: str, 
             ),
         )
         conn.execute("UPDATE domain_network_invites SET status = 'accepted', accepted_at = COALESCE(accepted_at, ?) WHERE id = ?", (now, invite_id))
+        conn.execute("UPDATE domain_network_associates SET status = 'accepted', vendor_profile_id = ?, accepted_by = COALESCE(accepted_by, ?), accepted_at = COALESCE(accepted_at, ?), updated_at = ? WHERE invite_id = ?", (profile_id, user["id"], now, now, invite_id))
+        conn.execute("INSERT INTO domain_network_partner_directory(id, organization_id, vendor_organization_id, vendor_profile_id, display_name, verification_status, verified_at, discovered_via, search_document_json, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'verified', ?, 'invite', ?, ?, ?, ?) ON CONFLICT(vendor_profile_id) DO UPDATE SET display_name=excluded.display_name, verification_status='verified', verified_at=COALESCE(domain_network_partner_directory.verified_at, excluded.verified_at), search_document_json=excluded.search_document_json, updated_at=excluded.updated_at", (new_id("network_directory"), org, vendor_org, profile_id, vendor_name, now, json.dumps({"cities": _json_list(payload.get("cities")), "service_types": _json_list(payload.get("service_types")), "vehicle_types": _json_list(payload.get("vehicle_types")), "capabilities": _json_list(payload.get("capabilities"))}), user["id"], now, now))
         _emit(conn, user, "vendor_profile.created", "vendor_profile", profile_id, ip, {"invite_id": invite_id, "vendor_organization_id": vendor_org})
         return {"ok": True, "item": _profile_view(conn.execute("SELECT * FROM domain_network_vendor_profiles WHERE id = ?", (profile_id,)).fetchone())}
 
@@ -1121,6 +1424,7 @@ def handle_network(conn: sqlite3.Connection, user, method: str, raw_route: str, 
             start_at = _text(payload, "starts_at", maximum=80) or None
             end_at = _text(payload, "ends_at", maximum=80) or None
             conn.execute("INSERT INTO domain_network_contracts(id, organization_id, award_id, status, starts_at, ends_at, terms_json, created_by, created_at, updated_at) VALUES (?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?)", (contract_id, org, award_id, start_at, end_at, json.dumps(terms), user["id"], now, now))
+            _seed_contract_sync_records(conn, user, contract_id, org, terms, now)
             slas = terms.get("slas") if isinstance(terms, dict) else []
             if not isinstance(slas, list):
                 slas = []
@@ -1187,6 +1491,156 @@ def handle_network(conn: sqlite3.Connection, user, method: str, raw_route: str, 
             _emit(conn, user, "service_order.activated", "service_order", service_order_id, ip, {"award_id": award_id, "fleet_booking_id": booking_id, "fleet_duty_id": duty_id})
             item = conn.execute("SELECT * FROM domain_network_service_orders WHERE id = ?", (service_order_id,)).fetchone()
             return {"ok": True, "item": _row_json(item, ("config_json",)), "fleet": {"booking_id": booking_id, "duty_id": duty_id}}
+
+    contract_collection = re.fullmatch(r"/contracts(?:/([^/]+)(?:/(versions|sync))?)?", suffix)
+    if contract_collection:
+        contract_id, contract_action = contract_collection.groups()
+        if not contract_id and method == "GET":
+            rows = conn.execute("SELECT * FROM domain_network_contracts WHERE organization_id = ? ORDER BY created_at DESC LIMIT ?", (org, _limit(query))).fetchall()
+            return {"ok": True, "items": [_row_json(row, ("terms_json",)) for row in rows]}
+        if contract_id:
+            contract, is_buyer = _access_contract_for_user(conn, contract_id, user)
+            if not contract_action and method == "GET":
+                item = _row_json(contract, ("terms_json",))
+                versions = conn.execute("SELECT * FROM domain_network_contract_versions WHERE contract_id = ? ORDER BY version DESC", (contract_id,)).fetchall()
+                item["versions"] = [_row_json(row, ("terms_json",)) for row in versions]
+                if versions:
+                    item["rate_cards"] = [_row_json(row, ("terms_json",)) for row in conn.execute("SELECT * FROM domain_network_rate_cards WHERE contract_version_id = ? ORDER BY rate_code", (versions[0]["id"],)).fetchall()]
+                return {"ok": True, "item": item}
+            if contract_action == "versions" and method == "GET":
+                rows = conn.execute("SELECT * FROM domain_network_contract_versions WHERE contract_id = ? ORDER BY version DESC", (contract_id,)).fetchall()
+                return {"ok": True, "items": [_row_json(row, ("terms_json",)) for row in rows]}
+            if contract_action == "versions" and method == "POST":
+                target_action = _text(payload, "action", maximum=20) or "publish"
+                if target_action == "accept":
+                    version_id = _text(payload, "version_id", maximum=100)
+                    version = conn.execute("SELECT * FROM domain_network_contract_versions WHERE id = ? AND contract_id = ?", (version_id, contract_id)).fetchone()
+                    if not version: raise DomainError(404, "Contract version not found", "not_found")
+                    if is_buyer: raise DomainError(403, "The vendor organization accepts a contract version", "role_forbidden")
+                    now = now_iso(); conn.execute("UPDATE domain_network_contract_versions SET status = 'accepted', accepted_by = ?, accepted_at = ? WHERE id = ?", (user["id"], now, version_id))
+                    conn.execute("UPDATE domain_network_contract_syncs SET status = 'acknowledged', acknowledged_by = ?, acknowledged_at = ? WHERE contract_version_id = ? AND status IN ('queued','sent')", (user["id"], now, version_id))
+                    _emit(conn, user, "contract.version.accepted", "contract", contract_id, ip, {"version_id": version_id, "version": version["version"]}, contract["organization_id"])
+                    return {"ok": True, "item": _row_json(conn.execute("SELECT * FROM domain_network_contract_versions WHERE id = ?", (version_id,)).fetchone(), ("terms_json",))}
+                if not is_buyer: raise DomainError(403, "Only the buyer tenant can publish contract versions", "role_forbidden")
+                terms = _payload_json(payload, "terms", {})
+                if not isinstance(terms, dict): raise DomainError(400, "terms must be an object", "validation_error")
+                latest = conn.execute("SELECT * FROM domain_network_contract_versions WHERE contract_id = ? ORDER BY version DESC LIMIT 1", (contract_id,)).fetchone()
+                version_number = int(latest["version"] if latest else 0) + 1
+                now = now_iso(); version_id = new_id("network_contract_version")
+                conn.execute("INSERT INTO domain_network_contract_versions(id, organization_id, contract_id, version, status, terms_json, effective_from, effective_to, source, supersedes_version_id, created_by, created_at) VALUES (?, ?, ?, ?, 'published', ?, ?, ?, 'buyer', ?, ?, ?)", (version_id, contract["organization_id"], contract_id, version_number, json.dumps(terms), _text(payload, "effective_from", maximum=40) or None, _text(payload, "effective_to", maximum=40) or None, latest["id"] if latest else None, user["id"], now))
+                rates = payload.get("rate_cards", terms.get("rate_cards", terms.get("rates", [])))
+                if isinstance(rates, dict): rates = [rates]
+                if not isinstance(rates, list): rates = []
+                for index, rate in enumerate(rates):
+                    if not isinstance(rate, dict): continue
+                    code = _text(rate, "rate_code", _text(rate, "code", f"rate_{index + 1}", 80), 80)
+                    conn.execute("INSERT INTO domain_network_rate_cards(id, organization_id, contract_version_id, rate_code, service_type, vehicle_type, city, unit, amount_paise, currency, effective_from, effective_to, status, terms_json, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)", (new_id("network_rate"), contract["organization_id"], version_id, code, _text(rate, "service_type", maximum=80), _text(rate, "vehicle_type", maximum=80), _text(rate, "city", maximum=80), _text(rate, "unit", "trip", 30), _positive_int(rate.get("amount_paise", rate.get("total_paise", 0)), "amount_paise"), _text(rate, "currency", "INR", 8), _text(rate, "effective_from", maximum=40) or None, _text(rate, "effective_to", maximum=40) or None, json.dumps(rate.get("terms") if isinstance(rate.get("terms"), dict) else {}), user["id"], now))
+                key = _text(payload, "idempotency_key", maximum=160) or None
+                if key:
+                    existing = conn.execute("SELECT * FROM domain_network_contract_syncs WHERE organization_id = ? AND idempotency_key = ?", (contract["organization_id"], key)).fetchone()
+                    if existing: return {"ok": True, "duplicate": True, "item": _row_json(existing, ("change_summary_json",))}
+                sync_id = new_id("network_contract_sync"); conn.execute("INSERT INTO domain_network_contract_syncs(id, organization_id, contract_id, contract_version_id, direction, status, source_version, target_version, change_summary_json, provider_reference, idempotency_key, requested_by, requested_at) VALUES (?, ?, ?, ?, 'outbound', 'sent', ?, ?, ?, ?, ?, ?, ?)", (sync_id, contract["organization_id"], contract_id, version_id, version_number - 1 if latest else None, version_number, json.dumps({"rate_cards": len(rates), "terms": True}), f"mock-contract-sync-{sync_id}", key, user["id"], now))
+                _emit(conn, user, "contract.version.published", "contract", contract_id, ip, {"version_id": version_id, "version": version_number, "sync_id": sync_id})
+                return {"ok": True, "item": _row_json(conn.execute("SELECT * FROM domain_network_contract_versions WHERE id = ?", (version_id,)).fetchone(), ("terms_json",)), "sync": _row_json(conn.execute("SELECT * FROM domain_network_contract_syncs WHERE id = ?", (sync_id,)).fetchone(), ("change_summary_json",))}
+            if contract_action == "sync" and method == "GET":
+                rows = conn.execute("SELECT * FROM domain_network_contract_syncs WHERE contract_id = ? ORDER BY requested_at DESC", (contract_id,)).fetchall()
+                return {"ok": True, "items": [_row_json(row, ("change_summary_json",)) for row in rows]}
+            if contract_action == "sync" and method == "POST":
+                if not is_buyer: raise DomainError(403, "Only the buyer tenant can request a contract synchronization", "role_forbidden")
+                version_id = _text(payload, "version_id", maximum=100) or None
+                version = conn.execute("SELECT * FROM domain_network_contract_versions WHERE id = ? AND contract_id = ?", (version_id, contract_id)).fetchone() if version_id else conn.execute("SELECT * FROM domain_network_contract_versions WHERE contract_id = ? ORDER BY version DESC LIMIT 1", (contract_id,)).fetchone()
+                if not version: raise DomainError(404, "Contract version not found", "not_found")
+                key = _text(payload, "idempotency_key", maximum=160) or None
+                if key:
+                    existing = conn.execute("SELECT * FROM domain_network_contract_syncs WHERE organization_id = ? AND idempotency_key = ?", (contract["organization_id"], key)).fetchone()
+                    if existing: return {"ok": True, "duplicate": True, "item": _row_json(existing, ("change_summary_json",))}
+                sync_id = new_id("network_contract_sync"); now = now_iso(); conn.execute("INSERT INTO domain_network_contract_syncs(id, organization_id, contract_id, contract_version_id, direction, status, source_version, target_version, change_summary_json, provider_reference, idempotency_key, requested_by, requested_at) VALUES (?, ?, ?, ?, 'outbound', 'sent', ?, ?, ?, ?, ?, ?, ?)", (sync_id, contract["organization_id"], contract_id, version_id, None, version["version"], json.dumps({"resend": True}), f"mock-contract-sync-{sync_id}", key, user["id"], now)); return {"ok": True, "item": _row_json(conn.execute("SELECT * FROM domain_network_contract_syncs WHERE id = ?", (sync_id,)).fetchone(), ("change_summary_json",))}
+
+    exchange_collection = re.fullmatch(r"/service-orders/([^/]+)/exchanges", suffix)
+    if exchange_collection:
+        service_id = exchange_collection.group(1); order, is_buyer = _access_service_order_for_user(conn, service_id, user); owner_org = order["organization_id"]
+        if method == "GET":
+            rows = conn.execute("SELECT * FROM domain_network_exchange_envelopes WHERE organization_id = ? AND service_order_id = ? ORDER BY created_at DESC LIMIT ?", (owner_org, service_id, _limit(query))).fetchall()
+            return {"ok": True, "items": [_row_json(row, ("payload_json", "attachments_json")) for row in rows]}
+        if method == "POST":
+            exchange_type = _text(payload, "exchange_type", maximum=30)
+            if exchange_type not in {"booking", "duty_slip", "invoice", "operational_message"}: raise DomainError(400, "Unsupported Network exchange type", "validation_error")
+            direction = _text(payload, "direction", "outbound" if is_buyer else "inbound", 20)
+            if direction not in {"outbound", "inbound"}: raise DomainError(400, "direction must be inbound or outbound", "validation_error")
+            key = _text(payload, "idempotency_key", maximum=160) or None
+            if key:
+                existing = conn.execute("SELECT * FROM domain_network_exchange_envelopes WHERE organization_id = ? AND idempotency_key = ?", (owner_org, key)).fetchone()
+                if existing: return {"ok": True, "duplicate": True, "item": _row_json(existing, ("payload_json", "attachments_json"))}
+            envelope_id = new_id("network_exchange"); now = now_iso(); envelope_status = "sent" if payload.get("send_now", True) else "queued"
+            conn.execute("INSERT INTO domain_network_exchange_envelopes(id, organization_id, service_order_id, exchange_type, direction, status, schema_version, external_reference, payload_json, attachments_json, idempotency_key, sender_organization_id, recipient_organization_id, provider_reference, created_by, created_at, sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (envelope_id, owner_org, service_id, exchange_type, direction, envelope_status, _text(payload, "schema_version", "v1", 20), _text(payload, "external_reference", maximum=160), json.dumps(_payload_json(payload, "payload", {})), json.dumps(payload.get("attachments") if isinstance(payload.get("attachments"), list) else []), key, org if direction == "inbound" else owner_org, owner_org if direction == "inbound" else _text(payload, "recipient_organization_id", maximum=100), f"mock-exchange-{envelope_id}" if envelope_status == "sent" else "", user["id"], now, now if envelope_status == "sent" else None))
+            _emit(conn, user, f"exchange.{exchange_type}.created", "exchange", envelope_id, ip, {"service_order_id": service_id, "direction": direction, "status": envelope_status}, owner_org)
+            return {"ok": True, "item": _row_json(conn.execute("SELECT * FROM domain_network_exchange_envelopes WHERE id = ?", (envelope_id,)).fetchone(), ("payload_json", "attachments_json"))}
+
+    exchange_action = re.fullmatch(r"/exchanges/([^/]+)/(acknowledge|reject|process)", suffix)
+    if exchange_action and method == "POST":
+        envelope = conn.execute("SELECT * FROM domain_network_exchange_envelopes WHERE id = ?", (exchange_action.group(1),)).fetchone()
+        if not envelope: raise DomainError(404, "Network exchange not found", "not_found")
+        _access_service_order_for_user(conn, envelope["service_order_id"], user)
+        action = exchange_action.group(2); target = {"acknowledge": "acknowledged", "reject": "rejected", "process": "processed"}[action]
+        if envelope["status"] in {"processed", "rejected"} and target != envelope["status"]: raise DomainError(409, "Exchange is already closed", "invalid_transition")
+        now = now_iso(); error = _text(payload, "error", maximum=500) if target == "rejected" else ""
+        conn.execute("UPDATE domain_network_exchange_envelopes SET status = ?, acknowledged_at = ?, processed_at = ?, error = ? WHERE id = ?", (target, now if target == "acknowledged" else envelope["acknowledged_at"], now if target == "processed" else envelope["processed_at"], error, envelope["id"]))
+        _emit(conn, user, f"exchange.{target}", "exchange", envelope["id"], ip, {"service_order_id": envelope["service_order_id"], "error": error}, envelope["organization_id"])
+        return {"ok": True, "item": _row_json(conn.execute("SELECT * FROM domain_network_exchange_envelopes WHERE id = ?", (envelope["id"],)).fetchone(), ("payload_json", "attachments_json"))}
+
+    order_subresource = re.fullmatch(r"/service-orders/([^/]+)/(sla-observations|issues|rate-discrepancies|settlement-resolutions)", suffix)
+    if order_subresource:
+        service_id, resource = order_subresource.groups(); order, is_buyer = _access_service_order_for_user(conn, service_id, user); owner_org = order["organization_id"]
+        table_map = {"sla-observations": "domain_network_sla_observations", "issues": "domain_network_supplier_issues", "rate-discrepancies": "domain_network_rate_discrepancies", "settlement-resolutions": "domain_network_settlement_resolutions"}
+        table = table_map[resource]
+        if method == "GET":
+            rows = conn.execute(f"SELECT * FROM {table} WHERE organization_id = ? AND service_order_id = ? ORDER BY created_at DESC LIMIT ?", (owner_org, service_id, _limit(query))).fetchall()
+            json_fields = {"domain_network_sla_observations": ("evidence_json",), "domain_network_supplier_issues": ("evidence_json", "proposed_resolution_json", "resolution_json"), "domain_network_rate_discrepancies": ("evidence_json", "resolution_json"), "domain_network_settlement_resolutions": ("evidence_json",)}[table]
+            return {"ok": True, "items": [_row_json(row, json_fields) for row in rows]}
+        if method == "POST":
+            key = _text(payload, "idempotency_key", maximum=160) or None
+            if key:
+                existing = conn.execute(f"SELECT * FROM {table} WHERE organization_id = ? AND idempotency_key = ?", (owner_org, key)).fetchone()
+                if existing: return {"ok": True, "duplicate": True, "item": _row_json(existing)}
+            now = now_iso()
+            if resource == "sla-observations":
+                metric = _text(payload, "metric", maximum=100); target = float(payload.get("target_value") or 0); observed = float(payload.get("observed_value") or 0)
+                if not metric: raise DomainError(400, "metric is required", "validation_error")
+                observation_id = new_id("network_sla_observation"); status_value = _text(payload, "status", "met" if observed >= target else "breached", 20)
+                conn.execute("INSERT INTO domain_network_sla_observations(id, organization_id, service_order_id, sla_id, metric, target_value, observed_value, unit, status, severity, evidence_json, observed_at, source, idempotency_key, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (observation_id, owner_org, service_id, _text(payload, "sla_id", maximum=100) or None, metric, target, observed, _text(payload, "unit", maximum=30), status_value, _text(payload, "severity", "warning", 20), json.dumps(_payload_json(payload, "evidence", {})), _text(payload, "observed_at", now, 40), _text(payload, "source", "operator", 30), key, user["id"], now))
+                result_id, event_type = observation_id, "sla.observed"
+            elif resource == "issues":
+                issue_type = _text(payload, "issue_type", "operational", 30)
+                if issue_type not in {"rejection", "sla_breach", "rate_discrepancy", "settlement_dispute", "operational"}: raise DomainError(400, "Unsupported supplier issue type", "validation_error")
+                result_id = new_id("network_issue"); event_type = "supplier_issue.created"
+                conn.execute("INSERT INTO domain_network_supplier_issues(id, organization_id, service_order_id, vendor_profile_id, issue_type, status, severity, reason_code, description, evidence_json, proposed_resolution_json, resolution_json, reported_by, assigned_to, due_at, idempotency_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, '{}', ?, ?, ?, ?, ?, ?)", (result_id, owner_org, service_id, order["vendor_profile_id"], issue_type, _text(payload, "severity", "medium", 20), _text(payload, "reason_code", maximum=80), _text(payload, "description", maximum=2000), json.dumps(_payload_json(payload, "evidence", {})), json.dumps(_payload_json(payload, "proposed_resolution", {})), user["id"], _text(payload, "assigned_to", maximum=100) or None, _text(payload, "due_at", maximum=40) or None, key, now, now))
+            elif resource == "rate-discrepancies":
+                expected = _positive_int(payload.get("expected_paise"), "expected_paise"); actual = _positive_int(payload.get("actual_paise"), "actual_paise"); result_id = new_id("network_rate_discrepancy"); event_type = "rate_discrepancy.created"
+                conn.execute("INSERT INTO domain_network_rate_discrepancies(id, organization_id, service_order_id, contract_id, rate_card_id, issue_id, expected_paise, actual_paise, variance_paise, currency, status, reason, evidence_json, resolution_json, idempotency_key, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, '{}', ?, ?, ?)", (result_id, owner_org, service_id, _text(payload, "contract_id", maximum=100) or None, _text(payload, "rate_card_id", maximum=100) or None, _text(payload, "issue_id", maximum=100) or None, expected, actual, actual - expected, _text(payload, "currency", "INR", 8), _text(payload, "reason", maximum=500), json.dumps(_payload_json(payload, "evidence", {})), key, user["id"], now))
+            else:
+                settlement_id = _text(payload, "settlement_id", maximum=100)
+                settlement = conn.execute("SELECT * FROM domain_network_settlements WHERE id = ? AND organization_id = ? AND service_order_id = ?", (settlement_id, owner_org, service_id)).fetchone()
+                if not settlement: raise DomainError(404, "Network settlement not found", "not_found")
+                result_id = new_id("network_settlement_resolution"); event_type = "settlement_resolution.proposed"
+                conn.execute("INSERT INTO domain_network_settlement_resolutions(id, organization_id, service_order_id, settlement_id, issue_id, discrepancy_id, status, resolution_type, adjustment_paise, notes, evidence_json, proposed_by, idempotency_key, created_at) VALUES (?, ?, ?, ?, ?, ?, 'proposed', ?, ?, ?, ?, ?, ?, ?)", (result_id, owner_org, service_id, settlement_id, _text(payload, "issue_id", maximum=100) or None, _text(payload, "discrepancy_id", maximum=100) or None, _text(payload, "resolution_type", "adjustment", 30), int(payload.get("adjustment_paise") or 0), _text(payload, "notes", maximum=2000), json.dumps(_payload_json(payload, "evidence", {})), user["id"], key, now))
+            _emit(conn, user, event_type, resource, result_id, ip, {"service_order_id": service_id}, owner_org)
+            return {"ok": True, "item": _row_json(conn.execute(f"SELECT * FROM {table} WHERE id = ?", (result_id,)).fetchone(), {"sla-observations": ("evidence_json",), "issues": ("evidence_json", "proposed_resolution_json", "resolution_json"), "rate-discrepancies": ("evidence_json", "resolution_json"), "settlement-resolutions": ("evidence_json",)}[resource])}
+
+    issue_action = re.fullmatch(r"/(issues|rate-discrepancies|settlement-resolutions)/([^/]+)/(resolve|decide)", suffix)
+    if issue_action and method == "POST":
+        resource, entity_id, action = issue_action.groups(); table = {"issues": "domain_network_supplier_issues", "rate-discrepancies": "domain_network_rate_discrepancies", "settlement-resolutions": "domain_network_settlement_resolutions"}[resource]
+        row = conn.execute(f"SELECT * FROM {table} WHERE id = ? AND organization_id = ?", (entity_id, org)).fetchone()
+        if not row:
+            # vendor users may act through the linked service order
+            row = conn.execute(f"SELECT * FROM {table} WHERE id = ?", (entity_id,)).fetchone()
+            if row: _access_service_order_for_user(conn, row["service_order_id"], user) if "service_order_id" in row.keys() else None
+        if not row: raise DomainError(404, "Network resolution record not found", "not_found")
+        now = now_iso(); target = _text(payload, "status", "resolved" if resource != "settlement-resolutions" else "accepted", 20)
+        if resource == "issues": conn.execute("UPDATE domain_network_supplier_issues SET status = ?, resolution_json = ?, resolved_by = ?, resolved_at = ?, updated_at = ? WHERE id = ?", (target, json.dumps(_payload_json(payload, "resolution", {})), user["id"], now if target in {"resolved", "closed"} else None, now, row["id"]))
+        elif resource == "rate-discrepancies": conn.execute("UPDATE domain_network_rate_discrepancies SET status = ?, resolution_json = ?, resolved_by = ?, resolved_at = ? WHERE id = ?", (target, json.dumps(_payload_json(payload, "resolution", {})), user["id"], now if target == "resolved" else None, row["id"]))
+        else: conn.execute("UPDATE domain_network_settlement_resolutions SET status = ?, notes = ?, decided_by = ?, decided_at = ?, applied_at = ? WHERE id = ?", (target, _text(payload, "notes", maximum=2000), user["id"], now, now if target == "applied" else None, row["id"]))
+        _emit(conn, user, f"{resource}.{target}", resource, row["id"], ip, {"status": target}, org)
+        return {"ok": True, "item": _row_json(conn.execute(f"SELECT * FROM {table} WHERE id = ?", (row["id"],)).fetchone())}
 
     contract_match = re.fullmatch(r"/contracts/([^/]+)/sign", suffix)
     if contract_match and method == "POST":
@@ -1277,4 +1731,8 @@ def handle_network(conn: sqlite3.Connection, user, method: str, raw_route: str, 
         rows = conn.execute("SELECT * FROM domain_network_events WHERE organization_id = ? ORDER BY created_at DESC LIMIT ?", (org, _limit(query))).fetchall()
         return {"ok": True, "items": [_row_json(row, ("payload_json",)) for row in rows]}
 
-    raise DomainError(404, "Network API route not found", "not_found")
+    # Compatibility Network routes (regions, scorecard formulas and older
+    # lifecycle surfaces) are owned by the additive P0 handler. Returning None
+    # here lets the shared dispatcher fall through instead of shadowing those
+    # tenant-scoped contracts with a false 404.
+    return None
