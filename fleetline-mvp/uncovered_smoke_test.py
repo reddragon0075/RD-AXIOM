@@ -2,6 +2,7 @@
 """Focused smoke coverage for the recently completed import and recovery contracts."""
 
 from __future__ import annotations
+import sys
 
 import os
 import subprocess
@@ -21,12 +22,10 @@ def main() -> None:
         env = os.environ.copy()
         env.update({"AXIOM_TEST_FIXTURES": "1", "PORT": str(port), "AXIOM_DB_PATH": str(Path(temp_dir) / "axiom.sqlite3"), "AXIOM_EXPOSE_RESET_TOKEN": "1"})
         process = subprocess.Popen(
-            ["python3", "server.py"],
+            [sys.executable, "server.py"],
             cwd=ROOT,
             env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
         try:
             for _ in range(50):
@@ -38,7 +37,7 @@ def main() -> None:
                     pass
                 time.sleep(0.1)
             else:
-                output = process.stdout.read() if process.stdout else ""
+                output = ""
                 raise RuntimeError(f"backend did not start: {output}")
 
             _, client = make_client(base)

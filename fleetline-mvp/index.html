@@ -283,6 +283,49 @@
     .trend.neutral { color: var(--muted); }
     .two-col { grid-template-columns: minmax(0, 1.28fr) minmax(320px, .72fr); }
     .three-col { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .stat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .card-body > .grid.two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .mini-stat {
+      padding: 12px 14px;
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+    .mini-stat span {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mini-stat strong {
+      display: block;
+      font-size: 19px;
+      font-weight: 750;
+      color: var(--ink);
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin: 2px 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mini-stat small {
+      display: block;
+      font-size: 10px;
+      color: var(--muted-2);
+      line-height: 1.35;
+      word-break: break-word;
+    }
     .section-card { overflow: hidden; }
     .card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 17px 19px 14px; border-bottom: 1px solid var(--line); }
     .card-head h3 { margin: 0; font-size: 13px; letter-spacing: -.015em; }
@@ -544,7 +587,24 @@
       .customer-grid { grid-template-columns: repeat(2,1fr); }
     }
     @media (max-width: 880px) {
-      .sidebar { position: fixed; transform: translateX(-100%); transition: transform .2s; box-shadow: 15px 0 35px rgba(9,20,35,.22); }.sidebar.open { transform: translateX(0); }
+      .sidebar, .sidebar.collapsed { position: fixed; width: 266px !important; flex: 0 0 266px !important; flex-basis: 266px !important; transform: translateX(-100%); transition: transform .22s cubic-bezier(0.2, 0, 0, 1); box-shadow: 15px 0 35px rgba(9,20,35,.22); }
+      .sidebar.open, .sidebar.collapsed.open { transform: translateX(0); }
+      .desktop-sidebar-toggle { display: none !important; }
+      .sidebar.collapsed .brand-bar { padding: 0 16px 0 20px !important; justify-content: space-between !important; }
+      .sidebar.collapsed .brand { flex: 1 !important; justify-content: flex-start !important; }
+      .sidebar.collapsed .brand-logo { display: block !important; }
+      .sidebar.collapsed .brand-mark-mini { display: none !important; }
+      .sidebar.collapsed .sidebar-collapse-btn { display: grid !important; }
+      .sidebar.collapsed .workspace-switcher { margin: 18px 14px 12px !important; padding: 13px !important; justify-content: flex-start !important; display: block !important; }
+      .sidebar.collapsed .workspace-label, .sidebar.collapsed .workspace-chevron, .sidebar.collapsed #workspaceName { display: inline !important; }
+      .sidebar.collapsed .workspace-name { display: flex !important; }
+      .sidebar.collapsed .nav-section-header { height: auto !important; background: transparent !important; padding: 9px 10px 6px !important; margin: 10px 0 3px !important; }
+      .sidebar.collapsed .nav-section-label, .sidebar.collapsed .nav-section-count, .sidebar.collapsed .nav-accordion-arrow { display: inline !important; }
+      .sidebar.collapsed .nav-item { width: 100% !important; height: auto !important; padding: 11px 12px !important; display: flex !important; margin: 2px 0 !important; }
+      .sidebar.collapsed .nav-item span { display: inline !important; }
+      .sidebar.collapsed .account-info, .sidebar.collapsed .account-exit { display: block !important; }
+      .sidebar.collapsed .setup-mini-top, .sidebar.collapsed #setupRemaining { display: block !important; }
+      .sidebar.collapsed .setup-mini .progress { width: 100% !important; }
       .mobile-menu { display: grid; place-items: center; }.topbar { padding: 0 18px; gap: 12px; }.topbar-title { min-width: 0; }.topbar-title .crumb { display:none; }.topbar-title h2 { font-size: 13px; }.global-search { max-width: none; }.branch-select { display:none; }.top-avatar { flex: none; }
       .content { padding: 25px 17px 45px; }.page-head { flex-direction: column; }.page-head h1 { font-size: 23px; }.head-actions { width:100%; }.head-actions .btn { flex:1; }
       .duty-layout { grid-template-columns: 1fr; }.side-stats { grid-template-columns: repeat(3,1fr); }.calendar-card { display:none; }
@@ -572,10 +632,13 @@
     .app-shell { position: relative; z-index: 1; }
     .sidebar {
       width: 266px;
+      flex: 0 0 266px;
       flex-basis: 266px;
       background: linear-gradient(180deg, #0b1217 0%, #111b21 70%, #0d151a 100%);
       border-right: 1px solid rgba(255,255,255,.07);
       box-shadow: 12px 0 40px rgba(5,12,16,.08);
+      transition: width .22s cubic-bezier(0.2, 0, 0, 1), flex-basis .22s cubic-bezier(0.2, 0, 0, 1);
+      will-change: width, flex-basis;
     }
     .sidebar::after {
       content: "";
@@ -587,14 +650,179 @@
       background: linear-gradient(180deg, transparent, rgba(218,250,91,.45), transparent);
       opacity: .55;
     }
-    .brand { height: 84px; padding-left: 23px; border-bottom-color: rgba(218,250,91,.08); }
+
+    /* Brand Header with Collapse Controls */
+    .brand-bar {
+      height: 84px;
+      padding: 0 16px 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(218,250,91,.08);
+      gap: 10px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+      flex: 1;
+      height: 100%;
+    }
+    .brand-mark-mini {
+      display: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, rgba(218,250,91,.22), rgba(93,97,238,.28));
+      border: 1px solid rgba(218,250,91,.38);
+      box-shadow: 0 0 16px rgba(218,250,91,.18);
+      color: var(--lime);
+      font-weight: 850;
+      font-size: 13px;
+      letter-spacing: -.02em;
+      place-items: center;
+      cursor: pointer;
+      user-select: none;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .brand-mark-mini:hover {
+      transform: scale(1.06);
+      box-shadow: 0 0 22px rgba(218,250,91,.32);
+    }
+    .sidebar-collapse-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(255,255,255,.04);
+      color: #8da4bc;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      padding: 0;
+      transition: all .16s ease;
+      flex-shrink: 0;
+    }
+    .sidebar-collapse-btn:hover {
+      color: #fff;
+      background: rgba(255,255,255,.1);
+      border-color: rgba(218,250,91,.35);
+      box-shadow: 0 0 12px rgba(218,250,91,.15);
+    }
+    .sidebar-collapse-btn:focus-visible, .desktop-sidebar-toggle:focus-visible {
+      outline: 2px solid var(--lime);
+      outline-offset: 2px;
+    }
+    .desktop-sidebar-toggle {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 0;
+      transition: all .16s ease;
+      flex-shrink: 0;
+    }
+    .desktop-sidebar-toggle:hover, .desktop-sidebar-toggle.active {
+      background: var(--surface-soft);
+      border-color: #a9c2fc;
+      color: var(--blue);
+      box-shadow: 0 2px 8px rgba(93,97,238,.12);
+    }
+    .desktop-sidebar-toggle svg { width: 17px; height: 17px; }
+    .topbar-collapse-arrow {
+      transition: transform .22s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-origin: 12px 12px;
+    }
+    .sidebar-collapsed .topbar-collapse-arrow {
+      transform: rotate(180deg);
+    }
+
     .brand-mark { width: 36px; height: 36px; border-radius: 12px; background: var(--lime); color: #101a18; box-shadow: 0 8px 22px rgba(218,250,91,.2); }
     .brand-name { font-size: 18px; letter-spacing: -.055em; }
     .brand-tag { color: #7e9498; letter-spacing: .15em; }
-    .workspace-switcher { background: linear-gradient(135deg, rgba(218,250,91,.095), rgba(255,255,255,.035)); border-color: rgba(218,250,91,.14); border-radius: 14px; padding: 13px; }
+    .workspace-switcher { background: linear-gradient(135deg, rgba(218,250,91,.095), rgba(255,255,255,.035)); border-color: rgba(218,250,91,.14); border-radius: 14px; padding: 13px; transition: padding .2s ease, margin .2s ease; }
     .workspace-label { color: #789094; }
     .workspace-name { color: #eff8ee; }
     .workspace-dot { background: var(--lime); box-shadow: 0 0 0 3px rgba(218,250,91,.13); }
+    .workspace-chevron { color: #7e9498; }
+
+    /* Nav Accordion Groups */
+    .nav-accordion-group {
+      margin-bottom: 4px;
+      transition: margin .18s ease;
+    }
+    .nav-section-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      background: transparent;
+      border: 0;
+      padding: 9px 10px 6px;
+      margin: 12px 0 3px;
+      cursor: pointer;
+      text-align: left;
+      border-radius: 8px;
+      transition: background .16s ease, color .16s ease;
+      color: #61777b;
+      letter-spacing: .16em;
+    }
+    .nav-section-header:hover {
+      background: rgba(255,255,255,.035);
+      color: #92abb0;
+    }
+    .nav-section-label {
+      text-transform: uppercase;
+      font-size: 9px;
+      font-weight: 780;
+      color: inherit;
+      flex: 1;
+    }
+    .nav-section-count {
+      font-size: 9px;
+      font-weight: 750;
+      color: #678187;
+      padding: 1px 6px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.06);
+      margin-right: 4px;
+      letter-spacing: 0;
+    }
+    .nav-accordion-arrow {
+      color: #5d757d;
+      transition: transform .2s cubic-bezier(0.4, 0, 0.2, 1);
+      flex: none;
+    }
+    .nav-accordion-group.collapsed .nav-accordion-arrow {
+      transform: rotate(-90deg);
+    }
+    .nav-section-items {
+      display: grid;
+      grid-template-rows: 1fr;
+      max-height: 800px;
+      transition: grid-template-rows 0.22s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.24s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.16s ease;
+      overflow: hidden;
+    }
+    .nav-section-items-inner {
+      min-height: 0;
+    }
+    .nav-accordion-group.collapsed .nav-section-items {
+      grid-template-rows: 0fr;
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .nav-accordion-group[hidden] {
+      display: none !important;
+    }
+
     .nav-section { color: #61777b; letter-spacing: .16em; }
     .nav-item { border-radius: 11px; color: #9aafb0; padding: 11px 12px; }
     .nav-item svg { color: #6f888b; }
@@ -603,6 +831,189 @@
     .nav-item.active svg { color: var(--lime); }
     .nav-count { background: rgba(255,255,255,.08); color: #bdceca; }
     .nav-count.alert { background: rgba(255,141,98,.17); color: #ffb194; }
+
+    /* Collapsed Sidebar Rail Mode */
+    .sidebar.collapsed {
+      width: 68px !important;
+      flex: 0 0 68px !important;
+      flex-basis: 68px !important;
+    }
+    .sidebar.collapsed .brand-bar {
+      height: auto;
+      min-height: 84px;
+      padding: 12px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .sidebar.collapsed .brand {
+      display: none !important;
+    }
+    .sidebar.collapsed .brand-logo {
+      display: none !important;
+    }
+    .sidebar.collapsed .brand-mark-mini {
+      display: grid !important;
+    }
+    .sidebar.collapsed .sidebar-collapse-btn {
+      display: grid !important;
+      width: 38px !important;
+      height: 30px !important;
+      border-radius: 8px !important;
+      background: rgba(255,255,255,.06) !important;
+      border: 1px solid rgba(255,255,255,.12) !important;
+      color: #cad8e6 !important;
+      cursor: pointer;
+    }
+    .sidebar.collapsed .sidebar-collapse-btn:hover {
+      background: rgba(218,250,91,.15) !important;
+      border-color: rgba(218,250,91,.45) !important;
+      color: var(--lime) !important;
+      box-shadow: 0 0 14px rgba(218,250,91,.2) !important;
+    }
+    .sidebar.collapsed .sidebar-collapse-btn .collapse-arrow {
+      transform: rotate(180deg);
+      transform-origin: 12px 12px;
+    }
+    .sidebar.collapsed .workspace-switcher {
+      margin: 12px 10px;
+      padding: 10px 0;
+      justify-content: center;
+      display: flex;
+    }
+    .sidebar.collapsed .workspace-label,
+    .sidebar.collapsed .workspace-chevron,
+    .sidebar.collapsed #workspaceName {
+      display: none !important;
+    }
+    .sidebar.collapsed .workspace-dot {
+      width: 9px;
+      height: 9px;
+      margin: 0;
+    }
+    .sidebar.collapsed .sidebar-scroll {
+      padding: 6px 10px 18px;
+    }
+    .sidebar.collapsed .nav-section-header {
+      padding: 0;
+      margin: 12px auto 6px;
+      width: 36px;
+      height: 2px;
+      background: rgba(255,255,255,.1);
+      cursor: pointer;
+      border-radius: 2px;
+      transition: background .16s ease, transform .16s ease;
+    }
+    .sidebar.collapsed .nav-section-header:hover {
+      background: var(--lime);
+      transform: scaleY(2);
+    }
+    .sidebar.collapsed .nav-section-label,
+    .sidebar.collapsed .nav-section-count,
+    .sidebar.collapsed .nav-accordion-arrow {
+      display: none !important;
+    }
+    .sidebar.collapsed .nav-more {
+      display: none !important;
+    }
+    .sidebar.collapsed .advanced-nav[hidden] {
+      display: block !important;
+    }
+    .sidebar.collapsed .nav-accordion-group.collapsed .nav-section-items {
+      grid-template-rows: 1fr !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+    .sidebar.collapsed .nav-item {
+      width: 44px;
+      height: 44px;
+      margin: 4px auto;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      position: relative;
+    }
+    .sidebar.collapsed .nav-item span {
+      display: none !important;
+    }
+    .sidebar.collapsed .nav-item svg {
+      width: 19px;
+      height: 19px;
+      margin: 0;
+    }
+    .sidebar.collapsed .nav-count {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      padding: 0;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      font-size: 0;
+    }
+    .sidebar.collapsed .setup-mini {
+      padding: 8px 4px;
+      text-align: center;
+      border-radius: 9px;
+    }
+    .sidebar.collapsed .setup-mini-top,
+    .sidebar.collapsed #setupRemaining {
+      display: none !important;
+    }
+    .sidebar.collapsed .setup-mini .progress {
+      height: 4px;
+      margin: 2px auto;
+      width: 32px;
+    }
+    .sidebar.collapsed .account-mini {
+      justify-content: center;
+    }
+    .sidebar.collapsed .account-info,
+    .sidebar.collapsed .account-exit {
+      display: none !important;
+    }
+
+    /* Floating Tooltip for Sidebar Rail */
+    .sidebar-floating-tooltip {
+      position: fixed;
+      z-index: 10000;
+      background: #0c151a;
+      color: #f1f7f6;
+      border: 1px solid rgba(218,250,91,.25);
+      box-shadow: 0 12px 34px rgba(0,0,0,.5), 0 0 16px rgba(218,250,91,.12);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 11.5px;
+      font-weight: 600;
+      pointer-events: none;
+      white-space: nowrap;
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transform: translateY(-50%) translateX(6px);
+      transition: opacity .12s ease, transform .12s ease;
+      opacity: 0;
+    }
+    .sidebar-floating-tooltip.visible {
+      opacity: 1;
+      transform: translateY(-50%) translateX(0);
+    }
+    .sidebar-floating-tooltip .tooltip-badge {
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--lime);
+      background: rgba(218,250,91,.14);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 750;
+    }
+
     .setup-mini { background: linear-gradient(135deg, rgba(218,250,91,.16), rgba(93,97,238,.16)); border-color: rgba(218,250,91,.22); }
     .setup-mini-top { color: #e1f7a7; }
     .setup-mini .progress > span { background: var(--lime); }
@@ -1096,39 +1507,114 @@
 
   <div class="app-shell" id="app-shell">
     <aside class="sidebar" id="sidebar">
-      <a class="brand" href="#home" data-show-public aria-label="Axiom Fleet home"><img class="brand-logo" src="axiom-fleet-logo.png" width="640" height="184" decoding="async" alt="Axiom Fleet"></a>
-      <div class="workspace-switcher">
-        <span class="workspace-label">Workspace</span>
-        <div class="workspace-name"><span><i class="workspace-dot"></i> <span id="workspaceName">Workspace</span></span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></div>
+      <div class="brand-bar" id="sidebarBrandBar" title="Axiom Fleet workspace navigation">
+        <a class="brand" href="#home" data-show-public aria-label="Axiom Fleet home">
+          <img class="brand-logo" src="axiom-fleet-logo.png" width="640" height="184" decoding="async" alt="Axiom Fleet">
+        </a>
+        <button class="brand-mark-mini" id="sidebarBrandMini" type="button" aria-label="Expand sidebar" title="Expand sidebar (Ctrl+B)">AF</button>
+        <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" type="button" title="Collapse sidebar (Ctrl+B)" aria-label="Collapse sidebar">
+          <svg class="collapse-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <path d="M9 3v18"/>
+            <path class="collapse-arrow" d="m14 9-3 3 3 3"/>
+          </svg>
+        </button>
       </div>
-      <div class="sidebar-scroll">
-        <div class="nav-section">Operations</div>
-        <button class="nav-item active" data-page="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Overview</span></button>
-        <button class="nav-item" data-page="duties"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg><span>Duties board</span></button>
-        <button class="nav-item" data-page="planning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h17"/><path d="m7 15 4-5 3 2 5-7"/><circle cx="7" cy="15" r="1"/><circle cx="11" cy="10" r="1"/><circle cx="14" cy="12" r="1"/><circle cx="19" cy="5" r="1"/></svg><span>Route planning</span></button>
-        <button class="nav-item" data-page="bookings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h3M8 17h6"/></svg><span>Bookings</span></button>
-        <button class="nav-item" data-page="billing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 3h16v18l-3-2-3 2-3-2-3 2-4-2V3Z"/><path d="M8 8h8M8 12h8M8 16h4"/></svg><span>Billing &amp; receipts</span></button>
-        <div class="nav-section">Fleet control</div>
-        <button class="nav-item" data-page="fleet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c.5-3.2 2.2-5 5.5-5s5 1.8 5.5 5M16 11a3 3 0 1 0 0-6M16 15c2.8 0 4.3 1.7 4.7 4.5"/></svg><span>Drivers &amp; vehicles</span></button>
-        <button class="nav-item" data-page="masters"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/><path d="M7 4v4M17 10v4M11 16v4"/></svg><span>Masters</span></button>
+      <div class="workspace-switcher" id="workspaceSwitcher" title="Active workspace: Default Tenant">
+        <span class="workspace-label">Workspace</span>
+        <div class="workspace-name"><span><i class="workspace-dot"></i> <span id="workspaceName">Workspace</span></span><svg class="workspace-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></div>
+      </div>
+      <div class="sidebar-scroll" id="sidebarScroll">
+        <!-- Operations Accordion -->
+        <div class="nav-accordion-group" data-section="operations">
+          <button class="nav-section nav-section-header" type="button" aria-expanded="true" aria-controls="section-items-operations">
+            <span class="nav-section-label">Operations</span>
+            <span class="nav-section-count">5</span>
+            <svg class="nav-accordion-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="nav-section-items" id="section-items-operations">
+            <div class="nav-section-items-inner">
+              <button class="nav-item active" data-page="overview" data-tooltip="Operations overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Overview</span></button>
+              <button class="nav-item" data-page="duties" data-tooltip="Duties board"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg><span>Duties board</span></button>
+              <button class="nav-item" data-page="planning" data-tooltip="Route planning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h17"/><path d="m7 15 4-5 3 2 5-7"/><circle cx="7" cy="15" r="1"/><circle cx="11" cy="10" r="1"/><circle cx="14" cy="12" r="1"/><circle cx="19" cy="5" r="1"/></svg><span>Route planning</span></button>
+              <button class="nav-item" data-page="bookings" data-tooltip="Bookings inbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h3M8 17h6"/></svg><span>Bookings</span></button>
+              <button class="nav-item" data-page="billing" data-tooltip="Billing &amp; receipts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 3h16v18l-3-2-3 2-3-2-3 2-4-2V3Z"/><path d="M8 8h8M8 12h8M8 16h4"/></svg><span>Billing &amp; receipts</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fleet Control Accordion -->
+        <div class="nav-accordion-group" data-section="fleet">
+          <button class="nav-section nav-section-header" type="button" aria-expanded="true" aria-controls="section-items-fleet">
+            <span class="nav-section-label">Fleet control</span>
+            <span class="nav-section-count">2</span>
+            <svg class="nav-accordion-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="nav-section-items" id="section-items-fleet">
+            <div class="nav-section-items-inner">
+              <button class="nav-item" data-page="fleet" data-tooltip="Drivers &amp; vehicles"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c.5-3.2 2.2-5 5.5-5s5 1.8 5.5 5M16 11a3 3 0 1 0 0-6M16 15c2.8 0 4.3 1.7 4.7 4.5"/></svg><span>Drivers &amp; vehicles</span></button>
+              <button class="nav-item" data-page="masters" data-tooltip="Masters &amp; setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/><path d="M7 4v4M17 10v4M11 16v4"/></svg><span>Masters</span></button>
+            </div>
+          </div>
+        </div>
+
         <button class="nav-more" id="advancedNavToggle" type="button" aria-expanded="false" aria-controls="advanced-nav"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/><circle cx="11" cy="18" r="1.5" fill="currentColor"/></svg>More tools</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
         <div id="advanced-nav" class="advanced-nav" hidden>
-        <button class="nav-item" data-page="customers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM16 3.2a4 4 0 0 1 0 7.7M17 15h1a4 4 0 0 1 4 4v2"/></svg><span>Customers &amp; pricing</span></button>
-        <div class="nav-section">Intelligence</div>
-        <button class="nav-item" data-page="reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h17"/><path d="m7 15 3-4 3 2 5-7"/><path d="M18 6h2v2"/></svg><span>Reports</span></button>
-        <button class="nav-item" data-page="phase3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 14 9l6 1-5 4 1 6-4-3-4 3 1-6-5-4 6-1 2-6Z"/><path d="M12 7v4M12 15h.01"/></svg><span>Axiom intelligence</span></button>
-        <button class="nav-item" data-page="finance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5M8 17h3"/><circle cx="17" cy="16" r="2"/></svg><span>Finance controls</span></button>
-        <button class="nav-item" data-page="network"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="m8.5 10.5 7-3M8.5 13.5l7 3"/></svg><span>Network &amp; partners</span></button>
-        <button class="nav-item" data-page="safety"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 20 6v5c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6l8-3Z"/><path d="M12 8v5M12 17h.01"/></svg><span>Safety centre</span></button>
-        <div class="nav-section">Governance</div>
-        <button class="nav-item" data-page="admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20V7"/><path d="M2 20h21"/></svg><span>Admin health</span></button>
-        <button class="nav-item" data-page="security"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 20 6v5c0 5-3.3 8.2-8 10-4.7-1.8-8-5-8-10V6l8-3Z"/><path d="m9 12 2 2 4-4"/></svg><span>Security &amp; privacy</span></button>
-        <div class="nav-section">Preview surfaces</div>
-        <button class="nav-item" data-page="driver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 5h4M11 19h2"/></svg><span>Driver app mode</span></button>
-        <button class="nav-item" data-page="passenger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3"/><path d="M5 21c.7-4.1 3-6 7-6s6.3 1.9 7 6M4 4h3M17 4h3M3 12h3M18 12h3"/></svg><span>Passenger view</span></button>
-        <button class="nav-item" data-page="enterprise"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 21V5l8-3 8 3v16M8 9h1M15 9h1M8 13h1M15 13h1M8 17h1M15 17h1M3 21h18"/></svg><span>Enterprise controls</span></button>
-        <button class="nav-item" data-page="parity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="11" cy="18" r="1.5"/></svg><span>Parity center</span></button>
-        <button class="nav-item" data-page="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="m19.4 15 .1.1a2 2 0 1 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.2a2 2 0 1 1-4 0v-.2a2 2 0 0 0-3.4-1.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A2 2 0 0 0 3.7 11H3.5a2 2 0 1 1 0-4h.2a2 2 0 0 0 1.4-3.4L5 3.5a2 2 0 1 1 2.8-2.8l.1.1A2 2 0 0 0 11.3 2h.2a2 2 0 1 1 4 0v.2a2 2 0 0 0 3.4 1.4l.1-.1A2 2 0 1 1 21.8 6l-.1.1a2 2 0 0 0 1.4 3.4h.2a2 2 0 1 1 0 4h-.2a2 2 0 0 0-1.4 3.4Z" transform="scale(.82) translate(2.6 2.6)"/></svg><span>Settings</span></button>
+          <div class="nav-accordion-group" data-section="commercial">
+            <div class="nav-section-items" id="section-items-commercial">
+              <div class="nav-section-items-inner">
+                <button class="nav-item" data-page="customers" data-tooltip="Customers &amp; pricing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM16 3.2a4 4 0 0 1 0 7.7M17 15h1a4 4 0 0 1 4 4v2"/></svg><span>Customers &amp; pricing</span></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav-accordion-group" data-section="intelligence">
+            <button class="nav-section nav-section-header" type="button" aria-expanded="true" aria-controls="section-items-intelligence">
+              <span class="nav-section-label">Intelligence</span>
+              <span class="nav-section-count">5</span>
+              <svg class="nav-accordion-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="nav-section-items" id="section-items-intelligence">
+              <div class="nav-section-items-inner">
+                <button class="nav-item" data-page="reports" data-tooltip="Reports &amp; analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h17"/><path d="m7 15 3-4 3 2 5-7"/><path d="M18 6h2v2"/></svg><span>Reports</span></button>
+                <button class="nav-item" data-page="phase3" data-tooltip="Axiom intelligence"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 14 9l6 1-5 4 1 6-4-3-4 3 1-6-5-4 6-1 2-6Z"/><path d="M12 7v4M12 15h.01"/></svg><span>Axiom intelligence</span></button>
+                <button class="nav-item" data-page="finance" data-tooltip="Finance controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5M8 17h3"/><circle cx="17" cy="16" r="2"/></svg><span>Finance controls</span></button>
+                <button class="nav-item" data-page="network" data-tooltip="Network &amp; partners"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="m8.5 10.5 7-3M8.5 13.5l7 3"/></svg><span>Network &amp; partners</span></button>
+                <button class="nav-item" data-page="safety" data-tooltip="Safety centre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 20 6v5c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6l8-3Z"/><path d="M12 8v5M12 17h.01"/></svg><span>Safety centre</span></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav-accordion-group" data-section="governance">
+            <button class="nav-section nav-section-header" type="button" aria-expanded="true" aria-controls="section-items-governance">
+              <span class="nav-section-label">Governance</span>
+              <span class="nav-section-count">2</span>
+              <svg class="nav-accordion-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="nav-section-items" id="section-items-governance">
+              <div class="nav-section-items-inner">
+                <button class="nav-item" data-page="admin" data-tooltip="Admin health"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20V7"/><path d="M2 20h21"/></svg><span>Admin health</span></button>
+                <button class="nav-item" data-page="security" data-tooltip="Security &amp; privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 20 6v5c0 5-3.3 8.2-8 10-4.7-1.8-8-5-8-10V6l8-3Z"/><path d="m9 12 2 2 4-4"/></svg><span>Security &amp; privacy</span></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav-accordion-group" data-section="previews">
+            <button class="nav-section nav-section-header" type="button" aria-expanded="true" aria-controls="section-items-previews">
+              <span class="nav-section-label">Preview surfaces</span>
+              <span class="nav-section-count">5</span>
+              <svg class="nav-accordion-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="nav-section-items" id="section-items-previews">
+              <div class="nav-section-items-inner">
+                <button class="nav-item" data-page="driver" data-tooltip="Driver app mode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 5h4M11 19h2"/></svg><span>Driver app mode</span></button>
+                <button class="nav-item" data-page="passenger" data-tooltip="Passenger view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3"/><path d="M5 21c.7-4.1 3-6 7-6s6.3 1.9 7 6M4 4h3M17 4h3M3 12h3M18 12h3"/></svg><span>Passenger view</span></button>
+                <button class="nav-item" data-page="enterprise" data-tooltip="Enterprise controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 21V5l8-3 8 3v16M8 9h1M15 9h1M8 13h1M15 13h1M8 17h1M15 17h1M3 21h18"/></svg><span>Enterprise controls</span></button>
+                <button class="nav-item" data-page="parity" data-tooltip="Parity center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="11" cy="18" r="1.5"/></svg><span>Parity center</span></button>
+                <button class="nav-item" data-page="settings" data-tooltip="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="m19.4 15 .1.1a2 2 0 1 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.2a2 2 0 1 1-4 0v-.2a2 2 0 0 0-3.4-1.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A2 2 0 0 0 3.7 11H3.5a2 2 0 1 1 0-4h.2a2 2 0 0 0 1.4-3.4L5 3.5a2 2 0 1 1 2.8-2.8l.1.1A2 2 0 0 0 11.3 2h.2a2 2 0 1 1 4 0v.2a2 2 0 0 0 3.4 1.4l.1-.1A2 2 0 1 1 21.8 6l-.1.1a2 2 0 0 0 1.4 3.4h.2a2 2 0 1 1 0 4h-.2a2 2 0 0 0-1.4 3.4Z" transform="scale(.82) translate(2.6 2.6)"/></svg><span>Settings</span></button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="sidebar-bottom">
@@ -1144,6 +1630,7 @@
     <main class="main">
       <header class="topbar">
         <button class="mobile-menu" id="mobileMenu" aria-label="Open navigation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <button class="desktop-sidebar-toggle" id="desktopSidebarToggle" type="button" title="Toggle sidebar (Ctrl+B)" aria-label="Toggle sidebar width"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path class="topbar-collapse-arrow" d="m14 9-3 3 3 3"/></svg></button>
         <div class="topbar-title"><div class="crumb"><span id="roleCrumb">Workspace console</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg><span id="branchCrumb">Tenant region</span></div><h2 id="topbarTitle">Operations overview</h2></div>
         <label class="global-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="globalSearch" placeholder="Search duties, drivers, invoices…" autocomplete="off"/><span class="keycap">⌘ K</span></label>
         <div class="topbar-spacer"></div>
@@ -1155,6 +1642,7 @@
       <div id="content" class="content"></div>
     </main>
   </div>
+  <div id="sidebarFloatingTooltip" class="sidebar-floating-tooltip" hidden></div>
 
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
   <aside class="drawer" id="drawer" aria-hidden="true"></aside>
@@ -1357,21 +1845,226 @@
           }
         }
       });
+      document.querySelectorAll('.nav-accordion-group').forEach(group => {
+        const items = group.querySelectorAll('.nav-item');
+        let visibleCount = 0;
+        items.forEach(subItem => { if (!subItem.hidden) visibleCount++; });
+        group.hidden = Boolean(allowed && visibleCount === 0);
+        const countBadge = group.querySelector('.nav-section-count');
+        if (countBadge) countBadge.textContent = visibleCount;
+      });
       document.querySelectorAll('.nav-section').forEach(section => {
-        let hasVisibleItem = false; let next = section.nextElementSibling;
-        while (next && !next.classList.contains('nav-section') && !next.classList.contains('sidebar-bottom')) {
-          if (next.classList.contains('nav-item') && !next.hidden) hasVisibleItem = true;
-          if (next.id === 'advanced-nav') {
-            next.querySelectorAll('.nav-item').forEach(subItem => { if (!subItem.hidden) hasVisibleItem = true; });
+        const group = section.closest('.nav-accordion-group');
+        if (!group) {
+          let hasVisibleItem = false; let next = section.nextElementSibling;
+          while (next && !next.classList.contains('nav-section') && !next.classList.contains('sidebar-bottom')) {
+            if (next.classList.contains('nav-item') && !next.hidden) hasVisibleItem = true;
+            if (next.id === 'advanced-nav') {
+              next.querySelectorAll('.nav-item').forEach(subItem => { if (!subItem.hidden) hasVisibleItem = true; });
+            }
+            next = next.nextElementSibling;
           }
-          next = next.nextElementSibling;
+          section.hidden = Boolean(allowed && !hasVisibleItem);
         }
-        section.hidden = Boolean(allowed && !hasVisibleItem);
-        if (role === 'corporate' && section.textContent.includes('Operations')) {
-          section.textContent = 'Corporate Travel Desk';
-        } else if (role !== 'corporate' && section.textContent.includes('Corporate Travel Desk')) {
-          section.textContent = 'Operations';
+        const labelEl = section.querySelector('.nav-section-label');
+        if (labelEl) {
+          if (role === 'corporate' && labelEl.textContent.includes('Operations')) {
+            labelEl.textContent = 'Corporate Travel Desk';
+          } else if (role !== 'corporate' && labelEl.textContent.includes('Corporate Travel Desk')) {
+            labelEl.textContent = 'Operations';
+          }
+        } else {
+          if (role === 'corporate' && section.textContent.includes('Operations')) {
+            section.textContent = 'Corporate Travel Desk';
+          } else if (role !== 'corporate' && section.textContent.includes('Corporate Travel Desk')) {
+            section.textContent = 'Operations';
+          }
         }
+      });
+      ensureActivePageSectionExpanded();
+    }
+
+    function ensureActivePageSectionExpanded() {
+      const activeItem = document.querySelector(`.nav-item[data-page="${state.page}"]`);
+      if (!activeItem) return;
+      const group = activeItem.closest('.nav-accordion-group');
+      if (group && group.classList.contains('collapsed')) {
+        group.classList.remove('collapsed');
+        const header = group.querySelector('.nav-section-header');
+        if (header) header.setAttribute('aria-expanded', 'true');
+        try {
+          const saved = JSON.parse(localStorage.getItem('axiom_nav_accordions') || '{}');
+          saved[group.dataset.section] = true;
+          localStorage.setItem('axiom_nav_accordions', JSON.stringify(saved));
+        } catch (_) {}
+      }
+    }
+
+    function initSidebarAccordions() {
+      let saved = {};
+      try {
+        saved = JSON.parse(localStorage.getItem('axiom_nav_accordions') || '{}');
+      } catch (_) {}
+
+      document.querySelectorAll('.nav-accordion-group').forEach(group => {
+        const section = group.dataset.section;
+        const header = group.querySelector('.nav-section-header');
+        if (!header) return;
+
+        if (saved[section] === false) {
+          group.classList.add('collapsed');
+          header.setAttribute('aria-expanded', 'false');
+        } else {
+          group.classList.remove('collapsed');
+          header.setAttribute('aria-expanded', 'true');
+        }
+
+        header.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const sidebar = document.getElementById('sidebar');
+          if (sidebar && sidebar.classList.contains('collapsed')) {
+            toggleSidebarCollapse(false);
+            group.classList.remove('collapsed');
+            header.setAttribute('aria-expanded', 'true');
+            saved[section] = true;
+            try { localStorage.setItem('axiom_nav_accordions', JSON.stringify(saved)); } catch (_) {}
+            return;
+          }
+
+          const isCollapsed = group.classList.toggle('collapsed');
+          header.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+          saved[section] = !isCollapsed;
+          try {
+            localStorage.setItem('axiom_nav_accordions', JSON.stringify(saved));
+          } catch (_) {}
+        });
+      });
+    }
+
+    let sidebarCollapsed = false;
+
+    function applySidebarCollapse(collapsed) {
+      const sidebar = document.getElementById('sidebar');
+      const appShell = document.getElementById('app-shell');
+      const collapseBtn = document.getElementById('sidebarCollapseBtn');
+      const desktopToggle = document.getElementById('desktopSidebarToggle');
+      const brandMini = document.getElementById('sidebarBrandMini');
+
+      if (!sidebar) return;
+
+      if (collapsed) {
+        sidebar.classList.add('collapsed');
+        appShell?.classList.add('sidebar-collapsed');
+        if (collapseBtn) {
+          collapseBtn.title = 'Expand sidebar (Ctrl+B)';
+          collapseBtn.setAttribute('aria-label', 'Expand sidebar');
+          collapseBtn.setAttribute('aria-expanded', 'false');
+        }
+        if (brandMini) {
+          brandMini.title = 'Expand sidebar (Ctrl+B)';
+          brandMini.setAttribute('aria-label', 'Expand sidebar');
+          brandMini.setAttribute('aria-expanded', 'false');
+        }
+        if (desktopToggle) {
+          desktopToggle.classList.add('active');
+          desktopToggle.title = 'Expand sidebar (Ctrl+B)';
+          desktopToggle.setAttribute('aria-label', 'Expand sidebar');
+          desktopToggle.setAttribute('aria-expanded', 'false');
+        }
+      } else {
+        sidebar.classList.remove('collapsed');
+        appShell?.classList.remove('sidebar-collapsed');
+        if (collapseBtn) {
+          collapseBtn.title = 'Collapse sidebar (Ctrl+B)';
+          collapseBtn.setAttribute('aria-label', 'Collapse sidebar');
+          collapseBtn.setAttribute('aria-expanded', 'true');
+        }
+        if (brandMini) {
+          brandMini.title = 'Collapse sidebar (Ctrl+B)';
+          brandMini.setAttribute('aria-label', 'Collapse sidebar');
+          brandMini.setAttribute('aria-expanded', 'true');
+        }
+        if (desktopToggle) {
+          desktopToggle.classList.remove('active');
+          desktopToggle.title = 'Collapse sidebar (Ctrl+B)';
+          desktopToggle.setAttribute('aria-label', 'Collapse sidebar');
+          desktopToggle.setAttribute('aria-expanded', 'true');
+        }
+      }
+    }
+
+    function toggleSidebarCollapse(force) {
+      const sidebar = document.getElementById('sidebar');
+      const willCollapse = typeof force === 'boolean' ? force : !sidebar?.classList.contains('collapsed');
+      sidebarCollapsed = willCollapse;
+      applySidebarCollapse(sidebarCollapsed);
+      try {
+        localStorage.setItem('axiom_sidebar_collapsed', String(sidebarCollapsed));
+      } catch (_) {}
+    }
+
+    function initSidebarCollapse() {
+      try {
+        sidebarCollapsed = localStorage.getItem('axiom_sidebar_collapsed') === 'true';
+      } catch (_) {}
+
+      applySidebarCollapse(sidebarCollapsed);
+
+      document.getElementById('sidebarCollapseBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleSidebarCollapse();
+      });
+      document.getElementById('desktopSidebarToggle')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleSidebarCollapse();
+      });
+      document.getElementById('sidebarBrandMini')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleSidebarCollapse(false);
+      });
+      document.getElementById('sidebarBrandBar')?.addEventListener('click', (e) => {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar?.classList.contains('collapsed') && !e.target.closest('#sidebarCollapseBtn') && !e.target.closest('#sidebarBrandMini')) {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleSidebarCollapse(false);
+        }
+      });
+
+      initSidebarTooltips();
+    }
+
+    function initSidebarTooltips() {
+      const tooltip = document.getElementById('sidebarFloatingTooltip');
+      if (!tooltip) return;
+
+      document.querySelectorAll('.sidebar .nav-item').forEach(item => {
+        item.addEventListener('mouseenter', () => {
+          const sidebar = document.getElementById('sidebar');
+          if (!sidebar || !sidebar.classList.contains('collapsed') || window.innerWidth <= 880) return;
+
+          const title = item.dataset.tooltip || item.querySelector('span')?.textContent || '';
+          const group = item.closest('.nav-accordion-group');
+          const groupTitle = group?.querySelector('.nav-section-label')?.textContent || '';
+
+          tooltip.innerHTML = `<span>${esc(title)}</span>${groupTitle ? `<span class="tooltip-badge">${esc(groupTitle)}</span>` : ''}`;
+
+          const rect = item.getBoundingClientRect();
+          tooltip.style.left = `${rect.right + 10}px`;
+          tooltip.style.top = `${rect.top + rect.height / 2}px`;
+          tooltip.hidden = false;
+          requestAnimationFrame(() => tooltip.classList.add('visible'));
+        });
+
+        item.addEventListener('mouseleave', () => {
+          tooltip.classList.remove('visible');
+          tooltip.hidden = true;
+        });
       });
     }
 
@@ -1562,7 +2255,7 @@
       const readiness = state.liveData?.checklist || state.liveData?.onboarding || {};
       const dutySummary = Object.entries(overview.duties || {}).map(([key, value]) => `${key}: ${value}`).join(' · ') || 'No duty status records';
       const actionCenter = renderActionCenter();
-      return `${pageHead(`Axiom Fleet · ${userTimeZone()}`, workspaceGreeting(), 'Tenant-scoped records, next decisions and field readiness without invented operational values.',`${button(icon('refresh')+'Refresh','','data-action="refresh"')}${button(icon('plus')+'New booking','primary','data-action="new-booking"')}`)}${actionCenter}<div class="grid kpis"><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Requests awaiting decision</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${requested}</div><div class="kpi-foot">Booking requests in the tenant queue</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Open duties</span><span class="kpi-icon teal">${icon('route')}</span></div><div class="kpi-value">${active}</div><div class="kpi-foot">${esc(dutySummary)}</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Vehicles available</span><span class="kpi-icon">${icon('car')}</span></div><div class="kpi-value">${availableVehicles}</div><div class="kpi-foot">${vehicles.length} vehicle record${vehicles.length === 1 ? '' : 's'} returned</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Setup readiness</span><span class="kpi-icon">${icon('check')}</span></div><div class="kpi-value">${readiness.total ? `${readiness.completed || 0}/${readiness.total}` : '—'}</div><div class="kpi-foot">${drivers.length} driver record${drivers.length === 1 ? '' : 's'} · tenant-scoped</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead('Next actions','Use the canonical queue to move from request to duty.')}<div class="card-body"><div class="attention-list"><div class="attention-item"><span class="attention-icon amber">${icon('clock')}</span><div class="attention-main"><strong>${requested ? `${requested} booking request${requested === 1 ? '' : 's'} need a decision` : 'No booking requests need a decision'}</strong><span>${requested ? 'Open the bookings inbox to approve, reject or inspect the request context.' : 'The tenant request queue is clear in the current API response.'}</span></div>${button('Open','small soft','data-page-link="bookings"')}</div><div class="attention-item"><span class="attention-icon teal">${icon('route')}</span><div class="attention-main"><strong>${active ? `${active} duty${active === 1 ? '' : 'ies'} remain open` : 'No open duties returned'}</strong><span>Dispatch and GPS state remain tenant-backed; no live movement is inferred from an empty response.</span></div>${button('Open','small soft','data-page-link="duties"')}</div></div></div></section><section class="card section-card">${cardHead('Data posture','The home page reflects the current organization session.')}<div class="card-body"><div class="grid two-col"><div class="mini-stat"><span>Bookings</span><strong>${bookings.length}</strong><small>returned by tenant API</small></div><div class="mini-stat"><span>Duties</span><strong>${duties.length}</strong><small>returned by tenant API</small></div><div class="mini-stat"><span>Drivers</span><strong>${drivers.length}</strong><small>readiness records</small></div><div class="mini-stat"><span>Vehicles</span><strong>${vehicles.length}</strong><small>registration records</small></div></div></div></section></div>`;
+      return `${pageHead(`Axiom Fleet · ${userTimeZone()}`, workspaceGreeting(), 'Tenant-scoped records, next decisions and field readiness without invented operational values.',`${button(icon('refresh')+'Refresh','','data-action="refresh"')}${button(icon('plus')+'New booking','primary','data-action="new-booking"')}`)}${actionCenter}<div class="grid kpis"><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Requests awaiting decision</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${requested}</div><div class="kpi-foot">Booking requests in the tenant queue</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Open duties</span><span class="kpi-icon teal">${icon('route')}</span></div><div class="kpi-value">${active}</div><div class="kpi-foot">${esc(dutySummary)}</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Vehicles available</span><span class="kpi-icon">${icon('car')}</span></div><div class="kpi-value">${availableVehicles}</div><div class="kpi-foot">${vehicles.length} vehicle record${vehicles.length === 1 ? '' : 's'} returned</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Setup readiness</span><span class="kpi-icon">${icon('check')}</span></div><div class="kpi-value">${readiness.total ? `${readiness.completed || 0}/${readiness.total}` : '—'}</div><div class="kpi-foot">${drivers.length} driver record${drivers.length === 1 ? '' : 's'} · tenant-scoped</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead('Next actions','Use the canonical queue to move from request to duty.')}<div class="card-body"><div class="attention-list"><div class="attention-item"><span class="attention-icon amber">${icon('clock')}</span><div class="attention-main"><strong>${requested ? `${requested} booking request${requested === 1 ? '' : 's'} need a decision` : 'No booking requests need a decision'}</strong><span>${requested ? 'Open the bookings inbox to approve, reject or inspect the request context.' : 'The tenant request queue is clear in the current API response.'}</span></div>${button('Open','small soft','data-page-link="bookings"')}</div><div class="attention-item"><span class="attention-icon teal">${icon('route')}</span><div class="attention-main"><strong>${active ? `${active} duty${active === 1 ? '' : 'ies'} remain open` : 'No open duties returned'}</strong><span>Dispatch and GPS state remain tenant-backed; no live movement is inferred from an empty response.</span></div>${button('Open','small soft','data-page-link="duties"')}</div></div></div></section><section class="card section-card">${cardHead('Data posture','The home page reflects the current organization session.')}<div class="card-body"><div class="stat-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px"><div class="mini-stat"><span>Bookings</span><strong>${bookings.length}</strong><small>returned by tenant API</small></div><div class="mini-stat"><span>Duties</span><strong>${duties.length}</strong><small>returned by tenant API</small></div><div class="mini-stat"><span>Drivers</span><strong>${drivers.length}</strong><small>readiness records</small></div><div class="mini-stat"><span>Vehicles</span><strong>${vehicles.length}</strong><small>registration records</small></div></div></div></section></div>`;
     }
 
     function renderDuties() {
@@ -1662,7 +2355,7 @@
       const sustainability = data['/api/phase3/sustainability/summary']?.item || data['/api/phase3/sustainability/summary'] || {};
       const avoided = sustainability.total_avoided_emissions_kg;
       const intensity = sustainability.emissions_per_passenger_km_g;
-      return `${pageHead('Axiom intelligence · tenant evidence','Predictive, quality &amp; sustainability','Advanced signals remain advisory: review the evidence, preserve the baseline and keep every action permissioned.',`${button(icon('refresh')+'Refresh','','data-action="refresh"')}${button(icon('spark')+'Run simulation','primary','data-phase3-action="evaluate-alerts"')}`)}<div class="grid kpis"><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Predictive alerts</span><span class="kpi-icon amber">${icon('warning')}</span></div><div class="kpi-value">${alerts.length}</div><div class="kpi-foot">Tenant alert records</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Variance findings</span><span class="kpi-icon">${icon('route')}</span></div><div class="kpi-value">${findings.length}</div><div class="kpi-foot">Explainable exception records</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Vendor quality</span><span class="kpi-icon teal">${icon('check')}</span></div><div class="kpi-value">${quality.score == null ? '—' : esc(String(quality.score))}</div><div class="kpi-foot">Graph score from tenant evidence</div></div><div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Avoided emissions</span><span class="kpi-icon purple">${icon('spark')}</span></div><div class="kpi-value">${avoided == null ? '—' : esc(String(avoided))}</div><div class="kpi-foot">total_avoided_emissions_kg · source response</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead('Sustainability report v2','Regionalized emissions evidence and passenger-distance intensity.',`${button('Open report','small soft','data-phase3-action="generate-sustainability-report" data-report="sustainability-report-v2"')}`)}<div class="card-body"><div class="grid two-col"><div class="mini-stat"><span>emissions_per_passenger_km_g</span><strong>${intensity == null ? '—' : esc(String(intensity))}</strong><small>Returned only when calculated.</small></div><div class="mini-stat"><span>Charging stations</span><strong>${(data['/api/phase3/sustainability/charging-stations']?.items || []).length}</strong><small>Tenant station records.</small></div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:13px">${button(icon('car')+'Evaluate EV duty','small soft','data-phase3-action="evaluate-ev"')}${button(icon('plus')+'Add charging station','small soft','data-phase3-action="add-charging-station"')}</div></div></section><section class="card section-card">${cardHead('Simulation &amp; variance','Advisory outputs never mutate canonical duties automatically.')}<div class="table-wrap"><table><thead><tr><th>Record</th><th>Status</th><th>Created</th></tr></thead><tbody>${simulations.concat(findings).slice(0,8).map(item => `<tr><td><span class="primary">${esc(item.id || item.simulation_id || 'Evidence record')}</span><span class="secondary">${esc(item.type || item.kind || 'Tenant intelligence')}</span></td><td>${status(item.status || 'review', item.status === 'completed' ? 'green' : 'amber')}</td><td>${item.created_at ? esc(formatDateTime(item.created_at)) : '—'}</td></tr>`).join('') || tenantTableEmpty('No intelligence records returned','Run a permitted analysis after source duties, vehicles and regional settings are available.')}</tbody></table></div></section></div>`;
+      return `${pageHead('Axiom intelligence · tenant evidence','Predictive, quality &amp; sustainability','Advanced signals remain advisory: review the evidence, preserve the baseline and keep every action permissioned.',`${button(icon('refresh')+'Refresh','','data-action="refresh"')}${button(icon('spark')+'Run simulation','primary','data-phase3-action="evaluate-alerts"')}`)}<div class="grid kpis"><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Predictive alerts</span><span class="kpi-icon amber">${icon('warning')}</span></div><div class="kpi-value">${alerts.length}</div><div class="kpi-foot">Tenant alert records</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Variance findings</span><span class="kpi-icon">${icon('route')}</span></div><div class="kpi-value">${findings.length}</div><div class="kpi-foot">Explainable exception records</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Vendor quality</span><span class="kpi-icon teal">${icon('check')}</span></div><div class="kpi-value">${quality.score == null ? '—' : esc(String(quality.score))}</div><div class="kpi-foot">Graph score from tenant evidence</div></div><div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Avoided emissions</span><span class="kpi-icon purple">${icon('spark')}</span></div><div class="kpi-value">${avoided == null ? '—' : esc(String(avoided))}</div><div class="kpi-foot">total_avoided_emissions_kg · source response</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead('Sustainability report v2','Regionalized emissions evidence and passenger-distance intensity.',`${button('Open report','small soft','data-phase3-action="generate-sustainability-report" data-report="sustainability-report-v2"')}`)}<div class="card-body"><div class="stat-grid"><div class="mini-stat"><span>emissions_per_passenger_km_g</span><strong>${intensity == null ? '—' : esc(String(intensity))}</strong><small>Returned only when calculated.</small></div><div class="mini-stat"><span>Charging stations</span><strong>${(data['/api/phase3/sustainability/charging-stations']?.items || []).length}</strong><small>Tenant station records.</small></div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:13px">${button(icon('car')+'Evaluate EV duty','small soft','data-phase3-action="evaluate-ev"')}${button(icon('plus')+'Add charging station','small soft','data-phase3-action="add-charging-station"')}</div></div></section><section class="card section-card">${cardHead('Simulation &amp; variance','Advisory outputs never mutate canonical duties automatically.')}<div class="table-wrap"><table><thead><tr><th>Record</th><th>Status</th><th>Created</th></tr></thead><tbody>${simulations.concat(findings).slice(0,8).map(item => `<tr><td><span class="primary">${esc(item.id || item.simulation_id || 'Evidence record')}</span><span class="secondary">${esc(item.type || item.kind || 'Tenant intelligence')}</span></td><td>${status(item.status || 'review', item.status === 'completed' ? 'green' : 'amber')}</td><td>${item.created_at ? esc(formatDateTime(item.created_at)) : '—'}</td></tr>`).join('') || tenantTableEmpty('No intelligence records returned','Run a permitted analysis after source duties, vehicles and regional settings are available.')}</tbody></table></div></section></div>`;
     }
 
     function renderDriver() {
@@ -1687,7 +2380,7 @@
       const reconciliations = followon['/api/finance/reconciliations']?.items || [];
       const payrollExports = followon['/api/payroll/exports']?.items || [];
       const payrollCompliance = followon['/api/payroll/compliance']?.items || [];
-      return `${pageHead('Finance · evidence workflow','Finance controls','Supplier bills, payouts, payroll, fuel and reconciliation stay permissioned, source-linked and reviewable.',`${button(icon('spark')+'Workflow center','','data-action="workflow-center"')}${button(icon('wallet')+'Payment request','','data-action="finance-payment-request"')}${button(icon('upload')+'Import data','','data-action="finance-import"')}${button(icon('upload')+'Upload bill','primary','data-bill-action="open-upload"')}`)}<div class="grid kpis"><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">AI bill reading queue</span><span class="kpi-icon amber">${icon('file')}</span></div><div class="kpi-value">${intelligenceItems.length}</div><div class="kpi-foot">Candidate evidence records</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Supplier bills</span><span class="kpi-icon">${icon('file')}</span></div><div class="kpi-value">${bills.length}</div><div class="kpi-foot">Canonical finance records</div></div><div class="card kpi red"><div class="kpi-top"><span class="kpi-label">Open finance requests</span><span class="kpi-icon red">${icon('wallet')}</span></div><div class="kpi-value">${paymentRequests.filter(item => !['paid','rejected'].includes(item.status)).length + advances.filter(item => !['paid','rejected'].includes(item.status)).length}</div><div class="kpi-foot">Supplier requests and advances</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Driver payouts</span><span class="kpi-icon teal">${icon('check')}</span></div><div class="kpi-value">${driverPayouts.length || payouts.length}</div><div class="kpi-foot">Maker-checker queue</div></div></div><section class="card section-card">${cardHead('Bill intelligence review','Upload one bill, review extracted facts and post only after a permitted human confirms.',`${button('Refresh','small soft','data-bill-action="refresh"')}`)}<div class="table-wrap"><table><thead><tr><th>Bill / vendor</th><th>Status</th><th>Confidence</th><th></th></tr></thead><tbody>${intelligenceItems.length ? intelligenceItems.slice(0,12).map(item => `<tr><td><span class="primary">${esc(item.filename || item.id)}</span><span class="secondary">${esc(item.extracted?.vendor_name || item.source || 'Evidence record')}</span></td><td>${status(item.status || 'needs_review', item.status === 'posted' ? 'green' : 'amber')}</td><td>${esc(String(item.confidence || item.extracted?.confidence || '—'))}</td><td><button class="btn small soft" data-bill-action="review" data-bill-id="${esc(item.id)}">${item.status === 'posted' ? 'View' : 'Review'}</button></td></tr>`).join('') : tenantTableEmpty('No bill intelligence records returned','Upload the first supplier, fuel, maintenance, toll or insurance bill to start review.',button(icon('upload')+'Upload bill','small soft','data-bill-action="open-upload"'))}</tbody></table></div></section><div class="grid two-col" style="margin-top:16px"><section class="card section-card">${cardHead('Supplier & fleet finance','Payment requests, advances and driver payout approvals remain separate from disbursement.',`${button('Reconcile','small soft','data-action="finance-reconciliation"')}${button('Request payment','small soft','data-action="finance-payment-request"')}`)}<div class="finance-rail"><div><span>Payment requests</span><strong>${paymentRequests.length}</strong></div><div><span>Advances</span><strong>${advances.length}</strong></div><div><span>Fuel stations</span><strong>${fuelStations.length}</strong></div><div><span>Reconciliations</span><strong>${reconciliations.length}</strong></div></div><div class="attention-list" style="margin-top:12px"><div class="attention-item"><span class="attention-icon blue">${icon('check')}</span><div class="attention-main"><strong>Mock bank boundary</strong><span>Execution and payroll files are ready for a real bank adapter at release.</span></div>${status(payrollExports.length ? 'Ready' : 'No export','green')}</div></div></section><section class="card section-card">${cardHead('Fuel efficiency & payroll','Station price history, vehicle efficiency and statutory deductions are new first-class evidence.',`${button('Add station','small soft','data-action="fuel-station"')}${button('Open report builder','small soft','data-action="report-builder"')}`)}<div class="mini-stat"><span>Fuel analytics</span><strong>${fuelStations.length ? 'Station history ready' : 'Awaiting station master'}</strong><small>${fuelStations.length ? fuelPrices.length + ' price point' + (fuelPrices.length === 1 ? '' : 's') + ' · variance and km/litre analysis can be refreshed.' : 'Add a station and price history to begin.'}</small></div><div class="mini-stat" style="margin-top:12px"><span>Payroll exports</span><strong>${payrollExports.length}</strong><small>Bank CSV only · ${payrollCompliance.length} statutory report${payrollCompliance.length === 1 ? '' : 's'} · Tally/Tally Prime intentionally skipped.</small></div></section></div>`;
+      return `${pageHead('Finance · evidence workflow','Finance controls','Supplier bills, payouts, payroll, fuel and reconciliation stay permissioned, source-linked and reviewable.',`${button(icon('spark')+'Workflow center','','data-action="workflow-center"')}${button(icon('wallet')+'Payment request','','data-action="finance-payment-request"')}${button(icon('upload')+'Import data','','data-action="finance-import"')}${button(icon('upload')+'Upload bill','primary','data-bill-action="open-upload"')}`)}<div class="grid kpis"><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">AI bill reading queue</span><span class="kpi-icon amber">${icon('file')}</span></div><div class="kpi-value">${intelligenceItems.length}</div><div class="kpi-foot">Candidate evidence records</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Supplier bills</span><span class="kpi-icon">${icon('file')}</span></div><div class="kpi-value">${bills.length}</div><div class="kpi-foot">Canonical finance records</div></div><div class="card kpi red"><div class="kpi-top"><span class="kpi-label">Open finance requests</span><span class="kpi-icon red">${icon('wallet')}</span></div><div class="kpi-value">${paymentRequests.filter(item => !['paid','rejected'].includes(item.status)).length + advances.filter(item => !['paid','rejected'].includes(item.status)).length}</div><div class="kpi-foot">Supplier requests and advances</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Driver payouts</span><span class="kpi-icon teal">${icon('check')}</span></div><div class="kpi-value">${driverPayouts.length || payouts.length}</div><div class="kpi-foot">Maker-checker queue</div></div></div><section class="card section-card">${cardHead('Bill intelligence review','Upload one bill, review extracted facts and post only after a permitted human confirms.',`${button('Refresh','small soft','data-bill-action="refresh"')}`)}<div class="table-wrap"><table><thead><tr><th>Bill / vendor</th><th>Status</th><th>Confidence</th><th></th></tr></thead><tbody>${intelligenceItems.length ? intelligenceItems.slice(0,12).map(item => `<tr><td><span class="primary">${esc(item.filename || item.id)}</span><span class="secondary">${esc(item.extracted?.vendor_name || item.source || 'Evidence record')}</span></td><td>${status(item.status || 'needs_review', item.status === 'posted' ? 'green' : 'amber')}</td><td>${esc(String(item.confidence || item.extracted?.confidence || '—'))}</td><td><button class="btn small soft" data-bill-action="review" data-bill-id="${esc(item.id)}">${item.status === 'posted' ? 'View' : 'Review'}</button></td></tr>`).join('') : tenantTableEmpty('No bill intelligence records returned','Upload the first supplier, fuel, maintenance, toll or insurance bill to start review.',button(icon('upload')+'Upload bill','small soft','data-bill-action="open-upload"'))}</tbody></table></div></section><div class="grid two-col" style="margin-top:16px"><section class="card section-card">${cardHead('Supplier & fleet finance','Payment requests, advances and driver payout approvals remain separate from disbursement.',`${button('Reconcile','small soft','data-action="finance-reconciliation"')}${button('Request payment','small soft','data-action="finance-payment-request"')}`)}<div class="finance-rail"><div><span>Payment requests</span><strong>${paymentRequests.length}</strong></div><div><span>Advances</span><strong>${advances.length}</strong></div><div><span>Fuel stations</span><strong>${fuelStations.length}</strong></div><div><span>Reconciliations</span><strong>${reconciliations.length}</strong></div></div><div class="attention-list" style="margin-top:12px"><div class="attention-item"><span class="attention-icon blue">${icon('check')}</span><div class="attention-main"><strong>Mock bank boundary</strong><span>Execution and payroll files are ready for a real bank adapter at release.</span></div>${status(payrollExports.length ? 'Ready' : 'No export','green')}</div></div></section><section class="card section-card">${cardHead('Fuel efficiency & payroll','Station price history, vehicle efficiency and statutory deductions are new first-class evidence.',`${button('Add station','small soft','data-action="fuel-station"')}${button('Open report builder','small soft','data-action="report-builder"')}`)}<div class="card-body"><div class="mini-stat"><span>Fuel analytics</span><strong>${fuelStations.length ? 'Station history ready' : 'Awaiting station master'}</strong><small>${fuelStations.length ? fuelPrices.length + ' price point' + (fuelPrices.length === 1 ? '' : 's') + ' · variance and km/litre analysis can be refreshed.' : 'Add a station and price history to begin.'}</small></div><div class="mini-stat" style="margin-top:12px"><span>Payroll exports</span><strong>${payrollExports.length}</strong><small>Bank CSV only · ${payrollCompliance.length} statutory report${payrollCompliance.length === 1 ? '' : 's'} · Tally/Tally Prime intentionally skipped.</small></div></div></section></div>`;
     }
 
     function renderNetwork() {
@@ -1776,7 +2469,7 @@
         <div class="grid kpis"><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Companies &amp; groups</span><span class="kpi-icon">${icon('building')}</span></div><div class="kpi-value">${companies.length + groups.length}</div><div class="kpi-foot">Sister-company hierarchy ready</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Booking controls</span><span class="kpi-icon teal">${icon('route')}</span></div><div class="kpi-value">${controls.length}</div><div class="kpi-foot">Half-hour and allotment rules</div></div><div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Passenger links</span><span class="kpi-icon purple">${icon('link')}</span></div><div class="kpi-value">${portals.length}</div><div class="kpi-foot">Invite-only request portals</div></div><div class="card kpi orange"><div class="kpi-top"><span class="kpi-label">Evidence queue</span><span class="kpi-icon orange">${icon('shield')}</span></div><div class="kpi-value">${allotmentExceptions.length + jobs.length}</div><div class="kpi-foot">Exceptions and closure jobs</div></div></div>
         <div class="grid two-col"><section class="card section-card">${cardHead('Setup path','Five small decisions, one immutable tenant audit trail',button('Run wizard','small soft','data-action="enterprise-setup-wizard"'))}<div class="card-body"><div class="enterprise-steps">${[['1','Company scope',companies.length>0,'enterprise-setup-wizard'],['2','Copy pricing',controls.length>0,'enterprise-copy-pricing'],['3','Entitlements',plans.length>0,'enterprise-plan'],['4','Passenger access',portals.length>0,'enterprise-portal-link'],['5','Duty evidence',jobs.length>0 || allotmentExceptions.length>0,'enterprise-calendar']].map(([n,label,done,action])=>`<button class="enterprise-step" data-action="${action}"><span class="step-number ${done?'done':''}">${done?'✓':n}</span><span><strong>${label}</strong><small>${done?'Configured and tenant-scoped':'Open guided step →'}</small></span></button>`).join('')}</div></div></section><section class="card section-card">${cardHead('Production boundaries','Adapters are explicit until provider credentials are configured')}<div class="card-body"><div class="toggle-row"><span>Company-email / SSO</span>${status(sso.length && sso.some(item => item.status === 'active') ? 'Configured' : 'Mock adapter','amber')}</div><div class="toggle-row"><span>Signed object storage</span>${status('Mock storage','amber')}</div><div class="toggle-row"><span>48-hour closure worker</span>${status(jobs.length ? 'Queued jobs' : 'Ready for worker','purple')}</div><div class="toggle-row"><span>SMS duty closure</span>${status('Token boundary ready','green')}</div><button class="btn small soft" style="margin-top:12px" data-action="enterprise-sso">Configure company login</button></div></section></div>
         <div class="grid two-col" style="margin-top:16px"><section class="card section-card">${cardHead('Company, supplier &amp; sister hierarchy','A single scope for billing, passenger access and allotment',button('Add company','small soft','data-action="enterprise-setup-wizard"'))}<div class="table-wrap"><table><thead><tr><th>Company / group</th><th>Type</th><th>Created</th></tr></thead><tbody>${recordRows([...companies,...groups], 'No company hierarchy yet')}</tbody></table></div></section><section class="card section-card">${cardHead('Billing-item &amp; entitlement masters','Mandatory line items and plan usage stay versionable',button('Add master','small soft','data-action="enterprise-master"'))}<div class="table-wrap"><table><thead><tr><th>Master</th><th>Code / status</th><th>Created</th></tr></thead><tbody>${recordRows([...billingItems,...plans,...customFields], 'No enterprise masters yet')}</tbody></table></div></section></div>
-        <section class="card section-card" style="margin-top:16px">${cardHead('Booking, allotment &amp; duty evidence','ETA-aware controls, multi-supplier responses, OTPs, signed media and closure adjustments',`${button('Copy pricing','small soft','data-action="enterprise-copy-pricing"')}${button('Run availability','small soft','data-action="enterprise-calendar"')}`)}<div class="grid three-col"><div class="mini-stat"><span>Temporary allotment</span><strong>${controls.some(item => item.temporary_allotment) ? 'Enabled' : 'Not set'}</strong><small>Customer-controlled requests remain invite-only.</small></div><div class="mini-stat"><span>Overage model</span><strong>${controls.length ? 'Half-hour' : 'Not set'}</strong><small>Quote API calculates extra time and distance.</small></div><div class="mini-stat"><span>Closure evidence</span><strong>${jobs.length || allotmentExceptions.length ? `${jobs.length + allotmentExceptions.length} queued` : 'Clear'}</strong><small>Combined slip and adjustment endpoints are ready.</small></div></div></section>`;
+        <section class="card section-card" style="margin-top:16px">${cardHead('Booking, allotment &amp; duty evidence','ETA-aware controls, multi-supplier responses, OTPs, signed media and closure adjustments',`${button('Copy pricing','small soft','data-action="enterprise-copy-pricing"')}${button('Run availability','small soft','data-action="enterprise-calendar"')}`)}<div class="card-body"><div class="grid three-col"><div class="mini-stat"><span>Temporary allotment</span><strong>${controls.some(item => item.temporary_allotment) ? 'Enabled' : 'Not set'}</strong><small>Customer-controlled requests remain invite-only.</small></div><div class="mini-stat"><span>Overage model</span><strong>${controls.length ? 'Half-hour' : 'Not set'}</strong><small>Quote API calculates extra time and distance.</small></div><div class="mini-stat"><span>Closure evidence</span><strong>${jobs.length || allotmentExceptions.length ? `${jobs.length + allotmentExceptions.length} queued` : 'Clear'}</strong><small>Combined slip and adjustment endpoints are ready.</small></div></div></div></section>`;
     }
 
     function renderParityCenter() {
@@ -2050,16 +2743,28 @@
 
     function openVehicleModal(existing) {
       const v = existing || {};
-      const compliance = vehicleCompliance(v);
+      const compliance = (v && typeof v.compliance === 'object' && v.compliance) ? v.compliance : {};
       const value = key => esc(v[key] ?? compliance[key] ?? '');
-      const modal = modalShell(existing ? 'Edit vehicle' : 'Add vehicle', existing ? 'Keep the vehicle record current so allotment and compliance checks stay reliable.' : 'Create one complete vehicle record instead of collecting the same details during dispatch.', `<div class="form-grid"><div class="master-form-callout">${icon('shield')}<span>Only workspace staff can change master data. Registration numbers are unique per tenant and every save is audit logged.</span></div><div class="master-form-section">Identity</div><div class="form-group"><label>Registration number <span class="required">*</span></label><input class="form-input" data-vehicle-field="registration_number" value="${value('registration_number')}" placeholder="KA 01 AB 1234" required></div><div class="form-group"><label>Vehicle group <span class="required">*</span></label><select class="form-input" data-vehicle-field="vehicle_group"><option value="">Select group</option><option ${value('vehicle_group') === 'Standard sedan' ? 'selected' : ''}>Standard sedan</option><option ${value('vehicle_group') === 'Executive sedan' ? 'selected' : ''}>Executive sedan</option><option ${value('vehicle_group') === 'SUV' ? 'selected' : ''}>SUV</option><option ${value('vehicle_group') === 'Tempo Traveller' ? 'selected' : ''}>Tempo Traveller</option></select></div><div class="form-group"><label>Make and model <span class="required">*</span></label><input class="form-input" data-vehicle-field="make_model" value="${value('make_model')}" placeholder="Maruti Suzuki Dzire" required></div><div class="form-group"><label>Vehicle type</label><select class="form-input" data-vehicle-field="vehicle_type"><option value="">Select vehicle type</option><option value="sedan" ${value('vehicle_type') === 'sedan' ? 'selected' : ''}>Sedan</option><option value="suv" ${value('vehicle_type') === 'suv' ? 'selected' : ''}>SUV</option><option value="hatchback" ${value('vehicle_type') === 'hatchback' ? 'selected' : ''}>Hatchback</option><option value="tempo_traveller" ${value('vehicle_type') === 'tempo_traveller' ? 'selected' : ''}>Tempo Traveller</option></select></div><div class="form-group"><label>Manufacture year</label><input class="form-input" data-vehicle-field="year" type="number" min="1980" max="2100" value="${value('year')}" placeholder="2024"></div><div class="form-group"><label>City</label><input class="form-input" data-vehicle-field="city" value="${value('city')}" placeholder="Operating city"></div><div class="form-group"><label>Branch / dispatch centre</label><input class="form-input" data-vehicle-field="branch_name" value="${value('branch_name')}" placeholder="Bengaluru · Whitefield"></div><div class="master-form-section">Capacity and operations</div><div class="form-group"><label>Fuel type</label><select class="form-input" data-vehicle-field="fuel_type"><option value="">Select fuel type</option><option ${value('fuel_type') === 'petrol' ? 'selected' : ''}>Petrol</option><option ${value('fuel_type') === 'diesel' ? 'selected' : ''}>Diesel</option><option ${value('fuel_type') === 'CNG' ? 'selected' : ''}>CNG</option><option ${value('fuel_type') === 'EV' ? 'selected' : ''}>EV</option></select></div><div class="form-group"><label>Seating capacity</label><input class="form-input" data-vehicle-field="seating_capacity" type="number" min="1" max="60" value="${value('seating_capacity')}" placeholder="Seats" required></div><div class="form-group"><label>Luggage capacity</label><input class="form-input" data-vehicle-field="luggage_capacity" type="number" min="0" max="30" value="${value('luggage_capacity')}" placeholder="Bags"></div><div class="form-group"><label>Ownership</label><select class="form-input" data-vehicle-field="ownership_type"><option value="">Select ownership</option><option ${value('ownership_type') === 'owned' ? 'selected' : ''}>Owned</option><option ${value('ownership_type') === 'leased' ? 'selected' : ''}>Leased</option><option ${value('ownership_type') === 'supplier' ? 'selected' : ''}>Supplier</option></select></div><div class="form-group"><label>GPS / telematics provider</label><input class="form-input" data-vehicle-field="gps_provider" value="${value('gps_provider')}" placeholder="Optional provider"></div><div class="form-group"><label>Status</label><select class="form-input" data-vehicle-field="status"><option value="available" ${['available','active'].includes(v.status || 'available') ? 'selected' : ''}>Available</option><option value="on_duty" ${v.status === 'on_duty' ? 'selected' : ''}>On duty</option><option value="inactive" ${['inactive','archived'].includes(v.status) ? 'selected' : ''}>Inactive</option></select></div><div class="master-form-section">Compliance dates</div><div class="vehicle-doc-grid"><div class="form-group"><label>RC expiry</label><input class="form-input" data-vehicle-field="rc_expiry" type="date" value="${value('rc_expiry')}"></div><div class="form-group"><label>Insurance expiry</label><input class="form-input" data-vehicle-field="insurance_expiry" type="date" value="${value('insurance_expiry')}"></div><div class="form-group"><label>PUC expiry</label><input class="form-input" data-vehicle-field="puc_expiry" type="date" value="${value('puc_expiry')}"></div></div><div class="form-group full"><label>Internal notes</label><textarea class="form-input" data-vehicle-field="notes" placeholder="Access instructions, special equipment or operational notes…">${value('notes')}</textarea></div></div>`, `${button('Cancel','','data-close-modal')}${button(existing ? 'Save vehicle' : 'Create vehicle','primary','data-submit-vehicle')}`);
+      const defaultGroup = value('vehicle_group') || 'Standard sedan';
+      const defaultType = value('vehicle_type') || 'sedan';
+      const defaultFuel = value('fuel_type') || 'petrol';
+      const defaultSeats = value('seating_capacity') || '4';
+      const defaultOwnership = value('ownership_type') || 'owned';
+      const modal = modalShell(existing ? 'Edit vehicle' : 'Add vehicle', existing ? 'Keep the vehicle record current so allotment and compliance checks stay reliable.' : 'Create one complete vehicle record instead of collecting the same details during dispatch.', `<div class="form-grid"><div class="master-form-callout">${icon('shield')}<span>Only workspace staff can change master data. Registration numbers are unique per tenant and every save is audit logged.</span></div><div class="master-form-section">Identity</div><div class="form-group"><label>Registration number <span class="required">*</span></label><input class="form-input" data-vehicle-field="registration_number" value="${value('registration_number')}" placeholder="KA 01 AB 1234" required></div><div class="form-group"><label>Vehicle group <span class="required">*</span></label><select class="form-input" data-vehicle-field="vehicle_group"><option value="Standard sedan" ${defaultGroup === 'Standard sedan' ? 'selected' : ''}>Standard sedan</option><option value="Executive sedan" ${defaultGroup === 'Executive sedan' ? 'selected' : ''}>Executive sedan</option><option value="SUV" ${defaultGroup === 'SUV' ? 'selected' : ''}>SUV</option><option value="Tempo Traveller" ${defaultGroup === 'Tempo Traveller' ? 'selected' : ''}>Tempo Traveller</option></select></div><div class="form-group"><label>Make and model <span class="required">*</span></label><input class="form-input" data-vehicle-field="make_model" value="${value('make_model')}" placeholder="Maruti Suzuki Dzire" required></div><div class="form-group"><label>Vehicle type</label><select class="form-input" data-vehicle-field="vehicle_type"><option value="sedan" ${defaultType === 'sedan' ? 'selected' : ''}>Sedan</option><option value="suv" ${defaultType === 'suv' ? 'selected' : ''}>SUV</option><option value="hatchback" ${defaultType === 'hatchback' ? 'selected' : ''}>Hatchback</option><option value="tempo_traveller" ${defaultType === 'tempo_traveller' ? 'selected' : ''}>Tempo Traveller</option></select></div><div class="form-group"><label>Manufacture year</label><input class="form-input" data-vehicle-field="year" type="number" min="1980" max="2100" value="${value('year')}" placeholder="2024"></div><div class="form-group"><label>City</label><input class="form-input" data-vehicle-field="city" value="${value('city')}" placeholder="Operating city"></div><div class="form-group"><label>Branch / dispatch centre</label><input class="form-input" data-vehicle-field="branch_name" value="${value('branch_name')}" placeholder="Bengaluru · Whitefield"></div><div class="master-form-section">Capacity and operations</div><div class="form-group"><label>Fuel type</label><select class="form-input" data-vehicle-field="fuel_type"><option value="petrol" ${defaultFuel === 'petrol' ? 'selected' : ''}>Petrol</option><option value="diesel" ${defaultFuel === 'diesel' ? 'selected' : ''}>Diesel</option><option value="CNG" ${defaultFuel === 'CNG' ? 'selected' : ''}>CNG</option><option value="EV" ${defaultFuel === 'EV' ? 'selected' : ''}>EV</option></select></div><div class="form-group"><label>Seating capacity</label><input class="form-input" data-vehicle-field="seating_capacity" type="number" min="1" max="60" value="${defaultSeats}" placeholder="Seats" required></div><div class="form-group"><label>Luggage capacity</label><input class="form-input" data-vehicle-field="luggage_capacity" type="number" min="0" max="30" value="${value('luggage_capacity')}" placeholder="Bags"></div><div class="form-group"><label>Ownership</label><select class="form-input" data-vehicle-field="ownership_type"><option value="owned" ${defaultOwnership === 'owned' ? 'selected' : ''}>Owned</option><option value="leased" ${defaultOwnership === 'leased' ? 'selected' : ''}>Leased</option><option value="supplier" ${defaultOwnership === 'supplier' ? 'selected' : ''}>Supplier</option></select></div><div class="form-group"><label>GPS / telematics provider</label><input class="form-input" data-vehicle-field="gps_provider" value="${value('gps_provider')}" placeholder="Optional provider"></div><div class="form-group"><label>Status</label><select class="form-input" data-vehicle-field="status"><option value="available" ${['available','active'].includes(v.status || 'available') ? 'selected' : ''}>Available</option><option value="on_duty" ${v.status === 'on_duty' ? 'selected' : ''}>On duty</option><option value="inactive" ${['inactive','archived'].includes(v.status) ? 'selected' : ''}>Inactive</option></select></div><div class="master-form-section">Compliance dates</div><div class="vehicle-doc-grid"><div class="form-group"><label>RC expiry</label><input class="form-input" data-vehicle-field="rc_expiry" type="date" value="${value('rc_expiry')}"></div><div class="form-group"><label>Insurance expiry</label><input class="form-input" data-vehicle-field="insurance_expiry" type="date" value="${value('insurance_expiry')}"></div><div class="form-group"><label>PUC expiry</label><input class="form-input" data-vehicle-field="puc_expiry" type="date" value="${value('puc_expiry')}"></div></div><div class="form-group full"><label>Internal notes</label><textarea class="form-input" data-vehicle-field="notes" placeholder="Access instructions, special equipment or operational notes…">${value('notes')}</textarea></div></div>`, `${button('Cancel','','data-close-modal')}${button(existing ? 'Save vehicle' : 'Create vehicle','primary','data-submit-vehicle')}`);
       modal.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', closeModal));
       modal.querySelector('[data-submit-vehicle]').addEventListener('click', async () => {
         const get = key => modal.querySelector(`[data-vehicle-field="${key}"]`)?.value.trim() || '';
-        const required = [['registration_number','registration number'],['vehicle_group','vehicle group'],['make_model','make and model'],['vehicle_type','vehicle type'],['fuel_type','fuel type'],['seating_capacity','seating capacity'],['ownership_type','ownership']].find(([key]) => !get(key));
-        if (required) return showToast('Complete the vehicle identity', `Add the ${required[1]} before saving.`);
-        const complianceBody = { fuel_type:get('fuel_type') || null, seating_capacity:get('seating_capacity') ? Number(get('seating_capacity')) : null, luggage_capacity:get('luggage_capacity') ? Number(get('luggage_capacity')) : null, ownership_type:get('ownership_type') || null, branch_name:get('branch_name'), gps_provider:get('gps_provider'), rc_expiry:get('rc_expiry'), insurance_expiry:get('insurance_expiry'), puc_expiry:get('puc_expiry'), notes:get('notes') };
-        const sharedBody = { registration_number:get('registration_number').toUpperCase(), vehicle_type:get('vehicle_type'), vehicle_group:get('vehicle_group'), make_model:get('make_model'), year:get('year') ? Number(get('year')) : null, city:get('city'), status:get('status') || 'available', compliance:complianceBody };
+        const reg = get('registration_number').toUpperCase();
+        if (!reg) return showToast('Registration number required', 'Add the vehicle registration number before saving.');
+        const makeModel = get('make_model');
+        if (!makeModel) return showToast('Make and model required', 'Add the vehicle make and model before saving.');
+        const vehicleGroup = get('vehicle_group') || 'Standard sedan';
+        const vehicleType = get('vehicle_type') || 'sedan';
+        const fuelType = get('fuel_type') || 'petrol';
+        const seatingCapacity = get('seating_capacity') ? Number(get('seating_capacity')) : 4;
+        const ownershipType = get('ownership_type') || 'owned';
+        const complianceBody = { fuel_type:fuelType, seating_capacity:seatingCapacity, luggage_capacity:get('luggage_capacity') ? Number(get('luggage_capacity')) : null, ownership_type:ownershipType, branch_name:get('branch_name'), gps_provider:get('gps_provider'), rc_expiry:get('rc_expiry'), insurance_expiry:get('insurance_expiry'), puc_expiry:get('puc_expiry'), notes:get('notes') };
+        const sharedBody = { registration_number:reg, vehicle_type:vehicleType, vehicle_group:vehicleGroup, make_model:makeModel, year:get('year') ? Number(get('year')) : null, city:get('city'), status:get('status') || 'available', compliance:complianceBody };
         const localBody = { ...sharedBody, ...complianceBody };
         const submit = modal.querySelector('[data-submit-vehicle]'); submit.disabled = true;
         try { const path = existing ? `/api/vehicles/${encodeURIComponent(existing.id)}` : '/api/vehicles'; await apiRequest(path, { method: existing ? 'PATCH' : 'POST', body: JSON.stringify(window.AxiomSupabaseAdapter?.enabled ? sharedBody : localBody) }); closeModal(); showToast(existing ? 'Vehicle updated' : 'Vehicle created', `${sharedBody.registration_number} is ready for the next assignment check.`); await hydrateOperationalData(); } catch (error) { submit.disabled = false; showToast('Vehicle could not be saved', error.message); }
@@ -2788,6 +3493,7 @@
       { label:'Open enterprise controls', detail:'Company hierarchy, passenger access, pricing and evidence', icon:'building', run:() => { state.page='enterprise'; render(); } },
       { label:'Open parity center', detail:'Passenger requests, route evidence, provider gates and finance automation', icon:'route', run:() => { state.page='parity'; render(); } },
       { label:'Open settings', detail:'Configure workspace policies and regional defaults', icon:'settings', run:() => { state.page='settings'; render(); } },
+      { label:'Toggle sidebar collapse', detail:'Collapse or expand the navigation rail (Ctrl+B / ⌘B)', icon:'layout', run:() => toggleSidebarCollapse() },
     ];
     function openCommandPalette() {
       const palette = document.getElementById('commandPalette'); const backdrop = document.getElementById('commandPaletteBackdrop'); if (!palette || !backdrop) return;
@@ -2982,8 +3688,15 @@
       return payload;
     }
 
+    function readStoredUser() {
+      try { return JSON.parse(localStorage.getItem('axiomfleet_user') || 'null'); } catch (_) { return null; }
+    }
+
     function applyCurrentUser(user) {
       currentUser = user;
+      if (user) {
+        try { localStorage.setItem('axiomfleet_user', JSON.stringify(user)); } catch (_) {}
+      }
       if (user?.role === 'driver') { state.page = 'driver'; advancedNavOpen = true; }
       else if (state.page === 'driver' || state.page === 'enterprise') state.page = 'overview';
       syncWorkspaceChrome();
@@ -2991,14 +3704,27 @@
 
     async function restoreSession() {
       if (currentUser) return true;
+      const stored = readStoredUser();
+      if (stored) applyCurrentUser(stored);
       try {
         const response = await apiRequest('/api/auth/me');
-        applyCurrentUser(response.user);
-        return true;
-      } catch (_) {
+        if (response?.user) {
+          applyCurrentUser(response.user);
+          return true;
+        }
+      } catch (err) {
+        const status = err?.status || err?.statusCode;
+        const msg = String(err?.message || '').toLowerCase();
+        if (status === 401 || msg.includes('unauthorized') || msg.includes('sign in required')) {
+          currentUser = null;
+          try { localStorage.removeItem('axiomfleet_user'); } catch (_) {}
+          return false;
+        }
+        if (stored) return true;
         currentUser = null;
         return false;
       }
+      return Boolean(currentUser);
     }
 
     function updateSignupRoleFields() {
@@ -3212,12 +3938,18 @@
     async function logout() {
       try { await apiRequest('/api/auth/logout', { method: 'POST' }); } catch (_) { /* still clear the local view */ }
       currentUser = null;
+      try {
+        localStorage.removeItem('axiomfleet_user');
+        localStorage.removeItem('axiomfleet_supabase_session');
+      } catch (_) {}
       closeDrawer();
       closeModal();
       showLogin();
       showToast('Signed out', 'Your workspace is locked until the next sign-in.');
     }
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/driver-sw.js').catch(() => {});
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/driver-sw.js').then(reg => { try { reg.update(); } catch (_) {} }).catch(() => {});
+    }
     async function initAuth() {
       const route = location.hash.replace('#', '');
       const query = new URLSearchParams(location.search);
@@ -3225,15 +3957,23 @@
       const feedbackToken = query.get('feedback_token');
       if (feedbackToken) await showFeedbackPublic(feedbackToken, false);
       else if (passengerToken) await showPassengerPortal(passengerToken, false);
-      else if (route === 'login') showLogin(false);
       else if (route === 'app') await showApp(false);
       else if (publicPageTemplates[route]) showPublicPage(route, false);
-      else showPublic(false);
+      else {
+        const hasSession = await restoreSession();
+        if (hasSession) {
+          await showApp(true);
+        } else if (route === 'login') {
+          showLogin(false);
+        } else {
+          showPublic(false);
+        }
+      }
     }
 
     document.querySelectorAll('[data-auth-mode]').forEach(el => el.addEventListener('click', () => setAuthMode(el.dataset.authMode)));
     document.getElementById('signup-role').addEventListener('change', updateSignupRoleFields);
-    document.querySelectorAll('[data-show-login]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); showLogin(); }));
+    document.querySelectorAll('[data-show-login]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); if (currentUser) showApp(true); else showLogin(); }));
     document.querySelectorAll('[data-show-public]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); showPublic(); }));
     document.querySelectorAll('[data-public-page]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); showPublicPage(el.dataset.publicPage); }));
     document.querySelectorAll('[data-public-home]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); showPublic(); }));
@@ -3245,10 +3985,16 @@
       const feedbackToken = query.get('feedback_token');
       if (feedbackToken) showFeedbackPublic(feedbackToken, false);
       else if (passengerToken) showPassengerPortal(passengerToken, false);
-      else if (route === 'login') showLogin(false);
+      else if (route === 'login') {
+        if (currentUser) showApp(true);
+        else showLogin(false);
+      }
       else if (route === 'app') showApp(false);
       else if (publicPageTemplates[route]) showPublicPage(route, false);
-      else if (route === 'home' || route === '') showPublic(false);
+      else if (route === 'home' || route === '') {
+        if (currentUser) showApp(true);
+        else showPublic(false);
+      }
     });
     document.getElementById('login-form').addEventListener('submit', async e => {
       e.preventDefault();
@@ -3331,7 +4077,16 @@
     });
 
     document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click',()=>{state.page=item.dataset.page;document.getElementById('sidebar').classList.remove('open');render();}));
-    document.getElementById('advancedNavToggle')?.addEventListener('click',()=>{advancedNavOpen=!advancedNavOpen;syncAdvancedNavigation();});
+    document.getElementById('advancedNavToggle')?.addEventListener('click', (e) => {
+      e?.preventDefault();
+      e?.stopPropagation();
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar && sidebar.classList.contains('collapsed')) {
+        toggleSidebarCollapse(false);
+      }
+      advancedNavOpen = !advancedNavOpen;
+      syncAdvancedNavigation();
+    });
     document.getElementById('drawerBackdrop').addEventListener('click',closeDrawer); document.getElementById('modalBackdrop').addEventListener('click',e=>{if(e.target.id==='modalBackdrop')closeModal();});
     document.getElementById('mobileMenu').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('open'));
     document.getElementById('notificationsBtn').addEventListener('click',()=>{ const alerts=state.extendedData['/api/alerts']?.items || []; const open=alerts.filter(alert=>alert.status==='open').length; showToast('Notifications', open ? `${open} tenant alert${open===1?'':'s'} need acknowledgement.` : 'No open tenant notifications.'); });
@@ -3349,7 +4104,13 @@
       if (e.key==='ArrowUp') { e.preventDefault(); state.commandIndex=Math.max(0,state.commandIndex-1); renderCommandResults(e.target.value); }
       if (e.key==='Enter' && matches[state.commandIndex]) { e.preventDefault(); const command=matches[state.commandIndex]; closeCommandPalette(); command.run(); }
     });
-    document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openCommandPalette();}if(e.key==='Escape'){closeCommandPalette();closeDrawer();closeModal();}});
+    document.addEventListener('keydown',e=>{
+      if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openCommandPalette();}
+      if((e.metaKey||e.ctrlKey)&&(e.key.toLowerCase()==='b'||e.key==='[')){e.preventDefault();toggleSidebarCollapse();}
+      if(e.key==='Escape'){closeCommandPalette();closeDrawer();closeModal();}
+    });
+    initSidebarAccordions();
+    initSidebarCollapse();
     initAuth();
   </script>
 </body>

@@ -3,9 +3,9 @@ import gzip
 import re, struct, sys, json, urllib.request
 from bs4 import BeautifulSoup
 
-ROOT = Path('/home/user/fleetline-mvp')
+ROOT = Path(__file__).resolve().parent
 HTML_PATH = ROOT / 'index.html'
-html = HTML_PATH.read_text()
+html = HTML_PATH.read_text(encoding='utf-8')
 soup = BeautifulSoup(html, 'html.parser')
 checks = []
 def check(name, ok, detail=''):
@@ -32,7 +32,7 @@ try:
     with urllib.request.urlopen(request, timeout=5) as response:
         compressed = response.read()
         decoded = gzip.decompress(compressed)
-        check('gzip delivery for HTML', response.headers.get('Content-Encoding') == 'gzip' and decoded == html.encode(),
+        check('gzip delivery for HTML', response.headers.get('Content-Encoding') == 'gzip' and (decoded == html.encode('utf-8') or decoded == HTML_PATH.read_bytes()),
               f'encoding={response.headers.get("Content-Encoding")}, compressed={len(compressed)}, raw={len(decoded)}')
 except Exception as e:
     check('gzip delivery for HTML', False, repr(e))

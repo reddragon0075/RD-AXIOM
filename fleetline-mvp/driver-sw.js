@@ -1,4 +1,4 @@
-const CACHE_NAME = 'axiom-fleet-driver-shell-v2';
+const CACHE_NAME = 'axiom-fleet-driver-shell-v3';
 const SHELL = ['/', '/axiom-fleet-logo.png', '/driver-manifest.json'];
 
 self.addEventListener('install', event => {
@@ -25,6 +25,15 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(fetch(event.request));
+    return;
+  }
+  // Network-first for navigation and HTML documents so code updates are immediate
+  if (event.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => cacheSuccessful(event.request, response))
+        .catch(() => caches.match(event.request).then(cached => cached || caches.match('/')))
+    );
     return;
   }
   event.respondWith(caches.match(event.request).then(cached => {

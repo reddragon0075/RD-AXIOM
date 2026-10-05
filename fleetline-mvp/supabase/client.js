@@ -59,27 +59,31 @@
     return payload;
   }
   async function authRequest(path, options = {}, token = '') {
+    const headers = { ...authHeaders(token), ...(options.headers || {}) };
+    if (options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
     const response = await fetchWithTimeout(`${baseUrl}/auth/v1${path}`, {
       ...options,
-      headers: { ...authHeaders(token), ...(options.headers || {}) }
+      headers
     });
     return parseResponse(response);
   }
   async function dataRequest(path, options = {}, token = '') {
+    const headers = {
+      ...authHeaders(token),
+      Prefer: 'return=representation',
+      ...(options.headers || {})
+    };
+    if (options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
     const response = await fetchWithTimeout(`${baseUrl}/rest/v1/${path}`, {
       ...options,
-      headers: {
-        ...authHeaders(token),
-        Prefer: 'return=representation',
-        ...(options.headers || {})
-      }
+      headers
     });
     return parseResponse(response);
   }
   async function rpc(name, body, token) {
     const response = await fetchWithTimeout(`${baseUrl}/rest/v1/rpc/${name}`, {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
     return parseResponse(response);
@@ -87,7 +91,7 @@
   async function edgeFunction(name, body, token) {
     const response = await fetchWithTimeout(`${baseUrl}/functions/v1/${name}`, {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
     return parseResponse(response);
@@ -110,9 +114,12 @@
       };
       writeSession(next);
       return next;
-    } catch (_) {
-      writeSession(null);
-      return null;
+    } catch (err) {
+      if (String(err?.message || '').toLowerCase().includes('invalid') || String(err?.message || '').toLowerCase().includes('grant')) {
+        writeSession(null);
+        return null;
+      }
+      return session;
     }
   }
   function roleFrom(profile, membership) {
@@ -1367,6 +1374,52 @@
       await persistCorporateApproval(item.id, evaluation);
       return { ok: true, item, corporate_evaluation: evaluation };
     }
+    const singleResourceMatch = route.match(/^\/api\/(customers|drivers|vehicles|branches|suppliers|price-books|documents|employees|policies)\/([^/]+)$/);
+    if (singleResourceMatch) {
+      const pluralRoute = `/api/${singleResourceMatch[1]}`;
+      const singleTable = resourceMap[pluralRoute];
+      const entityId = singleResourceMatch[2];
+      if (singleTable) {
+        const organizationId = await activeOrganizationId();
+        if (method === 'PATCH') {
+          let patchBody = { ...body };
+          if (singleTable === 'vehicles') {
+            const {
+              id: _id, created_at: _cat, updated_at: _uat, organization_id: _oid,
+              registration_number, vehicle_type, vehicle_group, make_model, year, city, status,
+              compliance,
+              ...rest
+            } = patchBody;
+            patchBody = {};
+            if (registration_number !== undefined) patchBody.registration_number = registration_number;
+            if (vehicle_type !== undefined) patchBody.vehicle_type = vehicle_type;
+            if (vehicle_group !== undefined) patchBody.vehicle_group = vehicle_group;
+            if (make_model !== undefined) patchBody.make_model = make_model;
+            if (year !== undefined) patchBody.year = year ? Number(year) : null;
+            if (city !== undefined) patchBody.city = city;
+            if (status !== undefined) patchBody.status = status;
+            if (compliance !== undefined || Object.keys(rest).length > 0) {
+              patchBody.compliance = { ...(compliance || {}), ...rest };
+            }
+          }
+          const rows = await dataRequest(`${singleTable}?id=eq.${encodeURIComponent(entityId)}&organization_id=eq.${encodeURIComponent(organizationId)}`, {
+            method: 'PATCH',
+            body: JSON.stringify(patchBody)
+          }, session.access_token);
+          return { ok: true, item: Array.isArray(rows) ? rows[0] : rows };
+        }
+        if (method === 'GET') {
+          const rows = await dataRequest(`${singleTable}?id=eq.${encodeURIComponent(entityId)}&organization_id=eq.${encodeURIComponent(organizationId)}&select=*`, {}, session.access_token);
+          return { ok: true, item: rows[0] || null };
+        }
+        if (method === 'DELETE') {
+          await dataRequest(`${singleTable}?id=eq.${encodeURIComponent(entityId)}&organization_id=eq.${encodeURIComponent(organizationId)}`, {
+            method: 'DELETE'
+          }, session.access_token);
+          return { ok: true, deleted: true };
+        }
+      }
+    }
     const table = resourceMap[route];
     if (!table) throw new Error(`Supabase adapter route not implemented: ${method} ${path}`);
     if (method === 'GET') {
@@ -1381,6 +1434,28 @@
       writeBody.payload = { ...(writeBody.payload || {}), recipient: writeBody.recipient, variables: writeBody.variables || {} };
       delete writeBody.recipient;
       delete writeBody.variables;
+    }
+    if (table === 'vehicles') {
+      const {
+        id: _id, created_at: _cat, updated_at: _uat,
+        registration_number, vehicle_type = 'sedan', vehicle_group, make_model, year, city = '', status = 'active',
+        compliance,
+        ...rest
+      } = writeBody;
+      const combinedCompliance = { ...(compliance || {}), ...rest };
+      const normalizedVehicle = {
+        organization_id: writeBody.organization_id,
+        registration_number,
+        vehicle_type,
+        vehicle_group: vehicle_group || null,
+        make_model: make_model || null,
+        year: year ? Number(year) : null,
+        city: city || '',
+        status: status || 'active',
+        compliance: combinedCompliance
+      };
+      const rows = await dataRequest(table, { method, body: JSON.stringify(normalizedVehicle) }, session.access_token);
+      return { ok: true, item: Array.isArray(rows) ? rows[0] : rows };
     }
     const rows = await dataRequest(table, { method, body: JSON.stringify(writeBody) }, session.access_token);
     return { ok: true, item: Array.isArray(rows) ? rows[0] : rows };

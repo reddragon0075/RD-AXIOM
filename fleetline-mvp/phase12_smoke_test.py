@@ -7,6 +7,7 @@ project, but this verifies the same tenant, permission and idempotency edges in
 SQLite.
 """
 from __future__ import annotations
+import sys
 
 import json
 import os
@@ -65,7 +66,7 @@ def main():
     port = free_port(); base = f"http://127.0.0.1:{port}"
     with tempfile.TemporaryDirectory(prefix="axiom-phase12-") as temp_dir:
         env = os.environ.copy(); env.update({"AXIOM_TEST_FIXTURES": "1", "PORT": str(port), "AXIOM_DB_PATH": str(Path(temp_dir) / "phase12.sqlite3")})
-        process = subprocess.Popen(["python3", "server.py"], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        process = subprocess.Popen([sys.executable, "server.py"], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         try:
             probe = client(base)
             for _ in range(80):

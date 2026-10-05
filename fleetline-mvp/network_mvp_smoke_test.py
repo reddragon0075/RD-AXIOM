@@ -2,6 +2,7 @@
 """Closed Axiom Network MVP contract test against the local SQLite backend."""
 
 from __future__ import annotations
+import sys
 
 import json
 import os
@@ -70,7 +71,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="axiom-network-") as temp_dir:
         env = os.environ.copy()
         env.update({"AXIOM_TEST_FIXTURES": "1", "PORT": str(port), "AXIOM_DB_PATH": str(Path(temp_dir) / "network.sqlite3")})
-        process = subprocess.Popen(["python3", "server.py"], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        process = subprocess.Popen([sys.executable, "server.py"], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         try:
             for _ in range(60):
                 try:

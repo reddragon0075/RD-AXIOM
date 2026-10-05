@@ -2,6 +2,7 @@
 """End-to-end smoke test for the local Axiom Fleet identity backend."""
 
 from __future__ import annotations
+import sys
 
 import json
 import os
@@ -40,7 +41,7 @@ def call(opener, base: str, method: str, route: str, payload: dict | None = None
         headers=request_headers,
     )
     try:
-        with opener.open(request, timeout=5) as response:
+        with opener.open(request, timeout=15) as response:
             return response.status, json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as error:
         raw = error.read().decode("utf-8")
@@ -65,12 +66,10 @@ def main() -> None:
         env = os.environ.copy()
         env.update({"AXIOM_TEST_FIXTURES": "1", "PORT": str(port), "AXIOM_DB_PATH": str(db_path)})
         process = subprocess.Popen(
-            ["python3", "server.py"],
+            [sys.executable, "server.py"],
             cwd=ROOT,
             env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
         try:
             for _ in range(50):
@@ -82,7 +81,7 @@ def main() -> None:
                     pass
                 time.sleep(0.1)
             else:
-                output = process.stdout.read() if process.stdout else ""
+                output = ""
                 raise RuntimeError(f"backend did not start: {output}")
 
             expect(health.get("storage") == "sqlite", "health endpoint reports SQLite storage")

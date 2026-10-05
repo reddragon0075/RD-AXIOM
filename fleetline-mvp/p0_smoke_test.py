@@ -10,6 +10,7 @@ import json
 import os
 import socket
 import subprocess
+import sys
 import tempfile
 import time
 import urllib.error
@@ -72,7 +73,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="axiom-p0-") as temp_dir:
         env = os.environ.copy()
         env.update({"AXIOM_TEST_FIXTURES": "1", "PORT": str(port), "AXIOM_DB_PATH": str(Path(temp_dir) / "p0.sqlite3")})
-        process = subprocess.Popen(["python3", "server.py"], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        process = subprocess.Popen([sys.executable, "server.py"], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         try:
             for _ in range(80):
                 try:

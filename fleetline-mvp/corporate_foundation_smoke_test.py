@@ -2,6 +2,7 @@
 """Focused smoke coverage for the corporate account/policy foundation."""
 
 from __future__ import annotations
+import sys
 
 import os
 import subprocess
@@ -21,7 +22,7 @@ def main() -> None:
     with tempfile.TemporaryDirectory(prefix="axiom-fleet-corporate-") as temp_dir:
         env = os.environ.copy()
         env.update({"PORT": str(port), "AXIOM_DB_PATH": str(Path(temp_dir) / "axiom.sqlite3"), "AXIOM_ALLOW_DEMO_ACCOUNT": "0"})
-        process = subprocess.Popen(["python3", "server.py"], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        process = subprocess.Popen([sys.executable, "server.py"], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         try:
             for _ in range(60):
                 try:
@@ -64,14 +65,18 @@ def main() -> None:
             status, person = call(client, base, "POST", "/api/corporate/users", {"email": "booker@example.com", "full_name": "Booker", "account_type": "booker_passenger", "visibility": {"cities": ["Bengaluru"]}, "status": "invited", "idempotency_key": "corp-person-1"})
             expect(status == 201 and person["item"]["account_type"] == "booker_passenger", "booker/passenger entitlement is explicit")
 
-            status, blocked = call(client, base, "POST", "/api/corporate/policies/evaluate", {"action": "book", "scheduled_at": "2026-09-30T14:00:00Z", "city": "Bengaluru", "duty_type_code": "LOCAL"})
+            now_dt = datetime.now(timezone.utc)
+            past_scheduled = (now_dt - timedelta(days=1)).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+            future_scheduled = (now_dt + timedelta(days=2)).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+            status, blocked = call(client, base, "POST", "/api/corporate/policies/evaluate", {"action": "book", "scheduled_at": past_scheduled, "city": "Bengaluru", "duty_type_code": "LOCAL"})
             expect(status == 200 and blocked["outcome"] == "block" and any(item["code"] == "booking_lead_time_sla" for item in blocked["reasons"]), "booking lead-time evaluation returns an explainable block")
-            status, out_of_scope = call(client, base, "POST", "/api/bookings", {"passenger_name": "Out of scope passenger", "scheduled_at": "2026-10-02T14:00:00Z", "pickup": {"label": "Mumbai"}, "dropoff": {"label": "Airport"}, "duty_type": "LOCAL"})
+            status, out_of_scope = call(client, base, "POST", "/api/bookings", {"passenger_name": "Out of scope passenger", "scheduled_at": future_scheduled, "pickup": {"label": "Mumbai"}, "dropoff": {"label": "Airport"}, "duty_type": "LOCAL"})
             expect(status == 409 and out_of_scope["code"] == "corporate_policy_blocked" and any(item["code"] == "account_scope_denied" for item in out_of_scope["details"]["reasons"]), "booking write enforces corporate visibility scope")
-            status, approval = call(client, base, "POST", "/api/corporate/policies/evaluate", {"action": "book", "scheduled_at": "2026-10-02T14:00:00Z", "city": "Bengaluru", "duty_type_code": "LOCAL"})
+            status, approval = call(client, base, "POST", "/api/corporate/policies/evaluate", {"action": "book", "scheduled_at": future_scheduled, "city": "Bengaluru", "duty_type_code": "LOCAL"})
             expect(status == 200 and approval["outcome"] == "needs_approval" and approval["deterministic"] is True, "booking evaluation returns deterministic approval routing")
 
-            status, booking = call(client, base, "POST", "/api/bookings", {"passenger_name": "Foundation Passenger", "passenger_email": "passenger@example.com", "scheduled_at": "2026-10-02T14:00:00Z", "pickup": {"label": "Bengaluru"}, "dropoff": {"label": "Airport"}})
+            status, booking = call(client, base, "POST", "/api/bookings", {"passenger_name": "Foundation Passenger", "passenger_email": "passenger@example.com", "scheduled_at": future_scheduled, "pickup": {"label": "Bengaluru"}, "dropoff": {"label": "Airport"}})
             expect(status == 201 and booking["item"]["status"] == "pending_approval" and booking["corporate_evaluation"]["outcome"] == "needs_approval", "booking write enforces corporate approval routing")
             status, approved_booking = call(client, base, "POST", f"/api/bookings/{booking['item']['id']}/approve", {"comment": "Foundation approval"})
             expect(status == 201 and approved_booking["item"]["status"] == "approved", "corporate approval releases the booking for dispatch")
@@ -79,7 +84,7 @@ def main() -> None:
             status, _ = call(client, base, "PATCH", f"/api/bookings/{booking['item']['id']}", {"scheduled_at": near_cutoff})
             status, cancellation = call(client, base, "POST", f"/api/bookings/{booking['item']['id']}/cancel", {"comment": "Cutoff test"})
             expect(status == 409 and cancellation["code"] == "corporate_policy_blocked" and any(item["code"] == "cancellation_cutoff" for item in cancellation["details"]["reasons"]), "booking cancellation enforces the corporate cutoff")
-            status, _ = call(client, base, "PATCH", f"/api/bookings/{booking['item']['id']}", {"scheduled_at": "2026-10-02T14:00:00Z"})
+            status, _ = call(client, base, "PATCH", f"/api/bookings/{booking['item']['id']}", {"scheduled_at": future_scheduled})
             status, duty = call(client, base, "POST", "/api/duties", {"booking_id": booking["item"]["id"]})
             expect(status == 201, "governed duty can be created from the approved booking")
             for transition in ("assigned", "accepted", "en_route", "started"):

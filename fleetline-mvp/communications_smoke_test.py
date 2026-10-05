@@ -2,6 +2,7 @@
 """Focused smoke coverage for tenant-managed templates, suppression and delivery evidence."""
 
 from __future__ import annotations
+import sys
 
 import os
 import subprocess
@@ -18,7 +19,7 @@ def main() -> None:
     port = free_port(); base = f"http://127.0.0.1:{port}"
     with tempfile.TemporaryDirectory(prefix="axiom-fleet-comms-") as temp_dir:
         env = os.environ.copy(); env.update({"PORT": str(port), "AXIOM_DB_PATH": str(Path(temp_dir) / "axiom.sqlite3"), "AXIOM_ALLOW_DEMO_ACCOUNT": "0"})
-        process = subprocess.Popen(["python3", "server.py"], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        process = subprocess.Popen([sys.executable, "server.py"], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         try:
             for _ in range(60):
                 try:

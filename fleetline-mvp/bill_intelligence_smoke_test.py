@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Fresh SQLite contract smoke test for bill extraction and auditable posting."""
 from __future__ import annotations
+import sys
 
 import json
 import os
@@ -60,7 +61,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="axiom-bill-intelligence-") as temp:
         env = os.environ.copy()
         env.update({"AXIOM_TEST_FIXTURES": "1", "PORT": str(port), "AXIOM_DB_PATH": str(Path(temp) / "bills.sqlite3")})
-        process = subprocess.Popen(["python3", "server.py"], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        process = subprocess.Popen([sys.executable, "server.py"], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         try:
             probe = client()
             for _ in range(80):

@@ -2,6 +2,7 @@
 """Smoke coverage for the first-class Masters workspace local API slice."""
 
 from __future__ import annotations
+import sys
 
 import json
 import os
@@ -50,7 +51,7 @@ def main() -> None:
     with tempfile.TemporaryDirectory(prefix="axiom-masters-") as temp_dir:
         env = os.environ.copy()
         env.update({"AXIOM_TEST_FIXTURES": "1", "PORT": str(port), "AXIOM_DB_PATH": str(Path(temp_dir) / "masters.sqlite3")})
-        process = subprocess.Popen(["python3", "server.py"], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        process = subprocess.Popen([sys.executable, "server.py"], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         try:
             for _ in range(50):
                 try:

@@ -2,6 +2,7 @@
 """End-to-end smoke test for the One Fleet Live local domain APIs."""
 
 from __future__ import annotations
+import sys
 
 import os
 import sqlite3
@@ -22,7 +23,7 @@ def main() -> None:
         db_path = Path(temp_dir) / "axiom.sqlite3"
         env = os.environ.copy()
         env.update({"AXIOM_TEST_FIXTURES": "1", "PORT": str(port), "AXIOM_DB_PATH": str(db_path)})
-        process = subprocess.Popen(["python3", "server.py"], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        process = subprocess.Popen([sys.executable, "server.py"], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         try:
             health = None
             for _ in range(50):

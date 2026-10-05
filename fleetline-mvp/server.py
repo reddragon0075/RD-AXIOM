@@ -13,6 +13,7 @@ the technical PRD before handling real customer data.
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 import datetime as dt
 import email.utils
 import gzip
@@ -122,12 +123,13 @@ def new_id(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex}"
 
 
-def db_connection() -> sqlite3.Connection:
+@contextmanager
+def db_connection():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(DB_PATH, timeout=10)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
-    conn.execute("PRAGMA busy_timeout = 5000")
+    conn.execute("PRAGMA busy_timeout = 30000")
     conn.execute("PRAGMA synchronous = NORMAL")
     conn.execute("PRAGMA temp_store = MEMORY")
     database_key = str(DB_PATH.resolve())
@@ -136,7 +138,11 @@ def db_connection() -> sqlite3.Connection:
             if database_key not in WAL_DATABASES:
                 conn.execute("PRAGMA journal_mode = WAL")
                 WAL_DATABASES.add(database_key)
-    return conn
+    try:
+        with conn:
+            yield conn
+    finally:
+        conn.close()
 
 
 def hash_password(password: str, salt_hex: str | None = None) -> tuple[str, str]:
@@ -518,7 +524,8 @@ def secure_cookie_enabled() -> bool:
 
 def make_cookie(token: str, max_age: int = SESSION_DAYS * 24 * 60 * 60) -> str:
     secure = "; Secure" if secure_cookie_enabled() else ""
-    return f"{SESSION_COOKIE}={token}; Max-Age={max_age}; Path=/; HttpOnly; SameSite=Lax{secure}"
+    expires = email.utils.formatdate(time.time() + max_age, usegmt=True)
+    return f"{SESSION_COOKIE}={token}; Max-Age={max_age}; Expires={expires}; Path=/; HttpOnly; SameSite=Lax{secure}"
 
 
 def clear_cookie() -> str:
@@ -1176,11 +1183,14 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
         use_gzip = accepts_gzip and path.suffix.lower() in COMPRESSIBLE
         last_modified = email.utils.formatdate(stat_result.st_mtime, usegmt=True)
 
+        is_html_or_sw = path.name in ("index.html", "driver-sw.js") or path.suffix.lower() == ".html"
+        cache_control = "no-cache, must-revalidate" if is_html_or_sw else "public, max-age=3600"
+
         if self.headers.get("If-None-Match") == etag:
             self.send_response(304)
             self.send_header("ETag", etag)
             self.send_header("Last-Modified", last_modified)
-            self.send_header("Cache-Control", "public, max-age=3600")
+            self.send_header("Cache-Control", cache_control)
             self._common_headers()
             if use_gzip:
                 self.send_header("Vary", "Accept-Encoding")
@@ -1194,7 +1204,7 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.send_header("ETag", etag)
         self.send_header("Last-Modified", last_modified)
-        self.send_header("Cache-Control", "public, max-age=3600")
+        self.send_header("Cache-Control", cache_control)
         self._common_headers()
         if use_gzip:
             self.send_header("Content-Encoding", "gzip")

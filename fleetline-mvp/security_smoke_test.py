@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Focused security contract checks for the dependency-free local boundary."""
 from __future__ import annotations
+import sys
 
 import hashlib
 import hmac
@@ -59,7 +60,7 @@ def main():
             "AXIOM_ENV": "production",
             "AXIOM_PAYMENT_WEBHOOK_SECRET": secret,
         })
-        process = subprocess.Popen(["python3", "server.py"], cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        process = subprocess.Popen([sys.executable, "server.py"], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         try:
             base = f"http://127.0.0.1:{port}"
             for _ in range(80):
