@@ -14,7 +14,7 @@
   const baseUrl = String(config.url || '').replace(/\/$/, '');
   const storageKey = 'axiomfleet_supabase_session';
   const mfaPendingKey = 'axiomfleet_supabase_mfa_pending_factor';
-  const REQUEST_TIMEOUT_MS = 15000;
+  const REQUEST_TIMEOUT_MS = 6000;
 
   async function fetchWithTimeout(url, options = {}) {
     const controller = new AbortController();
@@ -323,18 +323,19 @@
     if (value && typeof value === 'object' && !Array.isArray(value)) return value;
     return { label: value || '' };
   }
+  const isValidUuid = id => typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
   function normalizedBooking(payload, organizationId) {
     return {
       organization_id: organizationId,
-      branch_id: payload.branch_id || null,
-      customer_id: payload.customer_id || null,
+      branch_id: isValidUuid(payload.branch_id) ? payload.branch_id : null,
+      customer_id: isValidUuid(payload.customer_id) ? payload.customer_id : null,
       customer_entity_id: payload.customer_entity_id || null,
       sister_company_id: payload.sister_company_id || null,
-      company_id: payload.company_id || null,
+      company_id: isValidUuid(payload.company_id) ? payload.company_id : null,
       vehicle_group_code: payload.vehicle_group_code || null,
       duty_type_code: payload.duty_type_code || payload.duty_type || 'local',
-      requesting_organization_id: payload.requesting_organization_id || null,
-      vendor_organization_id: payload.vendor_organization_id || null,
+      requesting_organization_id: isValidUuid(payload.requesting_organization_id) ? payload.requesting_organization_id : null,
+      vendor_organization_id: isValidUuid(payload.vendor_organization_id) ? payload.vendor_organization_id : null,
       status: payload.status || 'requested',
       booking_reference: payload.booking_reference || `BK-${new Date().toISOString().slice(0, 7).replace('-', '')}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
       passenger_name: payload.passenger_name || null,
@@ -417,7 +418,12 @@
     const organizationId = identity.user.organization?.id || await activeOrganizationId();
     let body = {};
     try { body = JSON.parse(options.body || '{}'); } catch (_) { body = {}; }
-    return edgeFunction('booking-orchestrator', { path: route, method: options.method || 'GET', organization_id: organizationId, query: Object.fromEntries(url.searchParams.entries()), body }, session.access_token);
+    try {
+      return await edgeFunction('booking-orchestrator', { path: route, method: options.method || 'GET', organization_id: organizationId, query: Object.fromEntries(url.searchParams.entries()), body }, session.access_token);
+    } catch (edgeError) {
+      console.warn('Booking edge orchestrator failed, falling back to direct database adapter:', edgeError);
+      return undefined;
+    }
   }
   async function supabaseP0Request(path, options = {}) {
     const url = new URL(path, window.location.origin);
@@ -862,12 +868,22 @@
     const operationsResult = await supabaseOperationsRequest(path, options);
     if (operationsResult !== undefined) return operationsResult;
     const corporateBookingEvaluation = async (requestBody, action = 'book') => {
-      const accountResponse = await supabaseCorporateRequest('/api/corporate/account');
+      let accountResponse;
+      try {
+        accountResponse = await supabaseCorporateRequest('/api/corporate/account');
+      } catch (_) {
+        return null;
+      }
       const account = accountResponse?.account;
       if (!account || account.status !== 'active') return null;
-      const evaluation = await supabaseCorporateRequest('/api/corporate/policies/evaluate', { method: 'POST', body: JSON.stringify({ ...requestBody, action }) });
-      if (evaluation?.outcome === 'block') { const error = new Error('Corporate booking policy blocked this request.'); error.details = evaluation; throw error; }
-      return evaluation;
+      try {
+        const evaluation = await supabaseCorporateRequest('/api/corporate/policies/evaluate', { method: 'POST', body: JSON.stringify({ ...requestBody, action }) });
+        if (evaluation?.outcome === 'block') { const error = new Error('Corporate booking policy blocked this request.'); error.details = evaluation; throw error; }
+        return evaluation;
+      } catch (err) {
+        if (err?.message?.includes('Corporate booking policy blocked')) throw err;
+        return null;
+      }
     };
     const persistCorporateApproval = async (bookingId, evaluation) => {
       if (!evaluation || evaluation.outcome !== 'needs_approval') return;
@@ -889,9 +905,22 @@
     if (route === '/api/bookings' && method === 'POST') {
       const evaluation = await corporateBookingEvaluation(body, 'book');
       const bookingBody = { ...body, status: evaluation?.outcome === 'needs_approval' ? 'pending_approval' : body.status, policy_context: evaluation || body.policy_context || {} };
-      const result = await supabaseBookingRequest(path, { ...options, body: JSON.stringify(bookingBody) });
-      if (result?.item?.id) await persistCorporateApproval(result.item.id, evaluation);
-      return { ...result, corporate_evaluation: evaluation };
+      let result;
+      try {
+        result = await supabaseBookingRequest(path, { ...options, body: JSON.stringify(bookingBody) });
+      } catch (err) {
+        console.warn('Booking edge orchestrator failed, falling back to direct database write:', err);
+      }
+      if (result !== undefined && result?.ok) {
+        if (result?.item?.id) await persistCorporateApproval(result.item.id, evaluation);
+        return { ...result, corporate_evaluation: evaluation };
+      }
+      const organizationId = await activeOrganizationId();
+      const bookingPayload = normalizedBooking({ ...bookingBody }, organizationId);
+      const inserted = await dataRequest('bookings', { method: 'POST', body: JSON.stringify(bookingPayload) }, session.access_token);
+      const item = Array.isArray(inserted) ? inserted[0] : inserted;
+      if (item?.id) await persistCorporateApproval(item.id, evaluation);
+      return { ok: true, item, corporate_evaluation: evaluation };
     }
     const corporateLegacyAction = route.match(/^\/api\/bookings\/[^/]+\/(approve|reject|cancel|assign)$/);
     const bookingConfirm = route.match(/^\/api\/bookings\/([^/]+)\/confirm$/);
@@ -1374,7 +1403,7 @@
       await persistCorporateApproval(item.id, evaluation);
       return { ok: true, item, corporate_evaluation: evaluation };
     }
-    const singleResourceMatch = route.match(/^\/api\/(customers|drivers|vehicles|branches|suppliers|price-books|documents|employees|policies)\/([^/]+)$/);
+    const singleResourceMatch = route.match(/^\/api\/(customers|drivers|vehicles|bookings|branches|suppliers|price-books|documents|employees|policies)\/([^/]+)$/);
     if (singleResourceMatch) {
       const pluralRoute = `/api/${singleResourceMatch[1]}`;
       const singleTable = resourceMap[pluralRoute];

@@ -8,6 +8,19 @@
   <link rel="preload" as="image" href="axiom-fleet-logo.png" type="image/png" />
   <script src="supabase/config.js"></script>
   <script src="supabase/client.js"></script>
+  <script type="text/javascript">
+    (function() {
+      try {
+        var h = location.hash || '';
+        var u = localStorage.getItem('axiomfleet_user');
+        var isPublic = /#(about-us|blogs|newsroom|careers|contact-us|success-stories|terms|privacy|disclaimer|refund|home|login)/.test(h);
+        var isToken = location.search.indexOf('passenger_token') !== -1 || location.search.indexOf('feedback_token') !== -1;
+        if (!isPublic && !isToken && (h === '#app' || u)) {
+          document.documentElement.classList.add('is-app-mode');
+        }
+      } catch (_) {}
+    })();
+  </script>
   <title>AXIOM FLEET — Car Rental Operations Platform</title>
   <style>
     /* ───────────────────────────────────────────────────────────────
@@ -1172,6 +1185,9 @@
     #auth-screen.open { display:grid; }
     #app-shell { display:none; }
     #app-shell.is-visible { display:flex; }
+    html.is-app-mode #public-site { display:none !important; }
+    html.is-app-mode #auth-screen { display:none !important; }
+    html.is-app-mode #app-shell { display:flex !important; }
     .marketing-page { min-height:100vh; overflow:hidden; color:#172126; background:linear-gradient(180deg,#f4f7f2 0%,#edf1ed 55%,#e8eeea 100%); }
     .site-nav { width:min(1440px,calc(100% - 72px)); margin:0 auto; min-height:86px; display:flex; align-items:center; justify-content:space-between; gap:25px; position:relative; z-index:10; }
     .site-brand { display:inline-flex; align-items:center; gap:10px; color:#101a22; text-decoration:none; flex:none; }
@@ -1547,12 +1563,13 @@
         <div class="nav-accordion-group" data-section="fleet">
           <button class="nav-section nav-section-header" type="button" aria-expanded="true" aria-controls="section-items-fleet">
             <span class="nav-section-label">Fleet control</span>
-            <span class="nav-section-count">2</span>
+            <span class="nav-section-count">3</span>
             <svg class="nav-accordion-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="nav-section-items" id="section-items-fleet">
             <div class="nav-section-items-inner">
-              <button class="nav-item" data-page="fleet" data-tooltip="Drivers &amp; vehicles"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c.5-3.2 2.2-5 5.5-5s5 1.8 5.5 5M16 11a3 3 0 1 0 0-6M16 15c2.8 0 4.3 1.7 4.7 4.5"/></svg><span>Drivers &amp; vehicles</span></button>
+              <button class="nav-item" data-page="vehicles" data-tooltip="Vehicles register"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 17h14l-1.5-6h-11L5 17Z"/><path d="m8 11 1-4h6l1 4M5 17v2h2M19 17v2h-2M8 14h.01M16 14h.01"/></svg><span>Vehicles</span></button>
+              <button class="nav-item" data-page="drivers" data-tooltip="Drivers register"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span>Drivers</span></button>
               <button class="nav-item" data-page="masters" data-tooltip="Masters &amp; setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/><path d="M7 4v4M17 10v4M11 16v4"/></svg><span>Masters</span></button>
             </div>
           </div>
@@ -1715,10 +1732,17 @@
     // All workspace records are tenant-scoped API data. The console deliberately
     // starts empty when a tenant has no records; no demo roster or invoice rows
     // are embedded in the product bundle.
-    const state = { page: 'overview', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', invoiceQuery: '', driverQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const navTitles = { overview:'Operations overview', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & pricing', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls' };
+    const savedActivePage = (function() {
+      try {
+        const p = sessionStorage.getItem('axiomfleet_active_page');
+        if (p && navTitles[p]) return p;
+      } catch (_) {}
+      return 'overview';
+    })();
+    const state = { page: savedActivePage, dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', invoiceQuery: '', driverQuery: '', driverFilter: 'all', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
-    const navTitles = { overview:'Operations overview', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', fleet:'Drivers & vehicles', masters:'Masters & setup', customers:'Customers & pricing', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls' };
     const advancedPages = new Set(['customers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise']);
     let advancedNavOpen = false;
 
@@ -2079,12 +2103,13 @@
     }
 
     function render() {
+      try { if (state.page) sessionStorage.setItem('axiomfleet_active_page', state.page); } catch (_) {}
       if (state.hydration.status === 'loading' && !state.liveData) { content.innerHTML = renderLoadingState(); attachPageEvents(); return; }
       if (state.hydration.status === 'error' && !state.liveData) { content.innerHTML = renderErrorState(); attachPageEvents(); return; }
       topbarTitle.textContent = currentUser?.role === 'corporate' && state.page === 'overview' ? 'Corporate account workspace' : (navTitles[state.page] || 'Operations overview');
       document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.page === state.page));
       syncAdvancedNavigation();
-      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter };
+      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter };
       content.innerHTML = (pages[state.page] || renderOverview)();
       attachPageEvents();
       decorateResponsiveTables();
@@ -2291,19 +2316,109 @@
       const branches = state.liveData?.branches?.items || [];
       const customers = state.liveData?.customers?.items || [];
       const suppliers = state.liveData?.suppliers?.items || [];
-      const vehicles = state.liveData?.vehicles?.items || [];
       const activeSection = state.masterSection && state.masterSection !== 'home' ? state.masterSection : 'home';
-      const records = activeSection === 'branches' ? branches : activeSection === 'customers' ? customers : activeSection === 'suppliers' ? suppliers : activeSection === 'vehicles' ? vehicles : [];
-      const label = activeSection === 'home' ? 'Master data' : `${activeSection[0].toUpperCase()}${activeSection.slice(1)} records`;
-      const catalog = [['Branches',branches.length,'add-branch'],['Customers',customers.length,'add-customer'],['Suppliers',suppliers.length,'add-supplier'],['Vehicles',vehicles.length,'add-vehicle']];
-      return `${pageHead('Workspace setup · governed master data',label,'Configure the reference records behind bookings, duties, billing and supplier handoffs. Empty masters stay empty until a tenant operator adds them.',`${button(icon('upload')+'Import','','data-action="import-master"')}${button(icon('plus')+'Add record','primary',`data-action="${activeSection === 'branches' ? 'add-branch' : activeSection === 'customers' ? 'add-customer' : activeSection === 'suppliers' ? 'add-supplier' : 'add-vehicle'}"`)}`)}${activeSection === 'home' ? `<div class="grid two-col">${catalog.map(([name,count,action]) => `<section class="card section-card"><div class="card-body"><div class="eyebrow">Tenant master</div><h3 style="margin:7px 0 4px">${name}</h3><p style="font-size:10px;color:var(--muted);line-height:1.45">${count} record${count === 1 ? '' : 's'} returned by the current tenant query.</p>${button(icon('plus')+'Add first record','small soft',`data-action="${action}"`)}</div></section>`).join('')}</div>` : `<section class="card section-card"><div class="table-wrap"><table><thead><tr><th>Name / reference</th><th>Status</th><th>Created</th></tr></thead><tbody>${records.length ? records.map(item => `<tr><td><span class="primary">${esc(item.name || item.full_name || item.registration_number || item.id)}</span><span class="secondary">${esc(item.code || item.email || item.city || item.id)}</span></td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td><td>${item.created_at ? esc(formatDateTime(item.created_at)) : '—'}</td></tr>`).join('') : tenantTableEmpty('No records returned','Add the first tenant master record to make this area available to workflows.',button(icon('plus')+'Add the first','small soft',`data-action="${activeSection === 'branches' ? 'add-branch' : activeSection === 'customers' ? 'add-customer' : activeSection === 'suppliers' ? 'add-supplier' : 'add-vehicle'}"`))}</tbody></table></div></section>`}`;
+      const q = String(state.masterQuery || '').trim().toLowerCase();
+
+      const filteredBranches = branches.filter(b => !q || `${b.name || ''} ${b.code || ''} ${b.city || ''} ${b.status || ''}`.toLowerCase().includes(q));
+      const filteredCustomers = customers.filter(c => !q || `${c.name || ''} ${c.code || ''} ${c.city || ''} ${c.email || ''}`.toLowerCase().includes(q));
+      const filteredSuppliers = suppliers.filter(s => !q || `${s.name || ''} ${s.code || ''} ${s.city || ''} ${s.phone || ''} ${s.email || ''}`.toLowerCase().includes(q));
+
+      const catalog = [
+        ['Branches', branches.length, 'add-branch', 'branches', 'Operating regions, branch control rooms and base facilities.', 'building'],
+        ['Customers', customers.length, 'add-customer', 'customers', 'Corporate client entities, pricing contracts and billing boundaries.', 'users'],
+        ['Suppliers', suppliers.length, 'add-supplier', 'suppliers', 'Vendor network partners, associate fleets and outsourced operators.', 'link']
+      ];
+
+      const headActions = activeSection === 'branches'
+        ? `${button(icon('arrow-left')+'All masters','','data-master-section="home"')}${button(icon('plus')+'Add branch','primary','data-action="add-branch"')}`
+        : activeSection === 'customers'
+          ? `${button(icon('arrow-left')+'All masters','','data-master-section="home"')}${button(icon('plus')+'Add customer','primary','data-action="add-customer"')}`
+          : activeSection === 'suppliers'
+            ? `${button(icon('arrow-left')+'All masters','','data-master-section="home"')}${button(icon('plus')+'Add supplier','primary','data-action="add-supplier"')}`
+            : `${button(icon('plus')+'Add branch','','data-action="add-branch"')}${button(icon('plus')+'Add supplier','','data-action="add-supplier"')}${button(icon('plus')+'Add customer','primary','data-action="add-customer"')}`;
+
+      const label = activeSection === 'home'
+        ? 'Master data'
+        : `${activeSection[0].toUpperCase()}${activeSection.slice(1)} records`;
+
+      const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px"><div class="tabs"><button class="tab ${activeSection === 'home' ? 'active' : ''}" data-master-section="home">All masters</button><button class="tab ${activeSection === 'branches' ? 'active' : ''}" data-master-section="branches">Branches (${branches.length})</button><button class="tab ${activeSection === 'customers' ? 'active' : ''}" data-master-section="customers">Customers (${customers.length})</button><button class="tab ${activeSection === 'suppliers' ? 'active' : ''}" data-master-section="suppliers">Suppliers (${suppliers.length})</button></div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:220px;flex:none"><span>${icon('search')}</span><input id="masterQuery" placeholder="Search ${activeSection === 'home' ? 'masters' : activeSection}…" value="${esc(state.masterQuery || '')}"></label></div>`;
+
+      let bodyContent = '';
+      if (activeSection === 'home') {
+        const kpisMarkup = `<div class="grid three-col" style="margin-bottom:16px"><div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Branches master</span><span class="kpi-icon purple">${icon('building')}</span></div><div class="kpi-value">${branches.length}</div><div class="kpi-foot">Operating control rooms</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Customers master</span><span class="kpi-icon amber">${icon('users')}</span></div><div class="kpi-value">${customers.length}</div><div class="kpi-foot">Client billing entities</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Suppliers master</span><span class="kpi-icon teal">${icon('link')}</span></div><div class="kpi-value">${suppliers.length}</div><div class="kpi-foot">Network partners</div></div></div>`;
+        const cardsMarkup = `<div class="grid three-col">${catalog.map(([name, count, action, key, descText, iconName]) => `<section class="card section-card"><div class="card-body"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><div class="eyebrow" style="margin:0">Tenant master</div><span class="badge" style="font-size:10px;font-weight:600">${count} record${count === 1 ? '' : 's'}</span></div><div style="display:flex;align-items:center;gap:8px;margin:3px 0 5px"><span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:var(--blue-soft);color:var(--blue)">${icon(iconName, 15)}</span><h3 style="margin:0;font-size:15px">${name}</h3></div><p style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:14px;min-height:30px">${descText}</p><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn small" data-master-section="${key}">${icon('eye', 13)}View records</button><button class="btn small soft" data-action="${action}">${icon('plus', 13)}Add first record</button></div></div></section>`).join('')}</div>`;
+        bodyContent = kpisMarkup + cardsMarkup;
+      } else if (activeSection === 'branches') {
+        bodyContent = `<section class="card section-card">${cardHead('Branches register','Branch control rooms and operating regions',button(icon('plus')+'Add branch','small primary','data-action="add-branch"'))}<div class="table-wrap"><table><thead><tr><th>Branch</th><th>Code</th><th>City</th><th>Status</th><th>Created</th></tr></thead><tbody>${filteredBranches.length ? filteredBranches.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span></td><td><span class="keycap">${esc(item.code || '—')}</span></td><td>${esc(item.city || '—')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td><td>${item.created_at ? esc(formatDateTime(item.created_at)) : '—'}</td></tr>`).join('') : tenantTableEmpty('No branches returned','Add the first operating branch for the workspace.',button(icon('plus')+'Add branch','small soft','data-action="add-branch"'))}</tbody></table></div></section>`;
+      } else if (activeSection === 'customers') {
+        bodyContent = `<section class="card section-card">${cardHead('Customers register','Corporate client accounts and billing structures',button(icon('plus')+'Add customer','small primary','data-action="add-customer"'))}<div class="table-wrap"><table><thead><tr><th>Customer</th><th>Code</th><th>City</th><th>Status</th><th>Created</th></tr></thead><tbody>${filteredCustomers.length ? filteredCustomers.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span><span class="secondary">${esc(item.email || 'Email not attached')}</span></td><td><span class="keycap">${esc(item.code || '—')}</span></td><td>${esc(item.city || '—')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td><td>${item.created_at ? esc(formatDateTime(item.created_at)) : '—'}</td></tr>`).join('') : tenantTableEmpty('No customers returned','Add the first customer account before booking duties.',button(icon('plus')+'Add customer','small soft','data-action="add-customer"'))}</tbody></table></div></section>`;
+      } else if (activeSection === 'suppliers') {
+        bodyContent = `<section class="card section-card">${cardHead('Suppliers register','Vendor network partners and associate fleet owners',button(icon('plus')+'Add supplier','small primary','data-action="add-supplier"'))}<div class="table-wrap"><table><thead><tr><th>Supplier</th><th>Contact</th><th>Coverage</th><th>Status</th><th>Created</th></tr></thead><tbody>${filteredSuppliers.length ? filteredSuppliers.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span><span class="secondary">${esc(item.code || 'Vendor partner')}</span></td><td>${esc(item.phone || item.email || '—')}</td><td>${esc(item.city || item.coverage || '—')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td><td>${item.created_at ? esc(formatDateTime(item.created_at)) : '—'}</td></tr>`).join('') : tenantTableEmpty('No suppliers returned','Add the first supplier account before outsourcing duties.',button(icon('plus')+'Add supplier','small soft','data-action="add-supplier"'))}</tbody></table></div></section>`;
+      }
+
+      return `${pageHead('Workspace setup · governed master data', label, 'Configure reference records behind branches, customers, suppliers and workspace operations. Drivers and vehicles are managed from the main menu.', headActions)}${tabsBar}${bodyContent}`;
+    }
+
+    function renderVehicles() {
+      const vehicles = state.liveData?.vehicles?.items || [];
+      const availableVehicles = vehicles.filter(item => !['inactive','archived','on_duty'].includes(item.status)).length;
+      const onDutyVehicles = vehicles.filter(item => item.status === 'on_duty').length;
+      const inactiveVehicles = vehicles.filter(item => ['inactive','archived'].includes(item.status)).length;
+      const filter = state.vehicleFilter || 'all';
+      const q = String(state.vehicleQuery || '').trim().toLowerCase();
+
+      const filteredVehicles = vehicles.filter(item => {
+        const matchesQuery = !q || `${item.registration_number || ''} ${item.make_model || ''} ${item.vehicle_group || ''} ${item.vehicle_type || ''} ${item.fuel_type || ''} ${item.city || ''} ${item.status || ''}`.toLowerCase().includes(q);
+        const matchesFilter = filter === 'all'
+          ? true
+          : filter === 'available'
+            ? !['inactive','archived','on_duty'].includes(item.status)
+            : filter === 'on_duty'
+              ? item.status === 'on_duty'
+              : ['inactive','archived'].includes(item.status);
+        return matchesQuery && matchesFilter;
+      });
+
+      const kpis = `<div class="grid three-col" style="margin-bottom:16px"><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Total fleet</span><span class="kpi-icon">${icon('car')}</span></div><div class="kpi-value">${vehicles.length}</div><div class="kpi-foot">Registered vehicles</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Available for dispatch</span><span class="kpi-icon teal">${icon('check')}</span></div><div class="kpi-value">${availableVehicles}</div><div class="kpi-foot">Ready for allotment</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Active / on duty</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${onDutyVehicles}</div><div class="kpi-foot">${inactiveVehicles} inactive or maintenance</div></div></div>`;
+
+      const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px"><div class="tabs">${[['all','All vehicles'],['available',`Available (${availableVehicles})`],['on_duty',`On duty (${onDutyVehicles})`],['inactive',`Inactive (${inactiveVehicles})`]].map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-vehicle-filter="${key}">${label}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="vehicleQuery" placeholder="Search vehicles…" value="${esc(state.vehicleQuery || '')}"></label></div>`;
+
+      const vehiclesTable = `<section class="card section-card">${cardHead('Vehicles register','Registration number, make & model, capacity and compliance records',`${button(icon('upload')+'Import roster','small','data-action="import-master"')}${button(icon('plus')+'Add vehicle','small primary','data-action="add-vehicle"')}`)}<div class="table-wrap"><table><thead><tr><th>Vehicle</th><th>Make &amp; model</th><th>Group / fuel</th><th>Capacity</th><th>Status</th><th></th></tr></thead><tbody>${filteredVehicles.length ? filteredVehicles.map(item => `<tr><td><span class="primary">${esc(item.registration_number || item.id)}</span><span class="secondary">${esc(item.city || item.id)}</span></td><td>${esc(item.make_model || 'Model not specified')}</td><td>${esc(item.vehicle_group || item.vehicle_type || 'Standard')} · ${esc(item.fuel_type || 'Fuel not added')}</td><td>${item.seating_capacity ? `${item.seating_capacity} seats` : '—'}</td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="vehicle-edit" data-vehicle-id="${esc(item.id)}">${icon('edit', 13)}Edit</button></td></tr>`).join('') : tenantTableEmpty('No vehicles returned','Add the first vehicle or import a fleet roster via CSV.',button(icon('plus')+'Add vehicle','small soft','data-action="add-vehicle"'))}</tbody></table></div></section>`;
+
+      return `${pageHead('Fleet · asset management','Vehicles register','Manage vehicle identity, registration records, seating capacity and dispatch readiness.',`${button(icon('upload')+'Import roster','','data-action="import-master"')}${button(icon('plus')+'Add vehicle','primary','data-action="add-vehicle"')}`)}${kpis}${tabsBar}${vehiclesTable}`;
+    }
+
+    function renderDrivers() {
+      const drivers = state.liveData?.drivers?.items || [];
+      const readyDrivers = drivers.filter(item => !['inactive','suspended','on_duty'].includes(item.status)).length;
+      const onDutyDrivers = drivers.filter(item => item.status === 'on_duty').length;
+      const inactiveDrivers = drivers.filter(item => ['inactive','suspended'].includes(item.status)).length;
+      const filter = state.driverFilter || 'all';
+      const q = String(state.driverQuery || '').trim().toLowerCase();
+
+      const filteredDrivers = drivers.filter(d => {
+        const matchesQuery = !q || `${d.full_name || ''} ${d.phone || ''} ${d.license_number || ''} ${d.city || ''} ${d.status || ''}`.toLowerCase().includes(q);
+        const matchesFilter = filter === 'all'
+          ? true
+          : filter === 'ready'
+            ? !['inactive','suspended','on_duty'].includes(d.status)
+            : filter === 'on_duty'
+              ? d.status === 'on_duty'
+              : ['inactive','suspended'].includes(d.status);
+        return matchesQuery && matchesFilter;
+      });
+
+      const kpis = `<div class="grid three-col" style="margin-bottom:16px"><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Total drivers</span><span class="kpi-icon teal">${icon('users')}</span></div><div class="kpi-value">${drivers.length}</div><div class="kpi-foot">Onboarded driver records</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Ready for duty</span><span class="kpi-icon">${icon('check')}</span></div><div class="kpi-value">${readyDrivers}</div><div class="kpi-foot">Duty & device ready</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Active / on duty</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${onDutyDrivers}</div><div class="kpi-foot">${inactiveDrivers} inactive or suspended</div></div></div>`;
+
+      const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px"><div class="tabs">${[['all','All drivers'],['ready',`Ready (${readyDrivers})`],['on_duty',`On duty (${onDutyDrivers})`],['inactive',`Inactive (${inactiveDrivers})`]].map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-driver-filter="${key}">${label}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="driverQuery" placeholder="Search drivers…" value="${esc(state.driverQuery || '')}"></label></div>`;
+
+      const driversTable = `<section class="card section-card">${cardHead('Drivers register','Physical-device and duty readiness starts from this record',button(icon('plus')+'Add driver','small primary','data-action="add-driver"'))}<div class="table-wrap"><table><thead><tr><th>Driver</th><th>Phone</th><th>City</th><th>License / ID</th><th>Status</th><th></th></tr></thead><tbody>${filteredDrivers.length ? filteredDrivers.map(item => `<tr><td><span class="primary">${esc(item.full_name || item.id)}</span><span class="secondary">${esc(item.id)}</span></td><td>${esc(item.phone || '—')}</td><td>${esc(item.city || '—')}</td><td><span class="keycap">${esc(item.license_number || item.id)}</span></td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="driver-detail" data-driver="${esc(item.full_name || item.id)}">${icon('eye', 13)}Open</button></td></tr>`).join('') : tenantTableEmpty('No drivers returned','Add the first driver record before assigning a duty.',button(icon('plus')+'Add driver','small soft','data-action="add-driver"'))}</tbody></table></div></section>`;
+
+      return `${pageHead('Fleet · workforce readiness','Drivers register','Manage driver workforce profiles, license verification and physical-device onboarding.',`${button(icon('upload')+'Import roster','','data-action="import-master"')}${button(icon('plus')+'Add driver','primary','data-action="add-driver"')}`)}${kpis}${tabsBar}${driversTable}`;
     }
 
     function renderFleet() {
-      const vehicles = state.liveData?.vehicles?.items || [];
-      const drivers = state.liveData?.drivers?.items || [];
-      const available = vehicles.filter(item => !['inactive','archived','on_duty'].includes(item.status)).length;
-      return `${pageHead('Fleet · readiness','Fleet & drivers','Keep assignment resources, document readiness and field people tied to tenant records.',`${button(icon('plus')+'Add vehicle','primary','data-action="add-vehicle"')}${button(icon('plus')+'Add driver','','data-action="add-driver"')}`)}<div class="grid kpis"><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Vehicles</span><span class="kpi-icon">${icon('car')}</span></div><div class="kpi-value">${vehicles.length}</div><div class="kpi-foot">${available} currently available</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Drivers</span><span class="kpi-icon teal">${icon('users')}</span></div><div class="kpi-value">${drivers.length}</div><div class="kpi-foot">Tenant readiness records</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead('Vehicle register','Registration and capacity records from the current tenant response')}<div class="table-wrap"><table><thead><tr><th>Vehicle</th><th>Group / fuel</th><th>Status</th></tr></thead><tbody>${vehicles.length ? vehicles.slice(0,20).map(item => `<tr><td><span class="primary">${esc(item.registration_number || item.id)}</span><span class="secondary">${esc(item.make_model || 'Model not added')}</span></td><td>${esc(item.vehicle_group || item.vehicle_type || 'Unclassified')} · ${esc(item.fuel_type || 'Fuel not added')}</td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td></tr>`).join('') : tenantTableEmpty('No vehicles returned','Add the first vehicle or import a tenant-scoped roster.',button(icon('plus')+'Add vehicle','small soft','data-action="add-vehicle"'))}</tbody></table></div></section><section class="card section-card">${cardHead('Driver register','Physical-device and duty readiness starts from this record')}<div class="table-wrap"><table><thead><tr><th>Driver</th><th>City</th><th>Status</th></tr></thead><tbody>${drivers.length ? drivers.slice(0,20).map(item => `<tr><td><span class="primary">${esc(item.full_name || item.id)}</span><span class="secondary">${esc(item.phone || 'Phone not added')}</span></td><td>${esc(item.city || 'City not added')}</td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : 'green')}</td></tr>`).join('') : tenantTableEmpty('No drivers returned','Add the first driver record before assigning a duty.',button(icon('plus')+'Add driver','small soft','data-action="add-driver"'))}</tbody></table></div></section></div>`;
+      return renderVehicles();
     }
 
     function renderCustomers() {
@@ -2643,7 +2758,25 @@
 
     function attachPageEvents() {
       content.querySelectorAll('[data-page-link]').forEach(el => el.addEventListener('click', () => { state.page = el.dataset.pageLink; render(); }));
-      content.querySelectorAll('[data-master-section]').forEach(el => el.addEventListener('click', () => { const key = el.dataset.masterSection; if (key === 'drivers') { state.page = 'fleet'; render(); return; } if (key === 'customers' || key === 'pricing') { state.page = 'customers'; render(); return; } state.page = 'masters'; state.masterSection = key; render(); }));
+      content.querySelectorAll('[data-master-section]').forEach(el => el.addEventListener('click', () => {
+        const key = el.dataset.masterSection;
+        if (key === 'drivers') {
+          state.page = 'drivers';
+          render();
+          return;
+        }
+        if (key === 'vehicles') {
+          state.page = 'vehicles';
+          render();
+          return;
+        }
+        state.page = 'masters';
+        state.masterSection = key;
+        render();
+      }));
+      content.querySelectorAll('[data-vehicle-filter]').forEach(el => el.addEventListener('click', () => { state.vehicleFilter = el.dataset.vehicleFilter; render(); }));
+      content.querySelectorAll('[data-driver-filter]').forEach(el => el.addEventListener('click', () => { state.driverFilter = el.dataset.driverFilter; render(); }));
+      content.querySelectorAll('[data-fleet-tab]').forEach(el => el.addEventListener('click', () => { state.fleetSection = el.dataset.fleetTab; render(); }));
       content.querySelectorAll('[data-action]').forEach(el => el.addEventListener('click', () => handleAction(el.dataset.action, el)));
       content.querySelectorAll('[data-setting-toggle]').forEach(el => el.addEventListener('click', () => { const on = el.classList.toggle('on'); el.setAttribute('aria-pressed', String(on)); }));
       content.querySelectorAll('[data-pagination]').forEach(el => el.addEventListener('click', () => showToast('Pagination', 'All records returned by the current tenant query are shown on this page.')));
@@ -2661,7 +2794,8 @@
       const dutyQuery = document.getElementById('dutyQuery'); if (dutyQuery) dutyQuery.addEventListener('input', e => { state.dutyQuery = e.target.value; renderDutiesInPlace(); });
       const bookingQuery = document.getElementById('bookingQuery'); if (bookingQuery) bookingQuery.addEventListener('input', e => { state.bookingQuery = e.target.value; });
       const invoiceQuery = document.getElementById('invoiceQuery'); if (invoiceQuery) invoiceQuery.addEventListener('input', e => { state.invoiceQuery = e.target.value; render(); });
-      const driverQuery = document.getElementById('driverQuery'); if (driverQuery) driverQuery.addEventListener('input', e => { state.driverQuery = e.target.value; render(); });
+      const fleetQuery = document.getElementById('fleetQuery'); if (fleetQuery) fleetQuery.addEventListener('input', e => { state.fleetQuery = e.target.value; render(); requestAnimationFrame(() => { const next=document.getElementById('fleetQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
+      const driverQuery = document.getElementById('driverQuery'); if (driverQuery) driverQuery.addEventListener('input', e => { state.driverQuery = e.target.value; render(); requestAnimationFrame(() => { const next=document.getElementById('driverQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
       const masterQuery = document.getElementById('masterQuery'); if (masterQuery) masterQuery.addEventListener('input', e => { state.masterQuery = e.target.value; render(); requestAnimationFrame(() => { const next=document.getElementById('masterQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
       const vehicleQuery = document.getElementById('vehicleQuery'); if (vehicleQuery) vehicleQuery.addEventListener('input', e => { state.vehicleQuery = e.target.value; render(); requestAnimationFrame(() => { const next=document.getElementById('vehicleQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
       const vehicleStatus = document.getElementById('vehicleStatus'); if (vehicleStatus) vehicleStatus.addEventListener('change', e => { state.vehicleStatus = e.target.value; render(); });
@@ -2694,7 +2828,7 @@
         ? [['01','Open the next duty','Your day starts with one clear duty card. Review the route and select Start duty.','driver'],['02','Work without signal','Expenses, milestones and GPS points can queue on the device and replay safely later.','driver'],['03','Ask for help','Masked calling, trip share and SOS stay within one tap from the duty surface.','driver']]
         : role === 'corporate'
           ? [['01','Request travel','Start with a passenger, route and reporting time.','bookings'],['02','Approve with context','Keep policy, passenger and supplier details together in the approval queue.','overview'],['03','Verify the outcome','Use the duty and billing views to confirm proof before invoice acceptance.','billing']]
-          : [['01','Capture the work','Create or import the next booking without opening setup screens.','bookings'],['02','Move the queue','Use the Duties board to allot the next run and see what needs attention.','duties'],['03','Close the loop','Check driver readiness, proof and billing from the same workspace.','fleet']];
+          : [['01','Capture the work','Create or import the next booking without opening setup screens.','bookings'],['02','Move the queue','Use the Duties board to allot the next run and see what needs attention.','duties'],['03','Close the loop','Check driver readiness, proof and billing from the same workspace.','masters']];
       const body = `<div style="display:grid;gap:9px">${tours.map(([number,title,copy,page])=>`<button class="card" style="display:flex;gap:11px;align-items:flex-start;padding:12px;text-align:left;cursor:pointer;border:1px solid var(--line);background:#fbfdf9" data-tour-page="${page}"><span class="step-number" style="width:28px;height:28px;display:grid;place-items:center;flex:none;border-radius:8px;background:#eff7d9;color:#597318;font-size:10px;font-weight:800">${number}</span><span><strong style="display:block;font-size:11px;color:var(--ink)">${title}</strong><span style="display:block;margin-top:4px;color:var(--muted);font-size:9.5px;line-height:1.45">${copy}</span><small style="display:block;margin-top:7px;color:var(--blue);font-size:9px">Open this step →</small></span></button>`).join('')}</div><p style="margin:12px 0 0;color:var(--muted-2);font-size:9px;line-height:1.45">Axiom Fleet keeps advanced controls available, but your daily path stays short. You can reopen this guide from the help button at any time.</p>`;
       const modal = modalShell(role === 'driver' ? 'Your field-day guide' : 'Your first day in Axiom Fleet', 'Three short moves are enough to get the operation moving.', body, button('Close','','data-close-modal'));
       modal.querySelectorAll('[data-tour-page]').forEach(step => step.addEventListener('click', () => { state.page = step.dataset.tourPage; closeModal(); render(); }));
@@ -2767,7 +2901,7 @@
         const sharedBody = { registration_number:reg, vehicle_type:vehicleType, vehicle_group:vehicleGroup, make_model:makeModel, year:get('year') ? Number(get('year')) : null, city:get('city'), status:get('status') || 'available', compliance:complianceBody };
         const localBody = { ...sharedBody, ...complianceBody };
         const submit = modal.querySelector('[data-submit-vehicle]'); submit.disabled = true;
-        try { const path = existing ? `/api/vehicles/${encodeURIComponent(existing.id)}` : '/api/vehicles'; await apiRequest(path, { method: existing ? 'PATCH' : 'POST', body: JSON.stringify(window.AxiomSupabaseAdapter?.enabled ? sharedBody : localBody) }); closeModal(); showToast(existing ? 'Vehicle updated' : 'Vehicle created', `${sharedBody.registration_number} is ready for the next assignment check.`); await hydrateOperationalData(); } catch (error) { submit.disabled = false; showToast('Vehicle could not be saved', error.message); }
+        try { const path = existing ? `/api/vehicles/${encodeURIComponent(existing.id)}` : '/api/vehicles'; await apiRequest(path, { method: existing ? 'PATCH' : 'POST', body: JSON.stringify(isSupabaseActive() ? sharedBody : localBody) }); closeModal(); showToast(existing ? 'Vehicle updated' : 'Vehicle created', `${sharedBody.registration_number} is ready for the next assignment check.`); await hydrateOperationalData(); } catch (error) { submit.disabled = false; showToast('Vehicle could not be saved', error.message); }
       });
     }
 
@@ -3364,7 +3498,7 @@
         const start = read('start_at') || read('scheduled_at');
         const costCenter = read('cost_center');
         const body = {
-          customer_id: customer ? customer.id : (customerRecords[0]?.id || currentUser?.organization?.id),
+          customer_id: customer ? customer.id : null,
           customer_name: customer ? customer.name : corporateOrgName,
           passenger_name: read('passenger'),
           passenger_email: read('passenger_email'),
@@ -3485,7 +3619,9 @@
       { label:'Open duties board', detail:'Search, filter and assign today\'s duties', icon:'list', run:() => { state.page='duties'; render(); } },
       { label:'Create a new booking', detail:'Capture a passenger, route and reporting time', icon:'plus', run:() => openBookingModal() },
       { label:'Open route planning', detail:'Review ETA health and publish a route plan', icon:'route', run:() => { state.page='planning'; render(); } },
-      { label:'Open Masters', detail:'Manage vehicles, drivers and versioned reference data', icon:'settings', run:() => { state.page='masters'; state.masterSection='home'; render(); } },
+      { label:'Open vehicles register', detail:'Manage vehicle identity, registration records and dispatch readiness', icon:'car', run:() => { state.page='vehicles'; render(); } },
+      { label:'Open drivers register', detail:'Manage driver workforce profiles, licenses and physical-device readiness', icon:'users', run:() => { state.page='drivers'; render(); } },
+      { label:'Open Masters', detail:'Manage branches, customers and suppliers reference data', icon:'settings', run:() => { state.page='masters'; state.masterSection='home'; render(); } },
       { label:'Open Axiom intelligence', detail:'Review predictive alerts, EV and sustainability reporting', icon:'spark', run:() => { state.page='phase3'; render(); } },
       { label:'Run predictive evaluation', detail:'Create explainable risk signals from active duties', icon:'warning', run:() => handlePhase3Action('evaluate-alerts', {}) },
       { label:'Open safety centre', detail:'Review incidents, signals and response policy', icon:'shield', run:() => { state.page='safety'; render(); } },
@@ -3570,6 +3706,7 @@
 
     function showPublicPage(page, updateHash = true) {
       if (!publicPageTemplates[page]) { showPublic(updateHash); return; }
+      document.documentElement.classList.remove('is-app-mode');
       publicSite.classList.add('is-hidden');
       publicPages.classList.add('open');
       authScreen.classList.remove('open');
@@ -3582,11 +3719,12 @@
     }
 
     async function showFeedbackPublic(token, updateUrl = false) {
+      document.documentElement.classList.remove('is-app-mode');
       const encodedToken = encodeURIComponent(token || '');
       publicSite.classList.add('is-hidden'); publicPages.classList.add('open'); authScreen.classList.remove('open'); authScreen.setAttribute('aria-hidden', 'true'); appShell.classList.remove('is-visible');
       publicPageContent.innerHTML = `<section class="subpage-shell" style="max-width:720px;padding-top:72px;padding-bottom:90px"><div class="subpage-kicker"><i></i> Axiom Fleet · passenger feedback</div><div class="card" style="margin-top:18px;padding:clamp(22px,5vw,42px);border-radius:20px;background:#fff;border:1px solid #dfe8e1;box-shadow:0 18px 50px rgba(38,59,55,.08)"><div data-feedback-state><div class="phase12-loading"><div class="phase12-skeleton" style="height:150px"></div></div></div></div></section>`;
       if (updateUrl) history.replaceState(null, '', `/?feedback_token=${encodedToken}`);
-      const feedbackApi = async (path, options = {}) => { if (window.AxiomSupabaseAdapter?.enabled) return window.AxiomSupabaseAdapter.publicRequest(path, options); const response = await fetch(path, { ...options, credentials: 'omit' }); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'The feedback request could not be completed.'); return payload; };
+      const feedbackApi = async (path, options = {}) => { if (isSupabaseActive()) return window.AxiomSupabaseAdapter.publicRequest(path, options); const response = await fetch(path, { ...options, credentials: 'omit' }); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || 'The feedback request could not be completed.'); return payload; };
       try {
         const form = await feedbackApi(`/api/feedback/v1/${encodedToken}`); const target = publicPageContent.querySelector('[data-feedback-state]'); const questions = form.feedback?.questions || [];
         target.innerHTML = `<div class="eyebrow">${esc(form.feedback?.label || 'Passenger feedback')}</div><h1 style="font-size:clamp(30px,5vw,48px);margin:10px 0 8px">Tell us how we did.<br><em>Your signal matters.</em></h1><p style="color:#71807f;line-height:1.6;max-width:560px">This token-only link does not ask you to create an account. Your rating helps the travel desk investigate service issues and improve the next duty.</p><form id="public-feedback-form" style="display:grid;gap:13px;margin-top:25px"><div class="form-grid"><div class="form-group full"><label>Trip rating <span class="required">*</span></label><select class="form-input" name="rating" required><option value="">Choose a rating</option><option value="5">5 · Excellent</option><option value="4">4 · Good</option><option value="3">3 · Okay</option><option value="2">2 · Needs attention</option><option value="1">1 · Poor</option></select></div>${questions.filter(question => question.key !== 'rating').slice(0, 6).map(question => `<div class="form-group full"><label>${esc(question.label || question.key)}${question.required ? ' *' : ''}</label>${question.type === 'text' ? `<textarea class="form-input" name="answer_${esc(question.key)}" ${question.required ? 'required' : ''}></textarea>` : `<input class="form-input" name="answer_${esc(question.key)}" ${question.required ? 'required' : ''}>`}</div>`).join('')}<div class="form-group full"><label>Comment</label><textarea class="form-input" name="comment" placeholder="What should we keep or improve?"></textarea></div></div><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><span style="font-size:9px;color:#8b9897">Anonymous or token-only · expires ${esc(formatDate(form.feedback?.expires_at))}</span><button class="site-cta" type="submit">Submit feedback <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div><div id="public-feedback-result" role="status" style="font-size:10px;color:#527a64"></div></form>`;
@@ -3596,6 +3734,7 @@
     }
 
     async function showPassengerPortal(token, updateUrl = false) {
+      document.documentElement.classList.remove('is-app-mode');
       const encodedToken = encodeURIComponent(token || '');
       publicSite.classList.add('is-hidden');
       publicPages.classList.add('open');
@@ -3605,7 +3744,7 @@
       publicPageContent.innerHTML = `<section class="subpage-shell" style="max-width:720px;padding-top:72px;padding-bottom:90px"><div class="subpage-kicker"><i></i> Axiom Fleet · passenger portal</div><div class="card" style="margin-top:18px;padding:clamp(22px,5vw,42px);border-radius:20px;background:#fff;border:1px solid #dfe8e1;box-shadow:0 18px 50px rgba(38,59,55,.08)"><div data-passenger-state><div class="phase12-loading"><div class="phase12-skeleton" style="height:150px"></div></div></div></div></section>`;
       if (updateUrl) history.replaceState(null, '', `/?passenger_token=${encodedToken}`);
       const passengerApi = async (path, options = {}) => {
-        if (window.AxiomSupabaseAdapter?.enabled) return window.AxiomSupabaseAdapter.publicRequest(path, options);
+        if (isSupabaseActive()) return window.AxiomSupabaseAdapter.publicRequest(path, options);
         const response = await fetch(path, { ...options, credentials: 'omit' });
         const payload = await response.json();
         if (!response.ok) throw new Error(payload.error || 'The passenger request could not be completed.');
@@ -3668,13 +3807,38 @@
       const city = document.querySelector('.topbar-title .crumb span:last-child'); if (city) city.textContent = branchName;
     }
 
+    let supabaseFallbackActive = false;
+    try {
+      if (sessionStorage.getItem('axiom_local_runtime') === 'true') {
+        supabaseFallbackActive = true;
+      }
+    } catch (_) {}
+
+    function isSupabaseActive() {
+      return Boolean(window.AxiomSupabaseAdapter?.enabled && !supabaseFallbackActive);
+    }
+
     async function apiRequest(path, options = {}) {
-      if (window.AxiomSupabaseAdapter?.enabled) {
-        const result = await window.AxiomSupabaseAdapter.request(path, options);
-        if (options.method && options.method.toUpperCase() !== 'GET') state.lastAuditReference = result?.audit_reference || result?.meta?.audit_reference || result?.item?.audit_reference || '';
-        return result;
+      if (isSupabaseActive()) {
+        try {
+          const result = await window.AxiomSupabaseAdapter.request(path, options);
+          if (options.method && options.method.toUpperCase() !== 'GET') state.lastAuditReference = result?.audit_reference || result?.meta?.audit_reference || result?.item?.audit_reference || '';
+          return result;
+        } catch (adapterErr) {
+          console.warn('Supabase adapter error, falling back to sovereign local runtime:', adapterErr);
+          supabaseFallbackActive = true;
+          try { sessionStorage.setItem('axiom_local_runtime', 'true'); } catch (_) {}
+        }
       }
       const headers = { ...(options.headers || {}) };
+      if (currentUser) {
+        headers['X-Axiom-User-Email'] = currentUser.email || '';
+        try { headers['X-Axiom-User'] = JSON.stringify(currentUser); } catch (_) {}
+      }
+      const localToken = localStorage.getItem('axiomfleet_local_token');
+      if (localToken && !headers['Authorization']) {
+        headers['Authorization'] = `Bearer ${localToken}`;
+      }
       if (options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
       const response = await fetch(path, { ...options, headers, credentials: 'include' });
       let payload = {};
@@ -3696,16 +3860,49 @@
       currentUser = user;
       if (user) {
         try { localStorage.setItem('axiomfleet_user', JSON.stringify(user)); } catch (_) {}
+        try {
+          fetch('/api/auth/sync-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ user })
+          }).then(r => r.json()).then(data => {
+            if (data?.access_token) localStorage.setItem('axiomfleet_local_token', data.access_token);
+          }).catch(() => {});
+        } catch (_) {}
       }
       if (user?.role === 'driver') { state.page = 'driver'; advancedNavOpen = true; }
       else if (state.page === 'driver' || state.page === 'enterprise') state.page = 'overview';
       syncWorkspaceChrome();
     }
 
+    try {
+      const initialStoredUser = readStoredUser();
+      if (initialStoredUser) {
+        applyCurrentUser(initialStoredUser);
+      }
+    } catch (_) {}
+
     async function restoreSession() {
-      if (currentUser) return true;
+      if (currentUser) {
+        apiRequest('/api/auth/me').then(res => {
+          if (res?.user) applyCurrentUser(res.user);
+        }).catch(err => {
+          const status = err?.status || err?.statusCode;
+          const msg = String(err?.message || '').toLowerCase();
+          if (status === 401 || msg.includes('unauthorized') || msg.includes('sign in required')) {
+            logout();
+          }
+        });
+        return true;
+      }
       const stored = readStoredUser();
-      if (stored) applyCurrentUser(stored);
+      if (stored) {
+        applyCurrentUser(stored);
+        document.documentElement.classList.add('is-app-mode');
+        publicSite.classList.add('is-hidden');
+        appShell.classList.add('is-visible');
+      }
       try {
         const response = await apiRequest('/api/auth/me');
         if (response?.user) {
@@ -3718,6 +3915,7 @@
         if (status === 401 || msg.includes('unauthorized') || msg.includes('sign in required')) {
           currentUser = null;
           try { localStorage.removeItem('axiomfleet_user'); } catch (_) {}
+          document.documentElement.classList.remove('is-app-mode');
           return false;
         }
         if (stored) return true;
@@ -3778,6 +3976,7 @@
     }
 
     function showPublic(updateHash = true) {
+      document.documentElement.classList.remove('is-app-mode');
       publicSite.classList.remove('is-hidden');
       publicPages.classList.remove('open');
       authScreen.classList.remove('open');
@@ -3787,6 +3986,7 @@
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
     function showLogin(updateHash = true) {
+      document.documentElement.classList.remove('is-app-mode');
       publicSite.classList.add('is-hidden');
       publicPages.classList.remove('open');
       authScreen.classList.add('open');
@@ -3799,6 +3999,7 @@
     }
     async function showApp(updateHash = true) {
       if (!currentUser && !(await restoreSession())) { showLogin(updateHash); return; }
+      document.documentElement.classList.add('is-app-mode');
       publicSite.classList.add('is-hidden');
       publicPages.classList.remove('open');
       authScreen.classList.remove('open');
@@ -3941,6 +4142,11 @@
       try {
         localStorage.removeItem('axiomfleet_user');
         localStorage.removeItem('axiomfleet_supabase_session');
+        localStorage.removeItem('axiomfleet_local_token');
+        sessionStorage.removeItem('axiom_local_runtime');
+        sessionStorage.removeItem('axiomfleet_active_page');
+        document.documentElement.classList.remove('is-app-mode');
+        supabaseFallbackActive = false;
       } catch (_) {}
       closeDrawer();
       closeModal();

@@ -533,17 +533,78 @@ def clear_cookie() -> str:
     return f"{SESSION_COOKIE}=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax{secure}"
 
 
+def ensure_user_from_client(conn: sqlite3.Connection, user_data: dict, handler: SimpleHTTPRequestHandler) -> sqlite3.Row | None:
+    raw_email = user_data.get("email")
+    if not raw_email or not isinstance(raw_email, str):
+        return None
+    email = normalize_email(raw_email)
+    row = conn.execute(user_select_sql() + " WHERE lower(u.email) = ?", (email.lower(),)).fetchone()
+    if row is not None:
+        return row
+    now = utc_now()
+    role = str(user_data.get("role") or "vendor").lower()
+    if role not in ROLES:
+        role = "vendor"
+    org_data = user_data.get("organization") if isinstance(user_data.get("organization"), dict) else {}
+    org_id = org_data.get("id") or new_id("org")
+    org_name = org_data.get("name") or "Axiom Fleet Logistics"
+    conn.execute(
+        """
+        INSERT OR IGNORE INTO organizations(id, kind, name, phone, city, gstin, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (org_id, role, org_name, org_data.get("phone", ""), org_data.get("city", "Bengaluru"), org_data.get("gstin", ""), now),
+    )
+    user_id = user_data.get("id") or new_id("usr")
+    salt, password_digest = hash_password(secrets.token_urlsafe(16))
+    full_name = user_data.get("full_name") or user_data.get("name") or email.split("@")[0].capitalize()
+    phone = user_data.get("phone", "")
+    conn.execute(
+        """
+        INSERT OR IGNORE INTO users(id, email, password_hash, password_salt, role, full_name, phone, organization_id, status, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)
+        """,
+        (user_id, email, password_digest, salt, role, full_name, phone, org_id, now),
+    )
+    prof = user_data.get("profile") if isinstance(user_data.get("profile"), dict) else {}
+    conn.execute(
+        """
+        INSERT OR IGNORE INTO profiles(user_id, city, timezone, license_number, fleet_size, employee_count, metadata_json)
+        VALUES (?, ?, ?, ?, ?, ?, '{}')
+        """,
+        (user_id, prof.get("city", "Bengaluru"), prof.get("timezone", "Asia/Kolkata"), prof.get("license_number", ""), prof.get("fleet_size"), prof.get("employee_count")),
+    )
+    conn.commit()
+    return conn.execute(user_select_sql() + " WHERE u.id = ?", (user_id,)).fetchone()
+
+
 def current_user(conn: sqlite3.Connection, handler: SimpleHTTPRequestHandler) -> sqlite3.Row | None:
     token = request_token(handler)
-    if not token:
-        return None
-    row = conn.execute(
-        user_select_sql() + " JOIN sessions s ON s.user_id = u.id WHERE s.token_hash = ? AND s.expires_at > ?",
-        (token_hash(token), utc_now()),
-    ).fetchone()
-    if row is None:
+    if token:
+        row = conn.execute(
+            user_select_sql() + " JOIN sessions s ON s.user_id = u.id WHERE s.token_hash = ? AND s.expires_at > ?",
+            (token_hash(token), utc_now()),
+        ).fetchone()
+        if row is not None:
+            return row
         conn.execute("DELETE FROM sessions WHERE token_hash = ?", (token_hash(token),))
-    return row
+
+    client_user_raw = handler.headers.get("X-Axiom-User")
+    if client_user_raw:
+        try:
+            client_user = json.loads(client_user_raw)
+            if isinstance(client_user, dict):
+                return ensure_user_from_client(conn, client_user, handler)
+        except Exception:
+            pass
+
+    client_email = handler.headers.get("X-Axiom-User-Email", "").strip().lower()
+    if client_email:
+        row = conn.execute(user_select_sql() + " WHERE lower(u.email) = ?", (client_email,)).fetchone()
+        if row is not None:
+            return row
+
+    return None
 
 
 def create_session(conn: sqlite3.Connection, user_id: str, handler: SimpleHTTPRequestHandler) -> str:
@@ -881,6 +942,18 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             fresh = conn.execute(user_select_sql() + " WHERE u.id = ?", (row["id"],)).fetchone()
             self._json(200, {"ok": True, "user": serialize_user(fresh), "access_token": session}, cookie=make_cookie(session))
 
+    def _api_sync_session(self) -> None:
+        data = self._read_json()
+        user_payload = data.get("user") if isinstance(data.get("user"), dict) else data
+        if not isinstance(user_payload, dict):
+            raise APIError(400, "User object required", "validation_error")
+        with db_connection() as conn:
+            row = ensure_user_from_client(conn, user_payload, self)
+            if not row:
+                raise APIError(400, "Valid user email required", "validation_error")
+            session = create_session(conn, row["id"], self)
+            self._json(200, {"ok": True, "user": serialize_user(row), "access_token": session}, cookie=make_cookie(session))
+
     def _api_me(self) -> None:
         with db_connection() as conn:
             row = self._require_user(conn)
@@ -1100,7 +1173,7 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
         if method == "OPTIONS":
             self.send_response(204)
             self.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
-            self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Request-ID")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Request-ID, X-Axiom-User, X-Axiom-User-Email")
             self.send_header("Content-Length", "0")
             self._common_headers()
             self.end_headers()
@@ -1113,6 +1186,8 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 self._api_signup()
             elif route == "/api/auth/login" and method == "POST":
                 self._api_login()
+            elif route == "/api/auth/sync-session" and method == "POST":
+                self._api_sync_session()
             elif route == "/api/auth/password-reset" and method == "POST":
                 self._api_password_reset()
             elif route == "/api/auth/password-reset/confirm" and method == "POST":

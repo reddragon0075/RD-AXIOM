@@ -447,8 +447,12 @@ def _update_booking(conn, user, booking_id, payload, ip):
     updates = []
     if "customer_id" in payload:
         customer_id = _text(payload, "customer_id") or None
-        if customer_id:
-            _assert_owned(conn, "domain_customers", customer_id, org)
+        if customer_id and customer_id not in (org, "corp-default"):
+            cust = conn.execute("SELECT id FROM domain_customers WHERE id = ? AND organization_id = ?", (customer_id, org)).fetchone()
+            if not cust:
+                customer_id = None
+        elif customer_id in (org, "corp-default"):
+            customer_id = None
         updates.append(("customer_id", customer_id))
     for key in ("passenger_name", "passenger_phone", "passenger_email", "scheduled_at", "duty_type", "notes", "status"):
         if key in payload:
@@ -542,8 +546,12 @@ def _create_booking(conn, user, payload, ip):
     now = now_iso()
     reference = _text(payload, "booking_reference") or f"BK-{datetime.now(timezone.utc):%Y%m}-{uuid.uuid4().hex[:6].upper()}"
     customer_id = _text(payload, "customer_id") or None
-    if customer_id:
-        _assert_owned(conn, "domain_customers", customer_id, org)
+    if customer_id and customer_id not in (org, "corp-default"):
+        cust = conn.execute("SELECT id FROM domain_customers WHERE id = ? AND organization_id = ?", (customer_id, org)).fetchone()
+        if not cust:
+            customer_id = None
+    elif customer_id in (org, "corp-default"):
+        customer_id = None
     pickup = payload.get("pickup") if isinstance(payload.get("pickup"), dict) else {"label": _text(payload, "pickup")}
     dropoff = payload.get("dropoff") if isinstance(payload.get("dropoff"), dict) else {"label": _text(payload, "dropoff")}
     booking_id = new_id("book")
