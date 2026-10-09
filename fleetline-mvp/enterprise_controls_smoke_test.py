@@ -2,6 +2,7 @@
 """Focused local smoke coverage for the enterprise/passenger/evidence slice."""
 from __future__ import annotations
 import sys
+from datetime import datetime, timedelta, timezone
 
 import os
 import subprocess
@@ -57,7 +58,7 @@ def main() -> None:
             status, sso = call(client, base, "POST", "/api/enterprise/sso/config", {"provider": "oidc", "issuer_url": "https://login.example.com", "client_id": "axiom-client", "domains": ["example.com"], "status": "draft"})
             expect(status == 200 and sso["item"]["provider"] == "oidc", "company-email SSO boundary stores provider-neutral configuration")
 
-            status, portal = call(client, base, "POST", "/api/passenger/portal-links", {"label": "Smoke passenger portal", "expires_at": "2026-10-07T00:00:00+00:00"})
+            status, portal = call(client, base, "POST", "/api/passenger/portal-links", {"label": "Smoke passenger portal", "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()})
             expect(status == 200 and portal.get("portal_token") and portal["portal_path"].startswith("/api/passenger/v1/portal/"), "passenger portal issues a one-time token boundary")
             _, public_client = make_client(base)
             status, portal_meta = call(public_client, base, "GET", portal["portal_path"])

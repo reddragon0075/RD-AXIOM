@@ -4,6 +4,8 @@ import re, struct, sys, json, urllib.request
 from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parent
+_orig_read_text = Path.read_text
+Path.read_text = lambda self, *args, **kwargs: _orig_read_text(self, *args, **dict({'encoding': 'utf-8'}, **kwargs))
 HTML_PATH = ROOT / 'index.html'
 html = HTML_PATH.read_text(encoding='utf-8')
 soup = BeautifulSoup(html, 'html.parser')
