@@ -1400,7 +1400,41 @@
     @media (max-width:1050px) { .corp-console-intro,.corp-watch-grid { grid-template-columns:1fr; }.corp-account-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }.corp-workflow-rail { grid-template-columns:repeat(2,minmax(0,1fr)); }.corp-workflow-step:nth-child(2)::after { display:none; } }
     @media (max-width:650px) { .corp-account-grid { grid-template-columns:1fr 1fr; gap:8px; }.corp-account-tile { padding:10px; }.corp-account-tile strong { font-size:15px; }.corp-workflow-rail { grid-template-columns:1fr; }.corp-workflow-step:not(:last-child)::after { display:none; }.corp-finance-rail { grid-template-columns:1fr; }.corp-brief h2 { font-size:22px; } }
     @media (max-width:650px) { .corp-kpi-grid { grid-template-columns:1fr 1fr; gap:9px; }.corp-metric { min-height:111px; padding:14px; }.corp-metric-value { margin-top:14px; font-size:22px; }.corp-metric-foot { font-size:8.5px; }.corp-hero-main { padding:22px 20px 20px; }.corp-hero h2 { font-size:26px; }.corp-hero-side { padding:20px; }.corp-rail { grid-template-columns:1fr; }.corp-rail > :last-child { grid-column:auto; }.corp-panel-head { padding-left:15px; padding-right:15px; }.corp-panel-body,.corp-health-list,.corp-network-strip,.corp-finance-list,.corp-activity { padding-left:15px; padding-right:15px; }.corp-access { grid-template-columns:1fr; padding:19px; } }
-    .enterprise-hero { display:flex; align-items:center; justify-content:space-between; gap:28px; padding:24px; margin-bottom:16px; border:1px solid #dce8e0; border-radius:16px; background:linear-gradient(120deg,#fbfdf8,#f1f5ff); box-shadow:var(--shadow-sm); }.enterprise-hero h2 { margin:7px 0 6px; color:#263b3e; font-size:clamp(20px,2.7vw,29px); letter-spacing:-.04em; }.enterprise-hero p { max-width:680px; margin:0; color:var(--muted); line-height:1.55; font-size:11px; }.enterprise-progress { width:210px; flex:none; padding:16px; border:1px solid #dfe8e1; border-radius:13px; background:rgba(255,255,255,.78); }.enterprise-progress strong { display:block; color:#5558d8; font-size:30px; letter-spacing:-.06em; }.enterprise-progress span { display:block; color:var(--muted); font-size:9px; margin:3px 0 12px; }.enterprise-steps { display:grid; gap:9px; }.enterprise-step { display:flex; align-items:center; gap:10px; padding:10px; border:1px solid #e3ebe5; border-radius:10px; background:#fff; text-align:left; cursor:pointer; }.enterprise-step:hover { border-color:#b8c9ff; background:#f9faff; }.enterprise-step strong { display:block; color:#33484b; font-size:10px; }.enterprise-step small { display:block; margin-top:3px; color:#95a09f; font-size:8.5px; }.step-number { width:25px; height:25px; display:grid; place-items:center; flex:none; border-radius:8px; background:#eef0ff; color:#5a5dd7; font-weight:800; font-size:10px; }.step-number.done { background:#e5f6ed; color:#11826d; }.wizard-track { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-bottom:18px; }.wizard-track span { padding:8px 6px; border-radius:8px; background:#f2f4f4; color:#8c9998; text-align:center; font-size:9px; font-weight:750; }.wizard-track span.active { background:#eef0ff; color:#5b5edb; }.check-row { display:flex; align-items:center; gap:8px; font-size:10px; color:var(--ink-2); }.check-row input { accent-color:var(--blue); } @media (max-width:700px) { .enterprise-hero { display:block; }.enterprise-progress { width:auto; margin-top:18px; }.wizard-track { grid-template-columns:repeat(2,1fr); } }
+    /* Bookings Inbox Table & Filter Toolbar (Indecab / Star Ride CRC Parity) */
+    .booking-tabs-bar { padding: 10px 18px 0; border-bottom: 1px solid var(--line, #edf1ee); background: var(--surface, #fff); }
+    .booking-tabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+    .booking-tabs .tab { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; padding: 8px 13px; font-size: 11.5px; font-weight: 600; border: none; background: transparent; color: var(--muted, #64748b); border-radius: 6px; cursor: pointer; transition: all .15s ease; position: relative; }
+    .booking-tabs .tab:hover { color: var(--ink, #1e293b); background: #f8fafc; }
+    .booking-tabs .tab.active { color: var(--blue, #2563eb); background: var(--blue-soft, #eff6ff); font-weight: 750; }
+    .booking-tabs .tab.active::after { content: ''; position: absolute; bottom: -2px; left: 10px; right: 10px; height: 2px; background: var(--blue, #2563eb); border-radius: 2px; }
+    .booking-tab-count { display: inline-flex; align-items: center; justify-content: center; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 10px; font-size: 9.5px; font-weight: 700; background: #e2e8f0; color: #475569; }
+    .booking-tabs .tab.active .booking-tab-count { background: #dbeafe; color: #1d4ed8; }
+    .booking-tab-count.alert { background: #fee2e2; color: #dc2626; }
+    .booking-filter-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; background: var(--surface, #fff); border-bottom: 1px solid var(--line, #edf1ee); flex-wrap: wrap; }
+    .booking-search-label { display: flex; align-items: center; gap: 8px; flex: 1 1 340px; max-width: 580px; height: 35px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0 12px; color: var(--muted, #64748b); transition: border-color .15s ease; position: relative; }
+    .booking-search-label:focus-within { border-color: var(--blue, #2563eb); background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
+    .booking-search-input { border: none; background: transparent; outline: none; width: 100%; font-size: 11.5px; color: var(--ink, #1e293b); }
+    .booking-search-input::placeholder { color: #94a3b8; }
+    .booking-search-clear { border: none; background: transparent; font-size: 14px; color: #94a3b8; cursor: pointer; padding: 0 4px; }
+    .booking-search-clear:hover { color: #334155; }
+    .booking-date-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .booking-date-range { display: flex; align-items: center; gap: 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 3px 8px; }
+    .booking-date-input { border: none; background: transparent; font-size: 11px; font-family: inherit; color: var(--ink, #1e293b); outline: none; cursor: pointer; }
+    .booking-date-sep { color: #94a3b8; font-size: 11px; font-weight: 700; }
+    .booking-clear-btn { font-size: 10.5px; font-weight: 750; letter-spacing: .04em; padding: 6px 12px; border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569; cursor: pointer; transition: all .15s ease; }
+    .booking-clear-btn:hover { background: #e2e8f0; color: #1e293b; }
+    .booking-total-view { font-size: 11px; font-weight: 700; color: var(--muted, #64748b); white-space: nowrap; margin-left: 4px; }
+    .booking-table-wrap { overflow-x: auto; position: relative; }
+    .booking-table { width: 100%; min-width: 1180px; border-collapse: collapse; }
+    .booking-table th { padding: 11px 10px; font-size: 9.5px; font-weight: 750; color: #64748b; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid #e2e8f0; background: #f8fafc; text-align: left; white-space: nowrap; }
+    .booking-table th.sortable:hover { color: var(--blue, #2563eb); background: #f1f5f9; }
+    .booking-table td { padding: 11px 10px; font-size: 11px; border-bottom: 1px solid #f1f5f9; color: #334155; vertical-align: middle; }
+    .booking-table tbody tr:hover { background: #f8fafc; }
+    .booking-row-attention { background: #fff5f5 !important; }
+    .booking-row-attention:hover { background: #fee2e2 !important; }
+    .booking-vehicle-pill { display: inline-block; padding: 2px 7px; font-size: 10.5px; font-weight: 750; font-family: var(--font-mono, monospace); background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 5px; color: #1e293b; letter-spacing: .02em; }
+    .booking-duty-type-pill { display: inline-block; padding: 2px 7px; font-size: 10px; font-weight: 650; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; border-radius: 4px; white-space: nowrap; }
+    .booking-cell-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   </style>
 </head>
 <body>
@@ -1723,6 +1757,7 @@
         leaf: '<path d="M20 4C11 4 5 8 5 14c0 3.3 2.2 6 5.5 6C17 20 20 12 20 4Z"/><path d="M4 20c2.5-4.5 6-7.5 11-9"/>',
         play: '<path d="m8 5 11 7-11 7V5Z"/>',
         target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor"/>',
+        settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
       };
       const rendered = `<svg aria-hidden="true" focusable="false" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${icons[name] || icons.spark}</svg>`;
       iconCache.set(cacheKey, rendered);
@@ -1740,7 +1775,7 @@
       } catch (_) {}
       return 'overview';
     })();
-    const state = { page: savedActivePage, dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', invoiceQuery: '', driverQuery: '', driverFilter: 'all', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const state = { page: savedActivePage, dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Booked', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', invoiceQuery: '', driverQuery: '', driverFilter: 'all', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
     const advancedPages = new Set(['customers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise']);
@@ -1825,7 +1860,137 @@
     function bookingRowsForDisplay() {
       const live = state.liveData?.bookings?.items;
       if (!live?.length) return [];
-      return live.map(b => { const pickup=b.pickup||{}; const dropoff=b.dropoff||{}; const stateName=liveStatus(b.status); return { id:b.booking_reference || b.id, customer:b.customer_name || 'Connected customer', passenger:b.passenger_name || '—', time:b.scheduled_at ? formatTime(b.scheduled_at) : '—', city:pickup.label || '—', route:`${pickup.label || 'Pickup'} → ${dropoff.label || 'Drop'}`, type:b.duty_type || 'Duty', status:stateName, tone:liveTone(b.status), created_at:b.created_at, source:b.source || 'Tenant API' }; });
+
+      const dutiesByBooking = {};
+      (state.liveData?.duties?.items || []).forEach(d => {
+        if (d.booking_id) dutiesByBooking[d.booking_id] = d;
+      });
+
+      const driversById = Object.fromEntries((state.liveData?.drivers?.items || []).map(item => [item.id, item]));
+      const vehiclesById = Object.fromEntries((state.liveData?.vehicles?.items || []).map(item => [item.id, item]));
+      const customersById = Object.fromEntries((state.liveData?.customers?.items || []).map(item => [item.id, item]));
+      const suppliersById = Object.fromEntries((state.liveData?.suppliers?.items || []).map(item => [item.id, item]));
+
+      return live.map(b => {
+        const duty = dutiesByBooking[b.id] || dutiesByBooking[b.booking_reference] || {};
+        const driver = driversById[b.driver_id || duty.driver_id] || {};
+        const vehicle = vehiclesById[b.vehicle_id || duty.vehicle_id] || {};
+        const customer = customersById[b.customer_id] || {};
+        const supplier = suppliersById[b.supplier_id || duty.supplier_id] || {};
+
+        const pickup = typeof b.pickup === 'object' && b.pickup ? b.pickup : { label: String(b.pickup || '') };
+        const dropoff = typeof b.dropoff === 'object' && b.dropoff ? dropoff : { label: String(b.dropoff || '') };
+
+        const schedDateStr = b.scheduled_at || duty.reporting_at || b.created_at;
+        let schedDate = null;
+        let displayDate = '—';
+        let rawDateIso = '';
+        if (schedDateStr) {
+          const parsed = new Date(schedDateStr);
+          if (!isNaN(parsed.getTime())) {
+            schedDate = parsed;
+            rawDateIso = parsed.toISOString().split('T')[0];
+            const day = String(parsed.getDate()).padStart(2, '0');
+            const month = String(parsed.getMonth() + 1).padStart(2, '0');
+            displayDate = `${day}-${month}`;
+          }
+        }
+
+        const customerName = b.customer_name || customer.name || (b.customer_id ? `Customer (${b.customer_id.slice(-6)})` : 'Connected customer');
+        const passengerName = b.passenger_name || '—';
+        const passengerPhone = b.passenger_phone || b.passenger_mobile || '';
+
+        const vehicleReg = vehicle.registration_number || b.vehicle_number || b.vehicle_registration || (duty.vehicle_id ? duty.vehicle_id : '');
+        const driverName = driver.full_name || b.driver_name || '';
+        const supplierName = supplier.name || b.supplier_name || '';
+        const driverSupplier = driverName || supplierName || '—';
+
+        const dutyType = b.duty_type || duty.duty_type || '4H 40KMs';
+        const repAddress = pickup.address || pickup.label || 'NA';
+        const dropAddress = dropoff.address || dropoff.label || 'NA';
+        const remarks = b.notes || b.remarks || 'NA';
+        const city = pickup.city || b.city || customer.city || (pickup.label && pickup.label.toLowerCase().includes('mumbai') ? 'Mumbai' : 'Bengaluru');
+
+        const repTime = b.scheduled_at ? formatTime(b.scheduled_at) : (duty.reporting_at ? formatTime(duty.reporting_at) : '14:00');
+        let estDrop = b.dropoff_time || b.estimated_drop_at;
+        if (!estDrop) {
+          estDrop = '23:59';
+        } else {
+          estDrop = formatTime(estDrop);
+        }
+
+        const rawStatus = String(b.status || duty.status || 'requested').toLowerCase();
+        let displayStatus = 'Requested';
+        let tone = 'amber';
+        let attentionNeeded = false;
+
+        if (rawStatus === 'cancelled' || rawStatus === 'rejected') {
+          displayStatus = 'Cancelled';
+          tone = 'red';
+        } else if (rawStatus === 'completed' || rawStatus === 'closed') {
+          displayStatus = 'Completed';
+          tone = 'green';
+        } else if (rawStatus === 'dispatched' || rawStatus === 'en_route' || rawStatus === 'started' || rawStatus === 'in_progress') {
+          displayStatus = 'Dispatched';
+          tone = 'teal';
+        } else if (rawStatus === 'billed' || rawStatus === 'invoiced') {
+          displayStatus = 'Billed';
+          tone = 'purple';
+        } else if (vehicleReg && !driverName) {
+          displayStatus = 'Driver needed';
+          tone = 'red';
+          attentionNeeded = true;
+        } else if (!vehicleReg && !driverName && (rawStatus === 'booked' || rawStatus === 'approved' || rawStatus === 'confirmed')) {
+          displayStatus = 'Driver needed';
+          tone = 'red';
+          attentionNeeded = true;
+        } else if (vehicleReg && driverName) {
+          displayStatus = 'Allotted';
+          tone = 'teal';
+        } else if (rawStatus === 'booked' || rawStatus === 'confirmed' || rawStatus === 'approved') {
+          displayStatus = 'Booked';
+          tone = 'blue';
+        } else if (rawStatus === 'requested' || rawStatus === 'pending_approval' || rawStatus === 'incoming') {
+          displayStatus = 'Requested';
+          tone = 'amber';
+          attentionNeeded = true;
+        } else {
+          displayStatus = liveStatus(b.status);
+          tone = liveTone(b.status);
+        }
+
+        return {
+          id: b.booking_reference || b.id,
+          rawId: b.id,
+          bookingReference: b.booking_reference,
+          date: schedDate,
+          displayDate,
+          rawDateIso,
+          customer: customerName,
+          passenger: passengerName,
+          passengerPhone,
+          vehicle: vehicleReg || '—',
+          hasVehicle: Boolean(vehicleReg),
+          driverSupplier,
+          hasDriver: Boolean(driverName),
+          dutyType,
+          repAddress,
+          dropAddress,
+          remarks,
+          city,
+          repTime,
+          time: repTime,
+          estDrop,
+          status: displayStatus,
+          rawStatus,
+          tone,
+          attentionNeeded,
+          source: b.source || 'Tenant API',
+          route: `${repAddress} → ${dropAddress}`,
+          type: dutyType,
+          created_at: b.created_at
+        };
+      });
     }
 
     function syncAdvancedNavigation() {
@@ -2296,10 +2461,85 @@
 
     function renderBookings() {
       const allRows = bookingRowsForDisplay();
-      const query = String(state.bookingQuery || '').toLowerCase();
-      const rows = allRows.filter(row => !query || [row.id,row.customer,row.passenger,row.route,row.type,row.status].join(' ').toLowerCase().includes(query));
+      const activeTab = state.bookingTab || 'Booked';
+      const query = String(state.bookingQuery || '').trim().toLowerCase();
+      const dateFrom = state.bookingDateFrom || '';
+      const dateTo = state.bookingDateTo || '';
+
+      const bookingTabs = [
+        'Upcoming',
+        'Booked',
+        'Allotted',
+        'Dispatched',
+        'Completed',
+        'Billed',
+        'Cancelled',
+        'All',
+        'Incoming',
+        'Needs Attention'
+      ];
+
+      function matchesBookingTab(row, tab) {
+        if (tab === 'All') return true;
+        if (tab === 'Upcoming') return !['Completed', 'Cancelled', 'Billed'].includes(row.status);
+        if (tab === 'Booked') return ['Booked', 'Confirmed', 'Approved', 'Driver needed', 'Allotted'].includes(row.status) || ['booked', 'confirmed', 'approved'].includes(row.rawStatus);
+        if (tab === 'Allotted') return row.status === 'Allotted' || (row.hasVehicle && row.hasDriver);
+        if (tab === 'Dispatched') return ['Dispatched', 'In progress'].includes(row.status) || ['dispatched', 'en_route', 'started', 'in_progress'].includes(row.rawStatus);
+        if (tab === 'Completed') return row.status === 'Completed' || ['completed', 'closed'].includes(row.rawStatus);
+        if (tab === 'Billed') return row.status === 'Billed' || ['billed', 'invoiced'].includes(row.rawStatus);
+        if (tab === 'Cancelled') return row.status === 'Cancelled' || ['cancelled', 'rejected'].includes(row.rawStatus);
+        if (tab === 'Incoming') return ['Requested', 'Incoming', 'Pending approval'].includes(row.status) || ['requested', 'pending_approval', 'incoming', 'draft'].includes(row.rawStatus);
+        if (tab === 'Needs Attention') return row.attentionNeeded || row.status === 'Driver needed' || ['requested', 'pending_approval'].includes(row.rawStatus);
+        return true;
+      }
+
+      const tabCounts = {};
+      bookingTabs.forEach(t => {
+        tabCounts[t] = allRows.filter(r => matchesBookingTab(r, t)).length;
+      });
+
+      const tabFiltered = allRows.filter(row => matchesBookingTab(row, activeTab));
+
+      const searchFiltered = tabFiltered.filter(row => {
+        if (!query) return true;
+        const searchable = [
+          row.id,
+          row.bookingReference,
+          row.customer,
+          row.passenger,
+          row.passengerPhone,
+          row.vehicle,
+          row.driverSupplier,
+          row.dutyType,
+          row.repAddress,
+          row.dropAddress,
+          row.remarks,
+          row.city,
+          row.repTime,
+          row.estDrop,
+          row.status
+        ].filter(Boolean).join(' ').toLowerCase();
+        return searchable.includes(query);
+      });
+
+      const rows = searchFiltered.filter(row => {
+        if (!row.rawDateIso) return true;
+        if (dateFrom && row.rawDateIso < dateFrom) return false;
+        if (dateTo && row.rawDateIso > dateTo) return false;
+        return true;
+      });
+
+      const sortDir = state.bookingSortDir || 'desc';
+      rows.sort((a, b) => {
+        const timeA = a.date ? a.date.getTime() : 0;
+        const timeB = b.date ? b.date.getTime() : 0;
+        return sortDir === 'asc' ? timeA - timeB : timeB - timeA;
+      });
+
       const requested = (state.liveData?.bookings?.items || []).filter(item => ['requested','pending_approval'].includes(item.status)).length;
-      return `${pageHead('Operations · Intake','Bookings inbox','Capture direct or delegated requests, keep approvals moving and turn each decision into a duty.',`${button(icon('upload')+'Import CSV','','data-action="import"')}${button(icon('plus')+'New booking','primary','data-action="new-booking"')}`)}<div class="grid kpis"><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Requests awaiting approval</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${requested}</div><div class="kpi-foot">Tenant booking status only</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Booking records</span><span class="kpi-icon">${icon('file')}</span></div><div class="kpi-value">${allRows.length}</div><div class="kpi-foot">${rows.length} match current search</div></div></div><section class="card section-card"><div class="panel-toolbar"><div class="tabs"><button class="tab active">All requests <span style="margin-left:3px">${allRows.length}</span></button><button class="tab">Needs decision <span style="color:var(--amber);margin-left:3px">${requested}</span></button></div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:220px;flex:none"><span>${icon('search')}</span><input id="bookingQuery" placeholder="Search bookings…" value="${esc(state.bookingQuery || '')}"></label></div><div class="table-wrap"><table><thead><tr><th>Request</th><th>Customer &amp; passenger</th><th>Reporting</th><th>Route</th><th>Status</th><th></th></tr></thead><tbody>${rows.length ? rows.map(row => `<tr><td><span class="primary">${esc(row.id)}</span><span class="secondary">${esc(row.source || 'Tenant API')}</span></td><td><span class="primary">${esc(row.customer)}</span><span class="secondary">${esc(row.passenger)}</span></td><td>${esc(row.time)}<span class="secondary">${esc(row.city)}</span></td><td class="route">${esc(row.route)}</td><td>${status(row.status,row.tone)}</td><td><button class="btn small icon" data-open-booking-actions="${esc(row.id)}" aria-label="Open booking actions for ${esc(row.id)}">${icon('chevron')}</button></td></tr>`).join('') : tenantTableEmpty('No booking records returned','Create a tenant booking or wait for a delegated request to arrive.',button(icon('plus')+'Create booking','small soft','data-action="new-booking"'))}</tbody></table></div></section>`;
+      const attentionCount = allRows.filter(r => r.attentionNeeded).length;
+
+      return `${pageHead('Operations · Intake','Bookings inbox','Capture direct or delegated requests, keep approvals moving and turn each decision into a duty.',`${button(icon('upload')+'Import CSV','','data-action="import"')}${button(icon('plus')+'Add booking','primary','data-action="new-booking"')}`)}<div class="grid kpis"><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Requests awaiting approval</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${requested}</div><div class="kpi-foot">Tenant booking status only</div></div><div class="card kpi ${attentionCount ? 'red' : ''}"><div class="kpi-top"><span class="kpi-label">Needs attention</span><span class="kpi-icon ${attentionCount ? 'red' : ''}">${icon('warning')}</span></div><div class="kpi-value">${attentionCount}</div><div class="kpi-foot">Driver needed or unallotted</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Booking records</span><span class="kpi-icon">${icon('file')}</span></div><div class="kpi-value">${allRows.length}</div><div class="kpi-foot">${rows.length} match active view</div></div></div><section class="card section-card"><div class="booking-tabs-bar"><div class="tabs booking-tabs">${bookingTabs.map(tab => `<button class="tab ${activeTab === tab ? 'active' : ''}" data-booking-tab="${esc(tab)}">${tab} <span class="booking-tab-count ${tab === 'Needs Attention' && tabCounts[tab] ? 'alert' : ''}">${tabCounts[tab]}</span></button>`).join('')}</div></div><div class="booking-filter-bar"><label class="booking-search-label"><span>${icon('search')}</span><input id="bookingQuery" class="booking-search-input" placeholder="Type here to filter by name, number, city, duty type, company name or booking ID" value="${esc(state.bookingQuery || '')}">${state.bookingQuery ? `<button type="button" class="booking-search-clear" data-action="clear-booking-search" title="Clear search">×</button>` : ''}</label><div class="booking-date-controls"><button class="btn icon small" data-action="booking-date-prev" title="Previous 30 days" aria-label="Previous 30 days">‹</button><div class="booking-date-range"><input type="date" id="bookingDateFrom" class="booking-date-input" value="${esc(state.bookingDateFrom || '')}" title="From date"><span class="booking-date-sep">→</span><input type="date" id="bookingDateTo" class="booking-date-input" value="${esc(state.bookingDateTo || '')}" title="To date"></div><button class="btn icon small" data-action="booking-date-next" title="Next 30 days" aria-label="Next 30 days">›</button><button class="booking-clear-btn" id="clearBookingFilters" data-action="clear-booking-filters">CLEAR FILTERS</button><span class="booking-total-view">Total: ${rows.length} view</span></div></div><div class="table-wrap booking-table-wrap"><table class="booking-table"><thead><tr><th class="sortable" data-action="sort-booking-date" title="Sort by date" style="cursor:pointer">Date <span style="font-size:9px">${sortDir === 'asc' ? '▲' : '▼'}</span></th><th>Customer</th><th>Passenger</th><th>Vehicle</th><th>Driver/Supplier</th><th>Duty Type</th><th>Rep. Address</th><th>Drop Address</th><th>Remarks</th><th>City</th><th>Rep.Time</th><th>Est.Drop</th><th>Status</th></tr></thead><tbody>${rows.length ? rows.map(row => `<tr class="${row.attentionNeeded ? 'booking-row-attention' : ''}"><td><div style="display:flex;align-items:center;gap:6px;white-space:nowrap">${row.passengerPhone ? `<a href="tel:${esc(row.passengerPhone)}" title="Call ${esc(row.passengerPhone)}" style="color:#059669;display:inline-flex;align-items:center;text-decoration:none">${icon('phone', 13)}</a>` : `<span style="color:#10b981;display:inline-flex;align-items:center">${icon('phone', 13)}</span>`}<span style="font-weight:600;color:var(--ink)">${esc(row.displayDate)}</span></div></td><td><div class="booking-cell-truncate" title="${esc(row.customer)}" style="max-width:140px;font-weight:600;color:var(--ink)">${esc(row.customer)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.passenger)}" style="max-width:120px;font-weight:500;color:#334155">${esc(row.passenger)}</div></td><td>${row.vehicle && row.vehicle !== '—' ? `<span class="booking-vehicle-pill">${esc(row.vehicle)}</span>` : `<span style="color:var(--muted)">—</span>`}</td><td><div class="booking-cell-truncate" title="${esc(row.driverSupplier)}" style="max-width:120px;color:${row.hasDriver ? 'var(--ink)' : 'var(--muted)'}">${esc(row.driverSupplier)}</div></td><td><span class="booking-duty-type-pill">${esc(row.dutyType)}</span></td><td><div class="booking-cell-truncate" title="${esc(row.repAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.repAddress)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.dropAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.dropAddress)}</div></td><td><span style="color:var(--muted);font-size:11px">${esc(row.remarks)}</span></td><td><span style="font-weight:500">${esc(row.city)}</span></td><td><span style="font-weight:600;font-family:var(--font-mono, monospace)">${esc(row.repTime)}</span></td><td><span style="font-family:var(--font-mono, monospace);color:var(--muted)">${esc(row.estDrop)}</span></td><td><div style="display:flex;align-items:center;justify-content:space-between;gap:8px">${status(row.status, row.tone)}<button class="btn small icon" data-open-booking-actions="${esc(row.rawId || row.id)}" aria-label="Open booking actions for ${esc(row.id)}" title="Booking settings / actions">${icon('settings', 13)}</button></div></td></tr>`).join('') : tenantTableEmpty('No booking records match this view','Try clearing filters or changing status tabs.',button(icon('plus')+'New booking','small soft','data-action="new-booking"'))}</tbody></table></div><div style="display:flex;justify-content:flex-end;padding:12px 18px;color:var(--muted);font-size:11px;font-weight:600">Total: ${rows.length} view</div></section>`;
     }
 
     function renderBilling() {
@@ -2792,7 +3032,15 @@
       content.querySelectorAll('[data-duty-tab]').forEach(el => el.addEventListener('click', () => { state.dutyFilter = el.dataset.dutyTab; render(); }));
       content.querySelectorAll('[data-duty-view]').forEach(el => el.addEventListener('click', () => { state.dutyView = el.dataset.dutyView; render(); }));
       const dutyQuery = document.getElementById('dutyQuery'); if (dutyQuery) dutyQuery.addEventListener('input', e => { state.dutyQuery = e.target.value; renderDutiesInPlace(); });
-      const bookingQuery = document.getElementById('bookingQuery'); if (bookingQuery) bookingQuery.addEventListener('input', e => { state.bookingQuery = e.target.value; });
+      content.querySelectorAll('[data-booking-tab]').forEach(el => el.addEventListener('click', () => { state.bookingTab = el.dataset.bookingTab; renderBookingsInPlace(); }));
+      const bookingQuery = document.getElementById('bookingQuery'); if (bookingQuery) bookingQuery.addEventListener('input', e => { state.bookingQuery = e.target.value; renderBookingsInPlace(); });
+      const bookingDateFrom = document.getElementById('bookingDateFrom'); if (bookingDateFrom) bookingDateFrom.addEventListener('change', e => { state.bookingDateFrom = e.target.value; renderBookingsInPlace(); });
+      const bookingDateTo = document.getElementById('bookingDateTo'); if (bookingDateTo) bookingDateTo.addEventListener('change', e => { state.bookingDateTo = e.target.value; renderBookingsInPlace(); });
+      content.querySelectorAll('#clearBookingFilters, [data-action="clear-booking-filters"]').forEach(el => el.addEventListener('click', () => { state.bookingQuery = ''; state.bookingDateFrom = ''; state.bookingDateTo = ''; state.bookingTab = 'All'; renderBookingsInPlace(); }));
+      content.querySelectorAll('[data-action="clear-booking-search"]').forEach(el => el.addEventListener('click', () => { state.bookingQuery = ''; renderBookingsInPlace(); }));
+      content.querySelectorAll('[data-action="sort-booking-date"]').forEach(el => el.addEventListener('click', () => { state.bookingSortDir = state.bookingSortDir === 'asc' ? 'desc' : 'asc'; renderBookingsInPlace(); }));
+      content.querySelectorAll('[data-action="booking-date-prev"]').forEach(el => el.addEventListener('click', () => shiftBookingDate(-30)));
+      content.querySelectorAll('[data-action="booking-date-next"]').forEach(el => el.addEventListener('click', () => shiftBookingDate(30)));
       const invoiceQuery = document.getElementById('invoiceQuery'); if (invoiceQuery) invoiceQuery.addEventListener('input', e => { state.invoiceQuery = e.target.value; render(); });
       const fleetQuery = document.getElementById('fleetQuery'); if (fleetQuery) fleetQuery.addEventListener('input', e => { state.fleetQuery = e.target.value; render(); requestAnimationFrame(() => { const next=document.getElementById('fleetQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
       const driverQuery = document.getElementById('driverQuery'); if (driverQuery) driverQuery.addEventListener('input', e => { state.driverQuery = e.target.value; render(); requestAnimationFrame(() => { const next=document.getElementById('driverQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
@@ -2821,6 +3069,32 @@
     }
 
     function renderDutiesInPlace() { const old = content.innerHTML; render(); const input = document.getElementById('dutyQuery'); if (input) { input.focus(); input.setSelectionRange(input.value.length,input.value.length); } }
+
+    function renderBookingsInPlace() {
+      const activeId = document.activeElement?.id;
+      const selStart = document.activeElement?.selectionStart;
+      const selEnd = document.activeElement?.selectionEnd;
+      render();
+      if (activeId) {
+        const el = document.getElementById(activeId);
+        if (el) {
+          el.focus();
+          if (typeof selStart === 'number' && typeof selEnd === 'number' && el.setSelectionRange) {
+            try { el.setSelectionRange(selStart, selEnd); } catch(_) {}
+          }
+        }
+      }
+    }
+
+    function shiftBookingDate(days) {
+      const fromD = state.bookingDateFrom ? new Date(state.bookingDateFrom) : new Date();
+      const toD = state.bookingDateTo ? new Date(state.bookingDateTo) : new Date();
+      fromD.setDate(fromD.getDate() + days);
+      toD.setDate(toD.getDate() + days);
+      state.bookingDateFrom = fromD.toISOString().split('T')[0];
+      state.bookingDateTo = toD.toISOString().split('T')[0];
+      renderBookingsInPlace();
+    }
 
     function openProductTour() {
       const role = currentUser?.role || 'vendor';
