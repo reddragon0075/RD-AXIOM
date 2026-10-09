@@ -1879,7 +1879,7 @@
         const supplier = suppliersById[b.supplier_id || duty.supplier_id] || {};
 
         const pickup = typeof b.pickup === 'object' && b.pickup ? b.pickup : { label: String(b.pickup || '') };
-        const dropoff = typeof b.dropoff === 'object' && b.dropoff ? dropoff : { label: String(b.dropoff || '') };
+        const dropoff = typeof b.dropoff === 'object' && b.dropoff ? b.dropoff : { label: String(b.dropoff || '') };
 
         const schedDateStr = b.scheduled_at || duty.reporting_at || b.created_at;
         let schedDate = null;
