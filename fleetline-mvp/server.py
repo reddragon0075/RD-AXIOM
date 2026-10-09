@@ -1218,8 +1218,9 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             self._error(error)
         except sqlite3.IntegrityError:
             self._error(APIError(409, "That account information is already in use", "conflict"))
-        except Exception:
-            # Do not expose implementation details or credential material.
+        except Exception as exc:
+            import traceback
+            traceback.print_exc()
             self._error(APIError(500, "The backend could not complete that request", "server_error"))
 
     def _public_path(self) -> Path | None:

@@ -3844,7 +3844,10 @@
       let payload = {};
       try { payload = await response.json(); } catch (_) { payload = {}; }
       if (!response.ok) {
-        const error = new Error(payload.error || 'The backend could not complete that request.');
+        const fallbackMsg = response.status === 404
+          ? 'Backend service is unavailable or route not found (ensure server.py is running on localhost:4173).'
+          : 'The backend could not complete that request.';
+        const error = new Error(payload.error || fallbackMsg);
         error.code = payload.code || 'request_failed'; error.recovery = payload.recovery || '';
         throw error;
       }
