@@ -690,13 +690,14 @@ def _duplicate_check(conn, user, payload, ip):
 def _soft_update(conn, user, route, method, payload, ip):
     if method != "PATCH": return None
     parts = route.split("/")
-    if len(parts) != 4 or parts[1] != "api" or parts[2] not in {"customers", "drivers", "vehicles", "suppliers"}: return None
+    if len(parts) != 4 or parts[1] != "api" or parts[2] not in {"customers", "drivers", "vehicles", "suppliers", "manufacturers"}: return None
     org = _org(user); _staff(user)
     config = {
         "customers": ("domain_customers", ("name", "email", "phone", "gstin", "status")),
         "drivers": ("domain_drivers", ("full_name", "phone", "license_number", "city", "status")),
+        "manufacturers": ("domain_manufacturers", ("name", "code", "country", "status")),
         "vehicles": ("domain_vehicles", (
-            "registration_number", "vehicle_type", "vehicle_group", "make_model", "year", "city", "status",
+            "registration_number", "vehicle_type", "vehicle_group", "make_model", "manufacturer", "model", "year", "city", "status",
             "fuel_type", "seating_capacity", "luggage_capacity", "ownership_type", "branch_name",
             "gps_provider", "rc_expiry", "insurance_expiry", "puc_expiry", "notes",
         )),
@@ -720,6 +721,10 @@ def _soft_update(conn, user, route, method, payload, ip):
             else:
                 value = str(payload[key] or "").strip()
             updates.append(f"{key} = ?"); values.append(value)
+    if parts[2] == "vehicles" and ("manufacturer" in payload or "model" in payload) and "make_model" not in payload:
+        new_mfr = str(payload.get("manufacturer") or (row["manufacturer"] if "manufacturer" in row.keys() else "")).strip()
+        new_model = str(payload.get("model") or (row["model"] if "model" in row.keys() else "")).strip()
+        updates.append("make_model = ?"); values.append(f"{new_mfr} {new_model}".strip())
     if not updates: return {"ok": True, "item": _serialize(row)}
     updates.append("updated_at = ?"); values.extend([now_iso(), entity_id, org])
     conn.execute(f"UPDATE {table} SET {', '.join(updates)} WHERE id = ? AND organization_id = ?", values)
@@ -1290,7 +1295,7 @@ def handle_extended(conn, user, method: str, raw_route: str, payload: dict, ip: 
             return result
     if route == "/api/duplicates/check" and method == "POST":
         return _duplicate_check(conn, user, payload, ip)
-    if method == "PATCH" and route != "/api/drivers/preferences" and re.match(r"^/api/(customers|drivers|vehicles|suppliers)/[^/]+$", route):
+    if method == "PATCH" and route != "/api/drivers/preferences" and re.match(r"^/api/(customers|drivers|vehicles|suppliers|manufacturers)/[^/]+$", route):
         return _soft_update(conn, user, route, method, payload, ip)
     if route.startswith("/api/price-books/") and (route.endswith("/versions") or route.endswith("/approve")):
         return _price_book_versions(conn, user, route, method, payload, ip)

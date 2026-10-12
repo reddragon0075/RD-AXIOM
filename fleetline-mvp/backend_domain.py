@@ -89,6 +89,8 @@ def initialize_domain_schema(conn) -> None:
             insurance_expiry TEXT,
             puc_expiry TEXT,
             notes TEXT NOT NULL DEFAULT '',
+            manufacturer TEXT NOT NULL DEFAULT '',
+            model TEXT NOT NULL DEFAULT '',
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
             UNIQUE(organization_id, registration_number)
@@ -279,6 +281,8 @@ def initialize_domain_schema(conn) -> None:
         "insurance_expiry": "TEXT",
         "puc_expiry": "TEXT",
         "notes": "TEXT NOT NULL DEFAULT ''",
+        "manufacturer": "TEXT NOT NULL DEFAULT ''",
+        "model": "TEXT NOT NULL DEFAULT ''",
     }.items():
         if column not in vehicle_columns:
             conn.execute(f"ALTER TABLE domain_vehicles ADD COLUMN {column} {definition}")
@@ -386,8 +390,8 @@ def seed_domain_data(conn) -> None:
         (driver_id, org["id"], "Mahesh Kumar", "+91 98450 22118", "KA012026000001", "Mumbai", now, now),
     )
     conn.execute(
-        "INSERT OR IGNORE INTO domain_vehicles(id, organization_id, registration_number, vehicle_type, make_model, city, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'on_duty', ?, ?)",
-        (vehicle_id, org["id"], "KA 03 MN 4821", "sedan", "Dzire", "Mumbai", now, now),
+        "INSERT OR IGNORE INTO domain_vehicles(id, organization_id, registration_number, vehicle_type, make_model, manufacturer, model, city, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'on_duty', ?, ?)",
+        (vehicle_id, org["id"], "KA 03 MN 4821", "sedan", "Maruti Suzuki Dzire", "Maruti Suzuki", "Dzire", "Mumbai", now, now),
     )
     conn.execute(
         """
@@ -508,9 +512,28 @@ def _create_vehicle(conn, user, payload, ip):
         raise DomainError(409, "A vehicle with this registration already exists", "duplicate_vehicle")
     vehicle_id = new_id("veh")
     now = now_iso()
+    manufacturer = _text(payload, "manufacturer", maximum=80)
+    model = _text(payload, "model", maximum=80)
+    make_model = _text(payload, "make_model", maximum=120)
+    if not make_model and (manufacturer or model):
+        make_model = f"{manufacturer} {model}".strip()
+    elif make_model and not manufacturer and not model:
+        lower = make_model.lower()
+        multi_word = ["maruti suzuki", "tata motors", "force motors", "mercedes-benz", "aston martin", "land rover", "rolls-royce"]
+        matched = False
+        for brand in multi_word:
+            if lower.startswith(brand):
+                manufacturer = make_model[:len(brand)]
+                model = make_model[len(brand):].strip()
+                matched = True
+                break
+        if not matched:
+            parts = make_model.split(" ", 1)
+            manufacturer = parts[0]
+            model = parts[1] if len(parts) > 1 else ""
     values = (
         vehicle_id, org, registration, _text(payload, "vehicle_type", "sedan", 40),
-        _text(payload, "vehicle_group", maximum=80), _text(payload, "make_model", maximum=120),
+        _text(payload, "vehicle_group", maximum=80), make_model,
         _int(payload, "year", 0) or None, _text(payload, "city", maximum=80),
         _text(payload, "status", "available", 24), _text(payload, "fuel_type", "petrol", 30),
         1 if payload.get("ev_eligible") or str(payload.get("fuel_type", "")).lower() in {"ev", "electric"} else 0,
@@ -525,15 +548,15 @@ def _create_vehicle(conn, user, payload, ip):
         _text(payload, "ownership_type", "owned", 30), _text(payload, "branch_name", maximum=100),
         _text(payload, "gps_provider", maximum=80), _text(payload, "rc_expiry", maximum=40) or None,
         _text(payload, "insurance_expiry", maximum=40) or None, _text(payload, "puc_expiry", maximum=40) or None,
-        _text(payload, "notes", maximum=500), now, now,
+        _text(payload, "notes", maximum=500), manufacturer, model, now, now,
     )
     conn.execute("""INSERT INTO domain_vehicles(
         id, organization_id, registration_number, vehicle_type, vehicle_group, make_model, year, city, status,
         fuel_type, ev_eligible, battery_capacity_kwh, usable_range_km, energy_consumption_kwh_per_km,
         charging_connector, charging_power_kw, charging_status, energy_price_per_kwh_minor,
         seating_capacity, luggage_capacity, ownership_type, branch_name, gps_provider, rc_expiry,
-        insurance_expiry, puc_expiry, notes, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
+        insurance_expiry, puc_expiry, notes, manufacturer, model, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
     _audit(conn, user, "vehicle.created", "vehicle", vehicle_id, ip, {"registration_number": registration})
     return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_vehicles WHERE id = ?", (vehicle_id,)).fetchone())}
 

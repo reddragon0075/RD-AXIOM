@@ -34,6 +34,7 @@ from backend_domain import (
 
 FEATURE_PREFIXES = (
     "/api/branches",
+    "/api/manufacturers",
     "/api/bookings",
     "/api/invoices",
     "/api/suppliers",
@@ -237,6 +238,18 @@ def initialize_feature_schema(conn) -> None:
         );
         CREATE INDEX IF NOT EXISTS idx_feature_branches_org ON domain_branches(organization_id, status);
         CREATE INDEX IF NOT EXISTS idx_feature_suppliers_org ON domain_suppliers(organization_id, status);
+        CREATE TABLE IF NOT EXISTS domain_manufacturers (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            code TEXT NOT NULL DEFAULT '',
+            name TEXT NOT NULL,
+            country TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'active',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(organization_id, name)
+        );
+        CREATE INDEX IF NOT EXISTS idx_feature_manufacturers_org ON domain_manufacturers(organization_id, status);
         CREATE INDEX IF NOT EXISTS idx_feature_price_books_org ON domain_price_books(organization_id, status, effective_from);
         CREATE INDEX IF NOT EXISTS idx_feature_documents_entity ON domain_documents(organization_id, entity_type, entity_id);
         CREATE INDEX IF NOT EXISTS idx_feature_invitations_org ON domain_invitations(organization_id, status, expires_at);
@@ -253,6 +266,7 @@ def seed_feature_data(conn) -> None:
     if not org:
         return
     now = now_iso()
+    _ensure_default_manufacturers(conn, org["id"])
     conn.execute(
         "INSERT OR IGNORE INTO domain_branches(id, organization_id, code, name, city, address_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         ("branch_demo_mumbai", org["id"], "MUM", "Mumbai control room", "Mumbai", json.dumps({"line1": "BKC Fleet Hub"}), now, now),
@@ -321,6 +335,52 @@ def _feature_item(conn, table: str, entity_id: str, org: str):
 def _json_body(payload, key, default):
     value = payload.get(key, default)
     return value if isinstance(value, (dict, list)) else default
+
+
+DEFAULT_MANUFACTURERS = [
+    ("Maruti Suzuki", "MSUZ", "India / Japan"),
+    ("Suzuki", "SUZ", "Japan"),
+    ("Toyota", "TOY", "Japan"),
+    ("Hyundai", "HYU", "South Korea"),
+    ("Tata Motors", "TATA", "India"),
+    ("Mahindra", "MAH", "India"),
+    ("Honda", "HON", "Japan"),
+    ("Kia", "KIA", "South Korea"),
+    ("MG Motor", "MG", "UK / China"),
+    ("BYD", "BYD", "China"),
+    ("Volkswagen", "VW", "Germany"),
+    ("Skoda", "SKO", "Czech Republic"),
+    ("Force Motors", "FRC", "India"),
+    ("Mercedes-Benz", "MB", "Germany"),
+    ("BMW", "BMW", "Germany"),
+]
+
+
+def _ensure_default_manufacturers(conn, org: str) -> None:
+    count = conn.execute("SELECT COUNT(*) n FROM domain_manufacturers WHERE organization_id = ?", (org,)).fetchone()["n"]
+    if count == 0:
+        now = now_iso()
+        for name, code, country in DEFAULT_MANUFACTURERS:
+            conn.execute(
+                "INSERT OR IGNORE INTO domain_manufacturers(id, organization_id, code, name, country, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'active', ?, ?)",
+                (new_id("mfr"), org, code, name, country, now, now),
+            )
+
+
+def _create_manufacturer(conn, user, payload, ip):
+    org = _feature_org(user); _staff(user)
+    name = _text(payload, "name", maximum=160)
+    if not name: raise DomainError(400, "Manufacturer name is required", "validation_error")
+    code = _text(payload, "code", maximum=24).upper() or uuid.uuid4().hex[:6].upper()
+    country = _text(payload, "country", maximum=80)
+    status = _text(payload, "status", "active", maximum=20)
+    existing = conn.execute("SELECT id FROM domain_manufacturers WHERE organization_id = ? AND lower(name) = lower(?)", (org, name)).fetchone()
+    if existing:
+        raise DomainError(409, "A manufacturer with this name already exists", "duplicate_manufacturer")
+    now = now_iso(); m_id = new_id("mfr")
+    conn.execute("INSERT INTO domain_manufacturers(id, organization_id, code, name, country, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (m_id, org, code, name, country, status, now, now))
+    _audit(conn, user, "manufacturer.created", "manufacturer", m_id, ip, {"name": name, "code": code})
+    return {"ok": True, "item": _feature_item(conn, "domain_manufacturers", m_id, org)}
 
 
 def _create_branch(conn, user, payload, ip):
@@ -586,6 +646,7 @@ def handle_feature(conn, user, method: str, raw_route: str, payload: dict, ip: s
 
     collections = {
         "/api/branches": ("domain_branches", "created_at DESC"),
+        "/api/manufacturers": ("domain_manufacturers", "name ASC"),
         "/api/suppliers": ("domain_suppliers", "created_at DESC"),
         "/api/price-books": ("domain_price_books", "created_at DESC"),
         "/api/employees": ("domain_employees", "created_at DESC"),
@@ -599,12 +660,15 @@ def handle_feature(conn, user, method: str, raw_route: str, payload: dict, ip: s
     }
     if route in collections and method == "GET":
         table, order = collections[route]
+        if table == "domain_manufacturers":
+            _ensure_default_manufacturers(conn, org)
         items = _feature_list(conn, table, org, order, limit)
         for item in items:
             for field in ("address_json", "cities_json", "rules_json", "metadata_json", "payload_json"):
                 if field in item: item[field[:-5] if field.endswith("_json") else field] = _json(item.pop(field), {})
         return {"ok": True, "items": items, "count": len(items)}
     if route == "/api/branches" and method == "POST": return _create_branch(conn, user, payload, ip)
+    if route == "/api/manufacturers" and method == "POST": return _create_manufacturer(conn, user, payload, ip)
     if route == "/api/bookings/import" and method == "POST": return _import_bookings(conn, user, payload, ip)
     if route == "/api/suppliers" and method == "POST": return _create_supplier(conn, user, payload, ip)
     if route == "/api/price-books" and method == "POST": return _create_price_book(conn, user, payload, ip)

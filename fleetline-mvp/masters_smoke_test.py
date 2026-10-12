@@ -67,18 +67,30 @@ def main() -> None:
             status, login = call(operator, base, "POST", "/api/auth/login", {"email": "admin@blueorbit.in", "password": "motion2026"})
             expect(status == 200 and login["user"]["role"] == "vendor", "operator can enter the Masters API")
 
-            vehicle = {"registration_number": "KA 01 UX 2026", "vehicle_type": "sedan", "vehicle_group": "Executive sedan", "make_model": "Honda City", "year": 2024, "city": "Bengaluru", "fuel_type": "EV", "seating_capacity": 4, "luggage_capacity": 2, "ownership_type": "owned", "branch_name": "Whitefield", "gps_provider": "Mock GPS", "rc_expiry": "2027-01-01", "insurance_expiry": "2026-12-01", "puc_expiry": "2026-11-01"}
+            vehicle = {"registration_number": "KA 01 UX 2026", "manufacturer": "Honda", "model": "City", "vehicle_type": "sedan", "vehicle_group": "Executive sedan", "year": 2024, "city": "Bengaluru", "fuel_type": "EV", "seating_capacity": 4, "luggage_capacity": 2, "ownership_type": "owned", "branch_name": "Whitefield", "gps_provider": "Mock GPS", "rc_expiry": "2027-01-01", "insurance_expiry": "2026-12-01", "puc_expiry": "2026-11-01"}
             status, created = call(operator, base, "POST", "/api/vehicles", vehicle)
             expect(status == 201 and created["item"]["vehicle_group"] == "Executive sedan", "vehicle master stores identity and group")
+            expect(created["item"]["manufacturer"] == "Honda" and created["item"]["model"] == "City", "vehicle master stores separate manufacturer and model")
+            expect(created["item"]["make_model"] == "Honda City", "make_model derived automatically from manufacturer and model")
             expect(created["item"]["seating_capacity"] == 4 and created["item"]["fuel_type"] == "EV", "vehicle master stores capacity and fuel")
             vehicle_id = created["item"]["id"]
 
             status, duplicate = call(operator, base, "POST", "/api/vehicles", vehicle)
             expect(status == 409 and duplicate["code"] == "duplicate_vehicle", "duplicate registration is rejected per tenant")
 
-            status, updated = call(operator, base, "PATCH", f"/api/vehicles/{vehicle_id}", {"vehicle_group": "SUV", "seating_capacity": 6, "status": "inactive"})
+            status, updated = call(operator, base, "PATCH", f"/api/vehicles/{vehicle_id}", {"manufacturer": "Tata Motors", "model": "Nexon EV", "vehicle_group": "SUV", "seating_capacity": 6, "status": "inactive"})
             expect(status == 200 and updated["item"]["vehicle_group"] == "SUV", "vehicle master supports audited edits")
+            expect(updated["item"]["manufacturer"] == "Tata Motors" and updated["item"]["model"] == "Nexon EV", "manufacturer and model update cleanly")
+            expect(updated["item"]["make_model"] == "Tata Motors Nexon EV", "make_model re-synced on manufacturer/model update")
             expect(updated["item"]["seating_capacity"] == 6 and updated["item"]["status"] == "inactive", "vehicle operational fields update")
+
+            status, mfrs = call(operator, base, "GET", "/api/manufacturers?limit=50")
+            expect(status == 200 and len(mfrs.get("items", [])) >= 10, "manufacturers register auto-seeds default OEMs")
+            mfr_names = [m["name"] for m in mfrs.get("items", [])]
+            expect("Maruti Suzuki" in mfr_names and "Toyota" in mfr_names and "Tata Motors" in mfr_names, "key OEM brands present in masters")
+
+            status, new_mfr = call(operator, base, "POST", "/api/manufacturers", {"name": "Volvo Cars", "code": "VOLVO", "country": "Sweden"})
+            expect(status == 201 and new_mfr["item"]["name"] == "Volvo Cars", "can add custom manufacturer in masters")
 
             status, suppliers = call(operator, base, "GET", "/api/suppliers?limit=50")
             expect(status == 200 and isinstance(suppliers.get("items"), list), "supplier register is readable")

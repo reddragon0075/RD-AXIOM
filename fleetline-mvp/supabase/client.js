@@ -1343,6 +1343,7 @@
       '/api/duties': 'duties',
       '/api/invoices': 'invoices',
       '/api/branches': 'branches',
+      '/api/manufacturers': 'manufacturers',
       '/api/suppliers': 'suppliers',
       '/api/price-books': 'price_books',
       '/api/documents': 'documents',
@@ -1415,7 +1416,7 @@
           if (singleTable === 'vehicles') {
             const {
               id: _id, created_at: _cat, updated_at: _uat, organization_id: _oid,
-              registration_number, vehicle_type, vehicle_group, make_model, year, city, status,
+              registration_number, vehicle_type, vehicle_group, make_model, manufacturer, model, year, city, status,
               compliance,
               ...rest
             } = patchBody;
@@ -1423,12 +1424,16 @@
             if (registration_number !== undefined) patchBody.registration_number = registration_number;
             if (vehicle_type !== undefined) patchBody.vehicle_type = vehicle_type;
             if (vehicle_group !== undefined) patchBody.vehicle_group = vehicle_group;
-            if (make_model !== undefined) patchBody.make_model = make_model;
+            if (manufacturer !== undefined) patchBody.manufacturer = manufacturer;
+            if (model !== undefined) patchBody.model = model;
+            if (make_model !== undefined || (manufacturer !== undefined && model !== undefined)) {
+              patchBody.make_model = make_model || [manufacturer, model].filter(Boolean).join(' ');
+            }
             if (year !== undefined) patchBody.year = year ? Number(year) : null;
             if (city !== undefined) patchBody.city = city;
             if (status !== undefined) patchBody.status = status;
-            if (compliance !== undefined || Object.keys(rest).length > 0) {
-              patchBody.compliance = { ...(compliance || {}), ...rest };
+            if (compliance !== undefined || Object.keys(rest).length > 0 || manufacturer !== undefined || model !== undefined) {
+              patchBody.compliance = { ...(compliance || {}), ...(manufacturer ? { manufacturer } : {}), ...(model ? { model } : {}), ...rest };
             }
           }
           const rows = await dataRequest(`${singleTable}?id=eq.${encodeURIComponent(entityId)}&organization_id=eq.${encodeURIComponent(organizationId)}`, {
@@ -1457,7 +1462,7 @@
       const rows = await dataRequest(`${table}?select=*&order=${order}&limit=${limit}`, {}, session.access_token);
       return { ok: true, items: rows, count: rows.length };
     }
-    const organizationScopedTables = new Set(['customers', 'drivers', 'vehicles', 'bookings', 'duties', 'invoices', 'branches', 'suppliers', 'price_books', 'documents', 'invitations', 'employees', 'travel_policies', 'booking_approvals', 'notifications', 'support_tickets', 'privacy_requests']);
+    const organizationScopedTables = new Set(['customers', 'drivers', 'vehicles', 'manufacturers', 'bookings', 'duties', 'invoices', 'branches', 'suppliers', 'price_books', 'documents', 'invitations', 'employees', 'travel_policies', 'booking_approvals', 'notifications', 'support_tickets', 'privacy_requests']);
     const writeBody = organizationScopedTables.has(table) ? { ...body, organization_id: await activeOrganizationId() } : body;
     if (table === 'notifications' && writeBody.recipient !== undefined) {
       writeBody.payload = { ...(writeBody.payload || {}), recipient: writeBody.recipient, variables: writeBody.variables || {} };
@@ -1467,17 +1472,20 @@
     if (table === 'vehicles') {
       const {
         id: _id, created_at: _cat, updated_at: _uat,
-        registration_number, vehicle_type = 'sedan', vehicle_group, make_model, year, city = '', status = 'active',
+        registration_number, vehicle_type = 'sedan', vehicle_group, make_model, manufacturer, model, year, city = '', status = 'active',
         compliance,
         ...rest
       } = writeBody;
-      const combinedCompliance = { ...(compliance || {}), ...rest };
+      const combinedMakeModel = make_model || [manufacturer, model].filter(Boolean).join(' ');
+      const combinedCompliance = { ...(compliance || {}), ...(manufacturer ? { manufacturer } : {}), ...(model ? { model } : {}), ...rest };
       const normalizedVehicle = {
         organization_id: writeBody.organization_id,
         registration_number,
         vehicle_type,
         vehicle_group: vehicle_group || null,
-        make_model: make_model || null,
+        make_model: combinedMakeModel || null,
+        manufacturer: manufacturer || null,
+        model: model || null,
         year: year ? Number(year) : null,
         city: city || '',
         status: status || 'active',
