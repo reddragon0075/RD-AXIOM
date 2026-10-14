@@ -1425,7 +1425,7 @@
     .booking-clear-btn:hover { background: #e2e8f0; color: #1e293b; }
     .booking-total-view { font-size: 11px; font-weight: 700; color: var(--muted, #64748b); white-space: nowrap; margin-left: 4px; }
     .booking-table-wrap { overflow-x: auto; position: relative; }
-    .booking-table { width: 100%; min-width: 1180px; border-collapse: collapse; }
+    .booking-table { width: 100%; min-width: 1260px; border-collapse: collapse; }
     .booking-table th { padding: 11px 10px; font-size: 9.5px; font-weight: 750; color: #64748b; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid #e2e8f0; background: #f8fafc; text-align: left; white-space: nowrap; }
     .booking-table th.sortable:hover { color: var(--blue, #2563eb); background: #f1f5f9; }
     .booking-table td { padding: 11px 10px; font-size: 11px; border-bottom: 1px solid #f1f5f9; color: #334155; vertical-align: middle; }
@@ -1435,6 +1435,203 @@
     .booking-vehicle-pill { display: inline-block; padding: 2px 7px; font-size: 10.5px; font-weight: 750; font-family: var(--font-mono, monospace); background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 5px; color: #1e293b; letter-spacing: .02em; }
     .booking-duty-type-pill { display: inline-block; padding: 2px 7px; font-size: 10px; font-weight: 650; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; border-radius: 4px; white-space: nowrap; }
     .booking-cell-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Inline Assignment Controls for Bookings (Zero-popup quick allotment) */
+    .booking-inline-cell {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      max-width: 165px;
+    }
+    .booking-inline-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 6px center;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 3px 20px 3px 7px;
+      font-size: 11px;
+      font-family: inherit;
+      font-weight: 600;
+      color: var(--ink, #1e293b);
+      cursor: pointer;
+      max-width: 140px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: all .15s ease;
+      height: 26px;
+      line-height: 20px;
+    }
+    .booking-inline-select:hover {
+      background-color: #fff;
+      border-color: var(--blue, #2563eb);
+    }
+    .booking-inline-select:focus {
+      outline: none;
+      border-color: var(--blue, #2563eb);
+      box-shadow: 0 0 0 2px rgba(37,99,235,.15);
+      background-color: #fff;
+    }
+    .booking-inline-select.has-value {
+      background-color: #f1f5f9;
+      border-color: #cbd5e1;
+      color: #0f172a;
+    }
+    .booking-inline-select.vehicle-pill.has-value {
+      font-family: var(--font-mono, monospace);
+      font-weight: 750;
+      letter-spacing: .02em;
+    }
+    .booking-inline-select.empty {
+      color: #92400e;
+      font-weight: 500;
+      font-size: 11px;
+      border: 1px dashed #fcd34d;
+      background-color: #fffbeb;
+    }
+    .booking-inline-select.empty:hover {
+      color: #78350f;
+      border-color: #f59e0b;
+      border-style: solid;
+      background-color: #fef3c7;
+    }
+    .booking-inline-type-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s ease;
+      flex-shrink: 0;
+    }
+    .booking-inline-type-btn:hover {
+      background: var(--blue-soft, #eff6ff);
+      color: var(--blue, #2563eb);
+      border-color: #bfdbfe;
+    }
+    .booking-inline-input-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .booking-inline-input {
+      border: 1px solid var(--blue, #2563eb);
+      border-radius: 6px;
+      padding: 3px 7px;
+      font-size: 11px;
+      font-family: inherit;
+      width: 120px;
+      height: 26px;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(37,99,235,.15);
+      background: #fff;
+      color: #0f172a;
+    }
+    .booking-inline-confirm-btn {
+      background: #10b981;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      width: 22px;
+      height: 22px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .booking-inline-cancel-btn {
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      width: 22px;
+      height: 22px;
+      font-size: 11px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .booking-inline-saved-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 9.5px;
+      font-weight: 750;
+      color: #059669;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      padding: 1px 5px;
+      border-radius: 4px;
+      animation: inlineBadgeFade 1.6s forwards;
+    }
+    @keyframes inlineBadgeFade {
+      0% { opacity: 0; transform: scale(.9); }
+      20% { opacity: 1; transform: scale(1); }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    /* Quick Insert Booking strip */
+    .booking-quick-insert-bar {
+      margin: 10px 18px 0;
+      padding: 12px 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      transition: all .2s ease;
+    }
+    .quick-insert-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .quick-booking-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) auto;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .quick-field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .quick-field label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .quick-input {
+      height: 30px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 0 8px;
+      font-size: 11px;
+      font-family: inherit;
+      background: #fff;
+      color: #0f172a;
+      outline: none;
+      transition: all .15s ease;
+      width: 100%;
+    }
+    .quick-input:focus {
+      border-color: var(--blue, #2563eb);
+      box-shadow: 0 0 0 2px rgba(37,99,235,.15);
+    }
   </style>
 </head>
 <body>
@@ -1775,7 +1972,7 @@
       } catch (_) {}
       return 'overview';
     })();
-    const state = { page: savedActivePage, dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Booked', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', invoiceQuery: '', driverQuery: '', driverFilter: 'all', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const state = { page: savedActivePage, dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Upcoming', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
     const advancedPages = new Set(['customers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise']);
@@ -1938,11 +2135,15 @@
           tone = 'purple';
         } else if (vehicleReg && !driverName) {
           displayStatus = 'Driver needed';
-          tone = 'red';
+          tone = 'amber';
           attentionNeeded = true;
-        } else if (!vehicleReg && !driverName && (rawStatus === 'booked' || rawStatus === 'approved' || rawStatus === 'confirmed')) {
-          displayStatus = 'Driver needed';
-          tone = 'red';
+        } else if (!vehicleReg && driverName) {
+          displayStatus = 'Vehicle needed';
+          tone = 'amber';
+          attentionNeeded = true;
+        } else if (!vehicleReg && !driverName) {
+          displayStatus = 'To be assigned';
+          tone = 'amber';
           attentionNeeded = true;
         } else if (vehicleReg && driverName) {
           displayStatus = 'Allotted';
@@ -1951,7 +2152,7 @@
           displayStatus = 'Booked';
           tone = 'blue';
         } else if (rawStatus === 'requested' || rawStatus === 'pending_approval' || rawStatus === 'incoming') {
-          displayStatus = 'Requested';
+          displayStatus = 'To be assigned';
           tone = 'amber';
           attentionNeeded = true;
         } else {
@@ -1969,10 +2170,17 @@
           customer: customerName,
           passenger: passengerName,
           passengerPhone,
+          dutyId: duty.id || '',
           vehicle: vehicleReg || '—',
+          vehicleId: vehicle.id || b.vehicle_id || duty.vehicle_id || '',
           hasVehicle: Boolean(vehicleReg),
-          driverSupplier,
+          driver: driverName || '—',
+          driverId: driver.id || b.driver_id || duty.driver_id || '',
           hasDriver: Boolean(driverName),
+          supplier: supplierName || '—',
+          supplierId: supplier.id || b.supplier_id || duty.supplier_id || '',
+          hasSupplier: Boolean(supplierName),
+          driverSupplier,
           dutyType,
           repAddress,
           dropAddress,
@@ -2461,7 +2669,7 @@
 
     function renderBookings() {
       const allRows = bookingRowsForDisplay();
-      const activeTab = state.bookingTab || 'Booked';
+      const activeTab = state.bookingTab || 'Upcoming';
       const query = String(state.bookingQuery || '').trim().toLowerCase();
       const dateFrom = state.bookingDateFrom || '';
       const dateTo = state.bookingDateTo || '';
@@ -2482,14 +2690,14 @@
       function matchesBookingTab(row, tab) {
         if (tab === 'All') return true;
         if (tab === 'Upcoming') return !['Completed', 'Cancelled', 'Billed'].includes(row.status);
-        if (tab === 'Booked') return ['Booked', 'Confirmed', 'Approved', 'Driver needed', 'Allotted'].includes(row.status) || ['booked', 'confirmed', 'approved'].includes(row.rawStatus);
+        if (tab === 'Booked') return ['Booked', 'Confirmed', 'Approved', 'Driver needed', 'Vehicle needed', 'To be assigned', 'Allotted'].includes(row.status) || ['booked', 'confirmed', 'approved'].includes(row.rawStatus);
         if (tab === 'Allotted') return row.status === 'Allotted' || (row.hasVehicle && row.hasDriver);
         if (tab === 'Dispatched') return ['Dispatched', 'In progress'].includes(row.status) || ['dispatched', 'en_route', 'started', 'in_progress'].includes(row.rawStatus);
         if (tab === 'Completed') return row.status === 'Completed' || ['completed', 'closed'].includes(row.rawStatus);
         if (tab === 'Billed') return row.status === 'Billed' || ['billed', 'invoiced'].includes(row.rawStatus);
         if (tab === 'Cancelled') return row.status === 'Cancelled' || ['cancelled', 'rejected'].includes(row.rawStatus);
-        if (tab === 'Incoming') return ['Requested', 'Incoming', 'Pending approval'].includes(row.status) || ['requested', 'pending_approval', 'incoming', 'draft'].includes(row.rawStatus);
-        if (tab === 'Needs Attention') return row.attentionNeeded || row.status === 'Driver needed' || ['requested', 'pending_approval'].includes(row.rawStatus);
+        if (tab === 'Incoming') return ['Requested', 'Incoming', 'Pending approval', 'To be assigned'].includes(row.status) || ['requested', 'pending_approval', 'incoming', 'draft'].includes(row.rawStatus);
+        if (tab === 'Needs Attention') return row.attentionNeeded || ['Driver needed', 'Vehicle needed', 'To be assigned', 'Requested'].includes(row.status) || ['requested', 'pending_approval'].includes(row.rawStatus);
         return true;
       }
 
@@ -2509,6 +2717,8 @@
           row.passenger,
           row.passengerPhone,
           row.vehicle,
+          row.driver,
+          row.supplier,
           row.driverSupplier,
           row.dutyType,
           row.repAddress,
@@ -2539,7 +2749,86 @@
       const requested = (state.liveData?.bookings?.items || []).filter(item => ['requested','pending_approval'].includes(item.status)).length;
       const attentionCount = allRows.filter(r => r.attentionNeeded).length;
 
-      return `${pageHead('Operations · Intake','Bookings inbox','Capture direct or delegated requests, keep approvals moving and turn each decision into a duty.',`${button(icon('upload')+'Import CSV','','data-action="import"')}${button(icon('plus')+'Add booking','primary','data-action="new-booking"')}`)}<div class="grid kpis"><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Requests awaiting approval</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${requested}</div><div class="kpi-foot">Tenant booking status only</div></div><div class="card kpi ${attentionCount ? 'red' : ''}"><div class="kpi-top"><span class="kpi-label">Needs attention</span><span class="kpi-icon ${attentionCount ? 'red' : ''}">${icon('warning')}</span></div><div class="kpi-value">${attentionCount}</div><div class="kpi-foot">Driver needed or unallotted</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Booking records</span><span class="kpi-icon">${icon('file')}</span></div><div class="kpi-value">${allRows.length}</div><div class="kpi-foot">${rows.length} match active view</div></div></div><section class="card section-card"><div class="booking-tabs-bar"><div class="tabs booking-tabs">${bookingTabs.map(tab => `<button class="tab ${activeTab === tab ? 'active' : ''}" data-booking-tab="${esc(tab)}">${tab} <span class="booking-tab-count ${tab === 'Needs Attention' && tabCounts[tab] ? 'alert' : ''}">${tabCounts[tab]}</span></button>`).join('')}</div></div><div class="booking-filter-bar"><label class="booking-search-label"><span>${icon('search')}</span><input id="bookingQuery" class="booking-search-input" placeholder="Type here to filter by name, number, city, duty type, company name or booking ID" value="${esc(state.bookingQuery || '')}">${state.bookingQuery ? `<button type="button" class="booking-search-clear" data-action="clear-booking-search" title="Clear search">×</button>` : ''}</label><div class="booking-date-controls"><button class="btn icon small" data-action="booking-date-prev" title="Previous 30 days" aria-label="Previous 30 days">‹</button><div class="booking-date-range"><input type="date" id="bookingDateFrom" class="booking-date-input" value="${esc(state.bookingDateFrom || '')}" title="From date"><span class="booking-date-sep">→</span><input type="date" id="bookingDateTo" class="booking-date-input" value="${esc(state.bookingDateTo || '')}" title="To date"></div><button class="btn icon small" data-action="booking-date-next" title="Next 30 days" aria-label="Next 30 days">›</button><button class="booking-clear-btn" id="clearBookingFilters" data-action="clear-booking-filters">CLEAR FILTERS</button><span class="booking-total-view">Total: ${rows.length} view</span></div></div><div class="table-wrap booking-table-wrap"><table class="booking-table"><thead><tr><th class="sortable" data-action="sort-booking-date" title="Sort by date" style="cursor:pointer">Date <span style="font-size:9px">${sortDir === 'asc' ? '▲' : '▼'}</span></th><th>Customer</th><th>Passenger</th><th>Vehicle</th><th>Driver/Supplier</th><th>Duty Type</th><th>Rep. Address</th><th>Drop Address</th><th>Remarks</th><th>City</th><th>Rep.Time</th><th>Est.Drop</th><th>Status</th></tr></thead><tbody>${rows.length ? rows.map(row => `<tr class="${row.attentionNeeded ? 'booking-row-attention' : ''}"><td><div style="display:flex;align-items:center;gap:6px;white-space:nowrap">${row.passengerPhone ? `<a href="tel:${esc(row.passengerPhone)}" title="Call ${esc(row.passengerPhone)}" style="color:#059669;display:inline-flex;align-items:center;text-decoration:none">${icon('phone', 13)}</a>` : `<span style="color:#10b981;display:inline-flex;align-items:center">${icon('phone', 13)}</span>`}<span style="font-weight:600;color:var(--ink)">${esc(row.displayDate)}</span></div></td><td><div class="booking-cell-truncate" title="${esc(row.customer)}" style="max-width:140px;font-weight:600;color:var(--ink)">${esc(row.customer)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.passenger)}" style="max-width:120px;font-weight:500;color:#334155">${esc(row.passenger)}</div></td><td>${row.vehicle && row.vehicle !== '—' ? `<span class="booking-vehicle-pill">${esc(row.vehicle)}</span>` : `<span style="color:var(--muted)">—</span>`}</td><td><div class="booking-cell-truncate" title="${esc(row.driverSupplier)}" style="max-width:120px;color:${row.hasDriver ? 'var(--ink)' : 'var(--muted)'}">${esc(row.driverSupplier)}</div></td><td><span class="booking-duty-type-pill">${esc(row.dutyType)}</span></td><td><div class="booking-cell-truncate" title="${esc(row.repAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.repAddress)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.dropAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.dropAddress)}</div></td><td><span style="color:var(--muted);font-size:11px">${esc(row.remarks)}</span></td><td><span style="font-weight:500">${esc(row.city)}</span></td><td><span style="font-weight:600;font-family:var(--font-mono, monospace)">${esc(row.repTime)}</span></td><td><span style="font-family:var(--font-mono, monospace);color:var(--muted)">${esc(row.estDrop)}</span></td><td><div style="display:flex;align-items:center;justify-content:space-between;gap:8px">${status(row.status, row.tone)}<button class="btn small icon" data-open-booking-actions="${esc(row.rawId || row.id)}" aria-label="Open booking actions for ${esc(row.id)}" title="Booking settings / actions">${icon('settings', 13)}</button></div></td></tr>`).join('') : tenantTableEmpty('No booking records match this view','Try clearing filters or changing status tabs.',button(icon('plus')+'New booking','small soft','data-action="new-booking"'))}</tbody></table></div><div style="display:flex;justify-content:flex-end;padding:12px 18px;color:var(--muted);font-size:11px;font-weight:600">Total: ${rows.length} view</div></section>`;
+      const vehicleList = state.liveData?.vehicles?.items || [];
+      const driverList = state.liveData?.drivers?.items || [];
+      const supplierList = state.liveData?.suppliers?.items || [];
+      const customerList = state.liveData?.customers?.items || [];
+
+      const isQuickOpen = Boolean(state.showQuickBookingInsert);
+      const quickInsertMarkup = isQuickOpen ? `
+        <div class="booking-quick-insert-bar" id="bookingQuickInsertBar">
+          <div class="quick-insert-header">
+            <div style="display:flex;align-items:center;gap:6px;font-weight:700;font-size:12px;color:var(--ink)">
+              <span style="color:var(--teal)">⚡</span> Direct Booking Insert
+              <span style="font-size:10.5px;font-weight:500;color:var(--muted)">Attach vehicle, driver &amp; supplier immediately without opening a popup</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:10px;font-weight:700;color:var(--teal);background:var(--teal-soft,#e7f7f1);padding:2px 7px;border-radius:4px">Zero-Popup Mode</span>
+              <button type="button" class="btn small icon" data-action="toggle-quick-insert" title="Close direct insert strip" style="height:24px;width:24px;padding:0;line-height:1">✕</button>
+            </div>
+          </div>
+          <form id="quickBookingForm" class="quick-booking-form">
+            <div class="quick-booking-grid">
+              <div class="quick-field">
+                <label>Customer *</label>
+                <select class="quick-input" id="qbCustomer" required>
+                  ${customerList.length ? customerList.map(c => `<option value="${esc(c.id)}">${esc(c.name || c.id)}</option>`).join('') : '<option value="">Default customer</option>'}
+                </select>
+              </div>
+              <div class="quick-field">
+                <label>Passenger Name *</label>
+                <input class="quick-input" id="qbPassenger" placeholder="e.g. Rahul Sharma" required>
+              </div>
+              <div class="quick-field">
+                <label>Passenger Phone</label>
+                <input class="quick-input" id="qbPhone" placeholder="+91 98xxx xxxxx">
+              </div>
+              <div class="quick-field">
+                <label>Reporting Time *</label>
+                <input class="quick-input" id="qbScheduledAt" type="datetime-local" required value="${new Date(Date.now() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)}">
+              </div>
+              <div class="quick-field">
+                <label>Pickup Location *</label>
+                <input class="quick-input" id="qbPickup" placeholder="Pickup point / city" required>
+              </div>
+              <div class="quick-field">
+                <label>Drop Location *</label>
+                <input class="quick-input" id="qbDropoff" placeholder="Drop point / city" required>
+              </div>
+              <div class="quick-field">
+                <label>Vehicle (Direct)</label>
+                <select class="quick-input" id="qbVehicle">
+                  <option value="">To be assigned</option>
+                  ${vehicleList.map(v => `<option value="${esc(v.id)}">${esc(v.registration_number)}${v.make_model ? ` (${esc(v.make_model)})` : ''}</option>`).join('')}
+                </select>
+              </div>
+              <div class="quick-field">
+                <label>Driver (Direct)</label>
+                <select class="quick-input" id="qbDriver">
+                  <option value="">To be assigned</option>
+                  ${driverList.map(d => `<option value="${esc(d.id)}">${esc(d.full_name || d.id)}</option>`).join('')}
+                </select>
+              </div>
+              <div class="quick-field">
+                <label>Supplier (Direct)</label>
+                <select class="quick-input" id="qbSupplier">
+                  <option value="">To be assigned</option>
+                  ${supplierList.map(s => `<option value="${esc(s.id)}">${esc(s.name || s.id)}</option>`).join('')}
+                </select>
+              </div>
+              <div class="quick-field" style="align-self:flex-end;display:flex;gap:6px">
+                <button type="submit" class="btn primary small" style="height:30px;display:inline-flex;align-items:center;gap:4px;font-weight:700;white-space:nowrap">
+                  <span>+</span> Insert Booking
+                </button>
+                <button type="button" class="btn soft small" data-action="toggle-quick-insert" style="height:30px;padding:0 8px">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>` : '';
+
+      return `${pageHead('Operations · Intake','Bookings inbox','Capture direct or delegated requests, keep approvals moving and turn each decision into a duty.',`${button(icon('upload')+'Import CSV','','data-action="import"')}${button('⚡ Direct insert', isQuickOpen ? 'primary' : 'soft', 'data-action="toggle-quick-insert"')}${button(icon('plus')+'Add booking','primary','data-action="new-booking"')}`)}<div class="grid kpis"><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Requests awaiting approval</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${requested}</div><div class="kpi-foot">Tenant booking status only</div></div><div class="card kpi ${attentionCount ? 'red' : ''}"><div class="kpi-top"><span class="kpi-label">Needs attention</span><span class="kpi-icon ${attentionCount ? 'red' : ''}">${icon('warning')}</span></div><div class="kpi-value">${attentionCount}</div><div class="kpi-foot">To be assigned or unallotted</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Booking records</span><span class="kpi-icon">${icon('file')}</span></div><div class="kpi-value">${allRows.length}</div><div class="kpi-foot">${rows.length} match active view</div></div></div><section class="card section-card"><div class="booking-tabs-bar"><div class="tabs booking-tabs">${bookingTabs.map(tab => `<button class="tab ${activeTab === tab ? 'active' : ''}" data-booking-tab="${esc(tab)}">${tab} <span class="booking-tab-count ${tab === 'Needs Attention' && tabCounts[tab] ? 'alert' : ''}">${tabCounts[tab]}</span></button>`).join('')}</div></div><div class="booking-filter-bar"><label class="booking-search-label"><span>${icon('search')}</span><input id="bookingQuery" class="booking-search-input" placeholder="Type here to filter by name, number, city, duty type, company name or booking ID" value="${esc(state.bookingQuery || '')}">${state.bookingQuery ? `<button type="button" class="booking-search-clear" data-action="clear-booking-search" title="Clear search">×</button>` : ''}</label><div class="booking-date-controls"><button class="btn icon small" data-action="booking-date-prev" title="Previous 30 days" aria-label="Previous 30 days">‹</button><div class="booking-date-range"><input type="date" id="bookingDateFrom" class="booking-date-input" value="${esc(state.bookingDateFrom || '')}" title="From date"><span class="booking-date-sep">→</span><input type="date" id="bookingDateTo" class="booking-date-input" value="${esc(state.bookingDateTo || '')}" title="To date"></div><button class="btn icon small" data-action="booking-date-next" title="Next 30 days" aria-label="Next 30 days">›</button><button class="booking-clear-btn" id="clearBookingFilters" data-action="clear-booking-filters">CLEAR FILTERS</button><span class="booking-total-view">Total: ${rows.length} view</span></div></div>${quickInsertMarkup}<div class="table-wrap booking-table-wrap"><table class="booking-table"><thead><tr><th class="sortable" data-action="sort-booking-date" title="Sort by date" style="cursor:pointer">Date <span style="font-size:9px">${sortDir === 'asc' ? '▲' : '▼'}</span></th><th>Customer</th><th>Passenger</th><th>Vehicle</th><th>Driver</th><th>Supplier</th><th>Duty Type</th><th>Rep. Address</th><th>Drop Address</th><th>Remarks</th><th>City</th><th>Rep.Time</th><th>Est.Drop</th><th>Status</th></tr></thead><tbody>${rows.length ? rows.map(row => `<tr class="${row.attentionNeeded ? 'booking-row-attention' : ''}"><td><div style="display:flex;align-items:center;gap:6px;white-space:nowrap">${row.passengerPhone ? `<a href="tel:${esc(row.passengerPhone)}" title="Call ${esc(row.passengerPhone)}" style="color:#059669;display:inline-flex;align-items:center;text-decoration:none">${icon('phone', 13)}</a>` : `<span style="color:#10b981;display:inline-flex;align-items:center">${icon('phone', 13)}</span>`}<span style="font-weight:600;color:var(--ink)">${esc(row.displayDate)}</span></div></td><td><div class="booking-cell-truncate" title="${esc(row.customer)}" style="max-width:140px;font-weight:600;color:var(--ink)">${esc(row.customer)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.passenger)}" style="max-width:120px;font-weight:500;color:#334155">${esc(row.passenger)}</div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="vehicle"><select class="booking-inline-select vehicle-pill ${row.hasVehicle ? 'has-value' : 'empty'}" data-inline-assign="vehicle" data-booking-id="${esc(row.rawId || row.id)}" title="Select vehicle or click + to type"><option value="" ${!row.hasVehicle ? 'selected' : ''}>To be assigned</option>${vehicleList.map(v => `<option value="${esc(v.id)}" ${(row.vehicleId === v.id || row.vehicle === v.registration_number) ? 'selected' : ''}>${esc(v.registration_number)}${v.make_model ? ` (${esc(v.make_model)})` : ''}</option>`).join('')}<option value="__new__">+ Type new vehicle...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="vehicle" data-booking-id="${esc(row.rawId || row.id)}" title="Type vehicle number directly without popup">+</button></div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="driver"><select class="booking-inline-select ${row.hasDriver ? 'has-value' : 'empty'}" data-inline-assign="driver" data-booking-id="${esc(row.rawId || row.id)}" title="Select driver or click + to type"><option value="" ${!row.hasDriver ? 'selected' : ''}>To be assigned</option>${driverList.map(d => `<option value="${esc(d.id)}" ${(row.driverId === d.id || row.driver === d.full_name) ? 'selected' : ''}>${esc(d.full_name || d.id)}${d.phone ? ` (${esc(d.phone)})` : ''}</option>`).join('')}<option value="__new__">+ Type new driver...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="driver" data-booking-id="${esc(row.rawId || row.id)}" title="Type driver name directly without popup">+</button></div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="supplier"><select class="booking-inline-select ${row.hasSupplier ? 'has-value' : 'empty'}" data-inline-assign="supplier" data-booking-id="${esc(row.rawId || row.id)}" title="Select supplier or click + to type"><option value="" ${!row.hasSupplier ? 'selected' : ''}>To be assigned</option>${supplierList.map(s => `<option value="${esc(s.id)}" ${(row.supplierId === s.id || row.supplier === s.name) ? 'selected' : ''}>${esc(s.name || s.id)}</option>`).join('')}<option value="__new__">+ Type new supplier...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="supplier" data-booking-id="${esc(row.rawId || row.id)}" title="Type supplier name directly without popup">+</button></div></td><td><span class="booking-duty-type-pill">${esc(row.dutyType)}</span></td><td><div class="booking-cell-truncate" title="${esc(row.repAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.repAddress)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.dropAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.dropAddress)}</div></td><td><span style="color:var(--muted);font-size:11px">${esc(row.remarks)}</span></td><td><span style="font-weight:500">${esc(row.city)}</span></td><td><span style="font-weight:600;font-family:var(--font-mono, monospace)">${esc(row.repTime)}</span></td><td><span style="font-family:var(--font-mono, monospace);color:var(--muted)">${esc(row.estDrop)}</span></td><td><div style="display:flex;align-items:center;justify-content:space-between;gap:8px">${status(row.status, row.tone)}<button class="btn small icon" data-open-booking-actions="${esc(row.rawId || row.id)}" aria-label="Open booking actions for ${esc(row.id)}" title="Booking settings / actions">${icon('settings', 13)}</button></div></td></tr>`).join('') : tenantTableEmpty('No booking records match this view','Try clearing filters or changing status tabs.',button(icon('plus')+'New booking','small soft','data-action="new-booking"'))}</tbody></table></div><div style="display:flex;justify-content:flex-end;padding:12px 18px;color:var(--muted);font-size:11px;font-weight:600">Total: ${rows.length} view</div></section>`;
     }
 
     function renderBilling() {
@@ -2680,7 +2969,7 @@
       const q = String(state.driverQuery || '').trim().toLowerCase();
 
       const filteredDrivers = drivers.filter(d => {
-        const matchesQuery = !q || `${d.full_name || ''} ${d.phone || ''} ${d.license_number || ''} ${d.city || ''} ${d.status || ''}`.toLowerCase().includes(q);
+        const matchesQuery = !q || `${d.full_name || ''} ${d.driver_type || ''} ${d.phone || ''} ${d.license_number || ''} ${d.city || ''} ${d.status || ''}`.toLowerCase().includes(q);
         const matchesFilter = filter === 'all'
           ? true
           : filter === 'ready'
@@ -2695,7 +2984,7 @@
 
       const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px"><div class="tabs">${[['all','All drivers'],['ready',`Ready (${readyDrivers})`],['on_duty',`On duty (${onDutyDrivers})`],['inactive',`Inactive (${inactiveDrivers})`]].map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-driver-filter="${key}">${label}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="driverQuery" placeholder="Search drivers…" value="${esc(state.driverQuery || '')}"></label></div>`;
 
-      const driversTable = `<section class="card section-card">${cardHead('Drivers register','Physical-device and duty readiness starts from this record',button(icon('plus')+'Add driver','small primary','data-action="add-driver"'))}<div class="table-wrap"><table><thead><tr><th>Driver</th><th>Phone</th><th>City</th><th>License / ID</th><th>Status</th><th></th></tr></thead><tbody>${filteredDrivers.length ? filteredDrivers.map(item => `<tr><td><span class="primary">${esc(item.full_name || 'Driver')}</span>${item.city ? `<span class="secondary">${esc(item.city)}</span>` : ''}</td><td>${esc(item.phone || '—')}</td><td>${esc(item.city || '—')}</td><td><span class="keycap">${esc(item.license_number || '—')}</span></td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="driver-detail" data-driver="${esc(item.full_name || item.id)}">${icon('eye', 13)}Open</button></td></tr>`).join('') : tenantTableEmpty('No drivers returned','Add the first driver record before assigning a duty.',button(icon('plus')+'Add driver','small soft','data-action="add-driver"'))}</tbody></table></div></section>`;
+      const driversTable = `<section class="card section-card">${cardHead('Drivers register','Physical-device and duty readiness starts from this record',button(icon('plus')+'Add driver','small primary','data-action="add-driver"'))}<div class="table-wrap"><table><thead><tr><th>Driver</th><th>Type</th><th>Phone</th><th>City</th><th>License / ID</th><th>Status</th><th></th></tr></thead><tbody>${filteredDrivers.length ? filteredDrivers.map(item => `<tr><td><span class="primary">${esc(item.full_name || 'Driver')}</span>${item.city ? `<span class="secondary">${esc(item.city)}</span>` : ''}</td><td><span class="status ${driverTypeTone(item.driver_type)}">${driverTypeLabel(item.driver_type)}</span></td><td>${esc(item.phone || '—')}</td><td>${esc(item.city || '—')}</td><td><span class="keycap">${esc(item.license_number || '—')}</span></td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="driver-detail" data-driver="${esc(item.full_name || item.id)}" data-driver-id="${esc(item.id)}">${icon('eye', 13)}Open</button></td></tr>`).join('') : tenantTableEmpty('No drivers returned','Add the first driver record before assigning a duty.',button(icon('plus')+'Add driver','small soft','data-action="add-driver"'))}</tbody></table></div></section>`;
 
       return `${pageHead('Fleet · workforce readiness','Drivers register','Manage driver workforce profiles, license verification and physical-device onboarding.',`${button(icon('upload')+'Import roster','','data-action="import-master"')}${button(icon('plus')+'Add driver','primary','data-action="add-driver"')}`)}${kpis}${tabsBar}${driversTable}`;
     }
@@ -3109,6 +3398,8 @@
       content.querySelectorAll('[data-bill-action="review"]').forEach(el => el.addEventListener('click', () => openBillReviewModal(el.dataset.billId)));
       content.querySelectorAll('[data-bill-action="undo"]').forEach(el => el.addEventListener('click', () => openBillReviewModal(el.dataset.billId)));
       content.querySelectorAll('[data-bill-action="refresh"]').forEach(el => el.addEventListener('click', async () => { try { await hydrateBillIntelligence(); showToast('Bill queue refreshed', 'Extraction and review state are current.'); } catch (error) { showToast('Bill queue could not refresh', error.message); } }));
+      content.querySelectorAll('[data-action="toggle-quick-insert"]').forEach(el => el.addEventListener('click', (e) => { e.preventDefault(); state.showQuickBookingInsert = !state.showQuickBookingInsert; renderBookingsInPlace(); }));
+      bindBookingInlineActions(content);
     }
 
     function renderDutiesInPlace() { const old = content.innerHTML; render(); const input = document.getElementById('dutyQuery'); if (input) { input.focus(); input.setSelectionRange(input.value.length,input.value.length); } }
@@ -3137,6 +3428,299 @@
       state.bookingDateFrom = fromD.toISOString().split('T')[0];
       state.bookingDateTo = toD.toISOString().split('T')[0];
       renderBookingsInPlace();
+    }
+
+    /* Zero-Popup Inline Resource Assignment Handlers for Bookings */
+    async function handleInlineAssign(bookingId, type, resourceId) {
+      const liveBookings = state.liveData?.bookings?.items || [];
+      const liveDuties = state.liveData?.duties?.items || [];
+      const booking = liveBookings.find(b => b.id === bookingId || b.booking_reference === bookingId);
+      if (!booking) return;
+
+      const duty = liveDuties.find(d => d.booking_id === booking.id || d.booking_id === booking.booking_reference);
+
+      let driverId = booking.driver_id || duty?.driver_id || null;
+      let vehicleId = booking.vehicle_id || duty?.vehicle_id || null;
+      let supplierId = booking.supplier_id || duty?.supplier_id || null;
+
+      if (type === 'vehicle') vehicleId = resourceId || null;
+      if (type === 'driver') driverId = resourceId || null;
+      if (type === 'supplier') supplierId = resourceId || null;
+
+      // Optimistic state update
+      if (type === 'vehicle') {
+        booking.vehicle_id = vehicleId;
+        const v = (state.liveData?.vehicles?.items || []).find(item => item.id === vehicleId);
+        booking.vehicle_number = v ? v.registration_number : '';
+      }
+      if (type === 'driver') {
+        booking.driver_id = driverId;
+        const d = (state.liveData?.drivers?.items || []).find(item => item.id === driverId);
+        booking.driver_name = d ? d.full_name : '';
+      }
+      if (type === 'supplier') {
+        booking.supplier_id = supplierId;
+        const s = (state.liveData?.suppliers?.items || []).find(item => item.id === supplierId);
+        booking.supplier_name = s ? s.name : '';
+      }
+
+      if (driverId && vehicleId) {
+        booking.status = 'assigned';
+      } else if (driverId || vehicleId || supplierId) {
+        booking.status = 'confirmed';
+      } else {
+        booking.status = 'requested';
+      }
+
+      if (duty) {
+        duty.vehicle_id = vehicleId;
+        duty.driver_id = driverId;
+        duty.supplier_id = supplierId;
+        duty.status = (driverId || vehicleId || supplierId) ? 'assigned' : 'draft';
+      }
+
+      try {
+        await apiRequest(`/api/bookings/${encodeURIComponent(booking.id)}/assign`, {
+          method: 'POST',
+          body: JSON.stringify({
+            vehicle_id: vehicleId,
+            driver_id: driverId,
+            supplier_id: supplierId
+          })
+        });
+        const actionLabel = resourceId ? 'assigned' : 'reset to To be assigned';
+        showToast('Assignment updated', `${type.charAt(0).toUpperCase() + type.slice(1)} ${actionLabel} without popup.`);
+      } catch (err) {
+        showToast('Assignment failed', err.message);
+      }
+      renderBookingsInPlace();
+    }
+
+    async function handleInlineCreateAndAssign(bookingId, type, rawValue) {
+      const val = String(rawValue || '').trim();
+      if (!val) {
+        renderBookingsInPlace();
+        return;
+      }
+      try {
+        let createdId = null;
+        if (type === 'vehicle') {
+          const reg = val.toUpperCase();
+          const existing = (state.liveData?.vehicles?.items || []).find(v => (v.registration_number || '').toUpperCase() === reg);
+          if (existing) {
+            createdId = existing.id;
+          } else {
+            const res = await apiRequest('/api/vehicles', {
+              method: 'POST',
+              body: JSON.stringify({
+                registration_number: reg,
+                vehicle_type: 'sedan',
+                vehicle_group: 'Sedan',
+                status: 'available'
+              })
+            });
+            const newVeh = res.item || res;
+            if (newVeh && newVeh.id) {
+              createdId = newVeh.id;
+              if (state.liveData?.vehicles?.items) state.liveData.vehicles.items.push(newVeh);
+            }
+          }
+        } else if (type === 'driver') {
+          const existing = (state.liveData?.drivers?.items || []).find(d => (d.full_name || '').toLowerCase() === val.toLowerCase());
+          if (existing) {
+            createdId = existing.id;
+          } else {
+            const res = await apiRequest('/api/drivers', {
+              method: 'POST',
+              body: JSON.stringify({
+                full_name: val,
+                phone: '',
+                driver_type: 'own',
+                status: 'available'
+              })
+            });
+            const newDrv = res.item || res;
+            if (newDrv && newDrv.id) {
+              createdId = newDrv.id;
+              if (state.liveData?.drivers?.items) state.liveData.drivers.items.push(newDrv);
+            }
+          }
+        } else if (type === 'supplier') {
+          const existing = (state.liveData?.suppliers?.items || []).find(s => (s.name || '').toLowerCase() === val.toLowerCase());
+          if (existing) {
+            createdId = existing.id;
+          } else {
+            const res = await apiRequest('/api/suppliers', {
+              method: 'POST',
+              body: JSON.stringify({
+                name: val,
+                status: 'active'
+              })
+            });
+            const newSup = res.item || res;
+            if (newSup && newSup.id) {
+              createdId = newSup.id;
+              if (state.liveData?.suppliers?.items) state.liveData.suppliers.items.push(newSup);
+            }
+          }
+        }
+        if (createdId) {
+          await handleInlineAssign(bookingId, type, createdId);
+        } else {
+          renderBookingsInPlace();
+        }
+      } catch (err) {
+        showToast('Creation failed', err.message);
+        renderBookingsInPlace();
+      }
+    }
+
+    function activateInlineCellInput(cell, bookingId, type) {
+      if (!cell) return;
+      const select = cell.querySelector('.booking-inline-select');
+      const typeBtn = cell.querySelector('.booking-inline-type-btn');
+      if (select) select.style.display = 'none';
+      if (typeBtn) typeBtn.style.display = 'none';
+
+      let wrap = cell.querySelector('.booking-inline-input-wrap');
+      if (!wrap) {
+        wrap = document.createElement('div');
+        wrap.className = 'booking-inline-input-wrap';
+        const placeholder = type === 'vehicle' ? 'e.g. KA 01 AB 1234' : type === 'driver' ? 'e.g. Rahul Sharma' : 'e.g. City Travels';
+        wrap.innerHTML = `<input type="text" class="booking-inline-input" placeholder="${placeholder}" autofocus><button type="button" class="booking-inline-confirm-btn" title="Save &amp; Assign (Enter)">✓</button><button type="button" class="booking-inline-cancel-btn" title="Cancel (Esc)">✕</button>`;
+        cell.appendChild(wrap);
+      } else {
+        wrap.style.display = 'inline-flex';
+      }
+
+      const input = wrap.querySelector('.booking-inline-input');
+      const confirmBtn = wrap.querySelector('.booking-inline-confirm-btn');
+      const cancelBtn = wrap.querySelector('.booking-inline-cancel-btn');
+
+      input.value = '';
+      input.focus();
+
+      let finished = false;
+      const cleanup = () => {
+        wrap.remove();
+        if (select) {
+          select.style.display = '';
+          select.value = select.dataset.prevValue || '';
+        }
+        if (typeBtn) typeBtn.style.display = '';
+      };
+
+      const commit = () => {
+        if (finished) return;
+        finished = true;
+        const val = input.value.trim();
+        if (val) {
+          wrap.remove();
+          handleInlineCreateAndAssign(bookingId, type, val);
+        } else {
+          cleanup();
+        }
+      };
+
+      confirmBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); commit(); };
+      cancelBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); cleanup(); };
+
+      input.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          commit();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          cleanup();
+        }
+      };
+    }
+
+    function bindBookingInlineActions(container) {
+      if (!container) return;
+      container.querySelectorAll('[data-inline-assign]').forEach(select => {
+        select.dataset.prevValue = select.value;
+        select.addEventListener('change', () => {
+          const type = select.dataset.inlineAssign;
+          const bookingId = select.dataset.bookingId;
+          const val = select.value;
+          if (val === '__new__') {
+            const cell = select.closest('.booking-inline-cell');
+            if (cell) activateInlineCellInput(cell, bookingId, type);
+          } else {
+            handleInlineAssign(bookingId, type, val);
+          }
+        });
+      });
+
+      container.querySelectorAll('[data-inline-type]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const type = btn.dataset.inlineType;
+          const bookingId = btn.dataset.bookingId;
+          const cell = btn.closest('.booking-inline-cell');
+          if (cell) activateInlineCellInput(cell, bookingId, type);
+        });
+      });
+
+      const qbForm = container.querySelector('#quickBookingForm');
+      if (qbForm) {
+        qbForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const submitBtn = qbForm.querySelector('button[type="submit"]');
+          if (submitBtn) submitBtn.disabled = true;
+          try {
+            const customerId = qbForm.querySelector('#qbCustomer')?.value || '';
+            const passengerName = qbForm.querySelector('#qbPassenger')?.value.trim() || '';
+            const passengerPhone = qbForm.querySelector('#qbPhone')?.value.trim() || '';
+            const scheduledAt = qbForm.querySelector('#qbScheduledAt')?.value;
+            const pickup = qbForm.querySelector('#qbPickup')?.value.trim() || '';
+            const dropoff = qbForm.querySelector('#qbDropoff')?.value.trim() || '';
+            const vehicleId = qbForm.querySelector('#qbVehicle')?.value || null;
+            const driverId = qbForm.querySelector('#qbDriver')?.value || null;
+            const supplierId = qbForm.querySelector('#qbSupplier')?.value || null;
+
+            const res = await apiRequest('/api/bookings', {
+              method: 'POST',
+              body: JSON.stringify({
+                customer_id: customerId || null,
+                passenger_name: passengerName,
+                passenger_phone: passengerPhone,
+                scheduled_at: scheduledAt ? new Date(scheduledAt).toISOString() : new Date().toISOString(),
+                duty_type: 'local',
+                booking_type: 'single',
+                pickup: { label: pickup },
+                dropoff: { label: dropoff },
+                notes: 'Direct quick insert without popup',
+                status: 'requested',
+                idempotency_key: `qb-${Date.now()}-${Math.random().toString(16).slice(2)}`
+              })
+            });
+
+            const newBooking = res.item || res;
+            if (newBooking && (newBooking.id || newBooking.booking_reference)) {
+              const bId = newBooking.id || newBooking.booking_reference;
+              if (vehicleId || driverId || supplierId) {
+                await apiRequest(`/api/bookings/${encodeURIComponent(bId)}/assign`, {
+                  method: 'POST',
+                  body: JSON.stringify({
+                    vehicle_id: vehicleId,
+                    driver_id: driverId,
+                    supplier_id: supplierId
+                  })
+                });
+              }
+            }
+            state.showQuickBookingInsert = false;
+            showToast('Booking inserted', `${passengerName}'s booking created with vehicle, driver & supplier — zero popups.`);
+            await hydrateOperationalData();
+          } catch (err) {
+            showToast('Insert failed', err.message);
+            if (submitBtn) submitBtn.disabled = false;
+          }
+        });
+      }
     }
 
     function openProductTour() {
@@ -3474,7 +4058,7 @@
         'aging': () => { state.page = 'billing'; state.invoiceFilter = 'overdue'; render(); },
         'retry': () => showToast('No failed dispatches', 'Retry becomes available when a tenant delivery event fails.'),
         'add-driver': () => openDriverModal(),
-        'driver-detail': () => showToast('Driver profile opened', `${el.dataset.driver} · compliance and duty history ready.`),
+        'driver-detail': () => { const driver = (state.liveData?.drivers?.items || []).find(item => item.id === el.dataset.driverId || item.full_name === el.dataset.driver); if (driver) openDriverModal(driver); else showToast('Driver profile opened', `${el.dataset.driver} · compliance and duty history ready.`); },
         'add-vehicle': () => openVehicleModal(),
         'vehicle-edit': () => { const vehicle = (state.liveData?.vehicles?.items || []).find(item => item.id === el.dataset.vehicleId); if (vehicle) openVehicleModal(vehicle); },
         'import-master': () => openMasterImportModal(),
@@ -3755,6 +4339,9 @@
       const corporateAccount = corporateAccountResponse?.account || null;
       const corporateOrgName = corporateAccount?.name || currentUser?.organization?.name || 'Corporate Account';
       const employees = state.corporateData?.['/api/corporate/users']?.items ?? state.liveData?.employees?.items ?? [];
+      const vehicleList = state.liveData?.vehicles?.items || [];
+      const driverList = state.liveData?.drivers?.items || [];
+      const supplierList = state.liveData?.suppliers?.items || [];
       
       const existingCustomer = customerRecords.find(item => item.name === d.customer || item.id === d.customer_id) || (isCorporate ? customerRecords[0] : null);
       const customerOptions = customerRecords.length 
@@ -3855,6 +4442,27 @@
           <div class="form-group">
             <label>Flat rate (${regionalCurrencyCode()})</label>
             <input class="form-input" data-booking-field="flat_rate" type="number" min="0" step="0.01" placeholder="Optional" value="${booking.flat_rate_paise ? Number(booking.flat_rate_paise) / 100 : ''}">
+          </div>
+          <div class="form-group">
+            <label>Vehicle</label>
+            <select class="form-input" data-booking-field="vehicle_id">
+              <option value="">— Unassigned —</option>
+              ${vehicleList.map(v => `<option value="${esc(v.id)}" ${(booking.vehicle_id === v.id || d.vehicleId === v.id || d.vehicle_id === v.id) ? 'selected' : ''}>${esc(v.registration_number)}${v.make_model ? ` (${esc(v.make_model)})` : ''}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Driver</label>
+            <select class="form-input" data-booking-field="driver_id">
+              <option value="">— Unassigned —</option>
+              ${driverList.map(drv => `<option value="${esc(drv.id)}" ${(booking.driver_id === drv.id || d.driverId === drv.id || d.driver_id === drv.id) ? 'selected' : ''}>${esc(drv.full_name || drv.id)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Supplier</label>
+            <select class="form-input" data-booking-field="supplier_id">
+              <option value="">— Unassigned —</option>
+              ${supplierList.map(s => `<option value="${esc(s.id)}" ${(booking.supplier_id === s.id || d.supplierId === s.id || d.supplier_id === s.id) ? 'selected' : ''}>${esc(s.name || s.id)}</option>`).join('')}
+            </select>
           </div>` : ''}
           <div class="form-group full">
             <label>Pickup address <span class="required">*</span></label>
@@ -3949,6 +4557,24 @@
           const result = id 
             ? await apiRequest(`/api/bookings/${encodeURIComponent(id)}`, {method:'PATCH', body:JSON.stringify(body)})
             : await apiRequest('/api/bookings', {method:'POST', body:JSON.stringify(body)});
+          const createdBookingId = (result.item && (result.item.id || result.item.booking_reference)) || id;
+          const assignedVeh = read('vehicle_id');
+          const assignedDrv = read('driver_id');
+          const assignedSup = read('supplier_id');
+          if (createdBookingId && (assignedVeh || assignedDrv || assignedSup)) {
+            try {
+              await apiRequest(`/api/bookings/${encodeURIComponent(createdBookingId)}/assign`, {
+                method: 'POST',
+                body: JSON.stringify({
+                  vehicle_id: assignedVeh || null,
+                  driver_id: assignedDrv || null,
+                  supplier_id: assignedSup || null
+                })
+              });
+            } catch (assignErr) {
+              console.warn('Post-booking assignment error:', assignErr);
+            }
+          }
           closeModal();
           showToast(existing ? 'Booking updated' : 'Booking requested', `${result.item?.booking_reference || result.item?.id || 'Request'} has been recorded and submitted for approval.`);
           await hydrateOperationalData();
@@ -3993,7 +4619,132 @@
       });
     }
 
-    function openDriverModal() { const modal=modalShell('Add driver','Create a driver profile and track documents before the first allotment.',`<div class="form-grid"><div class="form-group"><label>Full name <span class="required">*</span></label><input class="form-input" placeholder="e.g. Kavita Rao"></div><div class="form-group"><label>Mobile number <span class="required">*</span></label><input class="form-input" placeholder="+91 98xxx xxxxx"></div><div class="form-group"><label>Vehicle registration</label><input class="form-input" placeholder="KA 00 AA 0000"></div><div class="form-group"><label>Vehicle group</label><select class="form-input"><option>Standard sedan</option><option>Executive sedan</option><option>SUV</option></select></div><div class="form-group full"><label>Documents</label><div style="border:1px dashed var(--line-strong);padding:12px;border-radius:8px;color:var(--muted);font-size:10px">Add licence, RC, insurance and PUC now or later from the driver profile.</div></div></div>`,`${button('Cancel','','data-close-modal')}${button('Create driver','primary','data-submit-driver')}`);modal.querySelectorAll('[data-close-modal]').forEach(b=>b.addEventListener('click',closeModal));modal.querySelector('[data-submit-driver]').addEventListener('click',async()=>{const submit=modal.querySelector('[data-submit-driver]');const fields=[...modal.querySelectorAll('.form-input')];const body={full_name:fields[0]?.value.trim(),phone:fields[1]?.value.trim()};if(!validateFields(modal, [['input[placeholder="e.g. Kavita Rao"]','Full name is required.'], ['input[placeholder="+91 98xxx xxxxx"]','Mobile number is required.']])) return;submit.disabled=true;try{await apiRequest('/api/drivers',{method:'POST',body:JSON.stringify(body)});closeModal();showToast('Driver profile created','Add documents to make this driver eligible for allotment.');await hydrateOperationalData();}catch(error){submit.disabled=false;showToast('Driver could not be created',error.message);}}); }
+    function driverTypeLabel(type) {
+      const val = String(type || 'own').toLowerCase();
+      if (val === 'supplier') return 'Supplier';
+      if (val === 'dco') return 'DCO';
+      return 'Own';
+    }
+    function driverTypeTone(type) {
+      const val = String(type || 'own').toLowerCase();
+      if (val === 'supplier') return 'purple';
+      if (val === 'dco') return 'teal';
+      return 'blue';
+    }
+
+    function openDriverModal(existing) {
+      const d = existing || {};
+      const compliance = (d && typeof d.compliance === 'object' && d.compliance) ? d.compliance : {};
+      const value = key => esc(d[key] ?? compliance[key] ?? '');
+      const currentType = String(d.driver_type || compliance.driver_type || 'own').toLowerCase();
+      const currentGroup = value('vehicle_group') || 'Standard sedan';
+      const currentStatus = d.status || 'available';
+
+      const modal = modalShell(
+        existing ? 'Edit driver' : 'Add driver',
+        existing ? 'Update driver workforce profile, driver type, and vehicle assignment.' : 'Create a driver profile and track documents before the first allotment.',
+        `<div class="form-grid">
+          <div class="form-group">
+            <label>Full name <span class="required">*</span></label>
+            <input class="form-input" data-driver-field="full_name" value="${value('full_name')}" placeholder="e.g. Kavita Rao">
+          </div>
+          <div class="form-group">
+            <label>Mobile number <span class="required">*</span></label>
+            <input class="form-input" data-driver-field="phone" value="${value('phone')}" placeholder="+91 98xxx xxxxx">
+          </div>
+          <div class="form-group">
+            <label>Driver type <span class="required">*</span></label>
+            <select class="form-input" data-driver-field="driver_type">
+              <option value="own" ${currentType === 'own' ? 'selected' : ''}>Own</option>
+              <option value="supplier" ${currentType === 'supplier' ? 'selected' : ''}>Supplier</option>
+              <option value="dco" ${currentType === 'dco' ? 'selected' : ''}>DCO</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Vehicle registration</label>
+            <input class="form-input" data-driver-field="vehicle_registration" value="${value('vehicle_registration')}" placeholder="KA 00 AA 0000">
+          </div>
+          <div class="form-group">
+            <label>Vehicle group</label>
+            <select class="form-input" data-driver-field="vehicle_group">
+              <option value="Standard sedan" ${currentGroup === 'Standard sedan' ? 'selected' : ''}>Standard sedan</option>
+              <option value="Executive sedan" ${currentGroup === 'Executive sedan' ? 'selected' : ''}>Executive sedan</option>
+              <option value="SUV" ${currentGroup === 'SUV' ? 'selected' : ''}>SUV</option>
+              <option value="Tempo Traveller" ${currentGroup === 'Tempo Traveller' ? 'selected' : ''}>Tempo Traveller</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>City</label>
+            <input class="form-input" data-driver-field="city" value="${value('city')}" placeholder="e.g. Bengaluru">
+          </div>
+          <div class="form-group">
+            <label>License number</label>
+            <input class="form-input" data-driver-field="license_number" value="${value('license_number')}" placeholder="DL-1420110012345">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select class="form-input" data-driver-field="status">
+              <option value="available" ${['available', 'active'].includes(currentStatus) ? 'selected' : ''}>Available</option>
+              <option value="on_duty" ${currentStatus === 'on_duty' ? 'selected' : ''}>On duty</option>
+              <option value="inactive" ${['inactive', 'suspended'].includes(currentStatus) ? 'selected' : ''}>Inactive</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Documents</label>
+            <div style="border:1px dashed var(--line-strong);padding:12px;border-radius:8px;color:var(--muted);font-size:10px">
+              Add licence, RC, insurance and PUC now or later from the driver profile.
+            </div>
+          </div>
+        </div>`,
+        `${button('Cancel','','data-close-modal')}${button(existing ? 'Save driver' : 'Create driver','primary','data-submit-driver')}`
+      );
+
+      modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+      modal.querySelector('[data-submit-driver]').addEventListener('click', async () => {
+        const submit = modal.querySelector('[data-submit-driver]');
+        const nameInput = modal.querySelector('input[placeholder="e.g. Kavita Rao"]');
+        const phoneInput = modal.querySelector('input[placeholder="+91 98xxx xxxxx"]');
+        const driverTypeSelect = modal.querySelector('[data-driver-field="driver_type"]');
+        const regInput = modal.querySelector('[data-driver-field="vehicle_registration"]');
+        const groupSelect = modal.querySelector('[data-driver-field="vehicle_group"]');
+        const cityInput = modal.querySelector('[data-driver-field="city"]');
+        const licenseInput = modal.querySelector('[data-driver-field="license_number"]');
+        const statusSelect = modal.querySelector('[data-driver-field="status"]');
+
+        if (!validateFields(modal, [
+          ['input[placeholder="e.g. Kavita Rao"]', 'Full name is required.'],
+          ['input[placeholder="+91 98xxx xxxxx"]', 'Mobile number is required.']
+        ])) return;
+
+        const body = {
+          full_name: nameInput?.value.trim() || '',
+          phone: phoneInput?.value.trim() || '',
+          driver_type: driverTypeSelect?.value || 'own',
+          vehicle_registration: regInput?.value.trim().toUpperCase() || '',
+          vehicle_group: groupSelect?.value || '',
+          city: cityInput?.value.trim() || '',
+          license_number: licenseInput?.value.trim().toUpperCase() || '',
+          status: statusSelect?.value || 'available'
+        };
+
+        submit.disabled = true;
+        try {
+          if (existing && existing.id) {
+            await apiRequest(`/api/drivers/${encodeURIComponent(existing.id)}`, { method: 'PATCH', body: JSON.stringify(body) });
+            closeModal();
+            showToast('Driver profile updated', 'Driver record and type changes have been saved.');
+          } else {
+            await apiRequest('/api/drivers', { method: 'POST', body: JSON.stringify(body) });
+            closeModal();
+            showToast('Driver profile created', 'Add documents to make this driver eligible for allotment.');
+          }
+          await hydrateOperationalData();
+        } catch (error) {
+          submit.disabled = false;
+          showToast(existing ? 'Driver could not be updated' : 'Driver could not be created', error.message);
+        }
+      });
+    }
     function openExpenseModal() { const modal=modalShell('Add expense','Capture toll, parking or another duty expense. It will sync when the network returns.',`<div class="form-grid"><div class="form-group"><label>Category <span class="required">*</span></label><select class="form-input"><option value="toll">Toll</option><option value="parking">Parking</option><option value="fuel">Fuel</option><option value="other">Other</option></select></div><div class="form-group"><label>Amount (${regionalCurrencyCode()}) <span class="required">*</span></label><input class="form-input" type="number" min="1" placeholder="e.g. 240"></div><div class="form-group full"><label>Note</label><input class="form-input" placeholder="Where was this expense incurred?"></div><div class="form-group full"><label>Receipt</label><input class="form-input" type="file" accept="image/*,.pdf"></div></div>`,`${button('Cancel','','data-close-modal')}${button('Save expense','primary','data-submit-expense')}`);modal.querySelectorAll('[data-close-modal]').forEach(b=>b.addEventListener('click',closeModal));modal.querySelector('[data-submit-expense]').addEventListener('click',async()=>{const fields=[...modal.querySelectorAll('.form-input')];const duty=state.liveData?.duties?.items?.find(item=>['started','paused','en_route'].includes(item.status));const amount=Math.round(Number(fields[1]?.value||0)*100);if(!duty||amount<=0){showToast('Expense needs a live duty','Start a duty and enter an amount before saving.');return;}const submit=modal.querySelector('[data-submit-expense]');submit.disabled=true;try{queueDriverOperation({entity_type:'expense',entity_id:duty.id,operation:'submit',payload:{category:fields[0].value,amount_paise:amount,note:fields[2]?.value||''}});await flushDriverQueue();closeModal();showToast('Expense saved offline-first','The expense is queued with the duty evidence.');}catch(error){submit.disabled=false;showToast('Expense could not be saved',error.message);}}); }
     function openBranchSelector() {
       const branches = state.liveData?.branches?.items || [];

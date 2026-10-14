@@ -360,6 +360,15 @@ def initialize_database() -> None:
         initialize_command_center_schema(conn)
         if not test_fixtures_enabled():
             purge_demo_records(conn)
+            try:
+                from seed_tenant_data import seed_organization
+                vendor_orgs = conn.execute("SELECT id FROM organizations WHERE kind = 'vendor' AND id != 'org_demo_blueorbit'").fetchall()
+                for vrow in vendor_orgs:
+                    cust_count = conn.execute("SELECT count(*) FROM domain_customers WHERE organization_id = ?", (vrow["id"],)).fetchone()[0]
+                    if cust_count == 0:
+                        seed_organization(conn, vrow["id"])
+            except Exception:
+                pass
         now = utc_now()
         conn.execute("DELETE FROM sessions WHERE expires_at <= ?", (now,))
         conn.execute("DELETE FROM password_resets WHERE expires_at <= ? OR used_at IS NOT NULL", (now,))

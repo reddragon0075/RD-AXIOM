@@ -100,6 +100,18 @@ def main() -> None:
             status, branch = call(operator, base, "POST", "/api/branches", {"code": "BLR-WF", "name": "Whitefield dispatch", "city": "Bengaluru", "address": {"label": "ITPL Main Road"}})
             expect(status == 201 and branch["item"]["code"] == "BLR-WF", "branch register can create a dispatch centre")
 
+            status, drv_own = call(operator, base, "POST", "/api/drivers", {"full_name": "Kavita Rao", "phone": "+919800011111", "driver_type": "own", "city": "Bengaluru"})
+            expect(status == 201 and drv_own["item"]["driver_type"] == "own", "driver master supports own driver type")
+
+            status, drv_supplier = call(operator, base, "POST", "/api/drivers", {"full_name": "Ramesh Kumar", "phone": "+919800022222", "driver_type": "supplier", "city": "Bengaluru"})
+            expect(status == 201 and drv_supplier["item"]["driver_type"] == "supplier", "driver master supports supplier driver type")
+
+            status, drv_dco = call(operator, base, "POST", "/api/drivers", {"full_name": "Suresh DCO", "phone": "+919800033333", "driver_type": "dco", "vehicle_registration": "KA01AB9999", "vehicle_group": "SUV"})
+            expect(status == 201 and drv_dco["item"]["driver_type"] == "dco" and drv_dco["item"]["vehicle_registration"] == "KA01AB9999", "driver master supports DCO driver type")
+
+            status, drv_updated = call(operator, base, "PATCH", f"/api/drivers/{drv_own['item']['id']}", {"driver_type": "dco", "vehicle_registration": "KA05CD1234"})
+            expect(status == 200 and drv_updated["item"]["driver_type"] == "dco" and drv_updated["item"]["vehicle_registration"] == "KA05CD1234", "driver master can update driver type to DCO via PATCH")
+
             print("RESULT Masters smoke test passed")
         finally:
             if process.poll() is None:

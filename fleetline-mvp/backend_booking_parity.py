@@ -73,6 +73,12 @@ def initialize_booking_parity_schema(conn) -> None:
         "allotment_mode": "TEXT NOT NULL DEFAULT 'owned'",
         "vehicle_group_code": "TEXT NOT NULL DEFAULT ''",
         "source_import_id": "TEXT",
+        "driver_id": "TEXT",
+        "vehicle_id": "TEXT",
+        "supplier_id": "TEXT",
+        "driver_name": "TEXT",
+        "vehicle_number": "TEXT",
+        "supplier_name": "TEXT",
     })
     _add_columns(conn, "domain_duties", {
         "arrival_at": "TEXT",

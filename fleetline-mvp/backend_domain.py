@@ -58,6 +58,9 @@ def initialize_domain_schema(conn) -> None:
             license_number TEXT NOT NULL DEFAULT '',
             city TEXT NOT NULL DEFAULT '',
             status TEXT NOT NULL DEFAULT 'available',
+            driver_type TEXT NOT NULL DEFAULT 'own',
+            vehicle_registration TEXT NOT NULL DEFAULT '',
+            vehicle_group TEXT NOT NULL DEFAULT '',
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         );
@@ -120,6 +123,7 @@ def initialize_domain_schema(conn) -> None:
             booking_id TEXT NOT NULL,
             driver_id TEXT,
             vehicle_id TEXT,
+            supplier_id TEXT,
             status TEXT NOT NULL DEFAULT 'draft',
             reporting_at TEXT,
             started_at TEXT,
@@ -286,6 +290,14 @@ def initialize_domain_schema(conn) -> None:
     }.items():
         if column not in vehicle_columns:
             conn.execute(f"ALTER TABLE domain_vehicles ADD COLUMN {column} {definition}")
+    driver_columns = {row["name"] for row in conn.execute("PRAGMA table_info(domain_drivers)").fetchall()}
+    for column, definition in {
+        "driver_type": "TEXT NOT NULL DEFAULT 'own'",
+        "vehicle_registration": "TEXT NOT NULL DEFAULT ''",
+        "vehicle_group": "TEXT NOT NULL DEFAULT ''",
+    }.items():
+        if column not in driver_columns:
+            conn.execute(f"ALTER TABLE domain_drivers ADD COLUMN {column} {definition}")
 
 
 def _json(value, fallback):
@@ -456,8 +468,9 @@ def _update_booking(conn, user, booking_id, payload, ip):
         elif customer_id:
             _assert_owned(conn, "domain_customers", customer_id, org)
         updates.append(("customer_id", customer_id))
-    for key in ("passenger_name", "passenger_phone", "passenger_email", "scheduled_at", "duty_type", "notes", "status"):
-        if key in payload:
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(domain_bookings)").fetchall()}
+    for key in ("passenger_name", "passenger_phone", "passenger_email", "scheduled_at", "duty_type", "notes", "status", "driver_id", "vehicle_id", "supplier_id", "driver_name", "vehicle_number", "supplier_name"):
+        if key in payload and (key not in {"driver_id", "vehicle_id", "supplier_id", "driver_name", "vehicle_number", "supplier_name"} or key in cols):
             updates.append((key, _text(payload, key, maximum=500)))
     for key, json_key in (("pickup_json", "pickup"), ("dropoff_json", "dropoff")):
         if json_key in payload and isinstance(payload[json_key], dict):
@@ -497,8 +510,15 @@ def _create_driver(conn, user, payload, ip):
         conn.execute("UPDATE users SET organization_id = ? WHERE id = ?", (org, linked_user_id))
     driver_id = new_id("drv")
     now = now_iso()
-    conn.execute("INSERT INTO domain_drivers(id, organization_id, user_id, full_name, phone, license_number, city, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'available', ?, ?)", (driver_id, org, linked_user_id, name, _text(payload, "phone"), _text(payload, "license_number").upper(), _text(payload, "city"), now, now))
-    _audit(conn, user, "driver.created", "driver", driver_id, ip, {"linked_user_id": linked_user_id})
+    raw_type = (_text(payload, "driver_type") or "own").lower()
+    driver_type = raw_type if raw_type in ("own", "supplier", "dco") else "own"
+    vehicle_registration = _text(payload, "vehicle_registration", maximum=40).upper()
+    vehicle_group = _text(payload, "vehicle_group", maximum=60)
+    conn.execute(
+        "INSERT INTO domain_drivers(id, organization_id, user_id, full_name, phone, license_number, city, status, driver_type, vehicle_registration, vehicle_group, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'available', ?, ?, ?, ?, ?)",
+        (driver_id, org, linked_user_id, name, _text(payload, "phone"), _text(payload, "license_number").upper(), _text(payload, "city"), driver_type, vehicle_registration, vehicle_group, now, now)
+    )
+    _audit(conn, user, "driver.created", "driver", driver_id, ip, {"linked_user_id": linked_user_id, "driver_type": driver_type})
     return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_drivers WHERE id = ?", (driver_id,)).fetchone())}
 
 
@@ -630,14 +650,21 @@ def _create_duty(conn, user, payload, ip):
         raise DomainError(409, "Booking approval is required before a duty can be assigned", "booking_approval_required")
     driver_id = _text(payload, "driver_id") or None
     vehicle_id = _text(payload, "vehicle_id") or None
+    supplier_id = _text(payload, "supplier_id") or None
     if driver_id:
         _assert_owned(conn, "domain_drivers", driver_id, org)
     if vehicle_id:
         _assert_owned(conn, "domain_vehicles", vehicle_id, org)
-    status = "assigned" if driver_id or vehicle_id else "draft"
+    if supplier_id:
+        _assert_owned(conn, "domain_suppliers", supplier_id, org)
+    status = "assigned" if driver_id or vehicle_id or supplier_id else "draft"
     duty_id = new_id("duty")
     now = now_iso()
-    conn.execute("INSERT INTO domain_duties(id, organization_id, booking_id, driver_id, vehicle_id, status, reporting_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (duty_id, org, booking_id, driver_id, vehicle_id, status, _text(payload, "reporting_at") or None, now, now))
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(domain_duties)").fetchall()}
+    if "supplier_id" in cols:
+        conn.execute("INSERT INTO domain_duties(id, organization_id, booking_id, driver_id, vehicle_id, supplier_id, status, reporting_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (duty_id, org, booking_id, driver_id, vehicle_id, supplier_id, status, _text(payload, "reporting_at") or None, now, now))
+    else:
+        conn.execute("INSERT INTO domain_duties(id, organization_id, booking_id, driver_id, vehicle_id, status, reporting_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (duty_id, org, booking_id, driver_id, vehicle_id, status, _text(payload, "reporting_at") or None, now, now))
     conn.execute("UPDATE domain_bookings SET status = ?, updated_at = ? WHERE id = ?", ("assigned" if status == "assigned" else "confirmed", now, booking_id))
     if driver_id:
         driver_user = conn.execute("SELECT user_id FROM domain_drivers WHERE id = ? AND organization_id = ?", (driver_id, org)).fetchone()
@@ -662,13 +689,15 @@ def _update_duty(conn, user, duty_id, payload, ip):
         _require_role(user)
     updates = []
     values = []
-    for key in ("driver_id", "vehicle_id", "reporting_at", "start_odometer", "end_odometer"):
-        if key in payload:
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(domain_duties)").fetchall()}
+    for key in ("driver_id", "vehicle_id", "supplier_id", "reporting_at", "start_odometer", "end_odometer"):
+        if key in payload and (key not in {"supplier_id"} or key in cols):
             value = payload[key]
-            if key in ("driver_id", "vehicle_id"):
+            if key in ("driver_id", "vehicle_id", "supplier_id"):
                 value = _text(payload, key) or None
                 if value:
-                    _assert_owned(conn, "domain_drivers" if key == "driver_id" else "domain_vehicles", value, org)
+                    table_name = "domain_drivers" if key == "driver_id" else "domain_vehicles" if key == "vehicle_id" else "domain_suppliers"
+                    _assert_owned(conn, table_name, value, org)
             elif key in ("start_odometer", "end_odometer"):
                 value = _int(payload, key)
             else:
@@ -683,8 +712,8 @@ def _update_duty(conn, user, duty_id, payload, ip):
             return {"ok": True, "item": _duty(conn, duty_id, org), "idempotent": True}
     if next_status:
         allowed = {
-            "draft": {"assigned", "cancelled"}, "assigned": {"accepted", "cancelled"},
-            "accepted": {"en_route", "cancelled"}, "en_route": {"started", "cancelled"},
+            "draft": {"assigned", "cancelled"}, "assigned": {"accepted", "cancelled", "draft"},
+            "accepted": {"en_route", "cancelled", "draft"}, "en_route": {"started", "cancelled"},
             "started": {"paused", "completed", "cancelled"}, "paused": {"started", "completed", "cancelled"},
             "completed": {"disputed"}, "cancelled": set(), "disputed": set()
         }

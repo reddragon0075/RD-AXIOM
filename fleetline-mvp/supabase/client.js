@@ -976,17 +976,48 @@
       }
       if (action === 'assign' && booking.status === 'pending_approval') throw new Error('Booking approval is required before a duty can be assigned.');
       if (action === 'assign') {
-        const dutyPayload = {
-          organization_id: organizationId,
-          booking_id: bookingId,
-          driver_id: body.driver_id || null,
-          vehicle_id: body.vehicle_id || null,
-          reporting_at: body.reporting_at || null,
-          status: 'assigned'
-        };
-        const createdDuty = await dataRequest('duties', { method: 'POST', body: JSON.stringify(dutyPayload) }, session.access_token);
-        const duty = Array.isArray(createdDuty) ? createdDuty[0] : createdDuty;
-        const updated = await dataRequest(`bookings?id=eq.${encodeURIComponent(bookingId)}`, { method: 'PATCH', body: JSON.stringify({ status: 'assigned' }) }, session.access_token);
+        const driverId = body.driver_id || null;
+        const vehicleId = body.vehicle_id || null;
+        const supplierId = body.supplier_id || null;
+        const dutyStatus = (driverId || vehicleId || supplierId) ? 'assigned' : 'draft';
+        let duty;
+        const existingDuties = await dataRequest(`duties?booking_id=eq.${encodeURIComponent(bookingId)}&select=*`, {}, session.access_token).catch(() => []);
+        if (existingDuties && existingDuties.length > 0) {
+          const dutyId = existingDuties[0].id;
+          const updatedDuty = await dataRequest(`duties?id=eq.${encodeURIComponent(dutyId)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({
+              driver_id: driverId,
+              vehicle_id: vehicleId,
+              supplier_id: supplierId,
+              status: dutyStatus,
+              reporting_at: body.reporting_at || existingDuties[0].reporting_at || null
+            })
+          }, session.access_token);
+          duty = Array.isArray(updatedDuty) ? updatedDuty[0] : updatedDuty;
+        } else {
+          const dutyPayload = {
+            organization_id: organizationId,
+            booking_id: bookingId,
+            driver_id: driverId,
+            vehicle_id: vehicleId,
+            supplier_id: supplierId,
+            reporting_at: body.reporting_at || null,
+            status: dutyStatus
+          };
+          const createdDuty = await dataRequest('duties', { method: 'POST', body: JSON.stringify(dutyPayload) }, session.access_token);
+          duty = Array.isArray(createdDuty) ? createdDuty[0] : createdDuty;
+        }
+        const bookingStatus = (driverId && vehicleId) ? 'assigned' : (driverId || vehicleId || supplierId) ? 'confirmed' : booking.status;
+        const updated = await dataRequest(`bookings?id=eq.${encodeURIComponent(bookingId)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            status: bookingStatus,
+            driver_id: driverId,
+            vehicle_id: vehicleId,
+            supplier_id: supplierId
+          })
+        }, session.access_token);
         return { ok: true, booking: Array.isArray(updated) ? updated[0] : updated, duty };
       }
       const nextStatus = { approve: 'approved', confirm: 'confirmed', reject: 'disputed', cancel: 'cancelled' }[action];
@@ -1013,9 +1044,21 @@
       return { ok: true, item: Array.isArray(inserted) ? inserted[0] : inserted };
     }
     if (route === '/api/drivers' && method === 'POST') {
-      const { vehicle_type: ignoredVehicleType, ...driverBody } = body;
-      const inserted = await dataRequest('drivers', { method: 'POST', body: JSON.stringify({ ...driverBody, organization_id: await activeOrganizationId() }) }, session.access_token);
-      return { ok: true, item: Array.isArray(inserted) ? inserted[0] : inserted };
+      const { vehicle_type: ignoredVehicleType, driver_type = 'own', vehicle_registration = '', vehicle_group = '', compliance, ...driverBody } = body;
+      const combinedCompliance = {
+        ...(compliance || {}),
+        driver_type,
+        ...(vehicle_registration ? { vehicle_registration } : {}),
+        ...(vehicle_group ? { vehicle_group } : {})
+      };
+      const inserted = await dataRequest('drivers', { method: 'POST', body: JSON.stringify({ ...driverBody, compliance: combinedCompliance, organization_id: await activeOrganizationId() }) }, session.access_token);
+      const resItem = Array.isArray(inserted) ? inserted[0] : inserted;
+      if (resItem) {
+        resItem.driver_type = driver_type;
+        resItem.vehicle_registration = vehicle_registration;
+        resItem.vehicle_group = vehicle_group;
+      }
+      return { ok: true, item: resItem };
     }
     const priceItemRoute = route.match(/^\/api\/price-books\/([^/]+)\/items$/);
     if (priceItemRoute && method === 'POST') {
@@ -1436,6 +1479,29 @@
               patchBody.compliance = { ...(compliance || {}), ...(manufacturer ? { manufacturer } : {}), ...(model ? { model } : {}), ...rest };
             }
           }
+          if (singleTable === 'drivers') {
+            const {
+              id: _id, created_at: _cat, updated_at: _uat, organization_id: _oid,
+              full_name, phone, license_number, city, status, driver_type, vehicle_registration, vehicle_group,
+              compliance,
+              ...rest
+            } = patchBody;
+            patchBody = {};
+            if (full_name !== undefined) patchBody.full_name = full_name;
+            if (phone !== undefined) patchBody.phone = phone;
+            if (license_number !== undefined) patchBody.license_number = license_number;
+            if (city !== undefined) patchBody.city = city;
+            if (status !== undefined) patchBody.status = status;
+            if (compliance !== undefined || Object.keys(rest).length > 0 || driver_type !== undefined || vehicle_registration !== undefined || vehicle_group !== undefined) {
+              patchBody.compliance = {
+                ...(compliance || {}),
+                ...(driver_type !== undefined ? { driver_type } : {}),
+                ...(vehicle_registration !== undefined ? { vehicle_registration } : {}),
+                ...(vehicle_group !== undefined ? { vehicle_group } : {}),
+                ...rest
+              };
+            }
+          }
           const rows = await dataRequest(`${singleTable}?id=eq.${encodeURIComponent(entityId)}&organization_id=eq.${encodeURIComponent(organizationId)}`, {
             method: 'PATCH',
             body: JSON.stringify(patchBody)
@@ -1460,6 +1526,14 @@
       const limit = Math.min(Number(url.searchParams.get('limit') || 100), 100);
       const order = table === 'bookings' ? 'scheduled_at.asc' : table === 'duties' ? 'reporting_at.asc' : table === 'organization_settings' ? 'updated_at.desc' : 'created_at.desc';
       const rows = await dataRequest(`${table}?select=*&order=${order}&limit=${limit}`, {}, session.access_token);
+      if (table === 'drivers') {
+        rows.forEach(r => {
+          if (!r.driver_type && r.compliance?.driver_type) r.driver_type = r.compliance.driver_type;
+          if (!r.driver_type) r.driver_type = 'own';
+          if (!r.vehicle_registration && r.compliance?.vehicle_registration) r.vehicle_registration = r.compliance.vehicle_registration;
+          if (!r.vehicle_group && r.compliance?.vehicle_group) r.vehicle_group = r.compliance.vehicle_group;
+        });
+      }
       return { ok: true, items: rows, count: rows.length };
     }
     const organizationScopedTables = new Set(['customers', 'drivers', 'vehicles', 'manufacturers', 'bookings', 'duties', 'invoices', 'branches', 'suppliers', 'price_books', 'documents', 'invitations', 'employees', 'travel_policies', 'booking_approvals', 'notifications', 'support_tickets', 'privacy_requests']);

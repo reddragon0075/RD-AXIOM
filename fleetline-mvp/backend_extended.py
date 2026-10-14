@@ -694,7 +694,7 @@ def _soft_update(conn, user, route, method, payload, ip):
     org = _org(user); _staff(user)
     config = {
         "customers": ("domain_customers", ("name", "email", "phone", "gstin", "status")),
-        "drivers": ("domain_drivers", ("full_name", "phone", "license_number", "city", "status")),
+        "drivers": ("domain_drivers", ("full_name", "phone", "license_number", "city", "status", "driver_type", "vehicle_registration", "vehicle_group")),
         "manufacturers": ("domain_manufacturers", ("name", "code", "country", "status")),
         "vehicles": ("domain_vehicles", (
             "registration_number", "vehicle_type", "vehicle_group", "make_model", "manufacturer", "model", "year", "city", "status",
@@ -718,6 +718,9 @@ def _soft_update(conn, user, route, method, payload, ip):
                 value = int(payload[key]) if payload[key] not in (None, "") else None
                 if value is not None and value < 0:
                     raise DomainError(400, f"{key} cannot be negative", "validation_error")
+            elif parts[2] == "drivers" and key == "driver_type":
+                raw_type = str(payload[key] or "own").lower().strip()
+                value = raw_type if raw_type in ("own", "supplier", "dco") else "own"
             else:
                 value = str(payload[key] or "").strip()
             updates.append(f"{key} = ?"); values.append(value)

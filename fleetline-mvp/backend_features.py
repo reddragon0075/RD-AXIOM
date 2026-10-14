@@ -528,12 +528,57 @@ def _booking_action(conn, user, booking_id, action, payload, ip):
     booking = _assert_owned(conn, "domain_bookings", booking_id, org); now = now_iso()
     transitions = {"approve": "approved", "confirm": "confirmed", "reject": "disputed", "cancel": "cancelled"}
     if action == "assign":
+        driver_id = payload.get("driver_id") or None
+        vehicle_id = payload.get("vehicle_id") or None
+        supplier_id = payload.get("supplier_id") or None
         existing = conn.execute("SELECT id FROM domain_duties WHERE booking_id = ? AND organization_id = ? ORDER BY created_at DESC LIMIT 1", (booking_id, org)).fetchone()
+        duty_status = "assigned" if (driver_id or vehicle_id or supplier_id) else "draft"
+        duty_payload = {"driver_id": driver_id, "vehicle_id": vehicle_id, "supplier_id": supplier_id, "status": duty_status}
+        if payload.get("reporting_at"):
+            duty_payload["reporting_at"] = payload["reporting_at"]
         if existing:
             from backend_domain import _update_duty
-            result = _update_duty(conn, user, existing["id"], {"driver_id": payload.get("driver_id"), "vehicle_id": payload.get("vehicle_id"), "status": "assigned"}, ip)
+            result = _update_duty(conn, user, existing["id"], duty_payload, ip)
         else:
-            result = _create_duty(conn, user, {"booking_id": booking_id, "driver_id": payload.get("driver_id"), "vehicle_id": payload.get("vehicle_id"), "reporting_at": payload.get("reporting_at")}, ip)
+            duty_payload["booking_id"] = booking_id
+            result = _create_duty(conn, user, duty_payload, ip)
+        booking_status = "assigned" if (driver_id and vehicle_id) else "confirmed" if (driver_id or vehicle_id or supplier_id) else "requested"
+        booking_cols = {row["name"] for row in conn.execute("PRAGMA table_info(domain_bookings)").fetchall()}
+        booking_updates = ["status = ?", "updated_at = ?"]
+        booking_params = [booking_status, now]
+        if "driver_id" in booking_cols:
+            booking_updates.append("driver_id = ?")
+            booking_params.append(driver_id)
+        if "vehicle_id" in booking_cols:
+            booking_updates.append("vehicle_id = ?")
+            booking_params.append(vehicle_id)
+        if "supplier_id" in booking_cols:
+            booking_updates.append("supplier_id = ?")
+            booking_params.append(supplier_id)
+        if "driver_name" in booking_cols:
+            d_name = None
+            if driver_id:
+                d_row = conn.execute("SELECT full_name FROM domain_drivers WHERE id = ? AND organization_id = ?", (driver_id, org)).fetchone()
+                d_name = d_row["full_name"] if d_row else None
+            booking_updates.append("driver_name = ?")
+            booking_params.append(d_name)
+        if "vehicle_number" in booking_cols:
+            v_num = None
+            if vehicle_id:
+                v_row = conn.execute("SELECT registration_number FROM domain_vehicles WHERE id = ? AND organization_id = ?", (vehicle_id, org)).fetchone()
+                v_num = v_row["registration_number"] if v_row else None
+            booking_updates.append("vehicle_number = ?")
+            booking_params.append(v_num)
+        if "supplier_name" in booking_cols:
+            s_name = None
+            if supplier_id:
+                s_row = conn.execute("SELECT name FROM domain_suppliers WHERE id = ? AND organization_id = ?", (supplier_id, org)).fetchone()
+                s_name = s_row["name"] if s_row else None
+            booking_updates.append("supplier_name = ?")
+            booking_params.append(s_name)
+        booking_params.append(booking_id)
+        booking_params.append(org)
+        conn.execute(f"UPDATE domain_bookings SET {', '.join(booking_updates)} WHERE id = ? AND organization_id = ?", booking_params)
         return {"ok": True, "booking": _serialize(conn.execute("SELECT * FROM domain_bookings WHERE id = ?", (booking_id,)).fetchone()), "duty": result["item"]}
     if action not in transitions: raise DomainError(404, "Booking action not found", "not_found")
     next_status = transitions[action]
