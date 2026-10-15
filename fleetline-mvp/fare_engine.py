@@ -147,7 +147,7 @@ class TelemetryData:
 
         # Days
         days = _to_int(data.get("calendar_days") or data.get("total_days") or 1, "calendar_days", default=1, minimum=1, maximum=365)
-        night_blocks = _to_int(data.get("night_hours_count") or data.get("night_allowance_count") or 0, "night_hours_count", default=0, maximum=100)
+        night_blocks = _to_int(data.get("night_hours_count") or data.get("night_allowance_count") or data.get("night_count") or 0, "night_hours_count", default=0, maximum=100)
 
         tolls = _to_int(data.get("toll_paise") or data.get("tolls"), "toll_paise")
         parking = _to_int(data.get("parking_paise") or data.get("parking"), "parking_paise")
@@ -316,7 +316,7 @@ def calculate_outstation_fare(
     Total Chargeable KM = max(actual_km, calendar_days * min_km_per_day)
     Add Driver Day Batta per day + Driver Night Allowance.
     """
-    min_daily_km = _to_float(rule.get("min_km_per_day") or 250.0, "min_km_per_day")
+    min_daily_km = _to_float(rule.get("min_km_per_day") or rule.get("daily_min_km") or 250.0, "min_km_per_day")
     rate_per_km = _to_int(rule.get("rate_per_km_paise") or rule.get("extra_km_paise") or 1500, "rate_per_km_paise")
     driver_day_batta = _to_int(rule.get("driver_day_allowance_paise") or rule.get("driver_batta_paise") or 40000, "driver_day_allowance_paise")
     driver_night_allowance = _to_int(rule.get("driver_night_allowance_paise") or rule.get("night_charge_paise") or 30000, "driver_night_allowance_paise")

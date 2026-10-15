@@ -494,7 +494,13 @@ def handle_fare(conn, user: dict, method: str, path: str, payload: dict, ip: str
         parking_paise = int(payload.get("parking_paise") or 0)
 
         # Vehicle groups
-        req_vg = str(booking.get("duty_type") if booking.get("duty_type") in ("SEDAN", "SUV") else (payload.get("requested_vehicle_group") or "SEDAN")).upper()
+        req_vg = str(
+            payload.get("requested_vehicle_group")
+            or payload.get("vehicle_group")
+            or (booking.get("duty_type") if str(booking.get("duty_type")).upper() in ("SEDAN", "SUV", "HATCHBACK", "TEMPO", "LUXURY") else None)
+            or booking.get("vehicle_group_id")
+            or "SEDAN"
+        ).upper()
         if vehicle and vehicle.get("vehicle_group"):
             allot_vg = str(vehicle["vehicle_group"]).upper()
             if "SUV" in allot_vg:
@@ -508,7 +514,7 @@ def handle_fare(conn, user: dict, method: str, path: str, payload: dict, ip: str
         else:
             allot_vg = str(payload.get("allotted_vehicle_group") or req_vg).upper()
 
-        duty_mode = str(booking.get("duty_type") or payload.get("fare_mode") or "local").lower()
+        duty_mode = str(payload.get("fare_mode") or booking.get("duty_type") or "local").lower()
         if duty_mode not in ("local", "outstation", "airport", "point_to_point"):
             duty_mode = "local"
 
@@ -520,7 +526,8 @@ def handle_fare(conn, user: dict, method: str, path: str, payload: dict, ip: str
             "toll_paise": toll_paise,
             "parking_paise": parking_paise,
             "calendar_days": int(payload.get("calendar_days") or 1),
-            "night_count": int(payload.get("night_count") or 0),
+            "night_count": int(payload.get("night_count") or payload.get("night_hours_count") or 0),
+            "night_hours_count": int(payload.get("night_count") or payload.get("night_hours_count") or 0),
             "waiting_minutes": int(payload.get("waiting_minutes") or 0),
         }
 
