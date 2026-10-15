@@ -1608,6 +1608,296 @@
     const functionName = route.startsWith('/api/feedback/v1/') ? 'feedback-public' : route.startsWith('/api/location-shares/') ? 'gap-completion-orchestrator' : 'enterprise-orchestrator';
     return edgeFunction(functionName, { path: route, method: options.method || 'GET', query: Object.fromEntries(url.searchParams.entries()), body }, config.anonKey);
   }
+
+  async function supabaseFareRequest(path, options = {}) {
+    if (!path.startsWith('/api/fare')) return undefined;
+    const method = options.method || 'GET';
+    const url = new URL(path, window.location.origin);
+    const route = url.pathname;
+    let payload = {};
+    try { payload = JSON.parse(options.body || '{}'); } catch (_) { payload = {}; }
+
+    const PRESETS = {
+      vehicle_groups: [
+        { id: "HATCHBACK", name: "Hatchback (WagonR, Swift)", default_fuel: "petrol" },
+        { id: "SEDAN", name: "Standard Sedan (Dzire, Etios)", default_fuel: "diesel" },
+        { id: "EXECUTIVE_SEDAN", name: "Executive Sedan (Ciaz, City)", default_fuel: "petrol" },
+        { id: "SUV", name: "SUV (Innova Crysta, Ertiga)", default_fuel: "diesel" },
+        { id: "LUXURY", name: "Luxury (Camry, Mercedes E-Class)", default_fuel: "petrol" },
+        { id: "TEMPO", name: "Tempo Traveller (12/17 Seater)", default_fuel: "diesel" }
+      ],
+      sample_rules: [
+        { id: "r_sedan_4x40", fare_mode: "local", vehicle_group_id: "SEDAN", package_name: "4Hr 40Km", package_minutes: 240, included_km: 40, base_paise: 140000, extra_km_paise: 1800, extra_hour_paise: 20000, grace_period_minutes: 15, slab_switch_mode: "UPGRADE_ONLY", tax_rate_bps: 500, is_active: 1 },
+        { id: "r_sedan_8x80", fare_mode: "local", vehicle_group_id: "SEDAN", package_name: "8Hr 80Km", package_minutes: 480, included_km: 80, base_paise: 240000, extra_km_paise: 1800, extra_hour_paise: 20000, grace_period_minutes: 15, slab_switch_mode: "UPGRADE_ONLY", tax_rate_bps: 500, is_active: 1 },
+        { id: "r_sedan_12x120", fare_mode: "local", vehicle_group_id: "SEDAN", package_name: "12Hr 120Km", package_minutes: 720, included_km: 120, base_paise: 340000, extra_km_paise: 1800, extra_hour_paise: 20000, grace_period_minutes: 15, slab_switch_mode: "UPGRADE_ONLY", tax_rate_bps: 500, is_active: 1 },
+        { id: "r_suv_4x40", fare_mode: "local", vehicle_group_id: "SUV", package_name: "4Hr 40Km", package_minutes: 240, included_km: 40, base_paise: 220000, extra_km_paise: 2400, extra_hour_paise: 30000, grace_period_minutes: 15, slab_switch_mode: "UPGRADE_ONLY", tax_rate_bps: 500, is_active: 1 },
+        { id: "r_suv_8x80", fare_mode: "local", vehicle_group_id: "SUV", package_name: "8Hr 80Km", package_minutes: 480, included_km: 80, base_paise: 360000, extra_km_paise: 2400, extra_hour_paise: 30000, grace_period_minutes: 15, slab_switch_mode: "UPGRADE_ONLY", tax_rate_bps: 500, is_active: 1 },
+        { id: "r_sedan_out", fare_mode: "outstation", vehicle_group_id: "SEDAN", package_name: "Outstation Roundtrip (250km/day min)", daily_min_km: 250, extra_km_paise: 1500, driver_allowance_day_paise: 40000, driver_allowance_night_paise: 30000, tax_rate_bps: 500, is_active: 1 },
+        { id: "r_suv_out", fare_mode: "outstation", vehicle_group_id: "SUV", package_name: "Outstation Roundtrip (300km/day min)", daily_min_km: 300, extra_km_paise: 2200, driver_allowance_day_paise: 50000, driver_allowance_night_paise: 40000, tax_rate_bps: 500, is_active: 1 },
+        { id: "r_sedan_air", fare_mode: "airport", vehicle_group_id: "SEDAN", package_name: "Airport Fixed Transfer", base_paise: 140000, free_waiting_minutes: 45, waiting_paise_per_hour: 20000, tax_rate_bps: 500, is_active: 1 }
+      ]
+    };
+
+    function getCustomRules() {
+      try { return JSON.parse(localStorage.getItem('axiom_custom_tariff_rules') || '[]'); } catch (_) { return []; }
+    }
+    function saveCustomRules(rules) {
+      try { localStorage.setItem('axiom_custom_tariff_rules', JSON.stringify(rules)); } catch (_) {}
+    }
+    function getAllRules() {
+      return [...PRESETS.sample_rules, ...getCustomRules()];
+    }
+
+    if (route === '/api/fare/presets' && method === 'GET') {
+      return { ok: true, engine_version: '2026.10.1', ...PRESETS };
+    }
+    if (route === '/api/fare/rules' && method === 'GET') {
+      return { ok: true, items: getAllRules() };
+    }
+    if (route === '/api/fare/rules' && method === 'POST') {
+      const custom = getCustomRules();
+      const newRule = { id: payload.id || `rule_${Date.now()}`, is_active: 1, ...payload };
+      const idx = custom.findIndex(r => r.id === newRule.id);
+      if (idx >= 0) custom[idx] = newRule;
+      else custom.push(newRule);
+      saveCustomRules(custom);
+      return { ok: true, item: newRule, audit_reference: `AUDIT-FARE-${Date.now()}` };
+    }
+    if (route.startsWith('/api/fare/rules/') && method === 'DELETE') {
+      const id = route.split('/').pop();
+      const custom = getCustomRules().filter(r => r.id !== id);
+      saveCustomRules(custom);
+      return { ok: true };
+    }
+
+    function resolveProfile(allRules, side, fareMode, reqVg, allotVg, entityId, cityId) {
+      const billedVg = (side === 'RECEIVABLE') ? reqVg : allotVg;
+      const expectedType = side === 'RECEIVABLE' ? 'CLIENT' : 'SUPPLIER';
+      const mode = (fareMode || 'local').toLowerCase();
+
+      const matched = allRules.filter(r => {
+        if (!r.is_active) return false;
+        const eType = (r.entity_type || 'DEFAULT').toUpperCase();
+        if (eType !== expectedType && eType !== 'DEFAULT') return false;
+        if ((r.fare_mode || r.duty_type || 'local').toLowerCase() !== mode) return false;
+        return (r.vehicle_group_id || r.vehicle_group || '').toUpperCase() === billedVg.toUpperCase();
+      });
+
+      let tier1 = matched.filter(r => entityId && r.entity_id === entityId && cityId && r.city_id === cityId);
+      let tier2 = matched.filter(r => entityId && r.entity_id === entityId && !r.city_id);
+      let tier3 = matched.filter(r => !r.entity_id && cityId && r.city_id === cityId);
+      let tier4 = matched.filter(r => !r.entity_id && !r.city_id);
+
+      const winning = tier1.length ? tier1 : (tier2.length ? tier2 : (tier3.length ? tier3 : (tier4.length ? tier4 : matched)));
+      const base = winning[0] || PRESETS.sample_rules[0];
+      return { ...base, candidate_slabs: winning };
+    }
+
+    if (route === '/api/fare/resolve' && method === 'POST') {
+      const profile = resolveProfile(
+        getAllRules(),
+        payload.ledger_side || 'RECEIVABLE',
+        payload.fare_mode || 'local',
+        payload.requested_vehicle_group || 'SEDAN',
+        payload.allotted_vehicle_group || payload.requested_vehicle_group || 'SEDAN',
+        payload.entity_id,
+        payload.city_id
+      );
+      return { ok: true, resolved_profile: profile };
+    }
+
+    function calcSingleFare(telemetry, rule, candidates) {
+      const mode = (rule.fare_mode || 'local').toLowerCase();
+      let lines = [];
+      let transportSubtotal = 0;
+      let optInfo = null;
+
+      if (mode === 'local') {
+        const slabs = (candidates && candidates.length) ? candidates : [rule];
+        const evaluated = slabs.map(c => {
+          const basePaise = Number(c.base_paise) || 0;
+          const pkgKm = Number(c.included_km) || 0;
+          const pkgMins = Number(c.package_minutes) || 0;
+          const extraKmRate = Number(c.extra_km_paise) || 0;
+          const extraHrRate = Number(c.extra_hour_paise) || 0;
+          const grace = Number(c.grace_period_minutes) || 0;
+
+          const repKm = Number(telemetry.reporting_km) || 0;
+          const relKm = Number(telemetry.releasing_km) || repKm;
+          const actualKm = Math.max(0, relKm - repKm);
+          const durMins = Number(telemetry.duration_minutes) || 0;
+
+          const extraKm = Math.max(0, actualKm - pkgKm);
+          const extraKmPaise = Math.round(extraKm * extraKmRate);
+
+          const overMins = durMins - pkgMins;
+          let billableMins = 0;
+          if (overMins > grace) billableMins = overMins;
+          const extraTimePaise = billableMins > 0 ? Math.round((billableMins * extraHrRate) / 60) : 0;
+
+          return {
+            rule: c,
+            name: c.package_name,
+            pkgMins,
+            pkgKm,
+            basePaise,
+            extraKm,
+            extraKmPaise,
+            billableMins,
+            extraTimePaise,
+            transportSubtotal: basePaise + extraKmPaise + extraTimePaise
+          };
+        });
+
+        let winning = evaluated[0];
+        const booked = evaluated[0];
+        let wasSwitched = false;
+        let savings = 0;
+
+        for (const cand of evaluated) {
+          if (cand.transportSubtotal < winning.transportSubtotal) {
+            winning = cand;
+            wasSwitched = true;
+          }
+        }
+        if (wasSwitched) savings = booked.transportSubtotal - winning.transportSubtotal;
+
+        lines.push({ code: 'BASE_PACKAGE', label: `Package Base (${winning.name})`, quantity: 1, unit_paise: winning.basePaise, amount_paise: winning.basePaise });
+        if (winning.extraKm > 0) lines.push({ code: 'EXTRA_KM', label: `Extra Distance (${winning.extraKm.toFixed(1)} KM)`, quantity: Math.round(winning.extraKm), unit_paise: winning.extraKmPaise / winning.extraKm, amount_paise: winning.extraKmPaise });
+        if (winning.extraTimePaise > 0) lines.push({ code: 'EXTRA_TIME', label: `Extra Time (${winning.billableMins} mins)`, quantity: winning.billableMins, unit_paise: winning.extraTimePaise, amount_paise: winning.extraTimePaise });
+
+        transportSubtotal = winning.transportSubtotal;
+        optInfo = { was_switched: wasSwitched, selected_rule_id: winning.rule.id || winning.name, savings_paise: savings };
+
+      } else if (mode === 'airport') {
+        const flatPaise = Number(rule.base_paise || rule.flat_rate_paise) || 140000;
+        const freeWait = Number(rule.free_waiting_minutes) || 45;
+        const waitRateHr = Number(rule.waiting_paise_per_hour) || 20000;
+        const totalWait = Number(telemetry.waiting_minutes) || 0;
+        const billableWait = Math.max(0, totalWait - freeWait);
+        const waitPaise = billableWait > 0 ? Math.round((billableWait * waitRateHr) / 60) : 0;
+
+        lines.push({ code: 'AIRPORT_FLAT', label: 'Airport Transfer Flat Base', quantity: 1, unit_paise: flatPaise, amount_paise: flatPaise });
+        if (waitPaise > 0) lines.push({ code: 'WAITING_CHARGE', label: `Excess Waiting (${billableWait} mins)`, quantity: billableWait, unit_paise: waitPaise, amount_paise: waitPaise });
+        transportSubtotal = flatPaise + waitPaise;
+
+      } else if (mode === 'outstation') {
+        const minDailyKm = Number(rule.daily_min_km) || 250;
+        const rateKm = Number(rule.extra_km_paise || rule.rate_per_km_paise) || 1500;
+        const batta = Number(rule.driver_allowance_day_paise) || 40000;
+        const nightRate = Number(rule.driver_allowance_night_paise) || 30000;
+
+        const repKm = Number(telemetry.reporting_km) || 0;
+        const relKm = Number(telemetry.releasing_km) || repKm;
+        const actualKm = Math.max(0, relKm - repKm);
+        const days = Math.max(1, Number(telemetry.calendar_days) || 1);
+        const chargeableKm = Math.max(actualKm, days * minDailyKm);
+        const kmCharge = Math.round(chargeableKm * rateKm);
+        const battaTotal = days * batta;
+        const nightTotal = (Number(telemetry.night_count) || 0) * nightRate;
+
+        lines.push({ code: 'OUTSTATION_KM', label: `Outstation Distance (${chargeableKm.toFixed(1)} KM)`, quantity: Math.round(chargeableKm), unit_paise: rateKm, amount_paise: kmCharge });
+        if (battaTotal > 0) lines.push({ code: 'DRIVER_BATTA', label: `Driver Day Allowance (${days} days)`, quantity: days, unit_paise: batta, amount_paise: battaTotal });
+        if (nightTotal > 0) lines.push({ code: 'NIGHT_ALLOWANCE', label: 'Driver Night Allowance', quantity: 1, unit_paise: nightTotal, amount_paise: nightTotal });
+        transportSubtotal = kmCharge + battaTotal + nightTotal;
+      }
+
+      let reimbursements = 0;
+      const toll = Number(telemetry.toll_paise) || 0;
+      const parking = Number(telemetry.parking_paise) || 0;
+      if (toll > 0) { lines.push({ code: 'TOLL', label: 'Toll Charges', quantity: 1, unit_paise: toll, amount_paise: toll }); reimbursements += toll; }
+      if (parking > 0) { lines.push({ code: 'PARKING', label: 'Parking Fees', quantity: 1, unit_paise: parking, amount_paise: parking }); reimbursements += parking; }
+
+      const taxableBase = transportSubtotal;
+      const gstRateBps = Number(rule.tax_rate_bps || 500);
+      const taxPaise = Math.round((taxableBase * gstRateBps) / 10000);
+      const totalFare = taxableBase + reimbursements + taxPaise;
+
+      const taxLines = [
+        { code: 'CGST', label: `Central GST (CGST @ ${(gstRateBps/200).toFixed(1)}%)`, tax_amount_paise: Math.round(taxPaise / 2) },
+        { code: 'SGST', label: `State GST (SGST @ ${(gstRateBps/200).toFixed(1)}%)`, tax_amount_paise: taxPaise - Math.round(taxPaise / 2) }
+      ];
+
+      return {
+        lines,
+        tax_lines: taxLines,
+        transport_subtotal_paise: transportSubtotal,
+        reimbursements_paise: reimbursements,
+        taxable_base_paise: taxableBase,
+        taxable_subtotal_paise: transportSubtotal + reimbursements,
+        tax_paise: taxPaise,
+        total_fare_paise: totalFare,
+        explanation: { slab_optimization: optInfo }
+      };
+    }
+
+    if (route === '/api/fare/calculate' && method === 'POST') {
+      const res = calcSingleFare(payload.telemetry || {}, payload.profile || {}, payload.candidate_slabs || []);
+      return { ok: true, ...res };
+    }
+
+    if (route === '/api/fare/settlement' && method === 'POST') {
+      const rec = calcSingleFare(payload.telemetry || {}, payload.receivable_profile || {}, (payload.receivable_profile || {}).candidate_slabs || []);
+      const pay = calcSingleFare(payload.telemetry || {}, payload.payable_profile || {}, (payload.payable_profile || {}).candidate_slabs || []);
+
+      const netRevenue = rec.taxable_subtotal_paise;
+      const netCost = pay.taxable_subtotal_paise;
+      const gp = netRevenue - netCost;
+      const margin = netRevenue > 0 ? Math.round((gp / netRevenue) * 10000) / 100 : 0;
+
+      return {
+        ok: true,
+        settlement: {
+          receivable: rec,
+          payable: pay,
+          settlement_pnl: {
+            net_revenue_paise: netRevenue,
+            net_cost_paise: netCost,
+            gross_profit_paise: gp,
+            gross_margin_percentage: margin,
+            is_profitable: gp >= 0
+          }
+        }
+      };
+    }
+
+    if (/^\/api\/fare\/duties\/[^/]+\/recalculate$/.test(route) && method === 'POST') {
+      const dutyId = route.split('/')[4];
+      const rules = getAllRules();
+      const recProfile = resolveProfile(rules, 'RECEIVABLE', payload.fare_mode || 'local', payload.requested_vehicle_group || 'SEDAN', payload.allotted_vehicle_group || 'SEDAN', null, payload.city_id);
+      const payProfile = resolveProfile(rules, 'PAYABLE', payload.fare_mode || 'local', payload.requested_vehicle_group || 'SEDAN', payload.allotted_vehicle_group || 'SEDAN', null, payload.city_id);
+
+      const rec = calcSingleFare(payload, recProfile, recProfile.candidate_slabs);
+      const pay = calcSingleFare(payload, payProfile, payProfile.candidate_slabs);
+      const netRev = rec.taxable_subtotal_paise;
+      const netCost = pay.taxable_subtotal_paise;
+      const gp = netRev - netCost;
+      const margin = netRev > 0 ? Math.round((gp / netRev) * 10000) / 100 : 0;
+
+      const snap = {
+        fare_engine_managed: true,
+        subtotal_paise: rec.taxable_base_paise,
+        tax_paise: rec.tax_paise,
+        total_paise: rec.total_fare_paise,
+        total_fare_paise: rec.total_fare_paise,
+        settlement: {
+          receivable: rec,
+          payable: pay,
+          settlement_pnl: {
+            net_revenue_paise: netRev,
+            net_cost_paise: netCost,
+            gross_profit_paise: gp,
+            gross_margin_percentage: margin,
+            is_profitable: gp >= 0
+          }
+        }
+      };
+      return { ok: true, item: { id: dutyId, calculation_snapshot: snap }, audit_reference: `AUDIT-RECALC-${Date.now()}` };
+    }
+
+    return undefined;
+  }
+
   async function request(path, options = {}) {
     if (!enabled) throw new Error('Supabase is not configured.');
     const method = options.method || 'GET';
@@ -1621,6 +1911,8 @@
     if (path === '/api/auth/me' && method === 'GET') return currentUser();
     if (path === '/api/auth/me' && method === 'PATCH') return updateMe(payload);
     if (path === '/api/auth/logout' && method === 'POST') return signOut();
+    const fareResult = await supabaseFareRequest(path, options);
+    if (fareResult !== undefined) return fareResult;
     const billIntelligenceResult = await supabaseBillIntelligenceRequest(path, options);
     if (billIntelligenceResult !== undefined) return billIntelligenceResult;
     const financeReportingResult = await supabaseFinanceReportingRequest(path, options);

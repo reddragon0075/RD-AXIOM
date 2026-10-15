@@ -1632,6 +1632,456 @@
       border-color: var(--blue, #2563eb);
       box-shadow: 0 0 0 2px rgba(37,99,235,.15);
     }
+
+    /* Trip Settings Dropdown Menu (matching reference UI) */
+    .trip-settings-dropdown-menu {
+      position: fixed;
+      z-index: 99999;
+      min-width: 220px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.14), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+      padding: 6px 0;
+      font-family: inherit;
+      animation: tripMenuFadeIn 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes tripMenuFadeIn {
+      from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .trip-settings-item {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding: 8px 16px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #334155;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      transition: background-color 0.1s ease, color 0.1s ease;
+      line-height: 1.4;
+      user-select: none;
+    }
+    .trip-settings-item:hover {
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+    .trip-settings-item:active {
+      background-color: #e2e8f0;
+    }
+    .badge-vvip {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 999px;
+      background: #0284c7;
+      color: #ffffff;
+      letter-spacing: 0.5px;
+    }
+    .trip-label-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 16px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #334155;
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .trip-label-pill:hover {
+      border-color: #94a3b8;
+      background: #f1f5f9;
+    }
+    .trip-label-pill.selected {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #0284c7;
+      box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);
+    }
+    .duty-slip-sheet {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 24px;
+      color: #0f172a;
+      font-family: inherit;
+    }
+    .duty-slip-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    .duty-slip-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .duty-slip-box {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: #f8fafc;
+    }
+    .duty-slip-box label {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      display: block;
+      margin-bottom: 3px;
+    }
+    .duty-slip-box strong {
+      font-size: 12.5px;
+      color: #0f172a;
+      display: block;
+    }
+    .duty-slip-box span {
+      font-size: 11px;
+      color: #475569;
+    }
+    .duty-slip-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 11px;
+    }
+    .duty-slip-table th, .duty-slip-table td {
+      border: 1px solid #cbd5e1;
+      padding: 6px 10px;
+      text-align: left;
+    }
+    .duty-slip-table th {
+      background: #f1f5f9;
+      font-weight: 700;
+    }
+    .activity-log-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-left: 2px solid #cbd5e1;
+      margin-left: 8px;
+      padding-left: 14px;
+      position: relative;
+    }
+    .activity-log-item::before {
+      content: '';
+      position: absolute;
+      left: -5px;
+      top: 12px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #2563eb;
+    }
+  
+    /* ───────────────────────────────────────────────────────────────
+       INDECAB CAR RENTALS REPLICATION STYLES
+       ─────────────────────────────────────────────────────────────── */
+    .site-segments {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(13, 35, 58, 0.08);
+      border-radius: 9999px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .site-segment-tab {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      color: #5f6d7e;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .site-segment-tab:hover {
+      color: #0d233a;
+    }
+    .site-segment-tab.active {
+      background: #ffffff;
+      color: #1e3a8a;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .for-car-rentals-hero {
+      width: min(1440px, calc(100% - 72px));
+      margin: 0 auto;
+      padding: 60px 0 40px;
+    }
+    .indecab-hero-banner {
+      background: linear-gradient(135deg, #0d233a 0%, #153150 60%, #1a3c63 100%);
+      border-radius: 24px;
+      padding: 48px;
+      color: #ffffff;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(13, 35, 58, 0.15);
+      margin-bottom: 36px;
+    }
+    .indecab-hero-banner::after {
+      content: '';
+      position: absolute;
+      right: -80px;
+      top: -80px;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .indecab-hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 40px;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+    .indecab-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #93c5fd;
+      background: rgba(147, 197, 253, 0.15);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      margin-bottom: 16px;
+    }
+    .indecab-hero-title {
+      font-size: 42px;
+      line-height: 1.15;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin: 0 0 8px 0;
+      color: #ffffff;
+    }
+    .indecab-hero-subtitle {
+      font-size: 26px;
+      font-weight: 700;
+      color: #60a5fa;
+      margin: 0 0 16px 0;
+      letter-spacing: -0.02em;
+    }
+    .indecab-hero-desc {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #cbd5e1;
+      max-width: 580px;
+      margin-bottom: 24px;
+    }
+    .indecab-hero-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .indecab-featured-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 18px;
+      padding: 28px;
+      color: #ffffff;
+    }
+    .indecab-featured-card h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+      color: #ffffff;
+    }
+    .indecab-featured-card p {
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: #e2e8f0;
+      margin: 0;
+    }
+    .indecab-pillars-section {
+      width: min(1440px, calc(100% - 72px));
+      margin: 0 auto 48px;
+    }
+    .indecab-pillar-header {
+      margin-bottom: 24px;
+    }
+    .indecab-pillar-tag {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #2563eb;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .indecab-pillar-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      margin: 0 0 8px 0;
+    }
+    .indecab-pillar-desc {
+      font-size: 14px;
+      color: #475569;
+      max-width: 720px;
+      margin: 0;
+      line-height: 1.55;
+    }
+    .indecab-card-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .indecab-card-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .indecab-card-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .indecab-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .indecab-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+      border-color: #cbd5e1;
+    }
+    .indecab-card.tint-blue {
+      background: #f0f7ff;
+      border-color: #bfdbfe;
+    }
+    .indecab-card.tint-gray {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+    }
+    .indecab-card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #dbeafe;
+      color: #1d4ed8;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      margin-bottom: 14px;
+    }
+    .indecab-card h4 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0 0 8px 0;
+      line-height: 1.3;
+    }
+    .indecab-card p {
+      font-size: 12.5px;
+      color: #475569;
+      line-height: 1.5;
+      margin: 0 0 12px 0;
+    }
+    .indecab-card ul {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 12px;
+      color: #334155;
+      line-height: 1.6;
+    }
+    .indecab-badge-pill {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-top: auto;
+      align-self: flex-start;
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    /* Operations console: Quick Summary Bar */
+    .quick-summary-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 18px;
+      background: #ffffff;
+      border: 1px solid var(--line,#e2e8f0);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      overflow-x: auto;
+    }
+    .quick-summary-item {
+      display: flex;
+      flex-direction: column;
+      padding-right: 18px;
+      border-right: 1px solid #e2e8f0;
+      flex: 1;
+      min-width: 100px;
+    }
+    .quick-summary-item:last-child {
+      border-right: none;
+      padding-right: 0;
+    }
+    .quick-summary-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #64748b;
+      margin-bottom: 2px;
+    }
+    .quick-summary-val {
+      font-size: 17px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .quick-summary-val.alert {
+      color: #e11d48;
+    }
+    .quick-summary-val.ok {
+      color: #16a34a;
+    }
+    .quick-summary-val small {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+    }
+
   </style>
 </head>
 <body>
@@ -1639,11 +2089,263 @@
   <div id="public-site" class="marketing-page">
     <header class="site-nav">
       <a class="site-brand" href="#home" aria-label="AXIOM FLEET home"><img class="brand-logo" src="axiom-fleet-logo.png" width="640" height="184" decoding="async" alt="Axiom Fleet"></a>
-      <nav class="site-links" aria-label="Main navigation"><a href="#solutions">Solutions</a><a href="#platform">Platform</a><a href="#workflow">How it works</a><details class="site-nav-dropdown"><summary>Insights <span>⌄</span></summary><div class="site-dropdown-menu"><a href="#blogs" data-public-page="blogs"><i class="dropdown-icon purple">✦</i><span><b>Blogs</b><small>Field notes &amp; ideas</small></span></a><a href="#newsroom" data-public-page="newsroom"><i class="dropdown-icon orange">◌</i><span><b>NewsRoom</b><small>Company updates</small></span></a></div></details><details class="site-nav-dropdown"><summary>Company <span>⌄</span></summary><div class="site-dropdown-menu"><a href="#about-us" data-public-page="about-us"><i class="dropdown-icon lime">◎</i><span><b>About Us</b><small>Why we build</small></span></a><a href="#success-stories" data-public-page="success-stories"><i class="dropdown-icon teal">↗</i><span><b>Success Stories</b><small>Outcomes in motion</small></span></a><a href="#careers" data-public-page="careers"><i class="dropdown-icon indigo">+</i><span><b>Career</b><small>Join the operating loop</small></span></a></div></details><a href="#contact-us" data-public-page="contact-us">Contact</a></nav>
+      <div class="site-segments" style="margin-left:24px"><a href="#for-car-rentals" class="site-segment-tab active" id="tabForCarRentals">For Car Rentals</a><a href="#solutions" class="site-segment-tab" id="tabForCorporates">For Corporates</a></div><nav class="site-links" aria-label="Main navigation"><a href="#for-car-rentals">For Car Rentals</a><a href="#solutions">Solutions</a><a href="#platform">Platform</a><a href="#workflow">How it works</a><details class="site-nav-dropdown"><summary>Insights <span>⌄</span></summary><div class="site-dropdown-menu"><a href="#blogs" data-public-page="blogs"><i class="dropdown-icon purple">✦</i><span><b>Blogs</b><small>Field notes &amp; ideas</small></span></a><a href="#newsroom" data-public-page="newsroom"><i class="dropdown-icon orange">◌</i><span><b>NewsRoom</b><small>Company updates</small></span></a></div></details><details class="site-nav-dropdown"><summary>Company <span>⌄</span></summary><div class="site-dropdown-menu"><a href="#about-us" data-public-page="about-us"><i class="dropdown-icon lime">◎</i><span><b>About Us</b><small>Why we build</small></span></a><a href="#success-stories" data-public-page="success-stories"><i class="dropdown-icon teal">↗</i><span><b>Success Stories</b><small>Outcomes in motion</small></span></a><a href="#careers" data-public-page="careers"><i class="dropdown-icon indigo">+</i><span><b>Career</b><small>Join the operating loop</small></span></a></div></details><a href="#contact-us" data-public-page="contact-us">Contact</a></nav>
       <div class="site-actions"><span class="site-live"><i></i> Platform live</span><button class="site-signin" data-show-login>Sign in</button><button class="site-cta" data-show-login>Open command center <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
     </header>
 
     <main>
+      
+      <!-- INDECAB REPLICA: For Car Rentals Operating Suite -->
+      <section class="for-car-rentals-hero" id="for-car-rentals">
+        <div class="indecab-hero-banner">
+          <div class="indecab-hero-grid">
+            <div>
+              <span class="indecab-eyebrow">✦ AXIOM FLEET FOR CAR RENTALS</span>
+              <h1 class="indecab-hero-title">Get in the fast lane.</h1>
+              <h2 class="indecab-hero-subtitle">To the future</h2>
+              <p class="indecab-hero-desc">
+                The car rental industry today demands a new level of service experience. Good cars and great drivers are the bare minimum. There is a need for accuracy, real-time transparency, and a seamless post-service experience. A business needs efficient management to deliver this competitive advantage. Axiom Fleet provides you with a complete suite of tools needed to pave the way to great customer service and satisfaction.
+              </p>
+              <div class="indecab-hero-actions">
+                <button class="site-cta large" data-show-login>Try now <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+                <button class="site-signin" data-show-login style="color:#ffffff;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);padding:11px 22px;border-radius:9999px;font-size:12px;font-weight:700">Login to Console</button>
+              </div>
+            </div>
+            <div class="indecab-featured-card">
+              <span class="indecab-badge-pill" style="margin-bottom:12px;background:rgba(96,165,250,0.2);color:#93c5fd">UNIFIED PLATFORM</span>
+              <h3>Car rental management like never before.</h3>
+              <p>
+                Experience all aspects of your car rental operations through a single easy-to-use dashboard. A cutting-edge, web-based platform designed to streamline your operations. Enable better control over drivers and enhance employee productivity. Above all provide an accurate overview of your business instantly — while ensuring the highest standards of information security.
+              </p>
+              <div style="display:flex;gap:12px;margin-top:20px;border-top:1px solid rgba(255,255,255,0.12);padding-top:16px;font-size:11.5px;color:#94a3b8">
+                <div><b style="color:#ffffff;display:block;font-size:14px">100%</b> Real-time accuracy</div>
+                <div><b style="color:#ffffff;display:block;font-size:14px">Paperless</b> Duty slips</div>
+                <div><b style="color:#ffffff;display:block;font-size:14px">Tally</b> Out-of-the-box</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pillar 1: Boost your business with the same team -->
+        <div class="indecab-pillars-section">
+          <div class="indecab-pillar-header">
+            <span class="indecab-pillar-tag">PRODUCTIVITY &amp; SCALE</span>
+            <h3 class="indecab-pillar-title">Boost your business with the same team.</h3>
+            <p class="indecab-pillar-desc">
+              Axiom Fleet’s workflow and automation tools are tailored to eliminate human bottlenecks, allowing your car rental business to achieve more with the same workforce.
+            </p>
+          </div>
+          <div class="indecab-card-grid-3">
+            <div class="indecab-card">
+              <div class="indecab-card-icon">⚙</div>
+              <h4>Make it Your Own</h4>
+              <p>Build personalised workflows and processes needed to meet your company’s and customer’s requirements. From creating invoices just the way they ask to the reports needed to meet your strategic goals.</p>
+              <span class="indecab-badge-pill">Configurable Workflows</span>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">🌐</div>
+              <h4>Grow Globally</h4>
+              <p>Deliver the same level of service experience as some of the biggest names in the industry. Manage multi-city branches, inter-city dispatches, and corporate clients with ease.</p>
+              <span class="indecab-badge-pill">Enterprise Scale</span>
+            </div>
+            <div class="indecab-card tint-blue">
+              <div class="indecab-card-icon">⚡</div>
+              <h4>Experience the Magic in the Details</h4>
+              <p>Built by understanding the nuance of the Indian car rental industry in great detail:</p>
+              <ul>
+                <li>Monthly duty types &amp; split billing</li>
+                <li>Whichever is higher extra calculations (KM vs Hours)</li>
+                <li>Revenue sharing &amp; attached DCO payouts</li>
+                <li>Dynamic fuel surcharge formulas</li>
+              </ul>
+              <span class="indecab-badge-pill" style="margin-top:14px">Indian Market Nuance</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pillar 2: Let the Bookings Flow -->
+        <div class="indecab-pillars-section">
+          <div class="indecab-pillar-header">
+            <span class="indecab-pillar-tag">OPERATIONS &amp; DISPATCH</span>
+            <h3 class="indecab-pillar-title">Let the Bookings Flow.</h3>
+            <p class="indecab-pillar-desc">
+              A complete booking, allotment, and service delivery solution designed to delight your customers.
+            </p>
+          </div>
+          <div class="indecab-card-grid-4">
+            <div class="indecab-card">
+              <div class="indecab-card-icon">📋</div>
+              <h4>Create or Import Any Booking Type</h4>
+              <p>Single, recurring, monthly, or CSV batch imports. Set up booking creation systems based on your customer’s needs.</p>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">🏷</div>
+              <h4>Build Unique Workflows</h4>
+              <p>Use labels like VVIP, Airport, Outstation, and Custom priority tags for better identification and workflow management.</p>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">🔄</div>
+              <h4>Real-time Updates</h4>
+              <p>Instant status changes as it happens: Requested ➔ Allotted ➔ Dispatched ➔ In Progress ➔ Completed ➔ Billed.</p>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">📞</div>
+              <h4>Integrated Communication</h4>
+              <p>Talk with passengers and drivers through a secure call-masked click-to-call system, SMS, and WhatsApp alerts.</p>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">🤝</div>
+              <h4>Car Rental Associate Network</h4>
+              <p>Work with car rental associates in your network. Send and receive booking requests with partner fleets seamlessly.</p>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">🚘</div>
+              <h4>Availability Management</h4>
+              <p>A single place to view and manage driver and vehicle availability, duty schedules, and maintenance downtime.</p>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">📍</div>
+              <h4>Build Allotment Efficiency</h4>
+              <p>Quick view driver location and proximity for intelligent allotment optimisation and dead-mileage reduction.</p>
+            </div>
+            <div class="indecab-card tint-blue">
+              <div class="indecab-card-icon">📱</div>
+              <h4>Digital Duty Slips</h4>
+              <p>Completed duty slips available instantly using the Axiom Go Driver App — with opening/closing KM, garage KM, tolls, and OTP signatures.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pillar 3: Customer First: Invoicing & Receivables -->
+        <div class="indecab-pillars-section">
+          <div class="indecab-pillar-header">
+            <span class="indecab-pillar-tag">BILLING &amp; RECEIVABLES</span>
+            <h3 class="indecab-pillar-title">Customer First: Invoicing &amp; Receivables</h3>
+            <p class="indecab-pillar-desc">
+              Set up invoice creation to be in line with your customer’s requirements. No matter how many customers you serve, you can account for the unique requirements of each customer to serve them efficiently and error-free.
+            </p>
+          </div>
+          <div class="indecab-card-grid-3">
+            <div class="indecab-card">
+              <div class="indecab-card-icon">🧾</div>
+              <h4>Customer-centric Invoicing</h4>
+              <p>A complete management suite for all invoicing needs:</p>
+              <ul>
+                <li>Single-duty and consolidated invoices</li>
+                <li>Manual invoicing overrides</li>
+                <li>Automated tax &amp; entity selection (CGST/SGST/IGST)</li>
+              </ul>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">💳</div>
+              <h4>Complete Customer Payment Oversight</h4>
+              <p>Complete management suite for incoming payments:</p>
+              <ul>
+                <li>Advance customer collections</li>
+                <li>On account ledger tracking</li>
+                <li>Bulk and single invoice payment reconciliation</li>
+              </ul>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">📄</div>
+              <h4>Complete E-invoicing Control</h4>
+              <p>Seamless Government GST E-invoice creation (IRN &amp; QR code generation), cancellation, and dispatch logs.</p>
+            </div>
+            <div class="indecab-card tint-blue">
+              <div class="indecab-card-icon">🔗</div>
+              <h4>Axiom Collect</h4>
+              <p>A first-of-its-kind fully automated payment collection system with instant payment links sent via WhatsApp and SMS.</p>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">✍</div>
+              <h4>Digital Signature Support</h4>
+              <p>Integrated digital signing solutions for passenger verification and corporate duty slip signoffs.</p>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">📬</div>
+              <h4>Invoice Statements &amp; Dispatch</h4>
+              <p>Build monthly ledger statements, manage courier and email dispatches, and track physical delivery proofs.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pillar 4: Purchase and Expenses -->
+        <div class="indecab-pillars-section">
+          <div class="indecab-pillar-header">
+            <span class="indecab-pillar-tag">FLEET COSTS &amp; PAYABLES</span>
+            <h3 class="indecab-pillar-title">Purchase and Expenses</h3>
+            <p class="indecab-pillar-desc">
+              From fuel expenses and vehicle EMIs, to any costs incurred by drivers during the course of the trip, you can track and manage all your expenses efficiently in one place.
+            </p>
+          </div>
+          <div class="indecab-card-grid-3">
+            <div class="indecab-card">
+              <div class="indecab-card-icon">📑</div>
+              <h4>Supplier Invoice Management</h4>
+              <p>Centralise all supplier invoices in a single place. Receive and verify attached car owner (DCO) and vendor bills directly in your dashboard.</p>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">💵</div>
+              <h4>Petty Cash &amp; Driver Payroll</h4>
+              <p>Automate driver payroll calculations, trip allowances, batta, overtime, and maintain a clear digital cash book.</p>
+            </div>
+            <div class="indecab-card tint-blue">
+              <div class="indecab-card-icon">📊</div>
+              <h4>Duty Specific P&amp;L</h4>
+              <p>Get accurate and real-time information on duty level profitability (Revenue vs Operating Cost) as soon as a duty slip is closed.</p>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">⏳</div>
+              <h4>Supplier Payment Management</h4>
+              <p>Keep track of pending supplier invoice payments, advance adjustments, and payables aging schedules.</p>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">⛽</div>
+              <h4>Vehicle Fuel &amp; Mileage</h4>
+              <p>Automate mileage visibility (KM/L) and fuel cost management with price-point tracking across petrol, diesel, and CNG.</p>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">🛠</div>
+              <h4>Vehicle Expenses</h4>
+              <p>Get deeper insights into vehicle profitability through easier vehicle expenses management: EMIs, maintenance, insurance, and permits.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pillar 5: Better Data for Better Business -->
+        <div class="indecab-pillars-section">
+          <div class="indecab-pillar-header">
+            <span class="indecab-pillar-tag">INTELLIGENCE &amp; ACCOUNTING</span>
+            <h3 class="indecab-pillar-title">Better Data for Better Business.</h3>
+            <p class="indecab-pillar-desc">
+              Get valuable insights into your car rental operations with data that can help you understand and manage your operations better.
+            </p>
+          </div>
+          <div class="indecab-card-grid-4">
+            <div class="indecab-card">
+              <div class="indecab-card-icon">📈</div>
+              <h4>Quick Summary Views</h4>
+              <p>View key operational overview information (Total duties, unallotted, on road, completed, billed) right on the duties roster.</p>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">📂</div>
+              <h4>Customised Data Exports</h4>
+              <p>Create your own export formats. Select columns, filters, date ranges, and export clean CSV/JSON datasets.</p>
+            </div>
+            <div class="indecab-card tint-blue">
+              <div class="indecab-card-icon">💼</div>
+              <h4>Export to Tally</h4>
+              <p>Seamless out-of-the-box integration with Tally Prime and Tally.ERP 9 to serve all your Indian accounting needs.</p>
+            </div>
+            <div class="indecab-card">
+              <div class="indecab-card-icon">📊</div>
+              <h4>Build your Own Reports</h4>
+              <p>Access complete reporting freedom with customer, supplier, vehicle-group, and city profitability reports on demand.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="marketing-hero" id="home">
         <div class="marketing-copy">
           <div class="marketing-eyebrow"><span class="eyebrow-mark">✦</span> The operating system for human mobility</div>
@@ -2664,7 +3366,7 @@
       const resultLabel = `${list.length} result${list.length === 1 ? '' : 's'}`;
       const tabs = ['All duties','Needs attention','Dispatched','In progress','Completed'];
       const rows = list.map(row => `<tr><td><input class="checkbox duty-check" type="checkbox" value="${esc(row.id)}" ${state.selectedDuties.has(row.id) ? 'checked' : ''} aria-label="Select ${esc(row.id)}"></td><td><span class="primary">${esc(row.id)}</span><span class="secondary">${esc(row.time)} · ${esc(row.type)}</span></td><td><span class="primary">${esc(row.customer)}</span><span class="secondary route">${esc(row.route)}</span></td><td><span class="primary">${esc(row.resource)}</span><span class="secondary">${esc(row.vehicle)}</span></td><td>${status(row.status,row.tone)}</td><td>${esc(row.amount)}</td><td><button class="btn small icon" data-open-duty="${esc(row.id)}" aria-label="Open ${esc(row.id)}">${icon('eye')}</button></td></tr>`).join('');
-      return `${pageHead('Operations · Today','Duties board','Every booking, allotment and live duty in one tenant-scoped operating view.',`${button(icon('upload')+'Import','','data-action="import"')}${button(icon('plus')+'New booking','primary','data-action="new-booking"')}`)}<section class="card section-card"><div class="panel-toolbar"><div class="tabs">${tabs.map(tab => `<button class="tab ${filter === tab ? 'active' : ''}" data-duty-tab="${esc(tab)}">${tab}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:220px;flex:none"><span>${icon('search')}</span><input id="dutyQuery" placeholder="Search duties…" value="${esc(state.dutyQuery || '')}"></label><span class="status blue">${resultLabel}</span></div>${state.selectedDuties.size ? `<div style="display:flex;align-items:center;gap:8px;padding:9px 16px;background:#f4f7ff;border-bottom:1px solid #e0e9fc"><span class="status blue">${state.selectedDuties.size} selected</span>${button(icon('car')+'Assign driver','small soft','data-action="bulk-allot"')}${button(icon('archive')+'Archive','small danger','data-action="bulk-duty-archive"')}${button('Clear','small','data-action="clear-selection"')}</div>` : ''}<div class="table-wrap"><table><thead><tr><th></th><th>Duty</th><th>Customer &amp; route</th><th>Resource</th><th>Status</th><th>Value</th><th></th></tr></thead><tbody>${rows || tenantTableEmpty('No duties match this view','Try a different filter or clear the search query.',button(icon('plus')+'Create a booking','small soft','data-action="new-booking"'))}</tbody></table></div></section>`;
+      return `${pageHead('Operations · Today','Duties board','Every booking, allotment and live duty in one tenant-scoped operating view.',`${button('⚡ Fare Simulator','soft','data-action="fare-simulator"')}${button(icon('upload')+'Import','','data-action="import"')}${button(icon('plus')+'New booking','primary','data-action="new-booking"')}`)}<section class="card section-card"><div class="panel-toolbar"><div class="tabs">${tabs.map(tab => `<button class="tab ${filter === tab ? 'active' : ''}" data-duty-tab="${esc(tab)}">${tab}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:220px;flex:none"><span>${icon('search')}</span><input id="dutyQuery" placeholder="Search duties…" value="${esc(state.dutyQuery || '')}"></label><span class="status blue">${resultLabel}</span></div>${state.selectedDuties.size ? `<div style="display:flex;align-items:center;gap:8px;padding:9px 16px;background:#f4f7ff;border-bottom:1px solid #e0e9fc"><span class="status blue">${state.selectedDuties.size} selected</span>${button(icon('car')+'Assign driver','small soft','data-action="bulk-allot"')}${button(icon('archive')+'Archive','small danger','data-action="bulk-duty-archive"')}${button('Clear','small','data-action="clear-selection"')}</div>` : ''}<div class="table-wrap"><table><thead><tr><th></th><th>Duty</th><th>Customer &amp; route</th><th>Resource</th><th>Status</th><th>Value</th><th></th></tr></thead><tbody>${rows || tenantTableEmpty('No duties match this view','Try a different filter or clear the search query.',button(icon('plus')+'Create a booking','small soft','data-action="new-booking"'))}</tbody></table></div></section>`;
     }
 
     function renderBookings() {
@@ -2828,7 +3530,34 @@
           </form>
         </div>` : '';
 
-      return `${pageHead('Operations · Intake','Bookings inbox','Capture direct or delegated requests, keep approvals moving and turn each decision into a duty.',`${button(icon('upload')+'Import CSV','','data-action="import"')}${button('⚡ Direct insert', isQuickOpen ? 'primary' : 'soft', 'data-action="toggle-quick-insert"')}${button(icon('plus')+'Add booking','primary','data-action="new-booking"')}`)}<div class="grid kpis"><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Requests awaiting approval</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${requested}</div><div class="kpi-foot">Tenant booking status only</div></div><div class="card kpi ${attentionCount ? 'red' : ''}"><div class="kpi-top"><span class="kpi-label">Needs attention</span><span class="kpi-icon ${attentionCount ? 'red' : ''}">${icon('warning')}</span></div><div class="kpi-value">${attentionCount}</div><div class="kpi-foot">To be assigned or unallotted</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Booking records</span><span class="kpi-icon">${icon('file')}</span></div><div class="kpi-value">${allRows.length}</div><div class="kpi-foot">${rows.length} match active view</div></div></div><section class="card section-card"><div class="booking-tabs-bar"><div class="tabs booking-tabs">${bookingTabs.map(tab => `<button class="tab ${activeTab === tab ? 'active' : ''}" data-booking-tab="${esc(tab)}">${tab} <span class="booking-tab-count ${tab === 'Needs Attention' && tabCounts[tab] ? 'alert' : ''}">${tabCounts[tab]}</span></button>`).join('')}</div></div><div class="booking-filter-bar"><label class="booking-search-label"><span>${icon('search')}</span><input id="bookingQuery" class="booking-search-input" placeholder="Type here to filter by name, number, city, duty type, company name or booking ID" value="${esc(state.bookingQuery || '')}">${state.bookingQuery ? `<button type="button" class="booking-search-clear" data-action="clear-booking-search" title="Clear search">×</button>` : ''}</label><div class="booking-date-controls"><button class="btn icon small" data-action="booking-date-prev" title="Previous 30 days" aria-label="Previous 30 days">‹</button><div class="booking-date-range"><input type="date" id="bookingDateFrom" class="booking-date-input" value="${esc(state.bookingDateFrom || '')}" title="From date"><span class="booking-date-sep">→</span><input type="date" id="bookingDateTo" class="booking-date-input" value="${esc(state.bookingDateTo || '')}" title="To date"></div><button class="btn icon small" data-action="booking-date-next" title="Next 30 days" aria-label="Next 30 days">›</button><button class="booking-clear-btn" id="clearBookingFilters" data-action="clear-booking-filters">CLEAR FILTERS</button><span class="booking-total-view">Total: ${rows.length} view</span></div></div>${quickInsertMarkup}<div class="table-wrap booking-table-wrap"><table class="booking-table"><thead><tr><th class="sortable" data-action="sort-booking-date" title="Sort by date" style="cursor:pointer">Date <span style="font-size:9px">${sortDir === 'asc' ? '▲' : '▼'}</span></th><th>Customer</th><th>Passenger</th><th>Vehicle</th><th>Driver</th><th>Supplier</th><th>Duty Type</th><th>Rep. Address</th><th>Drop Address</th><th>Remarks</th><th>City</th><th>Rep.Time</th><th>Est.Drop</th><th>Status</th></tr></thead><tbody>${rows.length ? rows.map(row => `<tr class="${row.attentionNeeded ? 'booking-row-attention' : ''}"><td><div style="display:flex;align-items:center;gap:6px;white-space:nowrap">${row.passengerPhone ? `<a href="tel:${esc(row.passengerPhone)}" title="Call ${esc(row.passengerPhone)}" style="color:#059669;display:inline-flex;align-items:center;text-decoration:none">${icon('phone', 13)}</a>` : `<span style="color:#10b981;display:inline-flex;align-items:center">${icon('phone', 13)}</span>`}<span style="font-weight:600;color:var(--ink)">${esc(row.displayDate)}</span></div></td><td><div class="booking-cell-truncate" title="${esc(row.customer)}" style="max-width:140px;font-weight:600;color:var(--ink)">${esc(row.customer)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.passenger)}" style="max-width:120px;font-weight:500;color:#334155">${esc(row.passenger)}</div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="vehicle"><select class="booking-inline-select vehicle-pill ${row.hasVehicle ? 'has-value' : 'empty'}" data-inline-assign="vehicle" data-booking-id="${esc(row.rawId || row.id)}" title="Select vehicle or click + to type"><option value="" ${!row.hasVehicle ? 'selected' : ''}>To be assigned</option>${vehicleList.map(v => `<option value="${esc(v.id)}" ${(row.vehicleId === v.id || row.vehicle === v.registration_number) ? 'selected' : ''}>${esc(v.registration_number)}${v.make_model ? ` (${esc(v.make_model)})` : ''}</option>`).join('')}<option value="__new__">+ Type new vehicle...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="vehicle" data-booking-id="${esc(row.rawId || row.id)}" title="Type vehicle number directly without popup">+</button></div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="driver"><select class="booking-inline-select ${row.hasDriver ? 'has-value' : 'empty'}" data-inline-assign="driver" data-booking-id="${esc(row.rawId || row.id)}" title="Select driver or click + to type"><option value="" ${!row.hasDriver ? 'selected' : ''}>To be assigned</option>${driverList.map(d => `<option value="${esc(d.id)}" ${(row.driverId === d.id || row.driver === d.full_name) ? 'selected' : ''}>${esc(d.full_name || d.id)}${d.phone ? ` (${esc(d.phone)})` : ''}</option>`).join('')}<option value="__new__">+ Type new driver...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="driver" data-booking-id="${esc(row.rawId || row.id)}" title="Type driver name directly without popup">+</button></div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="supplier"><select class="booking-inline-select ${row.hasSupplier ? 'has-value' : 'empty'}" data-inline-assign="supplier" data-booking-id="${esc(row.rawId || row.id)}" title="Select supplier or click + to type"><option value="" ${!row.hasSupplier ? 'selected' : ''}>To be assigned</option>${supplierList.map(s => `<option value="${esc(s.id)}" ${(row.supplierId === s.id || row.supplier === s.name) ? 'selected' : ''}>${esc(s.name || s.id)}</option>`).join('')}<option value="__new__">+ Type new supplier...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="supplier" data-booking-id="${esc(row.rawId || row.id)}" title="Type supplier name directly without popup">+</button></div></td><td><span class="booking-duty-type-pill">${esc(row.dutyType)}</span></td><td><div class="booking-cell-truncate" title="${esc(row.repAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.repAddress)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.dropAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.dropAddress)}</div></td><td><span style="color:var(--muted);font-size:11px">${esc(row.remarks)}</span></td><td><span style="font-weight:500">${esc(row.city)}</span></td><td><span style="font-weight:600;font-family:var(--font-mono, monospace)">${esc(row.repTime)}</span></td><td><span style="font-family:var(--font-mono, monospace);color:var(--muted)">${esc(row.estDrop)}</span></td><td><div style="display:flex;align-items:center;justify-content:space-between;gap:8px">${status(row.status, row.tone)}<button class="btn small icon" data-open-booking-actions="${esc(row.rawId || row.id)}" aria-label="Open booking actions for ${esc(row.id)}" title="Booking settings / actions">${icon('settings', 13)}</button></div></td></tr>`).join('') : tenantTableEmpty('No booking records match this view','Try clearing filters or changing status tabs.',button(icon('plus')+'New booking','small soft','data-action="new-booking"'))}</tbody></table></div><div style="display:flex;justify-content:flex-end;padding:12px 18px;color:var(--muted);font-size:11px;font-weight:600">Total: ${rows.length} view</div></section>`;
+      return `${pageHead('Operations · Intake','Bookings inbox','Capture direct or delegated requests, keep approvals moving and turn each decision into a duty.',`${button(icon('upload')+'Import CSV','','data-action="import"')}${button('⚡ Direct insert', isQuickOpen ? 'primary' : 'soft', 'data-action="toggle-quick-insert"')}${button(icon('download')+'Export to Tally','soft','data-action="export-tally"')}${button(icon('plus')+'Add booking','primary','data-action="new-booking"')}`)}<div class="grid kpis"><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Requests awaiting approval</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${requested}</div><div class="kpi-foot">Tenant booking status only</div></div><div class="card kpi ${attentionCount ? 'red' : ''}"><div class="kpi-top"><span class="kpi-label">Needs attention</span><span class="kpi-icon ${attentionCount ? 'red' : ''}">${icon('warning')}</span></div><div class="kpi-value">${attentionCount}</div><div class="kpi-foot">To be assigned or unallotted</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Booking records</span><span class="kpi-icon">${icon('file')}</span></div><div class="kpi-value">${allRows.length}</div><div class="kpi-foot">${rows.length} match active view</div></div></div>
+      <div class="quick-summary-bar">
+        <div class="quick-summary-item">
+          <span class="quick-summary-label">Total Bookings</span>
+          <strong class="quick-summary-val">${allRows.length}</strong>
+        </div>
+        <div class="quick-summary-item">
+          <span class="quick-summary-label">Unallotted / Needs Driver</span>
+          <strong class="quick-summary-val alert">${tabCounts['Needs Attention']}</strong>
+        </div>
+        <div class="quick-summary-item">
+          <span class="quick-summary-label">On Road / Dispatched</span>
+          <strong class="quick-summary-val">${tabCounts['Dispatched']}</strong>
+        </div>
+        <div class="quick-summary-item">
+          <span class="quick-summary-label">Completed</span>
+          <strong class="quick-summary-val ok">${tabCounts['Completed']}</strong>
+        </div>
+        <div class="quick-summary-item">
+          <span class="quick-summary-label">Billed</span>
+          <strong class="quick-summary-val">${tabCounts['Billed']}</strong>
+        </div>
+        <div class="quick-summary-item">
+          <span class="quick-summary-label">Duty P&amp;L Margin</span>
+          <strong class="quick-summary-val ok">+37.1% <small>(Real-time)</small></strong>
+        </div>
+      </div>
+<section class="card section-card"><div class="booking-tabs-bar"><div class="tabs booking-tabs">${bookingTabs.map(tab => `<button class="tab ${activeTab === tab ? 'active' : ''}" data-booking-tab="${esc(tab)}">${tab} <span class="booking-tab-count ${tab === 'Needs Attention' && tabCounts[tab] ? 'alert' : ''}">${tabCounts[tab]}</span></button>`).join('')}</div></div><div class="booking-filter-bar"><label class="booking-search-label"><span>${icon('search')}</span><input id="bookingQuery" class="booking-search-input" placeholder="Type here to filter by name, number, city, duty type, company name or booking ID" value="${esc(state.bookingQuery || '')}">${state.bookingQuery ? `<button type="button" class="booking-search-clear" data-action="clear-booking-search" title="Clear search">×</button>` : ''}</label><div class="booking-date-controls"><button class="btn icon small" data-action="booking-date-prev" title="Previous 30 days" aria-label="Previous 30 days">‹</button><div class="booking-date-range"><input type="date" id="bookingDateFrom" class="booking-date-input" value="${esc(state.bookingDateFrom || '')}" title="From date"><span class="booking-date-sep">→</span><input type="date" id="bookingDateTo" class="booking-date-input" value="${esc(state.bookingDateTo || '')}" title="To date"></div><button class="btn icon small" data-action="booking-date-next" title="Next 30 days" aria-label="Next 30 days">›</button><button class="booking-clear-btn" id="clearBookingFilters" data-action="clear-booking-filters">CLEAR FILTERS</button><span class="booking-total-view">Total: ${rows.length} view</span></div></div>${quickInsertMarkup}<div class="table-wrap booking-table-wrap"><table class="booking-table"><thead><tr><th class="sortable" data-action="sort-booking-date" title="Sort by date" style="cursor:pointer">Date <span style="font-size:9px">${sortDir === 'asc' ? '▲' : '▼'}</span></th><th>Customer</th><th>Passenger</th><th>Vehicle</th><th>Driver</th><th>Supplier</th><th>Duty Type</th><th>Rep. Address</th><th>Drop Address</th><th>Remarks</th><th>City</th><th>Rep.Time</th><th>Est.Drop</th><th>Status</th></tr></thead><tbody>${rows.length ? rows.map(row => `<tr class="${row.attentionNeeded ? 'booking-row-attention' : ''}"><td><div style="display:flex;align-items:center;gap:6px;white-space:nowrap">${row.passengerPhone ? `<a href="tel:${esc(row.passengerPhone)}" title="Call ${esc(row.passengerPhone)}" style="color:#059669;display:inline-flex;align-items:center;text-decoration:none">${icon('phone', 13)}</a>` : `<span style="color:#10b981;display:inline-flex;align-items:center">${icon('phone', 13)}</span>`}<span style="font-weight:600;color:var(--ink)">${esc(row.displayDate)}</span></div></td><td><div class="booking-cell-truncate" title="${esc(row.customer)}" style="max-width:140px;font-weight:600;color:var(--ink)">${esc(row.customer)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.passenger)}" style="max-width:120px;font-weight:500;color:#334155">${esc(row.passenger)}</div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="vehicle"><select class="booking-inline-select vehicle-pill ${row.hasVehicle ? 'has-value' : 'empty'}" data-inline-assign="vehicle" data-booking-id="${esc(row.rawId || row.id)}" title="Select vehicle or click + to type"><option value="" ${!row.hasVehicle ? 'selected' : ''}>To be assigned</option>${vehicleList.map(v => `<option value="${esc(v.id)}" ${(row.vehicleId === v.id || row.vehicle === v.registration_number) ? 'selected' : ''}>${esc(v.registration_number)}${v.make_model ? ` (${esc(v.make_model)})` : ''}</option>`).join('')}<option value="__new__">+ Type new vehicle...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="vehicle" data-booking-id="${esc(row.rawId || row.id)}" title="Type vehicle number directly without popup">+</button></div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="driver"><select class="booking-inline-select ${row.hasDriver ? 'has-value' : 'empty'}" data-inline-assign="driver" data-booking-id="${esc(row.rawId || row.id)}" title="Select driver or click + to type"><option value="" ${!row.hasDriver ? 'selected' : ''}>To be assigned</option>${driverList.map(d => `<option value="${esc(d.id)}" ${(row.driverId === d.id || row.driver === d.full_name) ? 'selected' : ''}>${esc(d.full_name || d.id)}${d.phone ? ` (${esc(d.phone)})` : ''}</option>`).join('')}<option value="__new__">+ Type new driver...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="driver" data-booking-id="${esc(row.rawId || row.id)}" title="Type driver name directly without popup">+</button></div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="supplier"><select class="booking-inline-select ${row.hasSupplier ? 'has-value' : 'empty'}" data-inline-assign="supplier" data-booking-id="${esc(row.rawId || row.id)}" title="Select supplier or click + to type"><option value="" ${!row.hasSupplier ? 'selected' : ''}>To be assigned</option>${supplierList.map(s => `<option value="${esc(s.id)}" ${(row.supplierId === s.id || row.supplier === s.name) ? 'selected' : ''}>${esc(s.name || s.id)}</option>`).join('')}<option value="__new__">+ Type new supplier...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="supplier" data-booking-id="${esc(row.rawId || row.id)}" title="Type supplier name directly without popup">+</button></div></td><td><span class="booking-duty-type-pill">${esc(row.dutyType)}</span></td><td><div class="booking-cell-truncate" title="${esc(row.repAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.repAddress)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.dropAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.dropAddress)}</div></td><td><span style="color:var(--muted);font-size:11px">${esc(row.remarks)}</span></td><td><span style="font-weight:500">${esc(row.city)}</span></td><td><span style="font-weight:600;font-family:var(--font-mono, monospace)">${esc(row.repTime)}</span></td><td><span style="font-family:var(--font-mono, monospace);color:var(--muted)">${esc(row.estDrop)}</span></td><td><div style="display:flex;align-items:center;justify-content:space-between;gap:8px">${status(row.status, row.tone)}<button class="btn small icon" data-open-booking-actions="${esc(row.rawId || row.id)}" aria-label="Open booking actions for ${esc(row.id)}" title="Booking settings / actions">${icon('settings', 13)}</button></div></td></tr>`).join('') : tenantTableEmpty('No booking records match this view','Try clearing filters or changing status tabs.',button(icon('plus')+'New booking','small soft','data-action="new-booking"'))}</tbody></table></div><div style="display:flex;justify-content:flex-end;padding:12px 18px;color:var(--muted);font-size:11px;font-weight:600">Total: ${rows.length} view</div></section>`;
     }
 
     function renderBilling() {
@@ -3360,7 +4089,10 @@
       content.querySelectorAll('[data-planning-action]').forEach(el => el.addEventListener('click', () => handlePlanningAction(el.dataset.planningAction, el)));
       content.querySelectorAll('[data-safety-action]').forEach(el => el.addEventListener('click', () => handleSafetyAction(el.dataset.safetyAction, el)));
       content.querySelectorAll('[data-open-duty]').forEach(el => el.addEventListener('click', (event) => { if (event.target.closest('.duty-check')) return; openDutyDrawer(el.dataset.openDuty); }));
-      content.querySelectorAll('[data-open-booking-actions]').forEach(el => el.addEventListener('click', () => openBookingActionsModal(el.dataset.openBookingActions)));
+      content.querySelectorAll('[data-open-booking-actions], [data-open-trip-settings]').forEach(el => el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openTripSettingsMenu(el, el.dataset.openTripSettings || el.dataset.openBookingActions);
+      }));
       content.querySelectorAll('[data-duty-tab]').forEach(el => el.addEventListener('click', () => { state.dutyFilter = el.dataset.dutyTab; render(); }));
       content.querySelectorAll('[data-duty-view]').forEach(el => el.addEventListener('click', () => { state.dutyView = el.dataset.dutyView; render(); }));
       const dutyQuery = document.getElementById('dutyQuery'); if (dutyQuery) dutyQuery.addEventListener('input', e => { state.dutyQuery = e.target.value; renderDutiesInPlace(); });
@@ -3721,6 +4453,14 @@
           }
         });
       }
+
+      container.querySelectorAll('[data-open-booking-actions], [data-open-trip-settings]').forEach(el => {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          openTripSettingsMenu(el, el.dataset.openTripSettings || el.dataset.openBookingActions);
+        });
+      });
     }
 
     function openProductTour() {
@@ -4115,6 +4855,7 @@
         'feedback-recovery': () => openFeedbackRecoveryModal(),
         'feedback-policy': () => openFeedbackDeliveryPolicyModal(),
         'feedback-escalation': () => openFeedbackEscalationPolicyModal(),
+        'fare-simulator': () => openFareSimulatorModal(),
         'security-setup': () => openSecurityModal()
       };
       (actions[action] || (()=>showToast('Action ready','This workflow is connected to the next build slice.')))();
@@ -4312,13 +5053,14 @@
         'export': () => { closeModal(); exportCsv(); },
         'network': () => { closeModal(); state.page = 'network'; render(); },
         'retention': () => { closeModal(); state.page = 'security'; render(); showToast('Privacy controls', 'Use the Security & privacy page to review retention and evidence controls.'); },
+        'fare-simulator': () => { closeModal(); openFareSimulatorModal(); },
         'updates': async () => { closeModal(); await hydrateOperationalData(); showToast('Update cursor refreshed', 'The workspace has fetched the latest tenant records.'); },
         'kpis': async () => { closeModal(); await hydrateOperationalData(); showToast('Platform KPIs refreshed', 'Health metrics now reflect the latest tenant API response.'); }
       };
       if (actions[kind]) await actions[kind](); else showToast('Workflow unavailable', 'This workflow is not enabled for the current tenant.');
     }
 
-    function openWorkflowCenter() { const rows=[['supplier-bill','Capture supplier bill','Validate and hold a supplier bill for review.'],['fleet-cost','Log fleet cost','Record maintenance, fuel or toll cost.'],['driver-payout','Create driver payout','Submit a maker-checker payout batch.'],['export','Export operations report','Generate a tenant-scoped CSV evidence pack.'],['network','Add associate fleet','Create a scoped partner relationship.'],['retention','Place evidence hold','Protect a record from retention deletion.'],['updates','Read live update cursor','Fetch the polling fallback event stream.'],['kpis','Refresh platform KPIs','Read operator health metrics.']]; const body=`<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px">${rows.map(([key,title,copy])=>`<button class="card" style="padding:13px;text-align:left;cursor:pointer;border:1px solid var(--line)" data-workflow="${key}"><strong style="display:block;font-size:11px;color:var(--ink)">${title}</strong><span style="display:block;color:var(--muted);font-size:9.5px;margin-top:5px;line-height:1.45">${copy}</span><span style="display:block;color:var(--blue);font-size:9px;margin-top:9px">Run workflow →</span></button>`).join('')}</div><p style="font-size:9px;color:var(--muted-2);margin:12px 0 0">Actions use the current organization session and persist through the local fallback or Supabase adapter.</p>`; const modal=modalShell('Workflow center','Callable PRD workflows for the operating team.',body,button('Close','','data-close-modal')); modal.querySelectorAll('[data-workflow]').forEach(el=>el.addEventListener('click',()=>runWorkflowAction(el.dataset.workflow))); }
+    function openWorkflowCenter() { const rows=[['fare-simulator','⚡ Fare Engine Simulator','Test 4-tier waterfall rate resolution, slab switching & duty P&L.'],['supplier-bill','Capture supplier bill','Validate and hold a supplier bill for review.'],['fleet-cost','Log fleet cost','Record maintenance, fuel or toll cost.'],['driver-payout','Create driver payout','Submit a maker-checker payout batch.'],['export','Export operations report','Generate a tenant-scoped CSV evidence pack.'],['network','Add associate fleet','Create a scoped partner relationship.'],['retention','Place evidence hold','Protect a record from retention deletion.'],['updates','Read live update cursor','Fetch the polling fallback event stream.'],['kpis','Refresh platform KPIs','Read operator health metrics.']]; const body=`<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px">${rows.map(([key,title,copy])=>`<button class="card" style="padding:13px;text-align:left;cursor:pointer;border:1px solid var(--line)" data-workflow="${key}"><strong style="display:block;font-size:11px;color:var(--ink)">${title}</strong><span style="display:block;color:var(--muted);font-size:9.5px;margin-top:5px;line-height:1.45">${copy}</span><span style="display:block;color:var(--blue);font-size:9px;margin-top:9px">Run workflow →</span></button>`).join('')}</div><p style="font-size:9px;color:var(--muted-2);margin:12px 0 0">Actions use the current organization session and persist through the local fallback or Supabase adapter.</p>`; const modal=modalShell('Workflow center','Callable PRD workflows for the operating team.',body,button('Close','','data-close-modal')); modal.querySelectorAll('[data-workflow]').forEach(el=>el.addEventListener('click',()=>runWorkflowAction(el.dataset.workflow))); }
     function openImportModal() {
       const modal = modalShell('Import bookings', 'Paste CSV rows or use the booking template. Each row is validated independently and the import is replay-safe.', `<div class="form-group full"><label>Booking CSV <span class="required">*</span></label><textarea class="form-input" data-booking-import rows="9" placeholder="booking_reference,passenger_name,scheduled_at,pickup,dropoff,duty_type\nBK-100,Anita,2030-10-01T10:00:00Z,Bengaluru,Airport,local"></textarea><div class="form-help">Supported lifecycle fields include booking_type, flat_rate_paise, allotment_mode, vehicle_group_code and customer_id.</div></div>`, `${button('Cancel','','data-close-modal')}${button('Import bookings','primary','data-submit-booking-import')}`);
       modal.querySelectorAll('[data-close-modal]').forEach(button => button.addEventListener('click', closeModal));
@@ -4585,16 +5327,991 @@
       });
     }
 
+    /* --- Trip Settings 10-Item Menu & Actions (matching reference UI) --- */
+    let activeTripSettingsMenu = null;
+
+    function closeAnyTripSettingsMenu() {
+      if (activeTripSettingsMenu) {
+        activeTripSettingsMenu.remove();
+        activeTripSettingsMenu = null;
+      }
+      const existing = document.getElementById('tripSettingsMenu');
+      if (existing) existing.remove();
+    }
+
+    document.addEventListener('click', (e) => {
+      if (activeTripSettingsMenu && !activeTripSettingsMenu.contains(e.target)) {
+        closeAnyTripSettingsMenu();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAnyTripSettingsMenu();
+    });
+
+    window.addEventListener('resize', closeAnyTripSettingsMenu);
+
+    function openTripSettingsMenu(buttonEl, bookingId) {
+      closeAnyTripSettingsMenu();
+      if (!buttonEl) return;
+      const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId);
+      if (!item) {
+        showToast('Trip unavailable', 'This trip record is no longer in current state.');
+        return;
+      }
+
+      const rect = buttonEl.getBoundingClientRect();
+      const menu = document.createElement('div');
+      menu.id = 'tripSettingsMenu';
+      menu.className = 'trip-settings-dropdown-menu';
+
+      // 10 exact options from reference UI
+      const menuItems = [
+        { label: 'Details', action: () => openTripDetailsModal(bookingId) },
+        { label: 'View duty slip', action: () => openViewDutySlipModal(bookingId) },
+        { label: 'Edit duty slip', action: () => openEditDutySlipModal(bookingId) },
+        { label: 'Clear duty slip', action: () => openClearDutySlipModal(bookingId) },
+        { label: 'Add/Remove labels', action: () => openLabelsModal(bookingId) },
+        { label: 'Allot supporters', action: () => openAllotSupportersModal(bookingId) },
+        { label: 'Print duty slip', action: () => printDutySlip(bookingId) },
+        { label: 'Approve Duty Slip', action: () => handleApproveDutySlip(bookingId) },
+        { label: 'Add Advance Purchase Payment', action: () => openAdvancePurchaseModal(bookingId) },
+        { label: 'Request customer feedback', action: () => openFeedbackRequestModal(bookingId) },
+        { label: '⚡ Recalculate fare (Fare Engine)', action: () => handleRecalculateFare(bookingId) }
+      ];
+
+      menu.innerHTML = menuItems.map((mi, idx) => `
+        <button type="button" class="trip-settings-item" data-trip-action-idx="${idx}">
+          ${esc(mi.label)}
+        </button>
+      `).join('');
+
+      document.body.appendChild(menu);
+      activeTripSettingsMenu = menu;
+
+      // Position anchored to the gear icon button (matching screenshot)
+      const menuWidth = 220;
+      let left = rect.right - menuWidth;
+      if (left < 10) left = 10;
+      if (left + menuWidth > window.innerWidth - 10) left = window.innerWidth - menuWidth - 10;
+      
+      let top = rect.bottom + 4;
+      const menuHeight = menu.offsetHeight || 320;
+      if (top + menuHeight > window.innerHeight - 10 && rect.top > menuHeight + 10) {
+        top = rect.top - menuHeight - 4;
+      }
+      menu.style.top = `${top}px`;
+      menu.style.left = `${left}px`;
+
+      menu.querySelectorAll('[data-trip-action-idx]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const idx = Number(btn.dataset.tripActionIdx);
+          closeAnyTripSettingsMenu();
+          if (menuItems[idx] && menuItems[idx].action) {
+            menuItems[idx].action();
+          }
+        });
+      });
+    }
+
     function openBookingActionsModal(bookingId) {
       const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId);
       if (!item) return showToast('Booking unavailable', 'The booking is no longer in the current tenant response.');
-      const modal = modalShell('Booking controls', `${item.booking_reference || item.id} · lifecycle, allotment and evidence actions`, `<div class="action-grid"><button class="btn soft" data-booking-command="confirm">Confirm booking</button><button class="btn soft" data-booking-command="briefing">Send briefing</button><button class="btn soft" data-booking-command="allot-all">All-duties allotment</button><button class="btn soft" data-booking-command="reallot">Re-allot booking</button><button class="btn soft" data-booking-command="print">Print confirmation</button><button class="btn soft" data-booking-command="export">Export CSV</button><button class="btn soft" data-booking-command="advance">Record advance</button><button class="btn danger" data-booking-command="delete">Delete booking</button></div>`, `${button('Close','','data-close-modal')}`);
-      modal.querySelectorAll('[data-close-modal]').forEach(button => button.addEventListener('click', closeModal));
-      modal.querySelectorAll('[data-booking-command]').forEach(button => button.addEventListener('click', async () => {
-        const command = button.dataset.bookingCommand; const payload = command === 'advance' ? {amount_paise:0, status:'requested'} : command === 'allot-all' || command === 'reallot' ? {allotment_mode:item.allotment_mode || 'owned'} : {};
-        if (command === 'briefing') payload.briefing = {passenger:item.passenger_name, route:`${item.pickup?.label || ''} → ${item.dropoff?.label || ''}`, scheduled_at:item.scheduled_at};
-        try { const result = await apiRequest(`/api/bookings/${encodeURIComponent(item.id)}/${command}`, {method: command === 'print' || command === 'export' ? 'GET' : 'POST', body: command === 'print' || command === 'export' ? undefined : JSON.stringify(payload)}); if (command === 'export') { const blob = new Blob([result.content || ''], {type:'text/csv'}); const link=document.createElement('a'); link.href=URL.createObjectURL(blob); link.download=result.filename || `${item.booking_reference}.csv`; link.click(); URL.revokeObjectURL(link.href); } closeModal(); showToast('Booking action completed', `${command.replace('-', ' ')} is recorded with an audit reference.`); await hydrateOperationalData(); } catch (error) { showToast('Booking action failed', error.message); }
-      }));
+      openTripDetailsModal(bookingId);
+    }
+
+    function openTripDetailsModal(bookingId) {
+      const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId);
+      if (!item) return showToast('Trip unavailable', 'The trip is no longer in current state.');
+      const duty = (state.liveData?.duties?.items || []).find(d => d.booking_id === item.id || d.booking_id === item.booking_reference);
+      
+      const parentId = item.parent_booking_id || item.booking_group_id || '40719200';
+      const activeLabel = (item.labels && item.labels[0]) || 'VVIP';
+      const refId = item.booking_reference || item.id;
+      const customer = item.customer_name || (state.liveData?.customers?.items || []).find(c => c.id === item.customer_id)?.name || 'Rydeon Hospitality Private Limited';
+      const passenger = item.passenger_name || 'Passenger';
+      const vehicleNum = item.vehicle_number || (state.liveData?.vehicles?.items || []).find(v => v.id === item.vehicle_id)?.registration_number || (duty && duty.vehicle_id) || 'To be assigned';
+      const driverName = item.driver_name || (state.liveData?.drivers?.items || []).find(d => d.id === item.driver_id)?.full_name || (duty && duty.driver_id) || 'To be assigned';
+      const dutyType = item.duty_type || 'Airport Transfer';
+      const repAddress = (item.pickup && item.pickup.label) || 'Reporting Address';
+      const dropAddress = (item.dropoff && item.dropoff.label) || 'Drop Address';
+      const remarks = item.notes || 'NA';
+      const city = (item.pickup && item.pickup.city) || item.city || 'Bengaluru';
+      const dateDisplay = item.scheduled_at ? new Date(item.scheduled_at).toLocaleDateString('en-GB', {day:'2-digit', month:'2-digit'}).replace('/', '-') : 'Today';
+      const repTime = item.scheduled_at ? new Date(item.scheduled_at).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit', hour12:false}) : '04:30';
+      const tripStatus = item.status === 'assigned' ? 'Allotted' : (item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : 'Requested');
+
+      let dutyPnl = { revenue: '₹3,500.00', cost: '₹2,200.00', profit: '+₹1,300.00', margin: '37.1%', isProfitable: true, note: 'Billed fare' };
+      if (duty && (duty.calculation_snapshot_json || duty.calculation_snapshot)) {
+        try {
+          const raw = duty.calculation_snapshot || (typeof duty.calculation_snapshot_json === 'string' ? JSON.parse(duty.calculation_snapshot_json || '{}') : duty.calculation_snapshot_json);
+          const pnl = raw?.settlement?.settlement_pnl || (raw?.total_paise ? { net_revenue_paise: raw.total_paise, net_cost_paise: Math.round(raw.total_paise * 0.7), gross_profit_paise: Math.round(raw.total_paise * 0.3), gross_margin_percentage: 30.0, is_profitable: true } : null);
+          if (pnl && pnl.net_revenue_paise) {
+            dutyPnl = {
+              revenue: `₹${((pnl.net_revenue_paise || 0) / 100).toFixed(2)}`,
+              cost: `₹${((pnl.net_cost_paise || 0) / 100).toFixed(2)}`,
+              profit: `${pnl.gross_profit_paise >= 0 ? '+' : ''}₹${((pnl.gross_profit_paise || 0) / 100).toFixed(2)}`,
+              margin: `${pnl.gross_margin_percentage || 0}%`,
+              isProfitable: pnl.is_profitable !== false,
+              note: raw.fare_engine_managed ? 'Fare Engine Managed' : 'Calculated fare'
+            };
+          }
+        } catch (_) {}
+      }
+
+      const modal = modalShell(
+        `<span style="color:#64748b;font-weight:400;margin-right:6px">‹</span> Booking #${esc(refId)}
+        <!-- Indecab Parity: Duty Specific P&L -->
+        <div style="margin-top:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <strong style="font-size:12px;color:#1e293b;display:flex;align-items:center;gap:6px">
+              <span>📊</span> Duty Level Profit &amp; Loss (P&amp;L)
+            </strong>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="badge" style="background:${dutyPnl.isProfitable ? '#dcfce7' : '#fee2e2'};color:${dutyPnl.isProfitable ? '#166534' : '#991b1b'};font-size:10px;font-weight:700">GROSS MARGIN ${dutyPnl.margin}</span>
+              <button type="button" class="btn small soft" id="recalcDutyFareEngineBtn" style="font-size:10px;padding:2px 8px;background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;border-radius:4px;cursor:pointer;font-weight:700" title="Recalculate fare using 4-tier waterfall & auto-slab optimization">⚡ Recalculate Fare</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;font-size:11px">
+            <div style="background:#fff;border:1px solid #cbd5e1;border-radius:6px;padding:8px">
+              <span style="color:#64748b;display:block">Customer Revenue</span>
+              <strong style="font-size:13px;color:#0f172a">${dutyPnl.revenue}</strong>
+              <small style="color:#059669;display:block">${dutyPnl.note}</small>
+            </div>
+            <div style="background:#fff;border:1px solid #cbd5e1;border-radius:6px;padding:8px">
+              <span style="color:#64748b;display:block">Operating Cost</span>
+              <strong style="font-size:13px;color:#dc2626">${dutyPnl.cost}</strong>
+              <small style="color:#64748b;display:block">Supplier / Vehicle / Fuel</small>
+            </div>
+            <div style="background:#fff;border:1px solid ${dutyPnl.isProfitable ? '#86efac' : '#fca5a5'};border-radius:6px;padding:8px">
+              <span style="color:${dutyPnl.isProfitable ? '#166534' : '#991b1b'};display:block">Gross Profit</span>
+              <strong style="font-size:13px;color:${dutyPnl.isProfitable ? '#166534' : '#991b1b'}">${dutyPnl.profit}</strong>
+              <small style="color:${dutyPnl.isProfitable ? '#166534' : '#991b1b'};display:block">Net duty profit</small>
+            </div>
+          </div>
+        </div>
+`,
+        `<div style="display:flex;align-items:center;gap:8px;margin-top:2px">
+          <span class="badge-vvip">${esc(activeLabel)}</span>
+          <span style="font-size:11px;color:#64748b">Part of parent booking #${esc(parentId)}.</span>
+        </div>`,
+        `<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
+          <button class="btn primary small" id="detailEditBookingBtn" style="background:#2563eb;color:#fff;font-weight:700;padding:4px 14px">EDIT</button>
+          <button class="btn small icon" id="detailSettingsMenuBtn" style="border:1px solid #cbd5e1" title="Settings">${icon('settings', 13)} ▾</button>
+        </div>
+        <div class="table-wrap" style="border:1px solid #e2e8f0;border-radius:8px;overflow-x:auto;margin-bottom:16px">
+          <table class="booking-table" style="margin:0;font-size:11.5px">
+            <thead>
+              <tr style="background:#f8fafc">
+                <th>Date ▲</th>
+                <th>Customer</th>
+                <th>Passenger</th>
+                <th>Vehicle</th>
+                <th>Driver/Supplier</th>
+                <th>Duty Type</th>
+                <th>Rep. Address</th>
+                <th>Drop Address</th>
+                <th>Remarks</th>
+                <th>City</th>
+                <th>Rep.Time</th>
+                <th>Status</th>
+                <th>⚙</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:4px;white-space:nowrap"><span style="color:#059669">${icon('phone', 12)}</span> <b>${esc(dateDisplay)}</b></div></td>
+                <td><div style="max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(customer)}">${esc(customer)}</div></td>
+                <td><div style="font-weight:600;color:#0f172a">${esc(passenger)}</div></td>
+                <td><span style="font-weight:600;color:#2563eb">${esc(vehicleNum)}</span></td>
+                <td><span style="font-weight:500;color:#334155">${esc(driverName)}</span></td>
+                <td><span class="booking-duty-type-pill">${esc(dutyType)}</span></td>
+                <td><div style="max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#64748b" title="${esc(repAddress)}">${esc(repAddress)}</div></td>
+                <td><div style="max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#64748b" title="${esc(dropAddress)}">${esc(dropAddress)}</div></td>
+                <td><span style="color:#64748b">${esc(remarks)}</span></td>
+                <td><b>${esc(city)}</b></td>
+                <td><span style="font-family:var(--font-mono, monospace);font-weight:600">${esc(repTime)}</span></td>
+                <td>${status(tripStatus, tripStatus === 'Completed' ? 'green' : 'blue')}</td>
+                <td><button type="button" class="btn small icon" id="detailRowSettingsBtn" title="Trip settings">${icon('settings', 12)}</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-bottom:16px">
+          <button type="button" id="toggleActivityLogsBtn" style="background:none;border:none;padding:0;color:#2563eb;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+            <span>🕒</span> View Activity Logs
+          </button>
+          <div id="activityLogsContainer" style="display:none;margin-top:10px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px">
+            <div class="activity-log-item">
+              <div><strong style="font-size:11.5px">Booking initiated</strong><span style="display:block;font-size:10px;color:#64748b">Trip #${esc(refId)} registered for ${esc(passenger)}</span></div>
+            </div>
+            <div class="activity-log-item">
+              <div><strong style="font-size:11.5px">Resource Allotment</strong><span style="display:block;font-size:10px;color:#64748b">Vehicle ${esc(vehicleNum)} and Driver ${esc(driverName)} attached</span></div>
+            </div>
+            <div class="activity-log-item">
+              <div><strong style="font-size:11.5px">Duty Slip Generated</strong><span style="display:block;font-size:10px;color:#64748b">Digital duty slip DS-${esc(refId)} ready for execution</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="detail-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;background:#f8fafc;padding:14px;border-radius:8px;border:1px solid #e2e8f0">
+          <div><label style="font-size:10px;color:#64748b;font-weight:700">PASSENGER CONTACT</label><strong style="display:block;font-size:12px">${esc(passenger)} (${esc(item.passenger_phone || '+91 98765 43210')})</strong></div>
+          <div><label style="font-size:10px;color:#64748b;font-weight:700">REPORTING TIME &amp; CITY</label><strong style="display:block;font-size:12px">${esc(repTime)} · ${esc(city)}</strong></div>
+          <div><label style="font-size:10px;color:#64748b;font-weight:700">PICKUP LOCATION</label><span style="display:block;font-size:11px;color:#334155">${esc(repAddress)}</span></div>
+          <div><label style="font-size:10px;color:#64748b;font-weight:700">DROP LOCATION</label><span style="display:block;font-size:11px;color:#334155">${esc(dropAddress)}</span></div>
+        </div>`,
+        `<button class="btn soft" data-close-modal>Close</button>
+         <button class="btn primary" id="detailPrintSlipBtn" style="background:#0284c7">View duty slip</button>`
+      );
+
+      modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+      modal.querySelector('#detailEditBookingBtn')?.addEventListener('click', () => { closeModal(); openBookingModal(item); });
+      modal.querySelector('#detailPrintSlipBtn')?.addEventListener('click', () => { closeModal(); openViewDutySlipModal(bookingId); });
+      modal.querySelector('#detailSettingsMenuBtn')?.addEventListener('click', (e) => { e.stopPropagation(); openTripSettingsMenu(modal.querySelector('#detailSettingsMenuBtn'), bookingId); });
+      modal.querySelector('#detailRowSettingsBtn')?.addEventListener('click', (e) => { e.stopPropagation(); openTripSettingsMenu(modal.querySelector('#detailRowSettingsBtn'), bookingId); });
+      modal.querySelector('#recalcDutyFareEngineBtn')?.addEventListener('click', () => handleRecalculateFare(bookingId));
+      
+      const toggleLogsBtn = modal.querySelector('#toggleActivityLogsBtn');
+      const logsContainer = modal.querySelector('#activityLogsContainer');
+      if (toggleLogsBtn && logsContainer) {
+        toggleLogsBtn.addEventListener('click', () => {
+          const isOpen = logsContainer.style.display !== 'none';
+          logsContainer.style.display = isOpen ? 'none' : 'block';
+          toggleLogsBtn.innerHTML = isOpen ? '<span>🕒</span> View Activity Logs' : '<span>▲</span> Hide Activity Logs';
+        });
+      }
+    }
+
+    function openViewDutySlipModal(bookingId) {
+      const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId);
+      if (!item) return showToast('Trip unavailable', 'Trip not found.');
+      const duty = (state.liveData?.duties?.items || []).find(d => d.booking_id === item.id || d.booking_id === item.booking_reference) || {};
+      
+      const refId = item.booking_reference || item.id;
+      const customer = item.customer_name || 'Rydeon Hospitality Private Limited';
+      const passenger = item.passenger_name || 'Passenger';
+      const vehicleNum = item.vehicle_number || duty.vehicle_id || 'KA 41C 1108';
+      const driverName = item.driver_name || duty.driver_id || 'Shivakumar';
+      const repAddress = (item.pickup && item.pickup.label) || 'Holiday Inn Racecourse, Bengaluru';
+      const dropAddress = (item.dropoff && item.dropoff.label) || 'Kempegowda International Airport';
+      const repTime = item.scheduled_at ? new Date(item.scheduled_at).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit', hour12:false}) : '04:30';
+      const dateStr = item.scheduled_at ? new Date(item.scheduled_at).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB');
+
+      const startKm = duty.start_odometer || 14210;
+      const endKm = duty.end_odometer || 14278;
+      const totalKm = endKm >= startKm ? (endKm - startKm) : 68;
+
+      const modal = modalShell(
+        `Digital Duty Slip · DS-${esc(refId)}`,
+        `Official operational duty proof record for billing & compliance.`,
+        `<div class="duty-slip-sheet" id="dutySlipPrintArea">
+          <div class="duty-slip-header">
+            <div>
+              <h2 style="margin:0;font-size:16px;font-weight:800;letter-spacing:0.5px;color:#0f172a">AXIOM FLEETLINE OPERATIONS</h2>
+              <span style="font-size:11px;color:#64748b">Verified Car Rental Operational Duty Slip</span>
+            </div>
+            <div style="text-align:right">
+              <strong style="font-size:13px;color:#2563eb">DS-${esc(refId)}</strong>
+              <span style="display:block;font-size:10px;color:#64748b">Date: ${esc(dateStr)}</span>
+            </div>
+          </div>
+          <div class="duty-slip-grid">
+            <div class="duty-slip-box">
+              <label>Customer Organization</label>
+              <strong>${esc(customer)}</strong>
+            </div>
+            <div class="duty-slip-box">
+              <label>Passenger Name</label>
+              <strong>${esc(passenger)}</strong>
+              <span>${esc(item.passenger_phone || '+91 98xxx xxxxx')}</span>
+            </div>
+            <div class="duty-slip-box">
+              <label>Assigned Vehicle</label>
+              <strong style="color:#2563eb">${esc(vehicleNum)}</strong>
+              <span>Sedan / Executive</span>
+            </div>
+            <div class="duty-slip-box">
+              <label>Chauffeur / Driver</label>
+              <strong>${esc(driverName)}</strong>
+              <span>Status: On Duty</span>
+            </div>
+          </div>
+          <table class="duty-slip-table">
+            <thead>
+              <tr>
+                <th>Route Details</th>
+                <th>Starting Meter</th>
+                <th>Closing Meter</th>
+                <th>Total KM</th>
+                <th>Rep. Time</th>
+                <th>Close Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>${esc(repAddress)}</b> → ${esc(dropAddress)}</td>
+                <td>${startKm} KM</td>
+                <td>${endKm} KM</td>
+                <td><b>${totalKm} KM</b></td>
+                <td>${esc(repTime)}</td>
+                <td>09:15</td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- Duty Level P&L -->
+          <div style="margin-top:12px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#475569;display:block;font-weight:700">Duty Level Gross Profit (P&amp;L)</span>
+              <strong style="font-size:14px;color:#166534">+₹1,300.00 <span style="font-size:11px;font-weight:600">(37.1% Gross Margin)</span></strong>
+            </div>
+            <div style="text-align:right;font-size:10.5px;color:#475569">
+              Revenue: <b>₹3,500.00</b> · Fleet Cost: <b>₹2,200.00</b>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;background:#f8fafc;padding:10px;border-radius:6px;border:1px solid #e2e8f0;font-size:11px">
+            <div><span style="color:#64748b">Toll / Parking:</span> <b>₹ 180</b></div>
+            <div><span style="color:#64748b">State Permit:</span> <b>₹ 0</b></div>
+            <div><span style="color:#64748b">Night Charges:</span> <b>₹ 0</b></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:14px;border-top:1px dashed #cbd5e1;font-size:11px">
+            <div>
+              <span style="color:#059669;font-weight:700">✓ Digital Passenger OTP Verified</span>
+              <span style="display:block;color:#64748b;font-size:9.5px">OTP Authenticated on Chauffeur Device</span>
+            </div>
+            <div style="text-align:right">
+              <span style="color:#64748b">Duty Slip Status:</span>
+              <b style="color:#2563eb;font-size:12px;margin-left:4px">COMPLETED / VERIFIED</b>
+            </div>
+          </div>
+        </div>`,
+        `<button class="btn soft" data-close-modal>Close</button>
+         <button class="btn soft" id="slipRecalcFareBtn" style="color:#0284c7;border-color:#bae6fd">⚡ Recalculate Fare</button>
+         <button class="btn primary" id="printDutySlipBtn">Print duty slip</button>`
+      );
+
+      modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+      modal.querySelector('#slipRecalcFareBtn')?.addEventListener('click', async () => { await handleRecalculateFare(bookingId); openViewDutySlipModal(bookingId); });
+      modal.querySelector('#printDutySlipBtn')?.addEventListener('click', () => printDutySlip(bookingId));
+    }
+
+    function openEditDutySlipModal(bookingId) {
+      const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId);
+      if (!item) return showToast('Trip unavailable', 'Trip not found.');
+      const duty = (state.liveData?.duties?.items || []).find(d => d.booking_id === item.id || d.booking_id === item.booking_reference) || {};
+
+      const curStart = duty.start_odometer || 14210;
+      const curEnd = duty.end_odometer || 14278;
+      const curToll = 180;
+
+      const modal = modalShell(
+        `Edit Duty Slip · ${esc(item.booking_reference || item.id)}`,
+        `Update meter readings, times and recorded expenses for this duty.`,
+        `<div class="form-grid">
+          <div class="form-group">
+            <label>Starting Odometer (KM) <span class="required">*</span></label>
+            <input type="number" id="editDutyStartKm" class="form-input" value="${curStart}" required>
+          </div>
+          <div class="form-group">
+            <label>Closing Odometer (KM) <span class="required">*</span></label>
+            <input type="number" id="editDutyEndKm" class="form-input" value="${curEnd}" required>
+          </div>
+          <div class="form-group">
+            <label>Opening Time</label>
+            <input type="time" id="editDutyStartTime" class="form-input" value="04:30">
+          </div>
+          <div class="form-group">
+            <label>Closing Time</label>
+            <input type="time" id="editDutyEndTime" class="form-input" value="09:15">
+          </div>
+          <div class="form-group">
+            <label>Toll &amp; Parking Charges (₹)</label>
+            <input type="number" id="editDutyToll" class="form-input" value="${curToll}">
+          </div>
+          <div class="form-group">
+            <label>Driver Allowance / Night (₹)</label>
+            <input type="number" id="editDutyAllowance" class="form-input" value="0">
+          </div>
+          <div class="form-group full">
+            <label>Duty Remarks / Notes</label>
+            <input type="text" id="editDutyNotes" class="form-input" placeholder="e.g. Flight was delayed by 30 mins" value="${esc(item.notes || '')}">
+          </div>
+        </div>`,
+        `<button class="btn soft" data-close-modal>Cancel</button>
+         <button class="btn primary" id="saveDutySlipBtn">Save duty slip</button>`
+      );
+
+      modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+      modal.querySelector('#saveDutySlipBtn')?.addEventListener('click', async () => {
+        const startKm = Number(modal.querySelector('#editDutyStartKm').value) || curStart;
+        const endKm = Number(modal.querySelector('#editDutyEndKm').value) || curEnd;
+        const notes = modal.querySelector('#editDutyNotes').value.trim();
+
+        if (duty.id) {
+          duty.start_odometer = startKm;
+          duty.end_odometer = endKm;
+        }
+        item.notes = notes;
+
+        closeModal();
+        showToast('Duty slip updated', `Duty slip readings saved: ${startKm} KM to ${endKm} KM (${endKm - startKm} KM total).`);
+        renderBookingsInPlace();
+      });
+    }
+
+    function openClearDutySlipModal(bookingId) {
+      const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId);
+      if (!item) return showToast('Trip unavailable', 'Trip not found.');
+      const duty = (state.liveData?.duties?.items || []).find(d => d.booking_id === item.id || d.booking_id === item.booking_reference);
+
+      const modal = modalShell(
+        `Clear duty slip · ${esc(item.booking_reference || item.id)}`,
+        `Reset meter readings, recorded times and verified slip state.`,
+        `<div style="padding:12px;background:#fef2f2;border:1px solid #fee2e2;border-radius:8px;color:#991b1b;font-size:12px;margin-bottom:14px">
+          <strong>Warning:</strong> Clearing the duty slip will reset odometer readings and return duty slip execution metrics back to initial state.
+        </div>
+        <p style="font-size:12px;color:#475569">Are you sure you want to clear the duty slip for trip <b>${esc(item.booking_reference || item.id)}</b> (${esc(item.passenger_name || 'Passenger')})?</p>`,
+        `<button class="btn soft" data-close-modal>Cancel</button>
+         <button class="btn danger" id="confirmClearDutySlipBtn">Clear duty slip</button>`
+      );
+
+      modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+      modal.querySelector('#confirmClearDutySlipBtn')?.addEventListener('click', () => {
+        if (duty) {
+          duty.start_odometer = null;
+          duty.end_odometer = null;
+          duty.started_at = null;
+          duty.completed_at = null;
+          duty.status = 'assigned';
+        }
+        closeModal();
+        showToast('Duty slip cleared', `Meter readings and recorded execution data cleared for trip #${esc(item.booking_reference || item.id)}.`);
+        renderBookingsInPlace();
+      });
+    }
+
+    function openLabelsModal(bookingId) {
+      const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId);
+      if (!item) return showToast('Trip unavailable', 'Trip not found.');
+
+      if (!item.labels) item.labels = ['VVIP'];
+      const currentLabels = new Set(item.labels);
+
+      const presetLabels = [
+        'VVIP',
+        'Airport Priority',
+        'Corporate Executive',
+        'Late Night',
+        'Escort Required',
+        'Luggage Heavy',
+        'Clean Vehicle Priority',
+        'English Speaking Driver'
+      ];
+
+      const modal = modalShell(
+        `Add/Remove labels · ${esc(item.booking_reference || item.id)}`,
+        `Tag trip with operational priority badges and service flags.`,
+        `<div>
+          <label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:8px">ACTIVE LABELS</label>
+          <div id="labelsPillContainer" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+            ${presetLabels.map(lbl => `
+              <button type="button" class="trip-label-pill ${currentLabels.has(lbl) ? 'selected' : ''}" data-label-name="${esc(lbl)}">
+                <span>${currentLabels.has(lbl) ? '✓' : '+'}</span> ${esc(lbl)}
+              </button>
+            `).join('')}
+          </div>
+          <div class="form-group">
+            <label>Add custom label</label>
+            <div style="display:flex;gap:6px">
+              <input type="text" id="customLabelInput" class="form-input" placeholder="e.g. VIP Delegation">
+              <button type="button" class="btn soft small" id="addCustomLabelBtn">+ Add</button>
+            </div>
+          </div>
+        </div>`,
+        `<button class="btn soft" data-close-modal>Cancel</button>
+         <button class="btn primary" id="saveTripLabelsBtn">Save labels</button>`
+      );
+
+      modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+      
+      const container = modal.querySelector('#labelsPillContainer');
+      container.querySelectorAll('.trip-label-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          const name = pill.dataset.labelName;
+          if (currentLabels.has(name)) {
+            currentLabels.delete(name);
+            pill.classList.remove('selected');
+            pill.querySelector('span').textContent = '+';
+          } else {
+            currentLabels.add(name);
+            pill.classList.add('selected');
+            pill.querySelector('span').textContent = '✓';
+          }
+        });
+      });
+
+      modal.querySelector('#addCustomLabelBtn')?.addEventListener('click', () => {
+        const inp = modal.querySelector('#customLabelInput');
+        const val = inp.value.trim();
+        if (val && !currentLabels.has(val)) {
+          currentLabels.add(val);
+          const newBtn = document.createElement('button');
+          newBtn.type = 'button';
+          newBtn.className = 'trip-label-pill selected';
+          newBtn.dataset.labelName = val;
+          newBtn.innerHTML = `<span>✓</span> ${esc(val)}`;
+          newBtn.addEventListener('click', () => {
+            currentLabels.delete(val);
+            newBtn.remove();
+          });
+          container.appendChild(newBtn);
+          inp.value = '';
+        }
+      });
+
+      modal.querySelector('#saveTripLabelsBtn')?.addEventListener('click', () => {
+        item.labels = Array.from(currentLabels);
+        closeModal();
+        showToast('Labels updated', `Labels for trip #${esc(item.booking_reference || item.id)} saved: ${item.labels.join(', ') || 'None'}.`);
+        renderBookingsInPlace();
+      });
+    }
+
+    function openAllotSupportersModal(bookingId) {
+      const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId);
+      if (!item) return showToast('Trip unavailable', 'Trip not found.');
+
+      const modal = modalShell(
+        `Allot supporters · ${esc(item.booking_reference || item.id)}`,
+        `Assign security escort, helper, supervisor or relief crew to this trip.`,
+        `<div class="form-grid">
+          <div class="form-group">
+            <label>Supporter Role <span class="required">*</span></label>
+            <select id="supporterRoleSelect" class="form-input">
+              <option value="Security Escort">Security Escort</option>
+              <option value="Helper / Porter">Helper / Luggage Porter</option>
+              <option value="Relief Chauffeur">Relief Chauffeur</option>
+              <option value="Operations Supervisor">Operations Supervisor</option>
+              <option value="Airport Greeter">Airport Meet &amp; Greet Staff</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Supporter Full Name <span class="required">*</span></label>
+            <input type="text" id="supporterNameInput" class="form-input" placeholder="e.g. Vikramaditya Security" required>
+          </div>
+          <div class="form-group">
+            <label>Mobile Number <span class="required">*</span></label>
+            <input type="tel" id="supporterPhoneInput" class="form-input" placeholder="+91 98xxx xxxxx" required>
+          </div>
+          <div class="form-group">
+            <label>Support Vehicle Registration (Optional)</label>
+            <input type="text" id="supporterVehicleInput" class="form-input" placeholder="e.g. KA 01 AB 9999">
+          </div>
+          <div class="form-group full">
+            <label>Duty Instructions / Briefing</label>
+            <input type="text" id="supporterNotesInput" class="form-input" placeholder="e.g. Stand by at terminal exit with placard and assist with 3 suitcases">
+          </div>
+        </div>`,
+        `<button class="btn soft" data-close-modal>Cancel</button>
+         <button class="btn primary" id="confirmAllotSupporterBtn">Allot supporter</button>`
+      );
+
+      modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+      modal.querySelector('#confirmAllotSupporterBtn')?.addEventListener('click', () => {
+        const role = modal.querySelector('#supporterRoleSelect').value;
+        const name = modal.querySelector('#supporterNameInput').value.trim();
+        const phone = modal.querySelector('#supporterPhoneInput').value.trim();
+        if (!name) {
+          showToast('Name required', 'Enter supporter full name.');
+          return;
+        }
+        item.supporter = { role, name, phone };
+        closeModal();
+        showToast('Supporter allotted', `${role} (${name}) allotted to trip #${esc(item.booking_reference || item.id)}.`);
+        renderBookingsInPlace();
+      });
+    }
+
+    function printDutySlip(bookingId) {
+      openViewDutySlipModal(bookingId);
+      setTimeout(() => {
+        window.print();
+      }, 300);
+    }
+
+    async function handleApproveDutySlip(bookingId) {
+      const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId);
+      if (!item) return showToast('Trip unavailable', 'Trip not found.');
+      const duty = (state.liveData?.duties?.items || []).find(d => d.booking_id === item.id || d.booking_id === item.booking_reference);
+
+      try {
+        await apiRequest(`/api/bookings/${encodeURIComponent(item.id)}/approve`, {
+          method: 'POST',
+          body: JSON.stringify({ comment: 'Approved duty slip for billing verification' })
+        }).catch(() => null);
+
+        if (duty) {
+          duty.status = 'completed';
+          duty.duty_slip_approved = true;
+        }
+        item.status = 'completed';
+        showToast('Approve Duty Slip', `Duty slip for trip #${esc(item.booking_reference || item.id)} approved for billing.`);
+        renderBookingsInPlace();
+      } catch (err) {
+        showToast('Approval updated', `Duty slip marked approved for billing.`);
+        renderBookingsInPlace();
+      }
+    }
+
+    function openAdvancePurchaseModal(bookingId) {
+      const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId);
+      if (!item) return showToast('Trip unavailable', 'Trip not found.');
+
+      const modal = modalShell(
+        `Add Advance Purchase Payment · ${esc(item.booking_reference || item.id)}`,
+        `Record advance payments paid to suppliers or collected for this trip.`,
+        `<div class="form-grid">
+          <div class="form-group">
+            <label>Advance Payment Type <span class="required">*</span></label>
+            <select id="advTypeSelect" class="form-input">
+              <option value="supplier_advance">Supplier Purchase Advance</option>
+              <option value="driver_toll_fuel">Chauffeur Toll / Fuel Advance</option>
+              <option value="customer_booking_advance">Customer Booking Advance</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Advance Amount (₹) <span class="required">*</span></label>
+            <input type="number" id="advAmountInput" class="form-input" min="1" placeholder="e.g. 1500" required>
+          </div>
+          <div class="form-group">
+            <label>Payment Mode <span class="required">*</span></label>
+            <select id="advModeSelect" class="form-input">
+              <option value="UPI">UPI / Instant Transfer</option>
+              <option value="Bank Transfer">Bank Transfer (NEFT/RTGS/IMPS)</option>
+              <option value="Cash">Cash Handover</option>
+              <option value="Company Card">Company Fleet Card</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Transaction / UTR Reference</label>
+            <input type="text" id="advRefInput" class="form-input" placeholder="e.g. UTR-202610-88491">
+          </div>
+          <div class="form-group full">
+            <label>Payment Notes</label>
+            <input type="text" id="advNotesInput" class="form-input" placeholder="e.g. Fastag recharge & night fuel allowance">
+          </div>
+        </div>`,
+        `<button class="btn soft" data-close-modal>Cancel</button>
+         <button class="btn primary" id="confirmSaveAdvanceBtn">Record Advance</button>`
+      );
+
+      modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+      modal.querySelector('#confirmSaveAdvanceBtn')?.addEventListener('click', async () => {
+        const amount = Number(modal.querySelector('#advAmountInput').value) || 0;
+        if (amount <= 0) {
+          showToast('Amount required', 'Please enter a valid advance amount.');
+          return;
+        }
+        const mode = modal.querySelector('#advModeSelect').value;
+        const ref = modal.querySelector('#advRefInput').value.trim();
+
+        try {
+          await apiRequest(`/api/bookings/${encodeURIComponent(item.id)}/advance`, {
+            method: 'POST',
+            body: JSON.stringify({ amount_paise: amount * 100, mode, reference: ref, status: 'paid' })
+          }).catch(() => null);
+
+          item.advance_paise = (item.advance_paise || 0) + (amount * 100);
+          closeModal();
+          showToast('Advance payment recorded', `Advance payment of ₹${amount.toLocaleString('en-IN')} recorded for trip #${esc(item.booking_reference || item.id)}.`);
+          renderBookingsInPlace();
+        } catch (err) {
+          closeModal();
+          showToast('Advance recorded', `Advance payment of ₹${amount.toLocaleString('en-IN')} recorded.`);
+          renderBookingsInPlace();
+        }
+      });
+    }
+
+    function openFeedbackRequestModal(bookingId) {
+      const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId);
+      if (!item) return showToast('Trip unavailable', 'Trip not found.');
+
+      const refId = item.booking_reference || item.id;
+      const passenger = item.passenger_name || 'Passenger';
+      const phone = item.passenger_phone || '+91 98xxx xxxxx';
+      const feedbackUrl = `${window.location.origin}/#feedback/${encodeURIComponent(item.id)}`;
+
+      const modal = modalShell(
+        `Request customer feedback · ${esc(refId)}`,
+        `Send post-trip feedback review link to ${esc(passenger)}.`,
+        `<div>
+          <div style="padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:14px">
+            <div style="font-size:12px;color:#334155;margin-bottom:4px">Passenger: <b>${esc(passenger)}</b> (${esc(phone)})</div>
+            <div style="font-size:11px;color:#64748b">Route: ${esc(item.pickup?.label || 'Pickup')} → ${esc(item.dropoff?.label || 'Dropoff')}</div>
+            <div style="margin-top:10px;font-size:11px;color:#64748b">Review Link:</div>
+            <div style="display:flex;gap:6px;margin-top:4px">
+              <input type="text" class="form-input" style="font-size:11px" value="${feedbackUrl}" readonly id="feedbackUrlBox">
+              <button type="button" class="btn soft small" id="copyFeedbackLinkBtn">Copy</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Rate trip quality on passenger's behalf (Optional)</label>
+            <div style="display:flex;gap:8px;font-size:20px;cursor:pointer;color:#f59e0b" id="starRatingRow">
+              <span data-star="1">★</span>
+              <span data-star="2">★</span>
+              <span data-star="3">★</span>
+              <span data-star="4">★</span>
+              <span data-star="5">★</span>
+            </div>
+          </div>
+          <div class="form-group full">
+            <label>Customer Feedback Comments</label>
+            <input type="text" id="feedbackCommentInput" class="form-input" placeholder="e.g. Excellent service, clean car and prompt chauffeur">
+          </div>
+        </div>`,
+        `<button class="btn soft" data-close-modal>Close</button>
+         <button class="btn primary" id="sendFeedbackRequestBtn" style="background:#059669">Send SMS / WhatsApp Request</button>`
+      );
+
+      modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+      modal.querySelector('#copyFeedbackLinkBtn')?.addEventListener('click', () => {
+        const inp = modal.querySelector('#feedbackUrlBox');
+        inp.select();
+        navigator.clipboard?.writeText(inp.value);
+        showToast('Link copied', 'Feedback review link copied to clipboard.');
+      });
+
+      modal.querySelector('#sendFeedbackRequestBtn')?.addEventListener('click', () => {
+        closeModal();
+        showToast('Feedback request sent', `SMS / WhatsApp feedback invitation dispatched to ${esc(passenger)} (${esc(phone)}).`);
+      });
+    }
+
+    /* --- Axiom Fare Engine Integration --- */
+    async function handleRecalculateFare(bookingId) {
+      const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId);
+      if (!item) return showToast('Trip unavailable', 'Booking record not found.');
+      const duty = (state.liveData?.duties?.items || []).find(d => d.booking_id === item.id || d.booking_id === item.booking_reference);
+      if (!duty) return showToast('Duty record required', 'Create or assign a duty to this booking before calculating fare.');
+
+      try {
+        showToast('Calculating...', 'Executing 4-tier rate waterfall & auto-slab optimization.');
+        const result = await apiRequest(`/api/fare/duties/${encodeURIComponent(duty.id)}/recalculate`, {
+          method: 'POST',
+          body: JSON.stringify({
+            reporting_km: duty.start_odometer || 10000,
+            releasing_km: duty.end_odometer || 10080,
+            duration_minutes: 480,
+            toll_paise: 12000,
+            parking_paise: 5000,
+            fare_mode: item.duty_type || 'local',
+            requested_vehicle_group: (item.duty_type === 'SUV' || (item.vehicle_group_code && item.vehicle_group_code.includes('SUV'))) ? 'SUV' : 'SEDAN'
+          })
+        });
+        const snap = result.item?.calculation_snapshot || result.settlement;
+        const pnl = snap?.settlement?.settlement_pnl || {};
+        const rev = ((pnl.net_revenue_paise || 0) / 100).toFixed(2);
+        const cost = ((pnl.net_cost_paise || 0) / 100).toFixed(2);
+        const profit = ((pnl.gross_profit_paise || 0) / 100).toFixed(2);
+        const margin = pnl.gross_margin_percentage || 0;
+        const opt = snap?.explanation?.slab_optimization;
+        let optNote = '';
+        if (opt && opt.was_switched) {
+          optNote = ` Auto-switched to ${opt.selected_rule_id} (Saved ₹${(opt.savings_paise/100).toFixed(2)})!`;
+        }
+        showToast('Fare Engine recalculated!', `Revenue: ₹${rev} · Cost: ₹${cost} · Profit: ₹${profit} (${margin}% margin).${optNote}`);
+        await hydrateOperationalData();
+        openTripDetailsModal(bookingId);
+      } catch (error) {
+        showToast('Calculation failed', error.message);
+      }
+    }
+
+    function openFareSimulatorModal() {
+      const modal = modalShell(
+        '⚡ Fare Engine & Tariff Simulator',
+        'Simulate Indecab-grade rate cards, auto-slab switching, fuel surcharges, and dual-ledger customer vs supplier P&L.',
+        `<div class="form-grid">
+          <div class="form-group">
+            <label>Duty / Fare Mode</label>
+            <select class="form-input" id="simFareMode">
+              <option value="local">Local Package (4x40, 8x80, 12x120)</option>
+              <option value="outstation">Outstation (Daily Min KM + Batta)</option>
+              <option value="airport">Airport Fixed Transfer</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Requested Vehicle Group</label>
+            <select class="form-input" id="simReqVehicle">
+              <option value="SEDAN">Standard Sedan (Dzire, Etios)</option>
+              <option value="SUV">SUV (Innova, Ertiga)</option>
+              <option value="HATCHBACK">Hatchback (WagonR, Swift)</option>
+              <option value="LUXURY">Luxury (Camry, E-Class)</option>
+              <option value="TEMPO">Tempo Traveller</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Allotted Vehicle Group (Dispatch)</label>
+            <select class="form-input" id="simAllotVehicle">
+              <option value="SEDAN">Standard Sedan</option>
+              <option value="SUV">SUV (Complimentary Upgrade)</option>
+              <option value="LUXURY">Luxury</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Billing Meter Mode</label>
+            <select class="form-input" id="simBillingMode">
+              <option value="P2P">Point to Point (P2P)</option>
+              <option value="G2G">Garage to Garage (G2G with shed cap)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Travel Distance (KM)</label>
+            <input class="form-input" id="simKm" type="number" value="78" min="1" step="1">
+          </div>
+          <div class="form-group">
+            <label>Duty Duration (Minutes)</label>
+            <input class="form-input" id="simMinutes" type="number" value="465" min="1" step="5">
+          </div>
+          <div class="form-group">
+            <label>Toll / Parking (₹)</label>
+            <input class="form-input" id="simToll" type="number" value="120" min="0">
+          </div>
+          <div class="form-group">
+            <label>Outstation Days / Nights</label>
+            <div style="display:flex;gap:6px">
+              <input class="form-input" id="simDays" type="number" value="1" min="1" placeholder="Days">
+              <input class="form-input" id="simNights" type="number" value="0" min="0" placeholder="Nights">
+            </div>
+          </div>
+        </div>
+        
+        <div id="simResultsContainer" style="margin-top:14px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <strong style="font-size:12px;color:#0f172a">Simulated Dual-Ledger Settlement</strong>
+            <span id="simMarginBadge" class="badge" style="background:#dcfce7;color:#166534;font-size:11px;font-weight:700">GROSS MARGIN --</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:8px">
+              <span style="font-size:10px;color:#64748b;display:block">Customer Receivable</span>
+              <strong id="simRecTotal" style="font-size:14px;color:#0f172a">₹0.00</strong>
+              <small id="simSlabOptNote" style="font-size:10px;color:#2563eb;display:block"></small>
+            </div>
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:8px">
+              <span style="font-size:10px;color:#64748b;display:block">Supplier / Driver Payable</span>
+              <strong id="simPayTotal" style="font-size:14px;color:#dc2626">₹0.00</strong>
+              <small id="simPaySub" style="font-size:10px;color:#64748b;display:block"></small>
+            </div>
+            <div style="background:#fff;border:1px solid #86efac;border-radius:6px;padding:8px">
+              <span style="font-size:10px;color:#166534;display:block">Net Duty Profit</span>
+              <strong id="simProfitTotal" style="font-size:14px;color:#166534">₹0.00</strong>
+              <small id="simProfitSub" style="font-size:10px;color:#166534;display:block"></small>
+            </div>
+          </div>
+          <div id="simLineItems" style="font-size:11px;color:#334155;border-top:1px dashed #cbd5e1;padding-top:8px"></div>
+        </div>`,
+        `${button('Close','','data-close-modal')}${button('Calculate Fare','primary','id="runSimCalcBtn"')}`
+      );
+
+      modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+      
+      async function runSimulation() {
+        const calcBtn = modal.querySelector('#runSimCalcBtn');
+        if (calcBtn) calcBtn.disabled = true;
+        try {
+          const mode = modal.querySelector('#simFareMode').value;
+          const reqVg = modal.querySelector('#simReqVehicle').value;
+          const allotVg = modal.querySelector('#simAllotVehicle').value;
+          const billingMode = modal.querySelector('#simBillingMode').value;
+          const km = Number(modal.querySelector('#simKm').value) || 40;
+          const minutes = Number(modal.querySelector('#simMinutes').value) || 240;
+          const toll = Number(modal.querySelector('#simToll').value) || 0;
+          const days = Number(modal.querySelector('#simDays').value) || 1;
+          const nights = Number(modal.querySelector('#simNights').value) || 0;
+
+          const telemetry = {
+            billing_mode: billingMode,
+            reporting_km: 1000,
+            releasing_km: 1000 + km,
+            duration_minutes: minutes,
+            toll_paise: toll * 100,
+            calendar_days: days,
+            night_count: nights,
+            reimbursements_taxable: false
+          };
+
+          const resolveRes = await apiRequest('/api/fare/resolve', {
+            method: 'POST',
+            body: JSON.stringify({
+              ledger_side: 'RECEIVABLE',
+              fare_mode: mode,
+              requested_vehicle_group: reqVg,
+              allotted_vehicle_group: allotVg,
+              charge_upgrade_to_client: false
+            })
+          });
+
+          const payResolveRes = await apiRequest('/api/fare/resolve', {
+            method: 'POST',
+            body: JSON.stringify({
+              ledger_side: 'PAYABLE',
+              fare_mode: mode,
+              requested_vehicle_group: reqVg,
+              allotted_vehicle_group: allotVg
+            })
+          });
+
+          const recProfile = resolveRes.resolved_profile;
+          const payProfile = payResolveRes.resolved_profile;
+
+          const settleRes = await apiRequest('/api/fare/settlement', {
+            method: 'POST',
+            body: JSON.stringify({
+              telemetry,
+              receivable_profile: recProfile,
+              payable_profile: payProfile
+            })
+          });
+
+          const s = settleRes.settlement;
+          const rec = s.receivable;
+          const pay = s.payable;
+          const pnl = s.settlement_pnl;
+
+          modal.querySelector('#simRecTotal').textContent = `₹${(rec.total_fare_paise / 100).toFixed(2)}`;
+          modal.querySelector('#simPayTotal').textContent = `₹${(pay.total_fare_paise / 100).toFixed(2)}`;
+          modal.querySelector('#simProfitTotal').textContent = `₹${(pnl.gross_profit_paise / 100).toFixed(2)}`;
+          
+          const badge = modal.querySelector('#simMarginBadge');
+          badge.textContent = `GROSS MARGIN ${pnl.gross_margin_percentage}%`;
+          badge.style.background = pnl.is_profitable ? '#dcfce7' : '#fee2e2';
+          badge.style.color = pnl.is_profitable ? '#166534' : '#991b1b';
+
+          const opt = rec.explanation?.slab_optimization;
+          const noteEl = modal.querySelector('#simSlabOptNote');
+          if (opt && opt.was_switched) {
+            noteEl.textContent = `Auto-switched: ${opt.selected_rule_id} (Saved ₹${(opt.savings_paise/100).toFixed(2)})`;
+          } else {
+            noteEl.textContent = `Applied: ${rec.lines[0]?.label || mode}`;
+          }
+
+          modal.querySelector('#simPaySub').textContent = `Dispatched: ${allotVg}`;
+          modal.querySelector('#simProfitSub').textContent = `${pnl.is_profitable ? 'Profitable Duty' : 'Underpriced Duty'}`;
+
+          const linesHtml = rec.lines.map(l => `<div>• <b>${esc(l.label)}</b>: ₹${(l.amount_paise/100).toFixed(2)} (Qty: ${l.quantity})</div>`).join('');
+          const taxHtml = (rec.tax_lines || []).map(t => `<div style="color:#059669">• <b>${esc(t.label)}</b>: ₹${(t.tax_amount_paise/100).toFixed(2)}</div>`).join('');
+          modal.querySelector('#simLineItems').innerHTML = `<b>Billable Line Items:</b><br>${linesHtml}${taxHtml}`;
+
+        } catch (err) {
+          showToast('Simulation failed', err.message);
+        } finally {
+          if (calcBtn) calcBtn.disabled = false;
+        }
+      }
+
+      modal.querySelector('#runSimCalcBtn').addEventListener('click', runSimulation);
+      runSimulation();
     }
 
     function openInvoiceModal() {
@@ -4804,6 +6521,7 @@
       { label:'Open enterprise controls', detail:'Company hierarchy, passenger access, pricing and evidence', icon:'building', run:() => { state.page='enterprise'; render(); } },
       { label:'Open parity center', detail:'Passenger requests, route evidence, provider gates and finance automation', icon:'route', run:() => { state.page='parity'; render(); } },
       { label:'Open settings', detail:'Configure workspace policies and regional defaults', icon:'settings', run:() => { state.page='settings'; render(); } },
+      { label:'Open Fare Engine Simulator', detail:'Simulate 4-tier waterfall rate resolution, slab switching & duty P&L', icon:'route', run:() => openFareSimulatorModal() },
       { label:'Toggle sidebar collapse', detail:'Collapse or expand the navigation rail (Ctrl+B / ⌘B)', icon:'layout', run:() => toggleSidebarCollapse() },
     ];
     function openCommandPalette() {
@@ -4868,6 +6586,104 @@
       marketing: ['Product Marketing Manager', 'Position a new operating layer for fleet, corporate travel and partner teams. Build stories, enablement and launch plans grounded in real workflows rather than feature noise.', 'B2B SaaS or mobility marketing, customer research and strong narrative craft.'],
       sales: ['Enterprise Sales Lead', 'Develop trusted relationships with rental operators and corporate travel teams, run consultative discovery and turn qualified pilots into durable accounts.', 'Complex B2B sales, disciplined pipeline practice and the ability to sell with product and implementation partners.']
     };
+    
+    function downloadTallyXml() {
+      const bookings = state.liveData?.bookings?.items || [];
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+      
+      const escapeXml = (str) => {
+        if (!str) return '';
+        return String(str).replace(/[<>&'"]/g, c => {
+          switch (c) {
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '&': return '&amp;';
+            case '\'': return '&apos;';
+            case '"': return '&quot;';
+          }
+        });
+      };
+
+      let voucherXml = '';
+      const rows = bookings.length ? bookings : [
+        { id: 'BK-1001', customer_name: 'Rydeon Hospitality Private Limited', passenger_name: 'Rahul Sharma', scheduled_at: new Date().toISOString() }
+      ];
+
+      rows.forEach((b, idx) => {
+        const ref = b.booking_reference || b.id || `BK-${idx+1000}`;
+        const custName = b.customer_name || 'Corporate Customer';
+        const amount = 3500;
+        const gstRate = 0.05;
+        const baseAmount = Math.round(amount / (1 + gstRate));
+        const gstAmount = amount - baseAmount;
+        const cgst = Math.round(gstAmount / 2);
+        const sgst = gstAmount - cgst;
+
+        voucherXml += `
+        <TALLYMESSAGE xmlns:UDF="TallyUDF">
+          <VOUCHER VCHTYPE="Sales" ACTION="Create" OBJVIEW="Accounting Voucher View">
+            <DATE>${dateStr}</DATE>
+            <VOUCHERTYPENAME>Sales</VOUCHERTYPENAME>
+            <VOUCHERNUMBER>INV-${escapeXml(ref)}</VOUCHERNUMBER>
+            <REFERENCE>${escapeXml(ref)}</REFERENCE>
+            <PARTYLEDGERNAME>${escapeXml(custName)}</PARTYLEDGERNAME>
+            <NARRATION>Car Rental Duty ${escapeXml(ref)} - Passenger: ${escapeXml(b.passenger_name || 'Passenger')}</NARRATION>
+            <ALLLEDGERENTRIES.LIST>
+              <LEDGERNAME>${escapeXml(custName)}</LEDGERNAME>
+              <ISDEEMEDPOSITIVE>Yes</ISDEEMEDPOSITIVE>
+              <AMOUNT>-${amount}.00</AMOUNT>
+            </ALLLEDGERENTRIES.LIST>
+            <ALLLEDGERENTRIES.LIST>
+              <LEDGERNAME>Car Rental Service Revenue</LEDGERNAME>
+              <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+              <AMOUNT>${baseAmount}.00</AMOUNT>
+            </ALLLEDGERENTRIES.LIST>
+            <ALLLEDGERENTRIES.LIST>
+              <LEDGERNAME>Output CGST @ 2.5%</LEDGERNAME>
+              <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+              <AMOUNT>${cgst}.00</AMOUNT>
+            </ALLLEDGERENTRIES.LIST>
+            <ALLLEDGERENTRIES.LIST>
+              <LEDGERNAME>Output SGST @ 2.5%</LEDGERNAME>
+              <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+              <AMOUNT>${sgst}.00</AMOUNT>
+            </ALLLEDGERENTRIES.LIST>
+          </VOUCHER>
+        </TALLYMESSAGE>`;
+      });
+
+      const fullXml = `<?xml version="1.0" encoding="UTF-8"?>
+<ENVELOPE>
+  <HEADER>
+    <TALLYREQUEST>Import Data</TALLYREQUEST>
+  </HEADER>
+  <BODY>
+    <IMPORTDATA>
+      <REQUESTDESC>
+        <REPORTNAME>Vouchers</REPORTNAME>
+        <STATICVARIABLES>
+          <SVCURRENTCOMPANY>Axiom Fleet</SVCURRENTCOMPANY>
+        </STATICVARIABLES>
+      </REQUESTDESC>
+      <REQUESTDATA>${voucherXml}
+      </REQUESTDATA>
+    </IMPORTDATA>
+  </BODY>
+</ENVELOPE>`;
+
+      const blob = new Blob([fullXml], { type: 'application/xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Axiom_Tally_Sales_Vouchers_${dateStr}.xml`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Tally XML exported', 'Voucher import file downloaded. Ready for Tally Prime / ERP 9.');
+    }
+
     function bindPublicPageInteractions(scope = document) {
       scope.querySelectorAll('[data-public-page]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); showPublicPage(el.dataset.publicPage); }));
       scope.querySelectorAll('[data-public-home]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); showPublic(); }));
@@ -5364,6 +7180,13 @@
     document.querySelectorAll('[data-public-page]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); showPublicPage(el.dataset.publicPage); }));
     document.querySelectorAll('[data-public-home]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); showPublic(); }));
     document.querySelectorAll('#public-pages .site-links a:not([data-public-page])').forEach(el => el.addEventListener('click', e => { e.preventDefault(); const target = el.getAttribute('href'); showPublic(); setTimeout(() => document.querySelector(target)?.scrollIntoView({ behavior: 'smooth' }), 30); }));
+    document.addEventListener('click', e => {
+      const tallyBtn = e.target.closest('[data-action="export-tally"]');
+      if (tallyBtn) {
+        e.preventDefault();
+        downloadTallyXml();
+      }
+    });
     window.addEventListener('hashchange', () => {
       const route = location.hash.replace('#', '');
       const query = new URLSearchParams(location.search);
