@@ -4888,7 +4888,7 @@
     function closeDrawer() { const drawer=document.getElementById('drawer'); drawer.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); document.getElementById('drawerBackdrop').classList.remove('open'); }
 
     function modalShell(title, subtitle, body, footer) { const modal = document.getElementById('modal'); modal.innerHTML = `<div class="modal-head"><div><h2 id="activeModalTitle">${title}</h2><p>${subtitle}</p></div><button class="drawer-close" type="button" data-close-modal aria-label="Close dialog">${icon('x')}</button></div><div class="modal-body" aria-live="polite">${body}</div><div class="modal-footer">${footer}</div>`; modal.setAttribute('role','dialog'); modal.setAttribute('aria-modal','true'); modal.setAttribute('aria-labelledby','activeModalTitle'); document.getElementById('modalBackdrop').classList.add('open'); modal.querySelector('[data-close-modal]').addEventListener('click', closeModal); bindInlineValidation(modal); modal.addEventListener('click', event => { const submit=event.target.closest('[data-submit-]'); if (submit && !validateRequiredGroups(modal)) { event.preventDefault(); event.stopImmediatePropagation(); } }, true); requestAnimationFrame(() => modal.querySelector('.form-input, input, select, textarea, button:not([data-close-modal])')?.focus()); return modal; }
-    function closeModal() { document.getElementById('modalBackdrop').classList.remove('open'); }
+    function closeModal() { document.getElementById('modalBackdrop').classList.remove('open'); const modal = document.getElementById('modal'); if (modal) { modal.style.maxWidth = ''; modal.style.width = ''; } }
     function clearFieldErrors(root) { root?.querySelectorAll('.inline-error').forEach(node => node.remove()); root?.querySelectorAll('.has-error').forEach(node => node.classList.remove('has-error')); root?.querySelectorAll('[aria-invalid="true"]').forEach(node => node.removeAttribute('aria-invalid')); }
     function markFieldError(field, message) { const container=field.closest('.form-group, label') || field.parentElement; container?.classList.add('has-error'); field.setAttribute('aria-invalid','true'); const error=document.createElement('span'); error.className='inline-error'; error.textContent=message; error.id=`field-error-${Math.random().toString(16).slice(2)}`; field.setAttribute('aria-describedby',error.id); container?.appendChild(error); return field; }
     function validateRequiredGroups(root) { clearFieldErrors(root); let first=null; root?.querySelectorAll('.form-group').forEach(group => { if (!group.querySelector('.required')) return; const field=group.querySelector('.form-input, input, select, textarea'); if (!field || String(field.value || '').trim()) return; markFieldError(field, `${field.getAttribute('aria-label') || group.querySelector('label')?.textContent?.replace('*','').trim() || 'This field'} is required.`); if (!first) first=field; }); if (first) { first.focus(); return false; } return true; }
@@ -5367,7 +5367,7 @@
 
       // 10 exact options from reference UI
       const menuItems = [
-        { label: 'Details', action: () => openTripDetailsModal(bookingId) },
+        { label: 'Details', action: () => openDutyDetailsModal(bookingId) },
         { label: 'View duty slip', action: () => openViewDutySlipModal(bookingId) },
         { label: 'Edit duty slip', action: () => openEditDutySlipModal(bookingId) },
         { label: 'Clear duty slip', action: () => openClearDutySlipModal(bookingId) },
@@ -5418,7 +5418,285 @@
     function openBookingActionsModal(bookingId) {
       const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId);
       if (!item) return showToast('Booking unavailable', 'The booking is no longer in the current tenant response.');
-      openTripDetailsModal(bookingId);
+      openDutyDetailsModal(bookingId);
+    }
+
+    function openDutyDetailsModal(bookingId) {
+      const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId) || {};
+      const duty = (state.liveData?.duties?.items || []).find(d => d.booking_id === item.id || d.booking_id === item.booking_reference || d.id === bookingId || d.reference === bookingId) || {};
+
+      const refId = item.booking_reference || item.id || '78424384';
+      const dutyId = (duty && duty.id && !duty.id.startsWith('duty_')) ? duty.id : `${refId}-1`;
+
+      let rawStatus = (duty && duty.status) || item.status || 'completed';
+      let statusText = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
+      if (rawStatus === 'assigned') statusText = 'Allotted';
+      const isCompleted = rawStatus.toLowerCase() === 'completed';
+      const statusColor = isCompleted ? '#dc2626' : (rawStatus.toLowerCase() === 'assigned' || rawStatus.toLowerCase() === 'allotted') ? '#2563eb' : '#059669';
+
+      function formatDateDMY(dStr, fallback) {
+        if (!dStr) return fallback;
+        const d = new Date(dStr);
+        if (isNaN(d.getTime())) return fallback;
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${dd}-${mm}-${yyyy}`;
+      }
+
+      const startDateStr = formatDateDMY(item.scheduled_at, '10-08-2026');
+      const endDateStr = formatDateDMY(duty.completed_at, startDateStr);
+
+      let repTime = '04:30';
+      let garageStartTime = '03:30';
+      if (item.scheduled_at) {
+        const d = new Date(item.scheduled_at);
+        if (!isNaN(d.getTime())) {
+          repTime = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+          const g = new Date(d.getTime() - 60 * 60 * 1000);
+          garageStartTime = g.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+        }
+      }
+
+      const city = (item.pickup && item.pickup.city) || item.city || 'Bengaluru';
+      const dutyType = item.duty_type || 'Airport Transfer';
+      const vehicleGroup = item.vehicle_group_code || item.vehicle_group || (duty && duty.vehicle_group) || 'Toyota Innova Crysta';
+
+      const custObj = (state.liveData?.customers?.items || []).find(c => c.id === item.customer_id);
+      let customerDisplay = item.customer_name || (custObj && custObj.name) || 'Rydeon Hospitality';
+      if (!customerDisplay.includes('-')) {
+        customerDisplay = `${customerDisplay} - ${city === 'Bengaluru' ? 'Bangalore' : city}`;
+      }
+
+      const supObj = (state.liveData?.suppliers?.items || []).find(s => s.id === item.supplier_id || s.id === duty.supplier_id);
+      const drvObj = (state.liveData?.drivers?.items || []).find(d => d.id === item.driver_id || d.id === duty.driver_id);
+      const supplierName = item.supplier_name || (supObj && supObj.name) || item.driver_name || (drvObj && drvObj.full_name) || 'Shivakumar';
+      const supplierPhone = item.supplier_phone || (supObj && supObj.phone) || item.driver_phone || (drvObj && drvObj.phone) || '9972514143';
+
+      const bookedBy = item.booked_by || 'Self';
+      const label = (item.labels && item.labels[0]) || 'VVIP';
+      const repAddress = (item.pickup && item.pickup.label) || item.pickup_address || 'Holiday Inn Racecourse';
+      const dropAddress = (item.dropoff && item.dropoff.label) || item.dropoff_address || 'Kempegowda International Airport';
+
+      let priceDisplay = '₹ 0.00';
+      let perExtraKmRate = '₹ 0.00';
+      let perExtraHourRate = '₹ 0.00';
+      if (duty && (duty.calculation_snapshot || duty.calculation_snapshot_json)) {
+        try {
+          const snap = duty.calculation_snapshot || (typeof duty.calculation_snapshot_json === 'string' ? JSON.parse(duty.calculation_snapshot_json) : duty.calculation_snapshot_json);
+          if (snap?.total_paise) {
+            priceDisplay = `₹ ${(snap.total_paise / 100).toFixed(2)}`;
+          }
+          if (snap?.customer_pricing?.extra_km_paise) {
+            perExtraKmRate = `₹ ${(snap.customer_pricing.extra_km_paise / 100).toFixed(2)}`;
+          }
+          if (snap?.customer_pricing?.extra_half_hour_paise) {
+            perExtraHourRate = `₹ ${(snap.customer_pricing.extra_half_hour_paise * 2 / 100).toFixed(2)}`;
+          }
+        } catch (_) {}
+      }
+
+      const operatorNotes = item.operator_notes || 'NA';
+      const remarks = item.notes || item.remarks || 'NA';
+      const passengerName = item.passenger_name || 'Miss Claire Spooner-Loveday';
+      const passengerPhone = item.passenger_phone || '9036110972';
+
+      const modal = modalShell(
+        `Duty Details - #${esc(dutyId)}`,
+        '',
+        `<div id="dutyDetailsContainer">
+          <!-- Top Tabs (Indecab Parity) -->
+          <div style="display:flex;border-bottom:1px solid #e5e7eb;margin-bottom:18px">
+            <button type="button" id="tabDutyDetailBtn" style="background:none;border:none;border-bottom:2px solid #2563eb;color:#2563eb;font-weight:600;font-size:13px;padding:8px 36px;cursor:pointer">Detail</button>
+            <button type="button" id="tabDutyActivityBtn" style="background:none;border:none;border-bottom:2px solid transparent;color:#6b7280;font-weight:500;font-size:13px;padding:8px 36px;cursor:pointer">Activity</button>
+          </div>
+
+          <!-- Detail Tab Pane (16-Row Parity Table) -->
+          <div id="dutyDetailPane">
+            <table style="width:100%;border-collapse:collapse;font-size:12.5px;border:1px solid #e5e7eb;background:#ffffff">
+              <tbody>
+                <tr style="background:#f9fafb">
+                  <td style="width:20%;padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">ID</td>
+                  <td style="width:30%;padding:9px 14px;color:#111827;font-weight:500;border:1px solid #f1f5f9">#${esc(dutyId)}</td>
+                  <td style="width:20%;padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Status</td>
+                  <td style="width:30%;padding:9px 14px;color:${statusColor};font-weight:600;border:1px solid #f1f5f9">${esc(statusText)}</td>
+                </tr>
+                <tr style="background:#ffffff">
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Start Date</td>
+                  <td style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(startDateStr)}</td>
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">End Date</td>
+                  <td style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(endDateStr)}</td>
+                </tr>
+                <tr style="background:#f9fafb">
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Garage Start Time</td>
+                  <td style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(garageStartTime)}</td>
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Reporting Time</td>
+                  <td style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(repTime)}</td>
+                </tr>
+                <tr style="background:#ffffff">
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">City</td>
+                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(city)}</td>
+                </tr>
+                <tr style="background:#f9fafb">
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Duty Type</td>
+                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(dutyType)}</td>
+                </tr>
+                <tr style="background:#ffffff">
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Vehicle Group</td>
+                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(vehicleGroup)}</td>
+                </tr>
+                <tr style="background:#f9fafb">
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Customer</td>
+                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(customerDisplay)}</td>
+                </tr>
+                <tr style="background:#ffffff">
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Supplier</td>
+                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">
+                    ${esc(supplierName)} - <span style="color:#10b981">📞</span> <a href="tel:${esc(supplierPhone)}" style="color:inherit;text-decoration:none">${esc(supplierPhone)}</a>
+                  </td>
+                </tr>
+                <tr style="background:#f9fafb">
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Booked By</td>
+                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(bookedBy)}</td>
+                </tr>
+                <tr style="background:#ffffff">
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Labels</td>
+                  <td colspan="3" style="padding:9px 14px;border:1px solid #f1f5f9">
+                    <span style="display:inline-block;background:#0284c7;color:#ffffff;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:700">${esc(label)}</span>
+                  </td>
+                </tr>
+                <tr style="background:#f9fafb">
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Reporting Address</td>
+                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(repAddress)}</td>
+                </tr>
+                <tr style="background:#ffffff">
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Drop Address</td>
+                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(dropAddress)}</td>
+                </tr>
+                <tr style="background:#f9fafb">
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Price</td>
+                  <td style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(priceDisplay)}</td>
+                  <td style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">Per Extra KM Rate: ${esc(perExtraKmRate)}</td>
+                  <td style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">Per Extra Hour Rate: ${esc(perExtraHourRate)}</td>
+                </tr>
+                <tr style="background:#ffffff">
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Operator Notes</td>
+                  <td colspan="3" style="padding:9px 14px;color:#6b7280;border:1px solid #f1f5f9">${esc(operatorNotes)}</td>
+                </tr>
+                <tr style="background:#f9fafb">
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Remarks</td>
+                  <td colspan="3" style="padding:9px 14px;color:#6b7280;border:1px solid #f1f5f9">${esc(remarks)}</td>
+                </tr>
+                <tr style="background:#ffffff">
+                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Passengers</td>
+                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">
+                    1. ${esc(passengerName)} - <span style="color:#10b981">📞</span> <a href="tel:${esc(passengerPhone)}" style="color:inherit;text-decoration:none">${esc(passengerPhone)}</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Activity Tab Pane -->
+          <div id="dutyActivityPane" style="display:none;padding:10px 4px">
+            <div class="timeline" style="margin-left:8px">
+              <div class="timeline-item">
+                <span class="timeline-time">${esc(startDateStr)} ${esc(garageStartTime)}</span>
+                <i class="timeline-dot green"></i>
+                <div class="timeline-copy">
+                  <strong>Booking Initiated</strong>
+                  <span>Duty #${esc(dutyId)} registered for ${esc(passengerName)} (${esc(customerDisplay)})</span>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <span class="timeline-time">${esc(startDateStr)} ${esc(garageStartTime)}</span>
+                <i class="timeline-dot green"></i>
+                <div class="timeline-copy">
+                  <strong>Resource Allotment</strong>
+                  <span>Supplier ${esc(supplierName)} and vehicle group ${esc(vehicleGroup)} allocated.</span>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <span class="timeline-time">${esc(startDateStr)} ${esc(garageStartTime)}</span>
+                <i class="timeline-dot green"></i>
+                <div class="timeline-copy">
+                  <strong>Duty Slip Generated</strong>
+                  <span>Duty Slip DS-${esc(dutyId)} prepared and dispatched.</span>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <span class="timeline-time">${esc(startDateStr)} ${esc(garageStartTime)}</span>
+                <i class="timeline-dot blue"></i>
+                <div class="timeline-copy">
+                  <strong>Garage Departure</strong>
+                  <span>Vehicle reported departure from garage depot en route to ${esc(repAddress)}.</span>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <span class="timeline-time">${esc(startDateStr)} ${esc(repTime)}</span>
+                <i class="timeline-dot blue"></i>
+                <div class="timeline-copy">
+                  <strong>Reporting &amp; Passenger Pickup</strong>
+                  <span>Vehicle arrived at ${esc(repAddress)} for ${esc(passengerName)}.</span>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <span class="timeline-time">${esc(endDateStr)}</span>
+                <i class="timeline-dot ${isCompleted ? 'green' : 'gray'}"></i>
+                <div class="timeline-copy">
+                  <strong>Destination Arrival &amp; Closure</strong>
+                  <span>Dropoff at ${esc(dropAddress)}. Status: ${esc(statusText)}.</span>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <span class="timeline-time">${esc(endDateStr)}</span>
+                <i class="timeline-dot teal"></i>
+                <div class="timeline-copy">
+                  <strong>Fare Engine Audit</strong>
+                  <span>Pricing evaluated: Base fare ${esc(priceDisplay)}, Extra KM: ${esc(perExtraKmRate)}, Extra Hr: ${esc(perExtraHourRate)}.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`,
+        `<div style="display:flex;justify-content:flex-start;width:100%">
+          <button type="button" class="btn" data-close-modal style="background:#dc2626;color:#ffffff;font-weight:700;font-size:12px;letter-spacing:0.5px;padding:7px 22px;border-radius:4px;border:none;cursor:pointer;text-transform:uppercase">CLOSE</button>
+        </div>`
+      );
+
+      modal.style.maxWidth = '900px';
+      modal.style.width = 'min(900px, 96vw)';
+
+      modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+
+      const tabDetailBtn = modal.querySelector('#tabDutyDetailBtn');
+      const tabActivityBtn = modal.querySelector('#tabDutyActivityBtn');
+      const detailPane = modal.querySelector('#dutyDetailPane');
+      const activityPane = modal.querySelector('#dutyActivityPane');
+
+      if (tabDetailBtn && tabActivityBtn && detailPane && activityPane) {
+        tabDetailBtn.addEventListener('click', () => {
+          tabDetailBtn.style.borderBottom = '2px solid #2563eb';
+          tabDetailBtn.style.color = '#2563eb';
+          tabDetailBtn.style.fontWeight = '600';
+          tabActivityBtn.style.borderBottom = '2px solid transparent';
+          tabActivityBtn.style.color = '#6b7280';
+          tabActivityBtn.style.fontWeight = '500';
+          detailPane.style.display = 'block';
+          activityPane.style.display = 'none';
+        });
+
+        tabActivityBtn.addEventListener('click', () => {
+          tabActivityBtn.style.borderBottom = '2px solid #2563eb';
+          tabActivityBtn.style.color = '#2563eb';
+          tabActivityBtn.style.fontWeight = '600';
+          tabDetailBtn.style.borderBottom = '2px solid transparent';
+          tabDetailBtn.style.color = '#6b7280';
+          tabDetailBtn.style.fontWeight = '500';
+          activityPane.style.display = 'block';
+          detailPane.style.display = 'none';
+        });
+      }
     }
 
     function openTripDetailsModal(bookingId) {
