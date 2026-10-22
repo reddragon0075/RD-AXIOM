@@ -7895,6 +7895,15 @@
         else showLogin(false);
       }
       else if (route === 'app') showApp(false);
+      else if (navTitles[route] || route === 'axiom-hq') {
+        if (currentUser) {
+          state.page = route;
+          showApp(false);
+        } else {
+          try { sessionStorage.setItem('axiomfleet_active_page', route); } catch (_) {}
+          showLogin(false);
+        }
+      }
       else if (publicPageTemplates[route]) showPublicPage(route, false);
       else if (route === 'home' || route === '') {
         if (currentUser) showApp(true);
