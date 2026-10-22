@@ -2678,7 +2678,7 @@
     const state = { page: savedActivePage, dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Upcoming', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
-    const advancedPages = new Set(['customers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise']);
+    const advancedPages = new Set(['customers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq']);
     let advancedNavOpen = false;
 
     const esc = (value='') => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -7689,13 +7689,24 @@
     }
     async function showApp(updateHash = true) {
       if (!currentUser && !(await restoreSession())) { showLogin(updateHash); return; }
+      const email = (currentUser?.email || '').toLowerCase();
+      const role = (currentUser?.role || '').toLowerCase();
+      const isStaff = email.endsWith('@axiomfleet.in') || role === 'axiom_admin' || role === 'axiom_staff';
+
+      // Automatically default internal Axiom staff to axiom-hq page
+      if (isStaff && (!state.page || state.page === 'overview')) {
+        state.page = 'axiom-hq';
+      }
+
       document.documentElement.classList.add('is-app-mode');
       publicSite.classList.add('is-hidden');
       publicPages.classList.remove('open');
       authScreen.classList.remove('open');
       authScreen.setAttribute('aria-hidden', 'true');
       appShell.classList.add('is-visible');
-      if (updateHash && location.hash !== '#app') history.replaceState(null, '', '#app');
+      
+      const targetHash = isStaff && state.page === 'axiom-hq' ? '#axiom-hq' : '#app';
+      if (updateHash && location.hash !== targetHash) history.replaceState(null, '', targetHash);
       state.hydration = { status: 'loading', error: '' };
       render();
       hydrateOperationalData();
