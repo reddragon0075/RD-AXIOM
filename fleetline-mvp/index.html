@@ -2559,6 +2559,7 @@
               <div class="nav-section-items-inner">
                 <button class="nav-item" data-page="driver" data-tooltip="Driver app mode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 5h4M11 19h2"/></svg><span>Driver app mode</span></button>
                 <button class="nav-item" data-page="passenger" data-tooltip="Passenger view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3"/><path d="M5 21c.7-4.1 3-6 7-6s6.3 1.9 7 6M4 4h3M17 4h3M3 12h3M18 12h3"/></svg><span>Passenger view</span></button>
+                <button class="nav-item" id="nav-item-axiom-hq" data-page="axiom-hq" data-tooltip="Axiom HQ Command Center" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Axiom HQ Command</span></button>
                 <button class="nav-item" data-page="enterprise" data-tooltip="Enterprise controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 21V5l8-3 8 3v16M8 9h1M15 9h1M8 13h1M15 13h1M8 17h1M15 17h1M3 21h18"/></svg><span>Enterprise controls</span></button>
                 <button class="nav-item" data-page="parity" data-tooltip="Parity center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="11" cy="18" r="1.5"/></svg><span>Parity center</span></button>
                 <button class="nav-item" data-page="settings" data-tooltip="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="m19.4 15 .1.1a2 2 0 1 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.2a2 2 0 1 1-4 0v-.2a2 2 0 0 0-3.4-1.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A2 2 0 0 0 3.7 11H3.5a2 2 0 1 1 0-4h.2a2 2 0 0 0 1.4-3.4L5 3.5a2 2 0 1 1 2.8-2.8l.1.1A2 2 0 0 0 11.3 2h.2a2 2 0 1 1 4 0v.2a2 2 0 0 0 3.4 1.4l.1-.1A2 2 0 1 1 21.8 6l-.1.1a2 2 0 0 0 1.4 3.4h.2a2 2 0 1 1 0 4h-.2a2 2 0 0 0-1.4 3.4Z" transform="scale(.82) translate(2.6 2.6)"/></svg><span>Settings</span></button>
@@ -2666,7 +2667,7 @@
     // All workspace records are tenant-scoped API data. The console deliberately
     // starts empty when a tenant has no records; no demo roster or invoice rows
     // are embedded in the product bundle.
-    const navTitles = { overview:'Operations overview', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & pricing', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls' };
+    const navTitles = { overview:'Operations overview', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & pricing', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls', 'axiom-hq':'Axiom Fleet HQ Command Center' };
     const savedActivePage = (function() {
       try {
         const p = sessionStorage.getItem('axiomfleet_active_page');
@@ -2913,6 +2914,9 @@
       const label = toggle.querySelector('span');
       if (label) label.lastChild.textContent = currentUser?.role === 'driver' ? 'Driver menu' : currentUser?.role === 'corporate' ? 'Advanced tools' : 'More tools';
       const role = currentUser?.role;
+      const isStaffUser = Boolean(currentUser?.email?.toLowerCase().endsWith('@axiomfleet.in') || role === 'axiom_admin');
+      const hqNavBtn = document.getElementById('nav-item-axiom-hq');
+      if (hqNavBtn) hqNavBtn.hidden = !isStaffUser;
       const allowed = role === 'driver'
         ? new Set(['driver','planning','safety','settings'])
         : role === 'corporate'
@@ -3184,7 +3188,7 @@
       topbarTitle.textContent = currentUser?.role === 'corporate' && state.page === 'overview' ? 'Corporate account workspace' : (navTitles[state.page] || 'Operations overview');
       document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.page === state.page));
       syncAdvancedNavigation();
-      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter };
+      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ };
       content.innerHTML = (pages[state.page] || renderOverview)();
       attachPageEvents();
       decorateResponsiveTables();
@@ -3828,6 +3832,178 @@
       return `${pageHead(isVendor ? 'Axiom Network · vendor workspace' : 'Axiom Network · governed sourcing', isVendor ? 'Quote workspace' : 'Partner control room', isVendor ? 'Respond only to eligible, invited requirements and keep competitor pricing private.' : 'Move from an invited partner profile to a versioned requirement, confidential comparison and a Fleet-linked service order.', '')}
         <div class="network-board"><section class="network-hero"><div><h2>${isVendor ? 'Respond with context, not chat.' : 'A governed partner network for every handoff.'}</h2><p>${isVendor ? 'Your organization sees only approved buyer demand. Quotes remain private to the authorized decision surface and accepted work returns to the Fleet ledger.' : 'Axiom Network combines partner qualification, demand, matching, quote review and service-order handoff without creating a second trip source of truth.'}</p><div class="network-boundary">${icon('shield')}<span>Closed B2B by design · tenant-isolated access · deterministic eligibility · immutable requirement versions · audit references on mutations.</span></div></div><div class="network-hero-actions">${actions}</div></section><section class="network-lifecycle" aria-label="Network lifecycle">${stages.map(([number,title,copy], index) => `<div class="network-stage"><span class="network-stage-number">${number}</span><strong>${title}</strong><span>${copy}</span><b class="network-stage-value">${stageCounts[index]}</b></div>`).join('')}</section><div class="grid kpis"><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Programs</span><span class="kpi-icon teal">${icon('route')}</span></div><div class="kpi-value">${programs.length}</div><div class="kpi-foot">${programs.filter(item=>item.status==='active').length} active tenant program${programs.filter(item=>item.status==='active').length === 1 ? '' : 's'}</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Requirements</span><span class="kpi-icon amber">${icon('file')}</span></div><div class="kpi-value">${requirements.length}</div><div class="kpi-foot">Versioned and auditable demand</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">${isVendor ? 'Buyer links' : 'Partner profiles'}</span><span class="kpi-icon">${icon('users')}</span></div><div class="kpi-value">${isVendor ? invites.length : profiles.length}</div><div class="kpi-foot">${isVendor ? 'Approved buyer relationships' : 'Approved capability profiles'}</div></div><div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Fleet service orders</span><span class="kpi-icon purple">${icon('check')}</span></div><div class="kpi-value">${orders.length}</div><div class="kpi-foot">Network awards linked to Fleet</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead(isVendor ? 'Eligible requirements' : 'Requirement lifecycle','Hard eligibility first · confidential quotes · explicit approval')}<div class="table-wrap"><table><thead><tr><th>Reference</th><th>Status</th><th>Version</th><th>Access</th><th></th></tr></thead><tbody>${requirementRows}</tbody></table></div></section><section class="card section-card">${cardHead(isVendor ? 'Buyer links' : 'Invite-only partner directory','No public vendor registration or anonymous lead resale')}<div class="table-wrap"><table><thead><tr><th>Partner</th><th>Coverage</th><th>Capabilities</th><th>Status</th></tr></thead><tbody>${profiles.length ? profiles.slice(0,8).map(profile=>`<tr><td><div class="table-primary">${esc(profile.vendor_name)}</div><div class="table-secondary">${esc(profile.vendor_organization_id)}</div></td><td>${(profile.cities || profile.cities_json || []).map(esc).join(' · ') || '—'}</td><td>${(profile.capabilities || profile.capabilities_json || []).map(esc).join(' · ') || 'Profile evidence pending'}</td><td>${status(profile.status || 'active', profile.status === 'active' ? 'green' : 'amber')}</td></tr>`).join('') : `<tr><td colspan="4"><div class="table-empty"><strong>${isVendor ? 'No buyer link yet' : 'No invited vendors yet'}</strong>${isVendor ? 'A buyer must invite and approve your organization.' : 'Invite a known vendor organization to create a scoped profile.'}</div></td></tr>`}</tbody></table></div></section></div><div class="grid two-col"><section class="card section-card">${cardHead('Partner inbox','Connection events remain visible instead of disappearing into email or chat')}<div class="network-inbox">${inboxRows || '<div class="network-empty"><strong>No partner invitations</strong>Invite a known organization to begin a scoped B2B relationship.</div>'}</div></section><section class="card section-card">${cardHead('Fleet handoffs','Awards return to the canonical Fleet service-order boundary')}<div class="table-wrap"><table><thead><tr><th>Order</th><th>Partner</th><th>Status</th><th>Created</th></tr></thead><tbody>${orderRows}</tbody></table></div></section></div><div class="grid two-col"><section class="card section-card">${cardHead('Verified partner directory','Searchable only inside the invited B2B relationship')}<div class="table-wrap"><table><thead><tr><th>Partner</th><th>Coverage</th><th>Capabilities</th><th>Verification</th></tr></thead><tbody>${directoryRows}</tbody></table></div></section><section class="card section-card">${cardHead('Contract & rate synchronization','Immutable versions, explicit acceptance and provider-neutral receipts')}<div class="table-wrap"><table><thead><tr><th>Contract</th><th>Status</th><th>Version</th><th></th></tr></thead><tbody>${contractRows}</tbody></table></div></section></div><section class="card section-card">${cardHead(isVendor ? 'Associate onboarding' : 'Exchange & supplier recovery','Accept a scoped relationship, then exchange booking, duty-slip, invoice and operational-message envelopes.', isVendor ? '' : button('New exchange','small soft','data-network-action="exchange"'))}<div class="card-body"><div class="attention-list">${associates.slice(0, 5).map(item => `<div class="attention-item"><span class="attention-icon ${item.status === 'accepted' ? 'teal' : 'amber'}">${icon(item.status === 'accepted' ? 'check' : 'mail')}</span><div class="attention-main"><strong>${esc(item.vendor_name || item.buyer_contact || item.invite_id || 'Associate relationship')}</strong><span>${esc(item.status || 'pending')} · ${esc(item.acceptance_note || 'Invite-controlled onboarding')}</span></div>${isVendor && item.status === 'pending' ? `<button class="btn small soft" data-network-action="accept-associate" data-associate="${esc(item.id)}">Accept</button>` : status(item.status || 'pending', item.status === 'accepted' ? 'green' : 'amber')}</div>`).join('') || `<div class="network-empty"><strong>No associate lifecycle records</strong><span>Every relationship starts with a known organization invite; public registration is not available.</span></div>`}</div>${orders.length ? `<div class="network-boundary" style="margin-top:12px">${icon('shield')}<span>${orders.length} Fleet-linked order${orders.length === 1 ? '' : 's'} ready for exchange controls. Use New exchange to send a duty-slip, invoice or operational message with an idempotency key.</span><button class="btn small soft" data-network-action="exchange" data-order="${esc(orders[0].id)}">Open exchange</button><button class="btn small soft" data-network-action="issue" data-order="${esc(orders[0].id)}">Log supplier issue</button></div>` : ''}</div></section><section class="card section-card">${cardHead('Activation guardrails','The Network adds sourcing and partner collaboration; Fleet remains the operational ledger')}<div class="card-body"><div class="phase12-live-grid"><div class="phase12-live-item"><strong>Eligibility before price</strong><span>City, service, vehicle, capacity, capability and compliance filters record exclusion reasons.</span></div><div class="phase12-live-item"><strong>Confidential comparison</strong><span>Quote payloads stay on the authorized buyer decision surface.</span></div><div class="phase12-live-item"><strong>Evidence before activation</strong><span>SLAs, documents, corrective actions and partner state remain inspectable.</span></div><div class="phase12-live-item"><strong>One trip source of truth</strong><span>${orders.length ? `${orders.length} service order${orders.length === 1 ? '' : 's'} link Network awards to Fleet records.` : 'No award has activated a Fleet service order yet.'}</span></div></div></div></section></div>`;
     }
+    
+    function renderAxiomHQ() {
+      const email = (currentUser?.email || '').toLowerCase();
+      const role = (currentUser?.role || '').toLowerCase();
+      const isStaff = email.endsWith('@axiomfleet.in') || role === 'axiom_admin' || role === 'axiom_staff';
+      if (!isStaff) {
+        return `<div class="p-8 text-center" style="max-width:540px;margin:80px auto;background:#0f172a;border:1px solid rgba(244,63,94,.4);border-radius:16px;padding:36px;color:#f87171;text-align:center;">
+          <div style="font-size:32px;margin-bottom:12px;">🛡️</div>
+          <h2 style="color:#fff;font-size:18px;font-weight:700;margin-bottom:8px;">403 • Axiom Internal Employees Only</h2>
+          <p style="color:#94a3b8;font-size:13px;line-height:1.5;">This control plane is restricted to verified <b>@axiomfleet.in</b> staff credentials.<br>Client corporate and vendor portals cannot access this surface.</p>
+          <button class="btn btn-outline" style="margin-top:20px;display:inline-block;" onclick="state.page='overview';render();">Return to My Workspace</button>
+        </div>`;
+      }
+
+      if (!state.axiomHqData && !state.axiomHqLoading) {
+        state.axiomHqLoading = true;
+        Promise.all([
+          apiRequest('/api/axiom-hq/vendors').catch(() => ({ items: [] })),
+          apiRequest('/api/axiom-hq/corporates').catch(() => ({ items: [] })),
+          apiRequest('/api/axiom-hq/kpis').catch(() => ({})),
+        ]).then(([vRes, cRes, kRes]) => {
+          state.axiomHqData = {
+            vendors: vRes.items || [],
+            corporates: cRes.items || [],
+            kpis: kRes || {},
+          };
+          state.axiomHqLoading = false;
+          render();
+        }).catch(err => {
+          state.axiomHqLoading = false;
+          console.error(err);
+        });
+        return `<div class="p-8 text-center" style="padding:60px;text-align:center;"><p style="color:var(--muted);margin-top:12px;">Loading Axiom HQ telemetry...</p></div>`;
+      }
+
+      const hq = state.axiomHqData || { vendors: [], corporates: [], kpis: {} };
+      const kpis = hq.kpis || {};
+      const vendors = hq.vendors || [];
+      const corporates = hq.corporates || [];
+
+      return `${pageHead('Axiom Fleet HQ • Internal Staff Only', 'Super-Admin Command Center', 'Track vendor SaaS subscription lifecycles, next billing dates, and corporate portal ownership.', button(icon('refresh')+'Refresh HQ Data', 'primary', 'data-action="refresh-hq"'))}
+<div class="grid kpis" style="margin-bottom:24px;">
+  <div class="card kpi">
+    <div class="kpi-top"><span class="kpi-label">Active Fleet Vendors</span><span class="kpi-icon">${icon('building')}</span></div>
+    <div class="kpi-value">${kpis.total_vendors ?? vendors.length}</div>
+    <div class="kpi-foot">Onboarded SaaS operators</div>
+  </div>
+  <div class="card kpi teal">
+    <div class="kpi-top"><span class="kpi-label">Live Corporate Portals</span><span class="kpi-icon teal">${icon('building')}</span></div>
+    <div class="kpi-value">${kpis.total_corporate_portals ?? corporates.length}</div>
+    <div class="kpi-foot">Active white-label domains</div>
+  </div>
+  <div class="card kpi">
+    <div class="kpi-top"><span class="kpi-label">Monthly SaaS MRR</span><span class="kpi-icon">${icon('shield')}</span></div>
+    <div class="kpi-value">₹${Number(kpis.monthly_saas_mrr_inr || 0).toLocaleString('en-IN')}</div>
+    <div class="kpi-foot">ARR: ₹${Number(kpis.annual_saas_arr_inr || 0).toLocaleString('en-IN')}</div>
+  </div>
+  <div class="card kpi ${kpis.vendors_overdue_payment > 0 ? 'amber' : 'teal'}">
+    <div class="kpi-top"><span class="kpi-label">Billing Overdue</span><span class="kpi-icon amber">${icon('warning')}</span></div>
+    <div class="kpi-value">${kpis.vendors_overdue_payment ?? 0}</div>
+    <div class="kpi-foot">${kpis.vendors_overdue_payment > 0 ? 'Action required: Send reminder' : 'All vendor accounts current'}</div>
+  </div>
+</div>
+
+<div class="grid" style="display:grid;gap:24px;">
+  <!-- Section 1: Vendors & SaaS Subscription Lifecycles -->
+  <section class="card section-card">
+    <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+      <div>
+        <h3 style="margin:0;font-size:15px;color:var(--text);">1. Vendor Partners • SaaS Plans & Payment Dates</h3>
+        <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Track when each vendor joined Axiom, their SaaS subscription plan, and when their next payment is due.</p>
+      </div>
+      <span class="status blue">${vendors.length} Vendors Registered</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Vendor & Contact</th>
+            <th>Joined Date</th>
+            <th>SaaS Plan</th>
+            <th>Monthly Fee</th>
+            <th>Next Payment Due</th>
+            <th>Owned Corp Portals</th>
+            <th>Reliability & Tier</th>
+            <th>Reminder Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${vendors.map(v => {
+            const days = Number(v.days_until_payment_due || 0);
+            const dueBadge = days < 0 ? status('Overdue', 'red') : (days <= 7 ? status(`Due in ${days}d`, 'amber') : status(`Due in ${days}d`, 'green'));
+            const planBadge = v.saas_plan === 'ENTERPRISE_WHITE_LABEL' ? status('Enterprise White-Label', 'purple') : (v.saas_plan === 'GROWTH' ? status('Growth', 'blue') : status('Starter', 'soft'));
+            return `<tr>
+              <td>
+                <strong>${esc(v.vendor_name)}</strong><br>
+                <small style="color:var(--muted);">${esc(v.contact_person)} · ${esc(v.phone)} · ${esc(v.city)}</small>
+              </td>
+              <td class="font-mono">${esc(v.joined_date)}</td>
+              <td>${planBadge}</td>
+              <td style="font-weight:600;">₹${Number(v.saas_fee_inr || 0).toLocaleString('en-IN')}<br><small style="color:var(--muted);">${esc(v.billing_cycle)}</small></td>
+              <td><strong>${esc(v.next_payment_due_date)}</strong><br>${dueBadge}</td>
+              <td style="text-align:center;"><strong style="font-size:14px;color:var(--blue);">${v.owned_corporate_portals_count ?? 0}</strong></td>
+              <td><span style="font-weight:600;">${v.reliability_score}%</span> <small style="color:var(--muted);">(${esc(v.priority_tier)})</small></td>
+              <td>
+                <button class="btn btn-outline btn-xs" onclick="dispatchHqReminder('${v.id}')">Send Reminder</button>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Section 2: Corporate Portals & Owning Vendor Mapping -->
+  <section class="card section-card">
+    <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+      <div>
+        <h3 style="margin:0;font-size:15px;color:var(--text);">2. Corporate Portals • Vendor Ownership Mapping</h3>
+        <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Full audit of which corporate portal is owned and operated by what vendor partner.</p>
+      </div>
+      <span class="status teal">${corporates.length} Portals Mapped</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Corporate Client</th>
+            <th>Portal Subdomain</th>
+            <th>Owning Vendor Partner</th>
+            <th>Ownership Model</th>
+            <th>Employees</th>
+            <th>Monthly Duties</th>
+            <th>Monthly GMV</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${corporates.map(c => {
+            const isVendorOwned = c.ownership_type === 'VENDOR_OWNED_PORTAL';
+            const ownerBadge = isVendorOwned ? `<strong style="color:var(--blue);">${esc(c.owning_vendor_name)}</strong>` : `<strong style="color:var(--green);">${esc(c.owning_vendor_name)}</strong>`;
+            const modelBadge = isVendorOwned ? status('Vendor Owned', 'blue') : status('Axiom Direct', 'green');
+            return `<tr>
+              <td>
+                <strong>${esc(c.corporate_name)}</strong><br>
+                <small style="color:var(--muted);">${esc(c.city)} · GST: ${esc(c.gst_number)}</small>
+              </td>
+              <td><a href="https://${esc(c.portal_subdomain)}" target="_blank" style="color:var(--blue);text-decoration:underline;font-family:monospace;">${esc(c.portal_subdomain)}</a></td>
+              <td>${ownerBadge}</td>
+              <td>${modelBadge}</td>
+              <td>${Number(c.active_employees_count || 0).toLocaleString('en-IN')}</td>
+              <td><strong>${Number(c.monthly_duty_volume || 0).toLocaleString('en-IN')}</strong></td>
+              <td style="font-weight:600;">₹${Number(c.monthly_gross_gmv_inr || 0).toLocaleString('en-IN')}</td>
+              <td>${status(c.portal_status || 'LIVE', 'green')}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>`;
+    }
+
+    window.dispatchHqReminder = async function(vendorId) {
+      try {
+        const res = await apiRequest(`/api/axiom-hq/vendors/${vendorId}/payment-reminder`, { method: 'POST' });
+        showToast('Payment Reminder Dispatched', res.message || 'WhatsApp & Email renewal alert sent.');
+      } catch (err) {
+        showToast('Dispatch Failed', err.message || 'Could not send reminder.', 'error');
+      }
+    };
+
     function renderAdmin() {
       const kpis=state.extendedData['/api/admin/kpis']?.kpis||{}; const alerts=state.extendedData['/api/alerts']?.items||[]; return `${pageHead('Platform · operations health','Admin health','A tenant-safe view of system posture, alerts, feature flags and support readiness.',`${button(icon('refresh')+'Refresh','', 'data-action="refresh"')}${button(icon('spark')+'Workflow center','primary','data-action="workflow-center"')}`)}<div class="grid kpis"><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Organizations</span><span class="kpi-icon">${icon('building')}</span></div><div class="kpi-value">${esc(kpis.organizations??'—')}</div><div class="kpi-foot">Local platform registry</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Bookings</span><span class="kpi-icon teal">${icon('calendar')}</span></div><div class="kpi-value">${esc(kpis.bookings??'—')}</div><div class="kpi-foot">Across current fallback dataset</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Open alerts</span><span class="kpi-icon amber">${icon('warning')}</span></div><div class="kpi-value">${esc(kpis.open_alerts??alerts.filter(alert=>alert.status==='open').length)}</div><div class="kpi-foot">Needs acknowledgement</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Provider mode</span><span class="kpi-icon">${icon('link')}</span></div><div class="kpi-value">Mock-safe</div><div class="kpi-foot">External credentials not configured</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead('Operational alerts','Unresolved events across the tenant')}<div class="card-body"><div class="attention-list">${alerts.filter(alert=>alert.status==='open').slice(0,6).map(alert=>`<div class="attention-item"><span class="attention-icon ${alert.severity==='critical'?'red':'amber'}">${icon('warning')}</span><div class="attention-main"><strong>${esc(alert.alert_type||'Operational alert')}</strong><span>${esc(alert.entity_type||'Workspace')} · ${esc(alert.created_at||'Recently')}</span></div><span class="status ${alert.severity==='critical'?'red':'amber'}">${esc(alert.severity||'info')}</span></div>`).join('')||'<div class="table-empty"><strong>No open alerts</strong>Operations are within the current guardrails.</div>'}</div></div></section><section class="card section-card">${cardHead('Feature flags','Mock-safe release controls')}<div class="card-body"><div class="toggle-row"><span>Offline driver shell</span><span class="status green">Enabled</span></div><div class="toggle-row"><span>Passenger share links</span><span class="status green">Enabled</span></div><div class="toggle-row"><span>Network settlements</span><span class="status purple">Pilot</span></div><div class="toggle-row"><span>External providers</span><span class="status amber">Mock</span></div></div></section></div>`;
     }
