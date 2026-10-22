@@ -55,6 +55,7 @@ from backend_booking_parity import handle_booking_parity, initialize_booking_par
 from backend_gap_completion import handle_gap_completion, handle_gap_public, initialize_gap_completion_schema
 from backend_command_center import handle_command_center, initialize_command_center_schema
 from backend_fare import handle_fare, initialize_fare_schema
+from backend_corporate_engine import handle_corporate_engine, initialize_corporate_engine_schema
 
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = Path(os.environ.get("AXIOM_DATA_DIR", ROOT / "data"))
@@ -349,6 +350,7 @@ def initialize_database() -> None:
         initialize_phase3_schema(conn)
         initialize_bill_intelligence_schema(conn)
         initialize_corporate_schema(conn)
+        initialize_corporate_engine_schema(conn)
         initialize_operations_parity_schema(conn)
         initialize_finance_parity_schema(conn)
         initialize_communications_schema(conn)
@@ -1119,6 +1121,8 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             # missing when it attempts a closed Network route.
             result = handle_network(conn, user, method, self.path, payload, self.client_address[0]) if route.startswith("/api/network/v1") else None
             result = result if result is not None else handle_bill_intelligence(conn, user, method, self.path, payload, self.client_address[0])
+            if result is None:
+                result = handle_corporate_engine(conn, user, method, self.path, payload, self.client_address[0])
             if result is None:
                 result = handle_corporate(conn, user, method, self.path, payload, self.client_address[0])
             if result is None:
