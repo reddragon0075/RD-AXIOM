@@ -375,6 +375,149 @@ def handle_fare(conn, user: dict, method: str, path: str, payload: dict, ip: str
         _audit(conn, user, "tariff_rule.deleted", "tariff_rule", rule_id, ip, {})
         return {"ok": True, "deleted_id": rule_id}
 
+    # 4b. Visual Rate Card Copy Tool (Bulk copy tariff matrix with % markup/markdown across cities/entities)
+    if route == "/api/fare/rules/copy" and method == "POST":
+        source_city_id = payload.get("source_city_id")
+        target_city_id = payload.get("target_city_id")
+        source_entity_id = payload.get("source_entity_id")
+        target_entity_id = payload.get("target_entity_id")
+        source_entity_type = (payload.get("source_entity_type") or "DEFAULT").upper()
+        target_entity_type = (payload.get("target_entity_type") or "DEFAULT").upper()
+        markup_pct = float(payload.get("markup_pct") or 0.0)
+        overwrite = bool(payload.get("overwrite", False))
+
+        sql = "SELECT * FROM domain_tariff_rules WHERE organization_id = ? AND is_active = 1"
+        params = [org]
+        if source_city_id:
+            sql += " AND city_id = ?"
+            params.append(source_city_id)
+        if source_entity_id:
+            sql += " AND entity_id = ?"
+            params.append(source_entity_id)
+        else:
+            sql += " AND entity_type = ?"
+            params.append(source_entity_type)
+
+        source_rows = conn.execute(sql, params).fetchall()
+        if not source_rows:
+            raise DomainError(404, "No matching source tariff rules found to copy", "NO_SOURCE_RULES")
+
+        multiplier = 1.0 + (markup_pct / 100.0)
+        now = now_iso()
+        copied_rules = []
+
+        for row in source_rows:
+            orig = dict(row)
+            new_rule_id = new_id("trf")
+
+            base_p = max(0, int(round((orig.get("base_paise") or 0) * multiplier)))
+            km_p = max(0, int(round((orig.get("extra_km_paise") or 0) * multiplier)))
+            hr_p = max(0, int(round((orig.get("extra_hour_paise") or 0) * multiplier)))
+            allowance_d = max(0, int(round((orig.get("driver_allowance_day_paise") or 0) * multiplier)))
+            allowance_n = max(0, int(round((orig.get("driver_allowance_night_paise") or 0) * multiplier)))
+            waiting_p = max(0, int(round((orig.get("waiting_paise_per_hour") or 0) * multiplier)))
+
+            dest_city = target_city_id if target_city_id is not None else orig.get("city_id")
+            dest_entity_type = target_entity_type if target_entity_id or payload.get("target_entity_type") else orig.get("entity_type")
+            dest_entity_id = target_entity_id if target_entity_id is not None else orig.get("entity_id")
+
+            if overwrite:
+                conn.execute(
+                    """
+                    DELETE FROM domain_tariff_rules
+                    WHERE organization_id = ? AND (city_id = ? OR (city_id IS NULL AND ? IS NULL))
+                      AND entity_type = ? AND (entity_id = ? OR (entity_id IS NULL AND ? IS NULL))
+                      AND vehicle_group_id = ? AND fare_mode = ? AND package_name = ?
+                    """,
+                    (org, dest_city, dest_city, dest_entity_type, dest_entity_id, dest_entity_id, orig.get("vehicle_group_id"), orig.get("fare_mode"), orig.get("package_name")),
+                )
+
+            conn.execute(
+                """
+                INSERT INTO domain_tariff_rules (
+                    id, organization_id, rate_card_id, entity_type, entity_id, city_id, branch_id,
+                    vehicle_group_id, fare_mode, package_name, package_minutes, included_km,
+                    base_paise, extra_km_paise, extra_hour_paise, grace_period_minutes,
+                    daily_min_km, driver_allowance_day_paise, driver_allowance_night_paise,
+                    waiting_paise_per_hour, free_waiting_minutes, fuel_benchmark_rate_paise,
+                    fuel_mileage_km_per_unit, fuel_type, slab_switch_mode, tax_rate_bps,
+                    effective_from, effective_to, is_active, created_by, created_at, updated_at
+                ) VALUES (
+                    ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?,
+                    ?, ?, ?,
+                    ?, ?, ?,
+                    ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?, ?
+                )
+                """,
+                (
+                    new_rule_id,
+                    org,
+                    orig.get("rate_card_id"),
+                    dest_entity_type,
+                    dest_entity_id,
+                    dest_city,
+                    orig.get("branch_id"),
+                    orig.get("vehicle_group_id"),
+                    orig.get("fare_mode"),
+                    orig.get("package_name"),
+                    orig.get("package_minutes") or 0,
+                    orig.get("included_km") or 0.0,
+                    base_p,
+                    km_p,
+                    hr_p,
+                    orig.get("grace_period_minutes") or 0,
+                    orig.get("daily_min_km") or 0.0,
+                    allowance_d,
+                    allowance_n,
+                    waiting_p,
+                    orig.get("free_waiting_minutes") or 0,
+                    orig.get("fuel_benchmark_rate_paise") or 0,
+                    orig.get("fuel_mileage_km_per_unit") or 0.0,
+                    orig.get("fuel_type") or "",
+                    orig.get("slab_switch_mode") or "UPGRADE_ONLY",
+                    orig.get("tax_rate_bps") or 500,
+                    orig.get("effective_from") or now[:10],
+                    orig.get("effective_to"),
+                    1,
+                    user["id"],
+                    now,
+                    now,
+                ),
+            )
+            copied_rules.append({
+                "id": new_rule_id,
+                "vehicle_group_id": orig.get("vehicle_group_id"),
+                "fare_mode": orig.get("fare_mode"),
+                "package_name": orig.get("package_name"),
+                "base_paise": base_p,
+                "extra_km_paise": km_p,
+            })
+
+        _audit(
+            conn,
+            user,
+            "tariff_rules.bulk_copied",
+            "tariff_rule",
+            f"count:{len(copied_rules)}",
+            ip,
+            {
+                "source_city": source_city_id,
+                "target_city": target_city_id,
+                "markup_pct": markup_pct,
+                "count": len(copied_rules),
+            },
+        )
+        return {
+            "ok": True,
+            "message": f"Successfully copied {len(copied_rules)} tariff rules with {markup_pct:+.1f}% adjustment.",
+            "copied_count": len(copied_rules),
+            "items": copied_rules,
+        }
+
+
     # 5. Rate Resolution Endpoint (4-Tier Waterfall)
     if route == "/api/fare/resolve" and method == "POST":
         rules = payload.get("rate_rules")

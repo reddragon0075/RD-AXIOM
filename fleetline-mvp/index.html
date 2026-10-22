@@ -3730,7 +3730,7 @@
       const customers = state.liveData?.customers?.items || [];
       const suppliers = state.liveData?.suppliers?.items || [];
       const employees = state.liveData?.employees?.items || [];
-      return `${pageHead('Workspace setup · people & accounts','Customers and people','Connected customer entities, suppliers and the tenant people directory that powers corporate account scope.',`${button(icon('plus')+'Add customer','primary','data-action="add-customer"')}${button(icon('file')+'Contract pricing','','data-action="pricing-contract"')}${button(icon('users')+'People & access','','data-action="corporate-people"')}`)}<div class="grid three-col"><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Customer entities</span><span class="kpi-icon">${icon('building')}</span></div><div class="kpi-value">${customers.length}</div><div class="kpi-foot">Visibility scope source</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Supplier accounts</span><span class="kpi-icon teal">${icon('link')}</span></div><div class="kpi-value">${suppliers.length}</div><div class="kpi-foot">Connected supplier records</div></div><div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Employee records</span><span class="kpi-icon purple">${icon('users')}</span></div><div class="kpi-value">${employees.length}</div><div class="kpi-foot">Invite and role setup source</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead('Customer entities','Corporate visibility can be limited by customer entity.')}<div class="table-wrap"><table><thead><tr><th>Customer</th><th>City</th><th>Status</th></tr></thead><tbody>${customers.length ? customers.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span><span class="secondary">${esc(item.code || item.email || item.id)}</span></td><td>${esc(item.city || 'City not added')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td></tr>`).join('') : tenantTableEmpty('No customer entities returned','Add the first customer entity before restricting visibility by account.',button(icon('plus')+'Add customer','small soft','data-action="add-customer"'))}</tbody></table></div></section><section class="card section-card">${cardHead('Supplier accounts','Supplier selection and auto-allotment depend on tenant scope.')}<div class="table-wrap"><table><thead><tr><th>Supplier</th><th>Coverage</th><th>Status</th></tr></thead><tbody>${suppliers.length ? suppliers.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span><span class="secondary">${esc(item.code || item.id)}</span></td><td>${esc(item.city || item.coverage || 'Coverage not added')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td></tr>`).join('') : tenantTableEmpty('No suppliers returned','Add the first supplier account before offering supplier selection.',button(icon('plus')+'Add supplier','small soft','data-action="add-supplier"'))}</tbody></table></div></section></div>`;
+      return `${pageHead('Workspace setup · people & accounts','Customers and people','Connected customer entities, suppliers and the tenant people directory that powers corporate account scope.',`${button(icon('plus')+'Add customer','primary','data-action="add-customer"')}${button(icon('file')+'Contract pricing','','data-action="pricing-contract"')}${button(icon('copy')+'Copy Pricing','','data-action="copy-pricing"')}${button(icon('building')+'My Companies','','data-action="my-companies"')}${button(icon('users')+'People & access','','data-action="corporate-people"')}`)}<div class="grid three-col"><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Customer entities</span><span class="kpi-icon">${icon('building')}</span></div><div class="kpi-value">${customers.length}</div><div class="kpi-foot">Visibility scope source</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Supplier accounts</span><span class="kpi-icon teal">${icon('link')}</span></div><div class="kpi-value">${suppliers.length}</div><div class="kpi-foot">Connected supplier records</div></div><div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Employee records</span><span class="kpi-icon purple">${icon('users')}</span></div><div class="kpi-value">${employees.length}</div><div class="kpi-foot">Invite and role setup source</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead('Customer entities','Corporate visibility can be limited by customer entity.')}<div class="table-wrap"><table><thead><tr><th>Customer</th><th>City</th><th>Status</th></tr></thead><tbody>${customers.length ? customers.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span><span class="secondary">${esc(item.code || item.email || item.id)}</span></td><td>${esc(item.city || 'City not added')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td></tr>`).join('') : tenantTableEmpty('No customer entities returned','Add the first customer entity before restricting visibility by account.',button(icon('plus')+'Add customer','small soft','data-action="add-customer"'))}</tbody></table></div></section><section class="card section-card">${cardHead('Supplier accounts','Supplier selection and auto-allotment depend on tenant scope.')}<div class="table-wrap"><table><thead><tr><th>Supplier</th><th>Coverage</th><th>Status</th></tr></thead><tbody>${suppliers.length ? suppliers.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span><span class="secondary">${esc(item.code || item.id)}</span></td><td>${esc(item.city || item.coverage || 'Coverage not added')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td></tr>`).join('') : tenantTableEmpty('No suppliers returned','Add the first supplier account before offering supplier selection.',button(icon('plus')+'Add supplier','small soft','data-action="add-supplier"'))}</tbody></table></div></section></div>`;
     }
 
     function renderReports() {
@@ -4986,6 +4986,8 @@
         'masters-help': () => showToast('Masters are the operating foundation','Set up each reference record once, then reuse it across bookings, duties, billing and Network workflows.'),
         'add-customer': () => openCustomerModal(),
         'pricing-contract': () => openPricingContractModal(),
+        'copy-pricing': () => openCopyPricingModal(),
+        'my-companies': () => openLegalEntitiesModal(),
         'new-price-book': () => openPriceBookModal(),
         'price-book-detail': () => showToast('Price book opened', 'Rate items and approval history are available from the tenant price-book record.'),
         'customer-view': () => { state.page = 'customers'; render(); },
@@ -6926,6 +6928,243 @@
       const options = branches.map(branch => `<option value="${esc(branch.id)}" ${String(branch.id) === String(state.selectedBranchId || branches[0].id) ? 'selected' : ''}>${esc(branch.name || branch.id)}${branch.city ? ` · ${esc(branch.city)}` : ''}</option>`).join('');
       const modal = modalShell('Choose branch context', 'This changes the branch context shown in the workspace shell; records remain tenant-scoped.', `<div class="form-group"><label>Branch</label><select class="form-input" id="branch-context-select">${options}</select></div>`, `${button('Cancel','','data-close-modal')}${button('Use branch','primary','data-submit-branch')}`);
       modal.querySelector('[data-submit-branch]').addEventListener('click', () => { state.selectedBranchId = modal.querySelector('#branch-context-select')?.value || ''; syncWorkspaceChrome(); closeModal(); showToast('Branch context updated', 'The workspace shell now reflects the selected tenant branch.'); });
+    }
+
+    
+    async function openCopyPricingModal() {
+      const branches = state.liveData?.branches?.items || [];
+      const customers = state.liveData?.customers?.items || [];
+      const cities = Array.from(new Set(branches.map(b => b.city).filter(Boolean)));
+      if (!cities.includes('Mumbai')) cities.push('Mumbai');
+      if (!cities.includes('Pune')) cities.push('Pune');
+      if (!cities.includes('Delhi')) cities.push('Delhi');
+      if (!cities.includes('Bengaluru')) cities.push('Bengaluru');
+
+      const cityOptions = cities.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+      const custOptions = `<option value="">-- All Clients (Default Tariff) --</option>` + customers.map(c => `<option value="${esc(c.id)}">${esc(c.name || c.id)}</option>`).join('');
+
+      const body = `
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Source City <span class="required">*</span></label>
+            <select class="form-input" id="copy-src-city">${cityOptions}</select>
+          </div>
+          <div class="form-group">
+            <label>Target City <span class="required">*</span></label>
+            <select class="form-input" id="copy-dst-city">${cityOptions}</select>
+          </div>
+          <div class="form-group">
+            <label>Source Customer / Scope</label>
+            <select class="form-input" id="copy-src-cust">${custOptions}</select>
+          </div>
+          <div class="form-group">
+            <label>Target Customer / Scope</label>
+            <select class="form-input" id="copy-dst-cust">${custOptions}</select>
+          </div>
+          <div class="form-group">
+            <label>Markup / Markdown Percentage (%)</label>
+            <input class="form-input" id="copy-markup-pct" type="number" step="0.5" value="0.0" placeholder="e.g. 10 for +10%, -5 for -5%">
+            <span class="secondary" style="font-size:11px;display:block;margin-top:4px">Applies mathematically to Base, Extra Km, Extra Hr & Driver Allowances.</span>
+          </div>
+          <div class="form-group" style="display:flex;align-items:center;gap:8px;padding-top:24px">
+            <input type="checkbox" id="copy-overwrite" checked>
+            <label for="copy-overwrite" style="margin-bottom:0">Overwrite existing target rates if matched</label>
+          </div>
+        </div>
+      `;
+
+      const modal = modalShell(
+        'Visual Rate Card Copy Tool',
+        'Duplicate full tariff slabs from one city or corporate account to another with percentage adjustments in one step.',
+        body,
+        `${button('Cancel','','data-close-modal')}${button('Copy & Apply Tariff Matrix','primary','data-submit-copy')}`
+      );
+
+      modal.querySelector('[data-submit-copy]').addEventListener('click', async () => {
+        const srcCity = modal.querySelector('#copy-src-city').value;
+        const dstCity = modal.querySelector('#copy-dst-city').value;
+        const srcCust = modal.querySelector('#copy-src-cust').value || null;
+        const dstCust = modal.querySelector('#copy-dst-cust').value || null;
+        const markup = parseFloat(modal.querySelector('#copy-markup-pct').value || '0');
+        const overwrite = modal.querySelector('#copy-overwrite').checked;
+
+        try {
+          const res = await apiRequest('/api/fare/rules/copy', {
+            method: 'POST',
+            body: JSON.stringify({
+              source_city_id: srcCity,
+              target_city_id: dstCity,
+              source_entity_id: srcCust,
+              target_entity_id: dstCust,
+              source_entity_type: srcCust ? 'CUSTOMER' : 'DEFAULT',
+              target_entity_type: dstCust ? 'CUSTOMER' : 'DEFAULT',
+              markup_pct: markup,
+              overwrite: overwrite
+            })
+          });
+          closeModal();
+          showToast('Tariff Matrix Copied', res.message || 'Rate card successfully duplicated.');
+        } catch (err) {
+          showToast('Failed to copy pricing', err.message || 'Operation failed');
+        }
+      });
+    }
+
+    async function openLegalEntitiesModal() {
+      let entities = [];
+      try {
+        const res = await apiRequest('/api/legal-entities');
+        entities = res.items || [];
+      } catch (err) {
+        showToast('Error fetching companies', err.message);
+      }
+
+      const rows = entities.map(e => `
+        <tr>
+          <td>
+            <strong>${esc(e.brand_name)}</strong> ${e.is_default ? '<span class="status-pill green" style="font-size:10px;margin-left:6px">Default</span>' : ''}
+            <div class="secondary" style="font-size:11px">${esc(e.legal_name || '')}</div>
+          </td>
+          <td><code>${esc(e.gstin || 'None')}</code></td>
+          <td><code>${esc(e.invoice_prefix || '')}${esc(e.next_invoice_number || '')}</code></td>
+          <td>${esc(e.bank_name || 'Not set')}<div class="secondary" style="font-size:10px">${esc(e.account_number || '')}</div></td>
+          <td style="text-align:right">
+            ${!e.is_default ? `<button class="btn btn-sm" data-set-default-id="${esc(e.id)}">Make Default</button>` : ''}
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="5" style="text-align:center;padding:16px">No legal entities found.</td></tr>';
+
+      const body = `
+        <div style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <span class="secondary" style="font-size:12px">Manage multiple legal identities, separate GSTINs, bank accounts, and invoice sequences under your account.</span>
+            <button class="btn btn-sm primary" id="btn-toggle-add-brand">+ Add New Brand</button>
+          </div>
+          <div id="add-brand-form" style="display:none;background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:16px;margin-bottom:16px">
+            <h4 style="margin:0 0 12px 0;font-size:13px">Add New Legal Entity / Brand</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Brand Name <span class="required">*</span></label>
+                <input class="form-input" id="brand-name" placeholder="e.g. Apex Luxury, Budget Cabs">
+              </div>
+              <div class="form-group">
+                <label>Legal Registered Name <span class="required">*</span></label>
+                <input class="form-input" id="brand-legal-name" placeholder="e.g. Apex Mobility Services LLP">
+              </div>
+              <div class="form-group">
+                <label>GSTIN</label>
+                <input class="form-input" id="brand-gstin" placeholder="27AAAAA0000A1Z5">
+              </div>
+              <div class="form-group">
+                <label>Invoice Prefix</label>
+                <input class="form-input" id="brand-inv-prefix" value="INV/" placeholder="e.g. RAG/, INV/26/">
+              </div>
+              <div class="form-group">
+                <label>Next Invoice Number</label>
+                <input class="form-input" id="brand-inv-num" type="number" value="1001">
+              </div>
+              <div class="form-group">
+                <label>Bank Name & IFSC</label>
+                <input class="form-input" id="brand-bank" placeholder="HDFC Bank - HDFC0000123">
+              </div>
+              <div class="form-group">
+                <label>Account Number</label>
+                <input class="form-input" id="brand-acc-num" placeholder="50200012345678">
+              </div>
+              <div class="form-group">
+                <label>City & State Code</label>
+                <input class="form-input" id="brand-city" placeholder="Mumbai (27)">
+              </div>
+            </div>
+            <div style="margin-top:12px;text-align:right">
+              <button class="btn btn-sm" id="btn-cancel-brand">Cancel</button>
+              <button class="btn btn-sm primary" id="btn-save-brand">Save Brand</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Brand & Legal Name</th>
+                  <th>GSTIN</th>
+                  <th>Invoice Sequence</th>
+                  <th>Bank Details</th>
+                  <th style="text-align:right">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      const modal = modalShell(
+        'My Companies (Multi-Brand & Multi-GSTIN)',
+        'Issue invoices and duty slips across different brand letterheads with dedicated tax numbers and bank accounts.',
+        body,
+        `${button('Done','primary','data-close-modal')}`
+      );
+
+      const formEl = modal.querySelector('#add-brand-form');
+      modal.querySelector('#btn-toggle-add-brand').addEventListener('click', () => {
+        formEl.style.display = formEl.style.display === 'none' ? 'block' : 'none';
+      });
+      modal.querySelector('#btn-cancel-brand')?.addEventListener('click', () => {
+        formEl.style.display = 'none';
+      });
+      modal.querySelector('#btn-save-brand')?.addEventListener('click', async () => {
+        const brand_name = modal.querySelector('#brand-name').value.trim();
+        const legal_name = modal.querySelector('#brand-legal-name').value.trim();
+        const gstin = modal.querySelector('#brand-gstin').value.trim().toUpperCase();
+        const invoice_prefix = modal.querySelector('#brand-inv-prefix').value.trim();
+        const next_invoice_number = parseInt(modal.querySelector('#brand-inv-num').value || '1001', 10);
+        const bank_name = modal.querySelector('#brand-bank').value.trim();
+        const account_number = modal.querySelector('#brand-acc-num').value.trim();
+        const city = modal.querySelector('#brand-city').value.trim();
+
+        if (!brand_name || !legal_name) {
+          return showToast('Validation Error', 'Brand name and Legal name are required.');
+        }
+
+        try {
+          await apiRequest('/api/legal-entities', {
+            method: 'POST',
+            body: JSON.stringify({
+              brand_name,
+              legal_name,
+              gstin,
+              invoice_prefix,
+              next_invoice_number,
+              bank_name,
+              account_number,
+              city,
+              state_code: gstin.substring(0, 2)
+            })
+          });
+          closeModal();
+          showToast('Company Brand Added', `${brand_name} is now available for duty slips & invoices.`);
+          openLegalEntitiesModal();
+        } catch (err) {
+          showToast('Failed to save brand', err.message);
+        }
+      });
+
+      modal.querySelectorAll('[data-set-default-id]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-set-default-id');
+          try {
+            await apiRequest(`/api/legal-entities/${encodeURIComponent(id)}/set-default`, { method: 'POST' });
+            closeModal();
+            showToast('Default Updated', 'Primary billing entity updated.');
+            openLegalEntitiesModal();
+          } catch (err) {
+            showToast('Failed to set default', err.message);
+          }
+        });
+      });
     }
 
     function openPricingContractModal() {
