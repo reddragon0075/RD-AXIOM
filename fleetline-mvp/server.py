@@ -919,6 +919,20 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 """,
                 (user_id, data["city"], data["timezone"], data["license_number"], data["fleet_size"], data["employee_count"]),
             )
+            # Ensure a primary base branch is automatically created for the new organization
+            if organization_id and data["role"] in {"vendor", "corporate"}:
+                city_name = data.get("city") or "Bengaluru"
+                code_prefix = "".join([c for c in city_name[:3].upper() if c.isalnum()]) or "HQ"
+                branch_id = new_id("branch")
+                branch_name = f"{city_name} Base Operations"
+                conn.execute(
+                    """
+                    INSERT OR IGNORE INTO domain_branches (id, organization_id, code, name, city, address_json, status, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?)
+                    """,
+                    (branch_id, organization_id, f"{code_prefix}-01", branch_name, city_name, json.dumps({"label": f"{city_name} Regional Control Room"}), now, now),
+                )
+
             audit(conn, user_id, "auth.signup", "user", user_id, self.client_address[0], {"role": data["role"]})
             session = create_session(conn, user_id, self)
             row = conn.execute(user_select_sql() + " WHERE u.id = ?", (user_id,)).fetchone()
