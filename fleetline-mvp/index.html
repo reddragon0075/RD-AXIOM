@@ -2819,7 +2819,21 @@
           estDrop = formatTime(estDrop);
         }
 
-        const rawStatus = String(b.status || duty.status || 'requested').toLowerCase();
+        const dutyRaw = String(duty.status || '').toLowerCase();
+        const bookingRaw = String(b.status || 'requested').toLowerCase();
+        const hasInvoice = (state.liveData?.invoices?.items || []).some(inv => inv.duty_id === duty.id || inv.booking_id === b.id);
+
+        let rawStatus = bookingRaw;
+        if (hasInvoice || dutyRaw === 'billed' || bookingRaw === 'billed') {
+          rawStatus = 'billed';
+        } else if (dutyRaw === 'completed' || dutyRaw === 'closed' || bookingRaw === 'completed' || bookingRaw === 'closed') {
+          rawStatus = 'completed';
+        } else if (['dispatched', 'en_route', 'started', 'in_progress'].includes(dutyRaw) || ['dispatched', 'en_route', 'started', 'in_progress'].includes(bookingRaw)) {
+          rawStatus = 'dispatched';
+        } else if (dutyRaw === 'assigned' || bookingRaw === 'assigned') {
+          rawStatus = 'assigned';
+        }
+
         let displayStatus = 'Requested';
         let tone = 'amber';
         let attentionNeeded = false;
@@ -2827,15 +2841,15 @@
         if (rawStatus === 'cancelled' || rawStatus === 'rejected') {
           displayStatus = 'Cancelled';
           tone = 'red';
+        } else if (rawStatus === 'billed' || rawStatus === 'invoiced') {
+          displayStatus = 'Billed';
+          tone = 'purple';
         } else if (rawStatus === 'completed' || rawStatus === 'closed') {
           displayStatus = 'Completed';
           tone = 'green';
         } else if (rawStatus === 'dispatched' || rawStatus === 'en_route' || rawStatus === 'started' || rawStatus === 'in_progress') {
           displayStatus = 'Dispatched';
           tone = 'teal';
-        } else if (rawStatus === 'billed' || rawStatus === 'invoiced') {
-          displayStatus = 'Billed';
-          tone = 'purple';
         } else if (vehicleReg && !driverName) {
           displayStatus = 'Driver needed';
           tone = 'amber';
@@ -3397,7 +3411,7 @@
         if (tab === 'All') return true;
         if (tab === 'Upcoming') return !['Completed', 'Cancelled', 'Billed'].includes(row.status);
         if (tab === 'Booked') return ['Booked', 'Confirmed', 'Approved', 'Driver needed', 'Vehicle needed', 'To be assigned', 'Allotted'].includes(row.status) || ['booked', 'confirmed', 'approved'].includes(row.rawStatus);
-        if (tab === 'Allotted') return row.status === 'Allotted' || (row.hasVehicle && row.hasDriver);
+        if (tab === 'Allotted') return (row.status === 'Allotted' || (row.hasVehicle && row.hasDriver)) && !['Completed', 'Billed', 'Cancelled'].includes(row.status);
         if (tab === 'Dispatched') return ['Dispatched', 'In progress'].includes(row.status) || ['dispatched', 'en_route', 'started', 'in_progress'].includes(row.rawStatus);
         if (tab === 'Completed') return row.status === 'Completed' || ['completed', 'closed'].includes(row.rawStatus);
         if (tab === 'Billed') return row.status === 'Billed' || ['billed', 'invoiced'].includes(row.rawStatus);
@@ -5606,11 +5620,18 @@
       const refId = item.booking_reference || item.id || '78424384';
       const dutyId = (duty && duty.id && !duty.id.startsWith('duty_')) ? duty.id : `${refId}-1`;
 
-      let rawStatus = (duty && duty.status) || item.status || 'completed';
+      const matchingInvoice = (state.liveData?.invoices?.items || []).find(inv => inv.duty_id === duty.id || inv.duty_id === dutyId || inv.booking_id === item.id);
+      let rawStatus = (duty && duty.status) || item.status || 'requested';
+      if (matchingInvoice && rawStatus === 'completed') rawStatus = 'billed';
       let statusText = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
       if (rawStatus === 'assigned') statusText = 'Allotted';
-      const isCompleted = rawStatus.toLowerCase() === 'completed';
-      const statusColor = isCompleted ? '#dc2626' : (rawStatus.toLowerCase() === 'assigned' || rawStatus.toLowerCase() === 'allotted') ? '#2563eb' : '#059669';
+      if (rawStatus === 'billed') statusText = matchingInvoice?.status === 'paid' ? 'Billed (Paid)' : 'Billed';
+
+      const isCompleted = rawStatus.toLowerCase() === 'completed' || rawStatus.toLowerCase() === 'billed';
+      const isBilled = rawStatus.toLowerCase() === 'billed';
+      const isCancelled = rawStatus.toLowerCase() === 'cancelled';
+      const isPaid = matchingInvoice && matchingInvoice.status === 'paid';
+      const statusColor = isCancelled ? '#dc2626' : (isPaid ? '#059669' : (isBilled ? '#7c3aed' : (isCompleted ? '#16a34a' : (rawStatus.toLowerCase() === 'assigned' || rawStatus.toLowerCase() === 'allotted') ? '#2563eb' : '#059669')));
 
       function formatDateDMY(dStr, fallback) {
         if (!dStr) return fallback;
@@ -5620,6 +5641,18 @@
         const mm = String(d.getMonth() + 1).padStart(2, '0');
         const yyyy = d.getFullYear();
         return `${dd}-${mm}-${yyyy}`;
+      }
+
+      function formatDateTimeNice(isoStr, fallbackDate, fallbackTime) {
+        if (!isoStr) return fallbackDate ? `${fallbackDate} ${fallbackTime || ''}`.trim() : '—';
+        const d = new Date(isoStr);
+        if (isNaN(d.getTime())) return fallbackDate ? `${fallbackDate} ${fallbackTime || ''}`.trim() : '—';
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        const hh = String(d.getHours()).padStart(2, '0');
+        const min = String(d.getMinutes()).padStart(2, '0');
+        return `${dd}-${mm}-${yyyy} ${hh}:${min}`;
       }
 
       const startDateStr = formatDateDMY(item.scheduled_at, '10-08-2026');
@@ -5635,6 +5668,14 @@
           garageStartTime = g.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
         }
       }
+
+      const bookingCreatedTime = formatDateTimeNice(item.created_at, startDateStr, garageStartTime);
+      const dutyCreatedTime = formatDateTimeNice(duty.created_at || item.created_at, startDateStr, garageStartTime);
+      const departureTime = formatDateTimeNice(duty.started_at, startDateStr, garageStartTime);
+      const reportingTimeNice = formatDateTimeNice(duty.reporting_at || item.scheduled_at, startDateStr, repTime);
+      const completedTime = formatDateTimeNice(duty.completed_at, endDateStr, repTime);
+      const invoiceTime = formatDateTimeNice(matchingInvoice?.created_at, endDateStr, repTime);
+      const paymentTime = formatDateTimeNice(matchingInvoice?.updated_at, endDateStr, repTime);
 
       const city = (item.pickup && item.pickup.city) || item.city || 'Bengaluru';
       const dutyType = item.duty_type || 'Airport Transfer';
@@ -5779,31 +5820,31 @@
           <div id="dutyActivityPane" style="display:none;padding:10px 4px">
             <div class="timeline" style="margin-left:8px">
               <div class="timeline-item">
-                <span class="timeline-time">${esc(startDateStr)} ${esc(garageStartTime)}</span>
+                <span class="timeline-time">${esc(bookingCreatedTime)}</span>
                 <i class="timeline-dot green"></i>
                 <div class="timeline-copy">
                   <strong>Booking Initiated</strong>
-                  <span>Duty #${esc(dutyId)} registered for ${esc(passengerName)} (${esc(customerDisplay)})</span>
+                  <span>Booking #${esc(refId)} registered for ${esc(passengerName)} (${esc(customerDisplay)}).</span>
                 </div>
               </div>
               <div class="timeline-item">
-                <span class="timeline-time">${esc(startDateStr)} ${esc(garageStartTime)}</span>
+                <span class="timeline-time">${esc(dutyCreatedTime)}</span>
                 <i class="timeline-dot green"></i>
                 <div class="timeline-copy">
                   <strong>Resource Allotment</strong>
-                  <span>Supplier ${esc(supplierName)} and vehicle group ${esc(vehicleGroup)} allocated.</span>
+                  <span>Driver ${esc(supplierName)} and vehicle group ${esc(vehicleGroup)} allocated.</span>
                 </div>
               </div>
               <div class="timeline-item">
-                <span class="timeline-time">${esc(startDateStr)} ${esc(garageStartTime)}</span>
+                <span class="timeline-time">${esc(dutyCreatedTime)}</span>
                 <i class="timeline-dot green"></i>
                 <div class="timeline-copy">
-                  <strong>Duty Slip Generated</strong>
-                  <span>Duty Slip DS-${esc(dutyId)} prepared and dispatched.</span>
+                  <strong>Duty Slip Generated &amp; Dispatched</strong>
+                  <span>Duty Slip #${esc(dutyId)} prepared and dispatched.</span>
                 </div>
               </div>
               <div class="timeline-item">
-                <span class="timeline-time">${esc(startDateStr)} ${esc(garageStartTime)}</span>
+                <span class="timeline-time">${esc(departureTime)}</span>
                 <i class="timeline-dot blue"></i>
                 <div class="timeline-copy">
                   <strong>Garage Departure</strong>
@@ -5811,7 +5852,7 @@
                 </div>
               </div>
               <div class="timeline-item">
-                <span class="timeline-time">${esc(startDateStr)} ${esc(repTime)}</span>
+                <span class="timeline-time">${esc(reportingTimeNice)}</span>
                 <i class="timeline-dot blue"></i>
                 <div class="timeline-copy">
                   <strong>Reporting &amp; Passenger Pickup</strong>
@@ -5819,21 +5860,39 @@
                 </div>
               </div>
               <div class="timeline-item">
-                <span class="timeline-time">${esc(endDateStr)}</span>
+                <span class="timeline-time">${isCompleted ? esc(completedTime) : 'Pending completion'}</span>
                 <i class="timeline-dot ${isCompleted ? 'green' : 'gray'}"></i>
                 <div class="timeline-copy">
                   <strong>Destination Arrival &amp; Closure</strong>
-                  <span>Dropoff at ${esc(dropAddress)}. Status: ${esc(statusText)}.</span>
+                  <span>Dropoff at ${esc(dropAddress)}. Status: ${esc(statusText)}.${duty.start_odometer && duty.end_odometer ? ` Odometer: ${duty.start_odometer} km ➔ ${duty.end_odometer} km (${duty.end_odometer - duty.start_odometer} km covered).` : ''}</span>
                 </div>
               </div>
               <div class="timeline-item">
-                <span class="timeline-time">${esc(endDateStr)}</span>
-                <i class="timeline-dot teal"></i>
+                <span class="timeline-time">${isCompleted ? esc(completedTime) : 'Pending calculation'}</span>
+                <i class="timeline-dot ${isCompleted ? 'teal' : 'gray'}"></i>
                 <div class="timeline-copy">
                   <strong>Fare Engine Audit</strong>
-                  <span>Pricing evaluated: Base fare ${esc(priceDisplay)}, Extra KM: ${esc(perExtraKmRate)}, Extra Hr: ${esc(perExtraHourRate)}.</span>
+                  <span>Pricing evaluated: Total Fare ${esc(priceDisplay)} (Extra KM: ${esc(perExtraKmRate)}, Extra Hr: ${esc(perExtraHourRate)}).</span>
                 </div>
               </div>
+              ${matchingInvoice ? `
+              <div class="timeline-item">
+                <span class="timeline-time">${esc(invoiceTime)}</span>
+                <i class="timeline-dot purple"></i>
+                <div class="timeline-copy">
+                  <strong>Tax Invoice Issued</strong>
+                  <span>Invoice #${esc(matchingInvoice.invoice_number)} generated for ₹${((matchingInvoice.total_paise || 0) / 100).toFixed(2)}. Status: ${esc(matchingInvoice.status?.toUpperCase() || 'ISSUED')}.</span>
+                </div>
+              </div>` : ''}
+              ${isPaid ? `
+              <div class="timeline-item">
+                <span class="timeline-time">${esc(paymentTime)}</span>
+                <i class="timeline-dot green"></i>
+                <div class="timeline-copy">
+                  <strong>Payment Reconciled</strong>
+                  <span>Payment of ₹${((matchingInvoice.total_paise || 0) / 100).toFixed(2)} received and verified. Balance cleared to ₹0.00 (PAID).</span>
+                </div>
+              </div>` : ''}
             </div>
           </div>
         </div>`,

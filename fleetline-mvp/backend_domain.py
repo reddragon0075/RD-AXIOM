@@ -35,6 +35,43 @@ def new_id(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex}"
 
 
+def _derive_corp_code(name: str) -> str:
+    cleaned = re.sub(r"[^A-Za-z0-9\s]", " ", name or "").strip()
+    words = cleaned.split()
+    if len(words) >= 2:
+        code = "".join(w[0] for w in words if w).upper()
+        return code[:6]
+    elif len(words) == 1:
+        w = words[0].upper()
+        return w[:4] if len(w) >= 3 else w
+    return "TRIP"
+
+
+def _generate_trip_id(conn, org: str, corp_code: str) -> str:
+    corp_code = re.sub(r"[^A-Za-z0-9]", "", corp_code or "").strip().upper()
+    if not corp_code:
+        corp_code = "TRIP"
+    prefix = corp_code
+    rows = conn.execute(
+        "SELECT id FROM domain_duties WHERE organization_id = ? AND id LIKE ?",
+        (org, f"{prefix}%")
+    ).fetchall()
+    max_seq = 0
+    pattern = re.compile(rf"^{re.escape(prefix)}(\d+)$")
+    for r in rows:
+        duty_id = str(r["id"] or "")
+        match = pattern.match(duty_id)
+        if match:
+            try:
+                seq = int(match.group(1))
+                if seq > max_seq:
+                    max_seq = seq
+            except ValueError:
+                pass
+    next_seq = max_seq + 1
+    return f"{prefix}{next_seq:04d}"
+
+
 def initialize_domain_schema(conn) -> None:
     conn.executescript(
         """
@@ -262,6 +299,9 @@ def initialize_domain_schema(conn) -> None:
     # Supabase vehicles table remains the production source of truth.
     vehicle_columns = {row["name"] for row in conn.execute("PRAGMA table_info(domain_vehicles)").fetchall()}
     booking_columns = {row["name"] for row in conn.execute("PRAGMA table_info(domain_bookings)").fetchall()}
+    customer_columns = {row["name"] for row in conn.execute("PRAGMA table_info(domain_customers)").fetchall()}
+    if "code" not in customer_columns:
+        conn.execute("ALTER TABLE domain_customers ADD COLUMN code TEXT NOT NULL DEFAULT ''")
     if "passenger_email" not in booking_columns:
         conn.execute("ALTER TABLE domain_bookings ADD COLUMN passenger_email TEXT NOT NULL DEFAULT ''")
     for column, definition in {
@@ -491,8 +531,14 @@ def _create_customer(conn, user, payload, ip):
         raise DomainError(400, "Customer name is required", "validation_error")
     customer_id = new_id("cust")
     now = now_iso()
-    conn.execute("INSERT INTO domain_customers(id, organization_id, name, email, phone, gstin, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?)", (customer_id, org, name, _text(payload, "email"), _text(payload, "phone"), _text(payload, "gstin").upper(), now, now))
-    _audit(conn, user, "customer.created", "customer", customer_id, ip, {"name": name})
+    raw_code = _text(payload, "code") or _text(payload, "customer_code") or _text(payload, "corp_code") or _derive_corp_code(name)
+    code = re.sub(r"[^A-Za-z0-9]", "", raw_code).strip().upper()
+    cust_cols = {row["name"] for row in conn.execute("PRAGMA table_info(domain_customers)").fetchall()}
+    if "code" in cust_cols:
+        conn.execute("INSERT INTO domain_customers(id, organization_id, name, code, email, phone, gstin, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)", (customer_id, org, name, code, _text(payload, "email"), _text(payload, "phone"), _text(payload, "gstin").upper(), now, now))
+    else:
+        conn.execute("INSERT INTO domain_customers(id, organization_id, name, email, phone, gstin, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?)", (customer_id, org, name, _text(payload, "email"), _text(payload, "phone"), _text(payload, "gstin").upper(), now, now))
+    _audit(conn, user, "customer.created", "customer", customer_id, ip, {"name": name, "code": code})
     return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_customers WHERE id = ?", (customer_id,)).fetchone())}
 
 
@@ -658,7 +704,26 @@ def _create_duty(conn, user, payload, ip):
     if supplier_id:
         _assert_owned(conn, "domain_suppliers", supplier_id, org)
     status = "assigned" if driver_id or vehicle_id or supplier_id else "draft"
-    duty_id = new_id("duty")
+    duty_id = _text(payload, "id") or _text(payload, "duty_id") or _text(payload, "trip_id")
+    if not duty_id:
+        corp_code = _text(payload, "corp_code") or _text(payload, "customer_code")
+        customer_id = booking["customer_id"] if "customer_id" in booking.keys() else None
+        if not corp_code and customer_id:
+            cust_cols = {r["name"] for r in conn.execute("PRAGMA table_info(domain_customers)").fetchall()}
+            customer = conn.execute("SELECT * FROM domain_customers WHERE id = ? AND organization_id = ?", (customer_id, org)).fetchone()
+            if customer:
+                if "code" in cust_cols and customer["code"]:
+                    corp_code = customer["code"]
+                elif customer["name"]:
+                    corp_code = _derive_corp_code(customer["name"])
+                    if "code" in cust_cols:
+                        try:
+                            conn.execute("UPDATE domain_customers SET code = ? WHERE id = ?", (corp_code, customer["id"]))
+                        except Exception:
+                            pass
+        if not corp_code:
+            corp_code = "TRIP"
+        duty_id = _generate_trip_id(conn, org, corp_code)
     now = now_iso()
     cols = {r["name"] for r in conn.execute("PRAGMA table_info(domain_duties)").fetchall()}
     if "supplier_id" in cols:
