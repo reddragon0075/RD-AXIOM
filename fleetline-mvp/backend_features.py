@@ -542,7 +542,7 @@ def _booking_action(conn, user, booking_id, action, payload, ip):
         else:
             duty_payload["booking_id"] = booking_id
             result = _create_duty(conn, user, duty_payload, ip)
-        booking_status = "assigned" if (driver_id and vehicle_id) else "confirmed" if (driver_id or vehicle_id or supplier_id) else "requested"
+        booking_status = "assigned" if (driver_id and vehicle_id and supplier_id) else "confirmed" if (driver_id or vehicle_id or supplier_id) else "requested"
         booking_cols = {row["name"] for row in conn.execute("PRAGMA table_info(domain_bookings)").fetchall()}
         booking_updates = ["status = ?", "updated_at = ?"]
         booking_params = [booking_status, now]
@@ -741,7 +741,7 @@ def handle_feature(conn, user, method: str, raw_route: str, payload: dict, ip: s
         rows = conn.execute("SELECT * FROM audit_events WHERE user_id IN (SELECT id FROM users WHERE organization_id = ?) ORDER BY created_at DESC LIMIT ?", (org, limit)).fetchall()
         return {"ok": True, "items": [_serialize(row, ("metadata_json",)) for row in rows], "count": len(rows)}
 
-    parts = route.split("/")
+    parts = route.split("?")[0].split("/")
     if len(parts) >= 4:
         resource, entity_id = parts[2], parts[3]
         if resource == "invoices" and len(parts) == 5 and parts[4] == "e-invoice" and method == "POST": return _invoice_einvoice(conn, user, entity_id, payload, ip)

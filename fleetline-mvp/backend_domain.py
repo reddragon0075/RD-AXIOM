@@ -775,7 +775,7 @@ def _update_duty(conn, user, duty_id, payload, ip):
         existing_event = conn.execute("SELECT 1 FROM domain_duty_events WHERE organization_id = ? AND idempotency_key = ?", (org, idempotency_key)).fetchone()
         if existing_event:
             return {"ok": True, "item": _duty(conn, duty_id, org), "idempotent": True}
-    if next_status:
+    if next_status and next_status != row["status"]:
         allowed = {
             "draft": {"assigned", "cancelled"}, "assigned": {"accepted", "cancelled", "draft"},
             "accepted": {"en_route", "cancelled", "draft"}, "en_route": {"started", "cancelled"},

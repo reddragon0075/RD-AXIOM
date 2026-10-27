@@ -83,7 +83,9 @@ def main():
     else:
         print(f"✓ Found Company: '{target_cust['name']}' with Code: '{target_cust.get('code')}' (ID: {target_cust['id']})")
 
-    # 3. Get active driver and vehicle
+    # 3. Get active supplier, driver and vehicle (supplier first)
+    status, suppliers = api("GET", "/api/suppliers")
+    supplier = suppliers["items"][0] if suppliers.get("items") else None
     status, drivers = api("GET", "/api/drivers")
     driver = drivers["items"][0]
     status, vehicles = api("GET", "/api/vehicles")
@@ -123,6 +125,7 @@ def main():
     # 5. Create Duty / Trip -> Verify generated Trip ID
     duty_payload = {
         "booking_id": booking_id,
+        "supplier_id": supplier["id"] if supplier else None,
         "driver_id": driver["id"],
         "vehicle_id": vehicle["id"],
         "reporting_at": reporting_iso

@@ -26,7 +26,8 @@ def api(method: str, path: str, payload: dict | None = None) -> tuple[int, dict]
     url = f"{BASE_URL}{path}"
     headers = {
         "Content-Type": "application/json",
-        "X-Request-ID": f"req-trip-{int(time.time()*1000)}"
+        "X-Request-ID": f"req-trip-{int(time.time()*1000)}",
+        "X-Axiom-User-Email": EMAIL
     }
     if session_cookie:
         headers["Cookie"] = session_cookie
@@ -64,6 +65,9 @@ def main():
     status, custs = api("GET", "/api/customers")
     cust_id = custs["items"][0]["id"]
     cust_name = custs["items"][0]["name"]
+
+    status, suppliers = api("GET", "/api/suppliers")
+    supplier = suppliers["items"][0] if suppliers.get("items") else None
 
     status, drivers = api("GET", "/api/drivers")
     driver = drivers["items"][0]
@@ -104,6 +108,7 @@ def main():
     # 4. Create Trip (Duty) - This gives us the Primary Key Trip ID
     trip_payload = {
         "booking_id": booking_id,
+        "supplier_id": supplier["id"] if supplier else None,
         "driver_id": driver["id"],
         "vehicle_id": vehicle["id"],
         "reporting_at": reporting_iso
