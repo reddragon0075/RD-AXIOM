@@ -22,8 +22,15 @@ def resolve_auto_slab(
     extra_hr_paise: int,
     extra_km_paise: int,
     client_favorable: bool = True,
-) -> Tuple[Dict[str, Any], int, str]:
-    """Auto-Slab Optimizer: Compares Base + Extras against higher packages to find optimal rate."""
+    supplier_payable_paise: Optional[int] = None,
+    min_gross_margin_threshold_paise: int = 15000,  # ₹150 minimum margin floor
+    min_gross_margin_threshold_pct: float = 8.0,    # 8% minimum margin floor
+) -> Tuple[Dict[str, Any], int, str, bool]:
+    """Auto-Slab Optimizer: Compares Base + Extras against higher packages to find optimal rate.
+    
+    Includes Margin-Floor Guardrail: Never allows an auto-slab upgrade if
+    (Optimized_Client_Receivable - Supplier_Payable) < min_gross_margin_threshold.
+    """
     if not slabs:
         # Default fallback 4Hr/40Km
         slabs = [{"hours": 4, "km": 40, "base_paise": 180000}, {"hours": 8, "km": 80, "base_paise": 320000}, {"hours": 12, "km": 120, "base_paise": 450000}]
@@ -42,14 +49,34 @@ def resolve_auto_slab(
         cost = base + math.ceil(extra_hr) * extra_hr_paise + math.ceil(extra_km) * extra_km_paise
         candidates.append((cost, s, f"Slab {s_hr}H/{s_km}K (Base: {base} + Extras: {cost - base})"))
 
+    standard_base_slab = candidates[0]  # Unoptimized lowest slab (e.g. 4H/40K + extras)
+
     if client_favorable:
-        # Pick lowest cost for client
-        best_cost, best_slab, explanation = min(candidates, key=lambda c: c[0])
+        # Sort candidate packages by client cost ascending
+        candidates.sort(key=lambda c: c[0])
+        best_cost, best_slab, explanation = candidates[0]
+        margin_floor_breached = False
+
+        # Apply Margin-Floor Guardrail if supplier payable is known
+        if supplier_payable_paise is not None and best_slab != standard_base_slab[1]:
+            projected_margin = best_cost - supplier_payable_paise
+            margin_pct = (projected_margin / best_cost * 100.0) if best_cost > 0 else 0.0
+
+            if projected_margin < min_gross_margin_threshold_paise or margin_pct < min_gross_margin_threshold_pct:
+                # Upgraded slab breaches margin floor: lock to standard unoptimized slab
+                margin_floor_breached = True
+                best_cost, best_slab, orig_exp = standard_base_slab
+                explanation = (
+                    f"Auto-slab upgrade blocked by Margin Guardrail (Projected margin INR {projected_margin/100:.2f} [{margin_pct:.1f}%] "
+                    f"< threshold INR {min_gross_margin_threshold_paise/100:.2f} [{min_gross_margin_threshold_pct}%]). "
+                    f"Locked to standard unoptimized slab {best_slab['hours']}H/{best_slab['km']}K."
+                )
     else:
         # Strict matching slab
-        best_cost, best_slab, explanation = candidates[0]
+        best_cost, best_slab, explanation = standard_base_slab
+        margin_floor_breached = False
 
-    return best_slab, best_cost, explanation
+    return best_slab, best_cost, explanation, margin_floor_breached
 
 
 def calculate_dual_ledger_duty(
@@ -80,15 +107,40 @@ def calculate_dual_ledger_duty(
     tolls_paise = int(duty_params.get("toll_parking_paise", 0))
 
     # =========================================================================
-    # 1. CLIENT RECEIVABLE LEDGER
+    # 1. PRELIMINARY SUPPLIER PAYABLE ESTIMATE (FOR MARGIN-FLOOR GUARDRAIL)
     # =========================================================================
     c_bhatta = int(client_rate_card.get("driver_bhatta_paise", 40000)) if duty_params.get("is_night_or_outstation") else 0
     c_extra_km_paise = int(client_rate_card.get("extra_km_paise", 1800))
     c_extra_hr_paise = int(client_rate_card.get("extra_hr_paise", 15000))
 
+    s_card = supplier_rate_card or {}
+    s_extra_km_paise = int(s_card.get("extra_km_paise", round(c_extra_km_paise * 0.80)))
+    s_extra_hr_paise = int(s_card.get("extra_hr_paise", round(c_extra_hr_paise * 0.80)))
+    s_bhatta = int(s_card.get("driver_bhatta_paise", round(c_bhatta * 0.85)))
+    s_base_default = int(s_card.get("base_paise", 140000))
+    s_gross_estimate = s_base_default + (math.ceil(max(0.0, billable_km - 40.0)) * s_extra_km_paise) + s_bhatta + tolls_paise
+
+    # =========================================================================
+    # 2. CLIENT RECEIVABLE LEDGER WITH AUTO-SLAB MARGIN GUARDRAIL
+    # =========================================================================
+    margin_floor_breached = False
+    slab_note = "Standard Slab"
+
     if mode == "HR_KM_SLAB":
         slabs = client_rate_card.get("slabs", [])
-        _, c_base_and_extras, slab_note = resolve_auto_slab(billable_hrs, billable_km, slabs, c_extra_hr_paise, c_extra_km_paise, client_favorable=True)
+        min_margin_paise = int(client_rate_card.get("min_margin_paise", 15000))
+        min_margin_pct = float(client_rate_card.get("min_margin_pct", 8.0))
+        _, c_base_and_extras, slab_note, margin_floor_breached = resolve_auto_slab(
+            billable_hrs,
+            billable_km,
+            slabs,
+            c_extra_hr_paise,
+            c_extra_km_paise,
+            client_favorable=True,
+            supplier_payable_paise=s_gross_estimate,
+            min_gross_margin_threshold_paise=min_margin_paise,
+            min_gross_margin_threshold_pct=min_margin_pct,
+        )
         c_base = c_base_and_extras
         c_extra_km = 0
         c_extra_hr = 0
@@ -186,5 +238,7 @@ def calculate_dual_ledger_duty(
         "gross_margin_paise": gross_margin_paise,
         "gross_margin_percentage": round((gross_margin_paise / c_gross) * 100.0, 2) if c_gross > 0 else 0.0,
         "is_negative_margin": is_negative_margin,
-        "maker_checker_audit_hold": is_negative_margin,
+        "auto_slab_margin_floor_breached": margin_floor_breached,
+        "slab_explanation": slab_note,
+        "maker_checker_audit_hold": is_negative_margin or margin_floor_breached,
     }

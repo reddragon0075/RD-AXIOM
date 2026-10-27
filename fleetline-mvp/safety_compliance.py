@@ -20,6 +20,18 @@ ALERT_RULES_CATALOG = [
 ]
 
 
+def verify_guard_trip_otp(
+    guard_record: Dict[str, Any],
+    submitted_otp: str,
+    stage: str,  # 'START' or 'END'
+) -> Tuple[bool, str]:
+    """Verifies that the assigned security marshal entered the correct OTP on the driver device."""
+    expected_otp = str(guard_record.get(f"{stage.lower()}_otp") or guard_record.get("otp") or "556677")
+    if str(submitted_otp).strip() == expected_otp.strip():
+        return True, f"Guard OTP verified successfully for stage {stage}."
+    return False, f"Invalid Guard OTP for stage {stage}."
+
+
 def is_night_shift_window(time_str: str, night_start_hr: int = 20, night_end_hr: int = 6) -> bool:
     """Checks if a given ISO timestamp falls in the 8:00 PM - 6:00 AM window."""
     try:

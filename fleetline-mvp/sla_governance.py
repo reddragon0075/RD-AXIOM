@@ -69,8 +69,30 @@ def evaluate_tier_demotion(
     current_tier: str,
     rolling_ota_pct: float,
     active_breaches_7d: int,
+    completed_duties_14d: int = 25,
+    force_majeure_active: bool = False,
+    last_demotion_hour: Optional[str] = None,
+    current_hour: Optional[str] = None,
 ) -> Tuple[str, bool, str]:
-    """Calculates whether a partner vendor should be automatically demoted."""
+    """Calculates whether a partner vendor should be automatically demoted.
+    
+    Hardened with:
+    1. Force Majeure Exemption: Pauses tier demotions during weather/gridlock emergencies.
+    2. Minimum Sample Size (Hysteresis): Requires >= 20 duties in 14-day window.
+    3. Hourly Demotion Lock: Prevents double-demotions within the same evaluation hour.
+    """
+    # 1. Force Majeure check
+    if force_majeure_active:
+        return current_tier, False, "Force Majeure Active: automated tier demotions and grace penalties paused by dispatcher command."
+
+    # 2. Hysteresis minimum sample size check
+    if completed_duties_14d < 20:
+        return current_tier, False, f"Hysteresis Sample Size Protection: Vendor has completed {completed_duties_14d}/20 minimum duties in 14 days; demotion deferred."
+
+    # 3. Idempotent hourly lock
+    if last_demotion_hour and current_hour and last_demotion_hour == current_hour:
+        return current_tier, False, f"Hourly Demotion Lock: Vendor already demoted in hour window {current_hour}; duplicate demotion blocked."
+
     curr_idx = TIER_HIERARCHY.index(current_tier) if current_tier in TIER_HIERARCHY else 1
     
     # Severe failure -> immediate Probation or Blocked

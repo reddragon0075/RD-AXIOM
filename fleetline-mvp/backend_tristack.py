@@ -1,29 +1,78 @@
 """Axiom Mobility (Fleetline) Tri-Stack REST API Controller.
 
-Provides REST interfaces for:
-1. Unified Tariff & Dual-Ledger Resolver
-2. Partner Network SLA Governance & Tier Demotion
-3. Statutory Women's Safety & Live Telemetry Rules
-4. GST E-Invoicing & Tally Prime Bridge
-5. 3-Way Distance Audit & Anti-Fraud Inspection
-6. Admin Webhook & Integration Audit Logs
+Provides REST interfaces and second-order hardening for:
+1. Unified Tariff & Dual-Ledger Resolver (with Auto-Slab Margin-Floor Guardrail)
+2. Partner Network SLA Governance & Tier Demotion (Hysteresis, Force Majeure & Hourly Locks)
+3. Statutory Women's Safety & Live Telemetry Rules (POSH First-Pickup/Last-Drop 422 & Guard OTP)
+4. GST E-Invoicing & Tally Prime Bridge (SAC 996601 RCM & Sundry Debtors/Creditors)
+5. 3-Way Distance Audit & Anti-Fraud Inspection (Odometer vs GPS Haversine vs Snapped Route)
+6. Admin Webhook & Event Integration Logs (PII/Secret Sanitization & Idempotent Replays)
 """
 
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import json
+import math
 import sqlite3
 from typing import Any, Dict, List, Optional
 from urllib.parse import parse_qs, urlsplit
 
 from backend_domain import DomainError, _audit, _org, _serialize, _text, new_id, now_iso
 from erp_gst_bridge import determine_gst_tax_structure, export_tally_prime_xml, generate_irp_einvoice_payload
-from safety_compliance import evaluate_safe_reach_escalation, scan_telemetry_alerts, validate_night_shift_safety
+from safety_compliance import evaluate_safe_reach_escalation, scan_telemetry_alerts, validate_night_shift_safety, verify_guard_trip_otp
 from sla_governance import evaluate_sla_breach, evaluate_tier_demotion, generate_penalty_debit_note
 from tariff_engine import calculate_dual_ledger_duty
 
 TRISTACK_PREFIX = "/api/tri-stack"
+
+REDACT_KEYS = {
+    "authorization", "x-api-key", "api_key", "password", "token", "secret",
+    "bearer", "access_token", "refresh_token", "client_secret"
+}
+PII_PHONE_KEYS = {"phone", "passenger_phone", "driver_phone", "mobile", "contact_number"}
+LOCATION_KEYS = {"lat", "lng", "latitude", "longitude", "home_lat", "home_lng", "home_coords", "pickup_coords", "dropoff_coords"}
+
+
+def redact_pii_and_secrets(obj: Any) -> Any:
+    """Recursively redacts secrets, tokens, passenger phones, and exact coordinates."""
+    if isinstance(obj, dict):
+        redacted = {}
+        for k, v in obj.items():
+            lower_k = str(k).lower()
+            if any(rk in lower_k for rk in REDACT_KEYS):
+                redacted[k] = "***REDACTED***"
+            elif any(pk in lower_k for pk in PII_PHONE_KEYS) and isinstance(v, str):
+                redacted[k] = "***REDACTED***" if len(v) < 4 else f"+91 ***** **{v[-2:]}"
+            elif lower_k in LOCATION_KEYS:
+                if isinstance(v, dict):
+                    redacted[k] = redact_pii_and_secrets(v)
+                else:
+                    redacted[k] = "***REDACTED***"
+            else:
+                redacted[k] = redact_pii_and_secrets(v)
+        return redacted
+    elif isinstance(obj, list):
+        return [redact_pii_and_secrets(item) for item in obj]
+    return obj
+
+
+def compute_haversine_distance(pings: List[Dict[str, float]]) -> float:
+    """Computes total distance in kilometres along a series of lat/lng pings using Haversine formula."""
+    if len(pings) < 2:
+        return 0.0
+    total_km = 0.0
+    r = 6371.0  # Earth radius in km
+    for i in range(len(pings) - 1):
+        lat1, lon1 = math.radians(float(pings[i]["lat"])), math.radians(float(pings[i]["lng"]))
+        lat2, lon2 = math.radians(float(pings[i+1]["lat"])), math.radians(float(pings[i+1]["lng"]))
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        total_km += r * c
+    return round(total_km, 2)
 
 
 def initialize_tristack_schema(conn: sqlite3.Connection) -> None:
@@ -80,6 +129,7 @@ def initialize_tristack_schema(conn: sqlite3.Connection) -> None:
             total_trips_allocated INTEGER NOT NULL DEFAULT 120,
             trips_completed INTEGER NOT NULL DEFAULT 118,
             total_penalties_paise INTEGER NOT NULL DEFAULT 0,
+            last_demoted_hour TEXT,
             status TEXT NOT NULL DEFAULT 'ACTIVE',
             updated_at TEXT NOT NULL
         )
@@ -104,24 +154,111 @@ def initialize_tristack_schema(conn: sqlite3.Connection) -> None:
         )
         """
     )
+
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS tristack_security_guards (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            guard_name TEXT NOT NULL,
+            badge_number TEXT NOT NULL UNIQUE,
+            phone TEXT NOT NULL,
+            agency_name TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'ACTIVE',
+            start_otp TEXT NOT NULL DEFAULT '123456',
+            end_otp TEXT NOT NULL DEFAULT '654321',
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS tristack_idempotency_keys (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            idempotency_key TEXT NOT NULL UNIQUE,
+            request_path TEXT NOT NULL,
+            response_payload_json TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS tristack_maker_checker_queue (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            duty_id TEXT NOT NULL UNIQUE,
+            reason TEXT NOT NULL,
+            odometer_delta_km REAL NOT NULL,
+            snapped_route_km REAL NOT NULL,
+            variance_pct REAL NOT NULL,
+            variance_km REAL NOT NULL,
+            status TEXT NOT NULL DEFAULT 'PENDING_REVIEW',
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS tristack_system_controls (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            force_majeure_active INTEGER NOT NULL DEFAULT 0,
+            force_majeure_reason TEXT,
+            updated_at TEXT NOT NULL
+        )
+        """
+    )
     conn.commit()
+
+    # Seed system controls if empty
+    cur = conn.execute("SELECT count(*) FROM tristack_system_controls")
+    if cur.fetchone()[0] == 0:
+        conn.execute(
+            "INSERT INTO tristack_system_controls (id, organization_id, force_majeure_active, force_majeure_reason, updated_at) VALUES (?, ?, ?, ?, ?)",
+            ("sys_ctl_1", "org_sample", 0, None, now_iso()),
+        )
+        conn.commit()
+
+    # Seed security guards if empty
+    cur = conn.execute("SELECT count(*) FROM tristack_security_guards")
+    if cur.fetchone()[0] == 0:
+        now = now_iso()
+        sample_guards = [
+            ("guard_001", "org_sample", "Ramesh Kumar", "SG-8821", "+919845011999", "SIS Security Solutions", "ACTIVE", "123456", "654321", now),
+            ("guard_002", "org_sample", "Suresh Gowda", "SG-8822", "+919845011888", "G4S Secure Solutions", "ACTIVE", "556677", "778899", now),
+        ]
+        conn.executemany(
+            """
+            INSERT INTO tristack_security_guards (
+                id, organization_id, guard_name, badge_number, phone,
+                agency_name, status, start_otp, end_otp, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            sample_guards,
+        )
+        conn.commit()
 
     # Seed partner SLA profiles if empty
     cur = conn.execute("SELECT count(*) FROM tristack_partner_sla_profiles")
     if cur.fetchone()[0] == 0:
         now = now_iso()
         sample_partners = [
-            ("sla_p1", "org_sample", "ven_apex", "Apex Logistics Bangalore", "TIER_1_PLATINUM", 98.2, 0, 142, 141, 0, "ACTIVE", now),
-            ("sla_p2", "org_sample", "ven_southcity", "South City Cabs & Fleet", "TIER_2_GOLD", 91.5, 3, 98, 94, 150000, "DEMOTED_WARNING", now),
-            ("sla_p3", "org_sample", "ven_primeshuttle", "Prime Shuttle Services", "TIER_3_SILVER", 87.4, 6, 85, 79, 320000, "PROBATION", now),
+            ("sla_p1", "org_sample", "ven_apex", "Apex Logistics Bangalore", "TIER_1_PLATINUM", 98.2, 0, 142, 141, 0, None, "ACTIVE", now),
+            ("sla_p2", "org_sample", "ven_southcity", "South City Cabs & Fleet", "TIER_2_GOLD", 91.5, 3, 98, 94, 150000, None, "DEMOTED_WARNING", now),
+            ("sla_p3", "org_sample", "ven_primeshuttle", "Prime Shuttle Services", "TIER_3_SILVER", 87.4, 6, 85, 79, 320000, None, "PROBATION", now),
         ]
         conn.executemany(
             """
             INSERT INTO tristack_partner_sla_profiles (
                 id, organization_id, vendor_id, vendor_name, current_tier,
                 rolling_ota_pct, active_breaches_7d, total_trips_allocated,
-                trips_completed, total_penalties_paise, status, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                trips_completed, total_penalties_paise, last_demoted_hour, status, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             sample_partners,
         )
@@ -160,7 +297,7 @@ def initialize_tristack_schema(conn: sqlite3.Connection) -> None:
                 "Exotel Masked Telephony",
                 "https://api.exotel.com/v1/Accounts/call-mask",
                 "POST",
-                json.dumps({"driver_phone": "+919845011223", "passenger_phone": "+919845099887", "virtual_did": "+918047192837"}),
+                json.dumps(redact_pii_and_secrets({"driver_phone": "+919845011223", "passenger_phone": "+919845099887", "virtual_did": "+918047192837"})),
                 json.dumps({"Call": {"Sid": "call_99281a", "Status": "in-progress"}}),
                 200,
                 145,
@@ -208,7 +345,7 @@ def initialize_tristack_schema(conn: sqlite3.Connection) -> None:
                 "WhatsApp Business Cloud API",
                 "https://graph.facebook.com/v19.0/messages",
                 "POST",
-                json.dumps({"messaging_product": "whatsapp", "to": "+919845011223", "type": "template", "template": {"name": "trip_assigned"}}),
+                json.dumps(redact_pii_and_secrets({"messaging_product": "whatsapp", "to": "+919845011223", "type": "template", "template": {"name": "trip_assigned"}})),
                 json.dumps({"error": {"message": "Service timeout after 5000ms", "code": 504}}),
                 504,
                 5012,
@@ -246,7 +383,7 @@ def handle_tristack(
     if not clean_path.startswith(TRISTACK_PREFIX):
         return None
 
-    # 1. Unified Tariff & Dual-Ledger Calculation
+    # 1. Unified Tariff & Dual-Ledger Calculation (with Auto-Slab Margin-Floor Guardrail)
     if clean_path == "/api/tri-stack/tariff/calculate" and method == "POST":
         data = payload or {}
         duty_params = data.get("duty_params", {})
@@ -255,7 +392,7 @@ def handle_tristack(
         calc = calculate_dual_ledger_duty(duty_params, client_rate_card, supplier_rate_card)
         return {"ok": True, "calculation": calc}
 
-    # 2. Partner Network SLA Evaluation & Tier Demotion
+    # 2. Partner Network SLA Evaluation & Tier Demotion (Hysteresis & Force Majeure)
     if clean_path == "/api/tri-stack/sla/evaluate" and method == "POST":
         data = payload or {}
         duty_evidence = data.get("duty_evidence", {})
@@ -264,9 +401,28 @@ def handle_tristack(
         ota_pct = float(data.get("rolling_ota_pct", 91.5))
         breaches_7d = int(data.get("active_breaches_7d", 3))
 
-        new_tier, demoted, reason = evaluate_tier_demotion(vendor_tier, ota_pct, breaches_7d)
+        # Check Force Majeure state in DB
+        cur_ctl = conn.execute("SELECT force_majeure_active FROM tristack_system_controls LIMIT 1")
+        row_ctl = cur_ctl.fetchone()
+        db_force_majeure = bool(row_ctl[0]) if row_ctl else False
+        force_majeure = bool(data.get("force_majeure_active", db_force_majeure))
+
+        completed_duties_14d = int(data.get("completed_duties_14d", 25))
+        current_hour = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d-%H")
+        last_demotion_hour = data.get("last_demotion_hour")
+
+        new_tier, demoted, reason = evaluate_tier_demotion(
+            vendor_tier,
+            ota_pct,
+            breaches_7d,
+            completed_duties_14d=completed_duties_14d,
+            force_majeure_active=force_majeure,
+            last_demotion_hour=last_demotion_hour,
+            current_hour=current_hour,
+        )
+
         debit_note = None
-        if breach:
+        if breach and not force_majeure:
             debit_note = generate_penalty_debit_note(data.get("vendor_id", "ven_sample"), data.get("duty_id", "duty_sample"), breach)
             conn.execute(
                 """
@@ -290,6 +446,12 @@ def handle_tristack(
                     now_iso(),
                 ),
             )
+            # Update tier and hourly lock
+            if demoted:
+                conn.execute(
+                    "UPDATE tristack_partner_sla_profiles SET current_tier = ?, last_demoted_hour = ?, updated_at = ? WHERE vendor_id = ?",
+                    (new_tier, current_hour, now_iso(), data.get("vendor_id", "ven_sample")),
+                )
             conn.commit()
 
         return {
@@ -302,10 +464,22 @@ def handle_tristack(
                 "current_tier": new_tier,
                 "tier_demoted": demoted,
                 "reason": reason,
+                "force_majeure_active": force_majeure,
+                "completed_duties_14d": completed_duties_14d,
             },
         }
 
-    # 3. Statutory Women's Safety & Safe-Reach Escalation
+    # Dispatcher Force Majeure Toggle
+    if clean_path == "/api/tri-stack/sla/force-majeure" and method == "POST":
+        data = payload or {}
+        is_active = int(bool(data.get("force_majeure_active", True)))
+        reason = data.get("reason", "Severe weather gridlock alert")
+        now = now_iso()
+        conn.execute("UPDATE tristack_system_controls SET force_majeure_active = ?, force_majeure_reason = ?, updated_at = ?", (is_active, reason, now))
+        conn.commit()
+        return {"ok": True, "force_majeure_active": bool(is_active), "reason": reason, "updated_at": now}
+
+    # 3. Statutory Women's Safety & Security Guard Workflow
     if clean_path == "/api/tri-stack/safety/validate" and method == "POST":
         data = payload or {}
         trip_type = data.get("trip_type", "LOGOUT")
@@ -314,6 +488,10 @@ def handle_tristack(
         has_guard = bool(data.get("guard_assigned", False))
 
         is_valid, err_msg = validate_night_shift_safety(trip_type, passengers, sched_time, has_guard)
+        if not is_valid:
+            # POSH Compliance hard lock throws 422 Unprocessable Entity
+            raise DomainError(422, err_msg or "POSH_COMPLIANCE_GUARD_REQUIRED", "posh_compliance_guard_required")
+
         safe_reach_res = None
         if data.get("drop_time_iso"):
             safe_reach_res = evaluate_safe_reach_escalation(
@@ -330,6 +508,31 @@ def handle_tristack(
             "hard_lock_error": err_msg,
             "safe_reach": safe_reach_res,
             "active_telemetry_alerts": telemetry_alerts,
+        }
+
+    # Security Guard OTP Check-In / Check-Out
+    if clean_path == "/api/tri-stack/safety/guard/verify-otp" and method == "POST":
+        data = payload or {}
+        guard_id = data.get("guard_id", "guard_001")
+        stage = data.get("stage", "START").upper()
+        submitted_otp = str(data.get("otp", "")).strip()
+
+        cur = conn.execute("SELECT * FROM tristack_security_guards WHERE id = ? OR badge_number = ?", (guard_id, guard_id))
+        row = cur.fetchone()
+        if not row:
+            raise DomainError(404, f"Security guard {guard_id} not found", "guard_not_found")
+        guard_rec = dict(row)
+        ok, msg = verify_guard_trip_otp(guard_rec, submitted_otp, stage)
+        if not ok:
+            raise DomainError(400, msg, "invalid_guard_otp")
+        return {
+            "ok": True,
+            "verified": True,
+            "guard_name": guard_rec["guard_name"],
+            "badge_number": guard_rec["badge_number"],
+            "stage": stage,
+            "message": msg,
+            "verified_at": now_iso(),
         }
 
     # 4. GST Rent-a-Cab E-Invoicing & Tally Prime
@@ -358,7 +561,15 @@ def handle_tristack(
                     "net_amount_paise": 4725000,
                 }
             ]
-        xml_output = export_tally_prime_xml(invoices)
+        purchases = data.get("supplier_purchases", [
+            {
+                "voucher_number": "PUR-AXM-901",
+                "vendor_name": "Apex Logistics Bangalore",
+                "gross_amount_paise": 3800000,
+                "tds_pct": 1.0,
+            }
+        ])
+        xml_output = export_tally_prime_xml(invoices, purchases)
         return {
             "ok": True,
             "format": "XML",
@@ -366,32 +577,68 @@ def handle_tristack(
             "xml": xml_output,
         }
 
-    # 5. 3-Way Distance Audit & Anti-Fraud Inspection
+    # 5. 3-Way Distance Audit & Anti-Fraud Inspection (with Haversine GPS & Maker-Checker Queue)
     if clean_path == "/api/tri-stack/audits/distance" and method == "POST":
         data = payload or {}
         start_odo = int(data.get("odometer_start", 12000))
         end_odo = int(data.get("odometer_end", 12085))
         delta_odo = end_odo - start_odo
-        gps_km = float(data.get("raw_gps_crumb_km", 72.4))
+
+        pings = data.get("gps_pings")
+        if pings and isinstance(pings, list):
+            gps_km = compute_haversine_distance(pings)
+        else:
+            gps_km = float(data.get("raw_gps_crumb_km", 72.4))
+
         snapped_km = float(data.get("snapped_route_km", 71.8))
 
         discrepancy_pct = round(((delta_odo - snapped_km) / snapped_km) * 100.0, 2) if snapped_km > 0 else 0.0
-        # Fraud flag if odo exceeds snapped by > 10% or > 5km
-        is_fraud = discrepancy_pct > 10.0 or (delta_odo - snapped_km) > 5.0
+        abs_diff_km = round(delta_odo - snapped_km, 2)
+        # Fraud flag if odo exceeds snapped by > 10% AND absolute diff > 5.0 km
+        is_fraud = discrepancy_pct > 10.0 and abs_diff_km > 5.0
         fastag_deductions = int(data.get("fastag_toll_deductions_paise", 17000))
 
+        duty_id = data.get("duty_id", f"duty_audit_{int(dt.datetime.now().timestamp())}")
+        audit_action = "BILLING_AUDIT_HOLD" if is_fraud else "VERIFIED_PASS"
+
+        now = now_iso()
+        # Record into Maker-Checker Queue if fraud detected
+        if is_fraud:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO tristack_maker_checker_queue (
+                    id, organization_id, duty_id, reason, odometer_delta_km,
+                    snapped_route_km, variance_pct, variance_km, status, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING_REVIEW', ?)
+                """,
+                (
+                    new_id("mcq"),
+                    _org(user),
+                    duty_id,
+                    f"Odometer exceeds road-snapped route by {discrepancy_pct}% ({abs_diff_km} km variance)",
+                    delta_odo,
+                    snapped_km,
+                    discrepancy_pct,
+                    abs_diff_km,
+                    now,
+                ),
+            )
+            conn.commit()
+
         audit_record = {
-            "duty_id": data.get("duty_id", "duty_sample_audit"),
+            "duty_id": duty_id,
             "odometer_start": start_odo,
             "odometer_end": end_odo,
             "odometer_delta_km": delta_odo,
             "raw_gps_crumb_km": gps_km,
             "snapped_route_km": snapped_km,
             "discrepancy_pct": discrepancy_pct,
+            "abs_variance_km": abs_diff_km,
             "is_fraud_flagged": is_fraud,
-            "audit_action": "BILLING_AUDIT_HOLD" if is_fraud else "VERIFIED_PASS",
+            "audit_action": audit_action,
             "fastag_toll_deductions_paise": fastag_deductions,
             "fastag_inr": round(fastag_deductions / 100.0, 2),
+            "maker_checker_task_created": is_fraud,
         }
         return {"ok": True, "distance_audit": audit_record}
 
@@ -405,10 +652,19 @@ def handle_tristack(
         partners = [dict(r) for r in cur_partners.fetchall()]
         cur_breaches = conn.execute("SELECT * FROM tristack_sla_breaches ORDER BY created_at DESC LIMIT 30")
         breaches = [dict(r) for r in cur_breaches.fetchall()]
-        return {"ok": True, "partners": partners, "breaches": breaches}
+        cur_ctl = conn.execute("SELECT force_majeure_active, force_majeure_reason FROM tristack_system_controls LIMIT 1")
+        ctl = cur_ctl.fetchone()
+        return {
+            "ok": True,
+            "partners": partners,
+            "breaches": breaches,
+            "force_majeure_active": bool(ctl[0]) if ctl else False,
+            "force_majeure_reason": ctl[1] if ctl else None,
+        }
 
     if clean_path == "/api/tri-stack/billing/dual-ledger-queue" and method == "GET":
-        # Pre-calculated maker-checker dual ledger items
+        cur_mc = conn.execute("SELECT * FROM tristack_maker_checker_queue ORDER BY created_at DESC LIMIT 20")
+        mc_rows = [dict(r) for r in cur_mc.fetchall()]
         queue = [
             {
                 "id": "dlq_001",
@@ -468,12 +724,20 @@ def handle_tristack(
                 "status": "NEGATIVE_MARGIN_BLOCKED",
             },
         ]
-        return {"ok": True, "items": queue, "count": len(queue)}
+        return {"ok": True, "items": queue, "maker_checker_queue": mc_rows, "count": len(queue)}
 
-    # 6. Admin Webhook & Event Integration Logs
+    # 6. Admin Webhook & Event Integration Logs (with Automatic PII/Secret Redaction & Idempotency)
     if clean_path == "/api/tri-stack/webhooks/logs" and method == "GET":
         cur = conn.execute("SELECT * FROM tristack_webhook_logs ORDER BY created_at DESC LIMIT 50")
-        rows = [dict(r) for r in cur.fetchall()]
+        rows = []
+        for r in cur.fetchall():
+            d = dict(r)
+            # Ensure PII is redacted on output
+            try:
+                d["request_payload_json"] = json.dumps(redact_pii_and_secrets(json.loads(d["request_payload_json"])))
+            except Exception:
+                pass
+            rows.append(d)
         return {"ok": True, "items": rows, "count": len(rows)}
 
     if clean_path.startswith("/api/tri-stack/webhooks/") and clean_path.endswith("/replay") and method == "POST":
@@ -483,7 +747,25 @@ def handle_tristack(
         if not row:
             raise DomainError(404, f"Webhook log {wh_id} not found", "not_found")
         w = dict(row)
+
+        # Idempotency Key Enforcement
+        data = payload or {}
+        idempotency_key = data.get("idempotency_key")
+        if not idempotency_key:
+            # Deterministic default key per event per hour
+            idempotency_key = hashlib.sha256(f"{wh_id}:{dt.datetime.now(dt.timezone.utc).strftime('%Y%m%d%H%M')}".encode()).hexdigest()
+
+        cur_idem = conn.execute("SELECT id FROM tristack_idempotency_keys WHERE idempotency_key = ?", (idempotency_key,))
+        if cur_idem.fetchone():
+            raise DomainError(409, f"Duplicate idempotency key detected: webhook replay {idempotency_key} already processed", "duplicate_idempotency_key")
+
         now = now_iso()
+        # Record processed idempotency key
+        conn.execute(
+            "INSERT INTO tristack_idempotency_keys (id, organization_id, idempotency_key, request_path, response_payload_json, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (new_id("idem"), _org(user), idempotency_key, clean_path, json.dumps({"status": "REPLAYED", "wh_id": wh_id}), now),
+        )
+
         # Simulate replay execution
         conn.execute(
             """
@@ -495,12 +777,13 @@ def handle_tristack(
                 response_payload_json = ?
             WHERE id = ?
             """,
-            (json.dumps({"replayed_at": now, "status": "success", "replay_ack": "OK"}), wh_id),
+            (json.dumps({"replayed_at": now, "status": "success", "replay_ack": "OK", "idempotency_key": idempotency_key}), wh_id),
         )
         conn.commit()
         return {
             "ok": True,
             "webhook_id": wh_id,
+            "idempotency_key": idempotency_key,
             "service_name": w["service_name"],
             "status": "REPLAY_DISPATCHED_SUCCESSFULLY",
             "replayed_at": now,

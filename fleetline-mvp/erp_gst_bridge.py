@@ -123,8 +123,9 @@ def generate_irp_einvoice_payload(
 
 def export_tally_prime_xml(
     invoices: List[Dict[str, Any]],
+    supplier_purchases: Optional[List[Dict[str, Any]]] = None,
 ) -> str:
-    """Exports Tally Prime compatible XML for Sundry Debtors (Receivables) and GST Ledgers."""
+    """Exports Tally Prime compatible XML for Sundry Debtors (Sales) and Sundry Creditors (Purchases + TDS 194C)."""
     xml_lines = [
         '<ENVELOPE>',
         '  <HEADER>',
@@ -138,13 +139,15 @@ def export_tally_prime_xml(
         '      <REQUESTDATA>',
     ]
 
-    for inv in invoices:
+    # 1. Sales Vouchers (Corporate Clients / Sundry Debtors)
+    for inv in (invoices or []):
         inv_no = inv.get("invoice_number", "INV-001")
         date_str = inv.get("invoice_date_tally", dt.date.today().strftime("%Y%m%d"))
         client_name = inv.get("client_name", "Corporate Client A")
         gross_amt = round(float(inv.get("gross_amount_paise", 0)) / 100.0, 2)
         gst_amt = round(float(inv.get("gst_amount_paise", 0)) / 100.0, 2)
         net_amt = round(float(inv.get("net_amount_paise", 0)) / 100.0, 2)
+        cost_center = inv.get("cost_center", "Corporate Fleet Operations")
 
         xml_lines.extend([
             '        <TALLYMESSAGE xmlns:UDF="TallyUDF">',
@@ -162,11 +165,50 @@ def export_tally_prime_xml(
             f'              <LEDGERNAME>Car Rental Revenue (SAC 996601)</LEDGERNAME>',
             f'              <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>',
             f'              <AMOUNT>{gross_amt}</AMOUNT>',
+            f'              <COSTCENTRENAME>{cost_center}</COSTCENTRENAME>',
             f'            </ALLLEDGERENTRIES.LIST>',
             f'            <ALLLEDGERENTRIES.LIST>',
             f'              <LEDGERNAME>Output GST 5%</LEDGERNAME>',
             f'              <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>',
             f'              <AMOUNT>{gst_amt}</AMOUNT>',
+            f'            </ALLLEDGERENTRIES.LIST>',
+            f'          </VOUCHER>',
+            '        </TALLYMESSAGE>',
+        ])
+
+    # 2. Purchase Vouchers (Partner Fleet Vendors / Sundry Creditors with TDS 194C)
+    for pur in (supplier_purchases or []):
+        pur_no = pur.get("voucher_number", f"PUR-{int(dt.datetime.now().timestamp())}")
+        date_str = pur.get("date_tally", dt.date.today().strftime("%Y%m%d"))
+        vendor_name = pur.get("vendor_name", "Partner Fleet Vendor B")
+        gross_amt = round(float(pur.get("gross_amount_paise", 0)) / 100.0, 2)
+        tds_pct = float(pur.get("tds_pct", 1.0))  # Section 194C 1% individual or 2% corporate
+        tds_amt = round(gross_amt * (tds_pct / 100.0), 2)
+        net_payable = round(gross_amt - tds_amt, 2)
+        cost_center = pur.get("cost_center", "Outsourced Fleet Supply")
+
+        xml_lines.extend([
+            '        <TALLYMESSAGE xmlns:UDF="TallyUDF">',
+            f'          <VOUCHER VCHTYPE="Purchase" ACTION="Create" OBJVIEW="Accounting Voucher View">',
+            f'            <DATE>{date_str}</DATE>',
+            f'            <VOUCHERNUMBER>{pur_no}</VOUCHERNUMBER>',
+            f'            <PARTYLEDGERNAME>{vendor_name}</PARTYLEDGERNAME>',
+            f'            <PERSISTEDVIEW>Accounting Voucher View</PERSISTEDVIEW>',
+            f'            <ALLLEDGERENTRIES.LIST>',
+            f'              <LEDGERNAME>Fleet Hire Expense (SAC 996601)</LEDGERNAME>',
+            f'              <ISDEEMEDPOSITIVE>Yes</ISDEEMEDPOSITIVE>',
+            f'              <AMOUNT>-{gross_amt}</AMOUNT>',
+            f'              <COSTCENTRENAME>{cost_center}</COSTCENTRENAME>',
+            f'            </ALLLEDGERENTRIES.LIST>',
+            f'            <ALLLEDGERENTRIES.LIST>',
+            f'              <LEDGERNAME>{vendor_name}</LEDGERNAME>',
+            f'              <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>',
+            f'              <AMOUNT>{net_payable}</AMOUNT>',
+            f'            </ALLLEDGERENTRIES.LIST>',
+            f'            <ALLLEDGERENTRIES.LIST>',
+            f'              <LEDGERNAME>TDS on Transport Contractor Sec 194C</LEDGERNAME>',
+            f'              <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>',
+            f'              <AMOUNT>{tds_amt}</AMOUNT>',
             f'            </ALLLEDGERENTRIES.LIST>',
             f'          </VOUCHER>',
             '        </TALLYMESSAGE>',

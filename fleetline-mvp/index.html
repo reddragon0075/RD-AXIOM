@@ -3462,7 +3462,7 @@
         <pre style="background:rgba(0,0,0,0.3);padding:10px;border-radius:6px;font-family:monospace;font-size:11px;overflow:auto;max-height:160px;color:#86efac">${esc(resFormatted)}</pre>
       </div>`;
 
-      const modal = modalShell(`Webhook Payload Inspector: ${esc(item.id)}`, 'Live integration request/response audit payload', body, `${button('Close','','data-close-modal')}${button(icon('refresh')+' Replay Webhook','primary',`data-modal-replay="${esc(item.id)}"`) }`);
+      const modal = modalShell(`Webhook Payload Inspector: ${esc(item.id)}`, 'Live integration request/response audit payload · <span class="status green">PII &amp; Secrets Sanitized</span>', body, `${button('Close','','data-close-modal')}${button(icon('refresh')+' Replay Webhook','primary',`data-modal-replay="${esc(item.id)}"`) }`);
       modal.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', closeModal));
       modal.querySelector(`[data-modal-replay]`)?.addEventListener('click', async (e) => {
         closeModal();
@@ -3470,19 +3470,26 @@
       });
     }
 
-    async function replayWebhook(webhookId, btn) {
+    async function replayWebhook(webhookId, btn, forceDuplicateKey = false) {
       if (btn) btn.disabled = true;
+      const idempotencyKey = forceDuplicateKey ? `idem_replay_${webhookId}_locked` : `idem_${webhookId}_${Date.now()}`;
       try {
-        const res = await apiRequest(`/api/tri-stack/webhooks/${encodeURIComponent(webhookId)}/replay`, { method: 'POST' });
-        showToast('Webhook Replay Succeeded', `Event ${esc(webhookId)} successfully re-delivered with HTTP 200 OK.`);
-        // Refresh webhooks
+        const res = await apiRequest(`/api/tri-stack/webhooks/${encodeURIComponent(webhookId)}/replay`, {
+          method: 'POST',
+          body: JSON.stringify({ idempotency_key: idempotencyKey })
+        });
+        showToast('Webhook Replay Succeeded', `Event ${esc(webhookId)} executed with idempotency key ${idempotencyKey.slice(0, 16)}...`);
         try {
           const fresh = await apiRequest('/api/tri-stack/webhooks/logs');
           state.tristackWebhooks = fresh.items || [];
         } catch (_) {}
         render();
       } catch (err) {
-        showToast('Webhook Replay Failed', err.message);
+        if (err.message && err.message.includes('Duplicate idempotency key')) {
+          showToast('Duplicate Replay Blocked', 'Idempotency Protection: Replay rejected because this request key was already processed.');
+        } else {
+          showToast('Webhook Replay Failed', err.message);
+        }
       } finally {
         if (btn) btn.disabled = false;
       }
@@ -4224,7 +4231,7 @@
       return `${pageHead(isVendor ? 'Axiom Network · vendor workspace' : 'Axiom Network · governed sourcing', isVendor ? 'Quote workspace' : 'Partner control room', isVendor ? 'Respond only to eligible, invited requirements and keep competitor pricing private.' : 'Move from an invited partner profile to a versioned requirement, confidential comparison and a Fleet-linked service order.', '')}
         <div class="network-board"><section class="network-hero"><div><h2>${isVendor ? 'Respond with context, not chat.' : 'A governed partner network for every handoff.'}</h2><p>${isVendor ? 'Your organization sees only approved buyer demand. Quotes remain private to the authorized decision surface and accepted work returns to the Fleet ledger.' : 'Axiom Network combines partner qualification, demand, matching, quote review and service-order handoff without creating a second trip source of truth.'}</p><div class="network-boundary">${icon('shield')}<span>Closed B2B by design · tenant-isolated access · deterministic eligibility · immutable requirement versions · audit references on mutations.</span></div></div><div class="network-hero-actions">${actions}</div></section><section class="network-lifecycle" aria-label="Network lifecycle">${stages.map(([number,title,copy], index) => `<div class="network-stage"><span class="network-stage-number">${number}</span><strong>${title}</strong><span>${copy}</span><b class="network-stage-value">${stageCounts[index]}</b></div>`).join('')}</section><div class="grid kpis"><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Programs</span><span class="kpi-icon teal">${icon('route')}</span></div><div class="kpi-value">${programs.length}</div><div class="kpi-foot">${programs.filter(item=>item.status==='active').length} active tenant program${programs.filter(item=>item.status==='active').length === 1 ? '' : 's'}</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Requirements</span><span class="kpi-icon amber">${icon('file')}</span></div><div class="kpi-value">${requirements.length}</div><div class="kpi-foot">Versioned and auditable demand</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">${isVendor ? 'Buyer links' : 'Partner profiles'}</span><span class="kpi-icon">${icon('users')}</span></div><div class="kpi-value">${isVendor ? invites.length : profiles.length}</div><div class="kpi-foot">${isVendor ? 'Approved buyer relationships' : 'Approved capability profiles'}</div></div><div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Fleet service orders</span><span class="kpi-icon purple">${icon('check')}</span></div><div class="kpi-value">${orders.length}</div><div class="kpi-foot">Network awards linked to Fleet</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead(isVendor ? 'Eligible requirements' : 'Requirement lifecycle','Hard eligibility first · confidential quotes · explicit approval')}<div class="table-wrap"><table><thead><tr><th>Reference</th><th>Status</th><th>Version</th><th>Access</th><th></th></tr></thead><tbody>${requirementRows}</tbody></table></div></section><section class="card section-card">${cardHead(isVendor ? 'Buyer links' : 'Invite-only partner directory','No public vendor registration or anonymous lead resale')}<div class="table-wrap"><table><thead><tr><th>Partner</th><th>Coverage</th><th>Capabilities</th><th>Status</th></tr></thead><tbody>${profiles.length ? profiles.slice(0,8).map(profile=>`<tr><td><div class="table-primary">${esc(profile.vendor_name)}</div><div class="table-secondary">${esc(profile.vendor_organization_id)}</div></td><td>${(profile.cities || profile.cities_json || []).map(esc).join(' · ') || '—'}</td><td>${(profile.capabilities || profile.capabilities_json || []).map(esc).join(' · ') || 'Profile evidence pending'}</td><td>${status(profile.status || 'active', profile.status === 'active' ? 'green' : 'amber')}</td></tr>`).join('') : `<tr><td colspan="4"><div class="table-empty"><strong>${isVendor ? 'No buyer link yet' : 'No invited vendors yet'}</strong>${isVendor ? 'A buyer must invite and approve your organization.' : 'Invite a known vendor organization to create a scoped profile.'}</div></td></tr>`}</tbody></table></div></section></div><div class="grid two-col"><section class="card section-card">${cardHead('Partner inbox','Connection events remain visible instead of disappearing into email or chat')}<div class="network-inbox">${inboxRows || '<div class="network-empty"><strong>No partner invitations</strong>Invite a known organization to begin a scoped B2B relationship.</div>'}</div></section><section class="card section-card">${cardHead('Fleet handoffs','Awards return to the canonical Fleet service-order boundary')}<div class="table-wrap"><table><thead><tr><th>Order</th><th>Partner</th><th>Status</th><th>Created</th></tr></thead><tbody>${orderRows}</tbody></table></div></section></div><div class="grid two-col"><section class="card section-card">${cardHead('Verified partner directory','Searchable only inside the invited B2B relationship')}<div class="table-wrap"><table><thead><tr><th>Partner</th><th>Coverage</th><th>Capabilities</th><th>Verification</th></tr></thead><tbody>${directoryRows}</tbody></table></div></section><section class="card section-card">${cardHead('Contract & rate synchronization','Immutable versions, explicit acceptance and provider-neutral receipts')}<div class="table-wrap"><table><thead><tr><th>Contract</th><th>Status</th><th>Version</th><th></th></tr></thead><tbody>${contractRows}</tbody></table></div></section></div><section class="card section-card">${cardHead(isVendor ? 'Associate onboarding' : 'Exchange & supplier recovery','Accept a scoped relationship, then exchange booking, duty-slip, invoice and operational-message envelopes.', isVendor ? '' : button('New exchange','small soft','data-network-action="exchange"'))}<div class="card-body"><div class="attention-list">${associates.slice(0, 5).map(item => `<div class="attention-item"><span class="attention-icon ${item.status === 'accepted' ? 'teal' : 'amber'}">${icon(item.status === 'accepted' ? 'check' : 'mail')}</span><div class="attention-main"><strong>${esc(item.vendor_name || item.buyer_contact || item.invite_id || 'Associate relationship')}</strong><span>${esc(item.status || 'pending')} · ${esc(item.acceptance_note || 'Invite-controlled onboarding')}</span></div>${isVendor && item.status === 'pending' ? `<button class="btn small soft" data-network-action="accept-associate" data-associate="${esc(item.id)}">Accept</button>` : status(item.status || 'pending', item.status === 'accepted' ? 'green' : 'amber')}</div>`).join('') || `<div class="network-empty"><strong>No associate lifecycle records</strong><span>Every relationship starts with a known organization invite; public registration is not available.</span></div>`}</div>${orders.length ? `<div class="network-boundary" style="margin-top:12px">${icon('shield')}<span>${orders.length} Fleet-linked order${orders.length === 1 ? '' : 's'} ready for exchange controls. Use New exchange to send a duty-slip, invoice or operational message with an idempotency key.</span><button class="btn small soft" data-network-action="exchange" data-order="${esc(orders[0].id)}">Open exchange</button><button class="btn small soft" data-network-action="issue" data-order="${esc(orders[0].id)}">Log supplier issue</button></div>` : ''}</div></section><section class="card section-card">${cardHead('Activation guardrails','The Network adds sourcing and partner collaboration; Fleet remains the operational ledger')}<div class="card-body"><div class="phase12-live-grid"><div class="phase12-live-item"><strong>Eligibility before price</strong><span>City, service, vehicle, capacity, capability and compliance filters record exclusion reasons.</span></div><div class="phase12-live-item"><strong>Confidential comparison</strong><span>Quote payloads stay on the authorized buyer decision surface.</span></div><div class="phase12-live-item"><strong>Evidence before activation</strong><span>SLAs, documents, corrective actions and partner state remain inspectable.</span></div><div class="phase12-live-item"><strong>One trip source of truth</strong><span>${orders.length ? `${orders.length} service order${orders.length === 1 ? '' : 's'} link Network awards to Fleet records.` : 'No award has activated a Fleet service order yet.'}</span></div></div></div></section>
       <section class="card section-card" style="margin-top:16px">
-        ${cardHead('Partner Network SLA Governance & Dynamic Tier Demotion', 'Automated SLA breach enforcement, penalty debit notes, and dynamic tier demotion (OTA &lt; 92%)', button(icon('spark')+'Simulate SLA Breach','small soft','data-action="simulate-sla-breach"'))}
+        ${cardHead('Partner Network SLA Governance & Dynamic Tier Demotion', 'Automated SLA breach enforcement, penalty debit notes, and dynamic tier demotion (OTA &lt; 92%) · Hysteresis minimum sample: 20 duties', `${button(icon('shield')+'Force Majeure Exemption','small soft','data-action="toggle-force-majeure"')}${button(icon('spark')+'Simulate SLA Breach','small primary','data-action="simulate-sla-breach"')}`)}
         <div class="card-body">
           <div class="grid three-col" style="margin-bottom:16px">
             <div class="card kpi" style="padding:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08)">
@@ -6104,7 +6111,22 @@
         'security-setup': () => openSecurityModal(),
         'tristack-einvoice': () => openEinvoiceModal(el?.dataset?.duty),
         'tristack-tally': () => downloadTallyXml(el?.dataset?.duty),
-        'simulate-sla-breach': () => openSlaBreachModal()
+        'simulate-sla-breach': () => openSlaBreachModal(),
+        'toggle-force-majeure': async () => {
+          try {
+            const current = state.tristackScorecard?.force_majeure_active || false;
+            const res = await apiRequest('/api/tri-stack/sla/force-majeure', {
+              method: 'POST',
+              body: JSON.stringify({ force_majeure_active: !current, reason: !current ? 'Severe monsoon gridlock emergency declared' : 'Normal operations resumed' })
+            });
+            showToast('Force Majeure Status Updated', res.force_majeure_active ? 'EMERGENCY ACTIVE: Automated SLA demotions and penalties are PAUSED.' : 'NORMAL: Automated tier demotions and penalty notes are ACTIVE.');
+            const fresh = await apiRequest('/api/tri-stack/sla/scorecard');
+            state.tristackScorecard = fresh;
+            render();
+          } catch (e) {
+            showToast('Failed to toggle Force Majeure', e.message);
+          }
+        }
       };
       (actions[action] || (()=>showToast('Action ready','This workflow is connected to the next build slice.')))();
     }
