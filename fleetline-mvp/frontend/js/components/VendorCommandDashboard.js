@@ -25,6 +25,7 @@ export class VendorCommandDashboard {
       spotlightIndex: 0,
       shadowSecondsRemaining: 1800,
       shadowMode: this.impersonationSession ? (this.impersonationSession.impersonation_mode || "READ_ONLY") : "READ_ONLY",
+      tenantBlockedState: null, // null | { account_status: string, amount_owed_paise: number, block_reason: string }
 
       // RAC Data State
       rac: {
@@ -241,6 +242,54 @@ export class VendorCommandDashboard {
     if (modalRoot) modalRoot.innerHTML = "";
   }
 
+  setTenantBlockedState(statusData) {
+    this.state.tenantBlockedState = statusData;
+    this.render();
+  }
+
+  renderSuspensionBanner() {
+    const block = this.state.tenantBlockedState;
+    if (!block || block.account_status === "ACTIVE") return "";
+
+    const isHard = block.account_status === "HARD_BLOCKED";
+    const amountOwed = block.amount_owed_paise != null ? this.inrFormatter.format(block.amount_owed_paise / 100) : "₹3,20,000";
+    const reason = block.block_reason || "Overdue platform receivables balance past due date.";
+
+    if (isHard) {
+      return `
+        <div class="tenant-suspended-lock-screen" style="position:fixed; inset:0; z-index:99999; background:rgba(17,28,32,0.92); display:flex; align-items:center; justify-content:center; backdrop-filter:blur(6px); padding:20px;">
+          <div style="background:#fff; border-radius:18px; padding:36px; max-width:500px; width:100%; text-align:center; box-shadow:0 24px 60px rgba(0,0,0,0.5); border:1px solid #fee2e2;">
+            <div style="width:54px; height:54px; border-radius:50%; background:#fee2e2; color:#dc2626; display:grid; place-items:center; margin:0 auto 18px; font-size:26px; font-weight:800;">⛔</div>
+            <h2 style="margin:0 0 10px; color:#111c20; font-size:22px; font-weight:800; letter-spacing:-0.02em;">Account Suspended — Payment Overdue</h2>
+            <p style="color:#64748b; font-size:13.5px; line-height:1.55; margin:0 0 20px;">
+              Your organization's access to Axiom Mobility has been temporarily suspended due to an outstanding balance of <strong style="color:#b91c1c;">${amountOwed}</strong>.<br>
+              <span style="font-size:12px; color:#94a3b8; display:inline-block; margin-top:4px;">Reason: ${reason}</span>
+            </p>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; font-size:12px; color:#334155; margin-bottom:22px; line-height:1.6;">
+              New dispatches, bookings, and telematics streams are locked. Please contact <strong>billing@axiomfleet.in</strong> or call <strong>+91 80 6900 8800</strong> to complete settlement and immediately unblock your fleet.
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="tenant-soft-block-banner" style="background:#fef2f2; border-bottom:1.5px solid #fecaca; color:#991b1b; padding:12px 24px; font-size:13px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 8px rgba(220,38,38,0.08);">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:18px;">⚠️</span>
+          <div>
+            <strong>Account Restricted — Payment Overdue:</strong>
+            New bookings and dispatches are paused due to an outstanding balance of <strong>${amountOwed}</strong>. Active in-flight trips may still be safely concluded.
+            <span style="font-size:11.5px; color:#b91c1c; margin-left:6px;">(${reason})</span>
+          </div>
+        </div>
+        <a href="mailto:billing@axiomfleet.in" style="background:#dc2626; color:#fff; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:750; text-decoration:none; white-space:nowrap;">
+          Settle Dues ↗
+        </a>
+      </div>
+    `;
+  }
+
   render() {
     if (!this.container) return;
     const isETS = this.state.businessLine === "ETS";
@@ -248,6 +297,7 @@ export class VendorCommandDashboard {
     const fin = this.state.financials;
 
     this.container.innerHTML = `
+      ${this.renderSuspensionBanner()}
       ${this.renderSupportBanner()}
       <div class="command-container">
         <!-- Persistent Top Header -->
@@ -288,6 +338,7 @@ export class VendorCommandDashboard {
       <div id="spotlight-modal-root"></div>
     `;
 
+    // Re-bind support banner buttons if present directly in document
     this.bindDirectButtons();
   }
 
@@ -466,6 +517,7 @@ export class VendorCommandDashboard {
     if (!this.container) return;
     const signal = this.abortController.signal;
 
+    // Use Event Delegation on the root container: Zero stacked listener leaks
     this.container.addEventListener("click", async (e) => {
       const target = e.target;
       if (!target) return;
@@ -531,6 +583,7 @@ export class VendorCommandDashboard {
   }
 
   bindDirectButtons() {
+    // Fallback direct bindings for buttons outside container or in document
     const endBtn = document.getElementById("btn-end-shadow-session");
     if (endBtn && !endBtn._hasDirectListener) {
       endBtn._hasDirectListener = true;

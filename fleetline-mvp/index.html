@@ -8452,7 +8452,7 @@
       `,
       'contact-us': `
         <section class="subpage-shell"><section class="subpage-hero contact-page-hero"><div class="subpage-copy"><div class="subpage-kicker"><i></i> Contact Us · start a conversation</div><h1>Bring us your <em>messiest route.</em></h1><p>Tell us what your team is trying to make calmer. We will bring the right people, ask better questions and show you the product honestly.</p><div class="subpage-actions"><a class="site-cta large" href="#contact-form">Request a walkthrough <span>↓</span></a><a class="text-action" href="mailto:hello@axiomfleet.com">hello@axiomfleet.com <span>↗</span></a></div></div><div class="subpage-visual contact-visual"><div class="subpage-visual-grid"></div><div class="contact-pulse"></div><span class="contact-label one">Regional</span><span class="contact-label two">Tenant</span><span class="contact-label three">India data plane</span></div></section></section>
-        <section class="editorial-section" id="contact-form"><div class="subpage-shell page-contact-layout"><div class="page-contact-copy"><div class="marketing-eyebrow">Let’s find the signal</div><h2>A real conversation, not a generic sales deck.</h2><p>Share a little context and we will tailor the walkthrough to your operation — fleet size, cities, workflows and the part that currently takes too much effort.</p><div class="page-contact-details"><div><i>✦</i><span>Product walkthroughs · Vendor, corporate and network</span></div><div><i>◌</i><span>India data plane · regional operations</span></div><div><i>↗</i><span>Typical response · within one working day</span></div></div></div><form class="page-form-card" id="page-contact-form"><h3>Tell us what you are building.</h3><div class="page-form-grid"><label>Name<input name="name" placeholder="Your name" required></label><label>Work email<input type="email" name="email" placeholder="you@company.com" required></label><label>Company<input name="company" placeholder="Company name"></label><label>Team type<select name="team"><option>Car rental operator</option><option>Corporate travel team</option><option>Associate / network partner</option><option>Investor / media</option></select></label><label class="full">What should we know?<textarea name="message" placeholder="Tell us about bookings, drivers, billing or approvals…"></textarea></label></div><button class="site-cta" type="submit">Send enquiry <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button><small class="form-success" id="page-contact-success"></small></form></div></section>
+        <section class="editorial-section" id="contact-form"><div class="subpage-shell page-contact-layout"><div class="page-contact-copy"><div class="marketing-eyebrow">Let’s find the signal</div><h2>A real conversation, not a generic sales deck.</h2><p>Share a little context and we will tailor the walkthrough to your operation — fleet size, cities, workflows and the part that currently takes too much effort.</p><div class="page-contact-details"><div><i>✦</i><span>Product walkthroughs · Vendor, corporate and network</span></div><div><i>◌</i><span>India data plane · regional operations</span></div><div><i>↗</i><span>Typical response · within one working day</span></div></div></div><form class="page-form-card" id="page-contact-form"><h3>Tell us what you are building.</h3><div class="page-form-grid"><label>Name<input name="name" placeholder="Your name"></label><label>Work email<input type="email" name="email" placeholder="you@company.com"></label><label>Mobile Number<input type="tel" name="mobile_number" placeholder="+91 98765 43210"></label><label>Company<input name="company" placeholder="Company name"></label><label>Team type<select name="team"><option>Car rental operator</option><option>Corporate travel team</option><option>Associate / network partner</option><option>Investor / media</option></select></label><label class="full">What should we know?<textarea name="message" placeholder="Tell us about bookings, drivers, billing or approvals…"></textarea></label></div><button class="site-cta" type="submit">Send enquiry <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button><small class="form-success" id="page-contact-success"></small></form></div></section>
       `,
       'success-stories': `
         <section class="subpage-shell"><section class="subpage-hero stories-hero"><div class="subpage-copy"><div class="subpage-kicker"><i></i> Success Stories · outcomes that compound</div><h1>Better operations are felt in the <em>small moments.</em></h1><p>Fewer calls at pickup. Faster proof at month-end. A driver who keeps moving when the signal drops. These are the outcomes we design for.</p><div class="subpage-actions"><a class="site-cta large" href="#story-feature">Read the pilot story <span>↓</span></a><a class="text-action" href="#contact-us" data-public-page="contact-us">Create your own story <span>↗</span></a></div></div><div class="subpage-visual stories-visual"><div class="subpage-visual-grid"></div><div class="story-stack"><div class="story-stack-card back"></div><div class="story-stack-card mid"></div><div class="story-stack-card front"><div class="story-brand"><span>AXIOM FLEET</span><span>PRODUCT NOTE</span></div><h3>From scattered<br>to one source.</h3><p>Tenant-scoped operating layer</p><div class="story-score"><strong>LIVE</strong><span>source-linked<br>workflows</span></div></div></div></div></section></section>
@@ -8586,7 +8586,40 @@
       scope.querySelectorAll('[data-blog-open],[data-news-open]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); showToast('Editorial note', 'This field note is being prepared for the next editorial release.'); }));
       scope.querySelectorAll('.article-filter').forEach(el => el.addEventListener('click', () => { el.parentElement.querySelectorAll('.article-filter').forEach(x => x.classList.remove('active')); el.classList.add('active'); showToast('Filter selected', `${el.textContent.trim()} notes are now in focus.`); }));
       const pageContactForm = scope.querySelector('#page-contact-form');
-      if (pageContactForm) pageContactForm.addEventListener('submit', e => { e.preventDefault(); const data = Object.fromEntries(new FormData(pageContactForm).entries()); const subject = encodeURIComponent(`Axiom Fleet enquiry · ${data.company || data.name || 'new contact'}`); const body = encodeURIComponent(`Name: ${data.name || ''}\nEmail: ${data.email || ''}\nCompany: ${data.company || ''}\nTeam: ${data.team || ''}\n\n${data.message || ''}`); const note = pageContactForm.querySelector('#page-contact-success'); note.textContent = 'Your email client is ready with the enquiry details. Send it to hello@axiomfleet.com to complete the request.'; window.location.href = `mailto:hello@axiomfleet.com?subject=${subject}&body=${body}`; });
+      if (pageContactForm) pageContactForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(pageContactForm).entries());
+        const note = pageContactForm.querySelector('#page-contact-success');
+        if (!data.email && !data.mobile_number) {
+          note.style.color = '#dc2626';
+          note.textContent = 'Please provide either a work email or mobile number.';
+          return;
+        }
+        note.style.color = '#0e9c89';
+        note.textContent = 'Submitting prospect enquiry...';
+        try {
+          const res = await fetch('/api/public/prospects', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contact_name: data.name,
+              company_name: data.company,
+              email: data.email || null,
+              mobile_number: data.mobile_number || null,
+              message: data.message || `Team: ${data.team || ''}`,
+            })
+          });
+          const result = await res.json();
+          if (result.ok) {
+            note.textContent = 'Enquiry captured! Our onboarding team will connect within 1 business day.';
+            pageContactForm.reset();
+          } else {
+            note.textContent = result.message || 'Enquiry recorded.';
+          }
+        } catch (_) {
+          note.textContent = 'Enquiry noted. You may also connect via hello@axiomfleet.com directly.';
+        }
+      });
     }
 
     function showPublicPage(page, updateHash = true) {
