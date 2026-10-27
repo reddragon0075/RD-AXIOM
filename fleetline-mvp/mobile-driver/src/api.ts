@@ -82,8 +82,8 @@ export async function assignedDuty(): Promise<Duty | null> {
   };
 }
 
-export async function transitionDuty(dutyId: string, status: string, idempotencyKey: string): Promise<void> {
-  await request(`/api/duties/${encodeURIComponent(dutyId)}`, { method: 'PATCH', body: JSON.stringify({ status, idempotency_key: idempotencyKey }) });
+export async function transitionDuty(dutyId: string, status: string, idempotencyKey: string, extra: Record<string, unknown> = {}): Promise<void> {
+  await request(`/api/duties/${encodeURIComponent(dutyId)}`, { method: 'PATCH', body: JSON.stringify({ status, idempotency_key: idempotencyKey, ...extra }) });
 }
 
 export async function recordProof(dutyId: string, code: string, note: string, idempotencyKey: string, attachments: Record<string, unknown> = {}): Promise<void> {

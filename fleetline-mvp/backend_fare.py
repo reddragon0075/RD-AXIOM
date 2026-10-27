@@ -597,6 +597,11 @@ def handle_fare(conn, user: dict, method: str, path: str, payload: dict, ip: str
         duty_id = duty_recalc_match.group(1)
         duty_row = _assert_owned(conn, "domain_duties", duty_id, org)
         duty = dict(duty_row)
+        if duty.get("status") in ("completed", "invoiced", "locked", "billed"):
+            raise DomainError(409, f"Cannot recalculate duty {duty_id} because it is already finalized in status '{duty['status']}'. Recalculation is locked.", "duty_tariff_locked")
+        inv_row = conn.execute("SELECT id FROM domain_invoices WHERE organization_id = ? AND duty_id = ? AND status != 'void'", (org, duty_id)).fetchone()
+        if inv_row:
+            raise DomainError(409, f"Cannot recalculate duty {duty_id} because an invoice ({inv_row['id']}) has already been generated.", "duty_invoiced_locked")
         booking = dict(_assert_owned(conn, "domain_bookings", duty["booking_id"], org))
 
         # Vehicle info

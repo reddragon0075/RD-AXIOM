@@ -98,6 +98,7 @@ def initialize_domain_schema(conn) -> None:
             driver_type TEXT NOT NULL DEFAULT 'own',
             vehicle_registration TEXT NOT NULL DEFAULT '',
             vehicle_group TEXT NOT NULL DEFAULT '',
+            license_expiry TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         );
@@ -251,6 +252,7 @@ def initialize_domain_schema(conn) -> None:
             subtotal_paise INTEGER NOT NULL DEFAULT 0,
             tax_paise INTEGER NOT NULL DEFAULT 0,
             total_paise INTEGER NOT NULL DEFAULT 0,
+            idempotency_key TEXT,
             issued_at TEXT,
             immutable_snapshot_json TEXT,
             created_by TEXT,
@@ -335,9 +337,13 @@ def initialize_domain_schema(conn) -> None:
         "driver_type": "TEXT NOT NULL DEFAULT 'own'",
         "vehicle_registration": "TEXT NOT NULL DEFAULT ''",
         "vehicle_group": "TEXT NOT NULL DEFAULT ''",
+        "license_expiry": "TEXT",
     }.items():
         if column not in driver_columns:
             conn.execute(f"ALTER TABLE domain_drivers ADD COLUMN {column} {definition}")
+    inv_columns = {row["name"] for row in conn.execute("PRAGMA table_info(domain_invoices)").fetchall()}
+    if "idempotency_key" not in inv_columns:
+        conn.execute("ALTER TABLE domain_invoices ADD COLUMN idempotency_key TEXT")
     duty_columns = {row["name"] for row in conn.execute("PRAGMA table_info(domain_duties)").fetchall()}
     if "version_id" not in duty_columns:
         conn.execute("ALTER TABLE domain_duties ADD COLUMN version_id INTEGER NOT NULL DEFAULT 1")
@@ -697,13 +703,43 @@ def _create_duty(conn, user, payload, ip):
     booking = _assert_owned(conn, "domain_bookings", booking_id, org)
     if booking["status"] == "pending_approval":
         raise DomainError(409, "Booking approval is required before a duty can be assigned", "booking_approval_required")
+    existing_booking_duty = conn.execute(
+        "SELECT id FROM domain_duties WHERE organization_id = ? AND booking_id = ? AND status NOT IN ('cancelled')",
+        (org, booking_id),
+    ).fetchone()
+    if existing_booking_duty:
+        raise DomainError(409, f"Booking {booking_id} already has an active duty {existing_booking_duty['id']}", "booking_already_assigned")
     driver_id = _text(payload, "driver_id") or None
     vehicle_id = _text(payload, "vehicle_id") or None
     supplier_id = _text(payload, "supplier_id") or None
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     if driver_id:
-        _assert_owned(conn, "domain_drivers", driver_id, org)
+        driver = _assert_owned(conn, "domain_drivers", driver_id, org)
+        if driver["status"] not in ("active", "available", "on_duty"):
+            raise DomainError(422, f"Cannot dispatch driver with inactive status '{driver['status']}'", "driver_compliance_inactive")
+        if "license_expiry" in driver.keys() and driver["license_expiry"]:
+            if str(driver["license_expiry"])[:10] < today_str:
+                raise DomainError(422, f"Cannot dispatch driver {driver_id}: Commercial license expired on {driver['license_expiry']}", "driver_compliance_license_expired")
+        active_driver_duty = conn.execute(
+            "SELECT id FROM domain_duties WHERE organization_id = ? AND driver_id = ? AND status IN ('assigned', 'accepted', 'en_route', 'arrived', 'started', 'active')",
+            (org, driver_id),
+        ).fetchone()
+        if active_driver_duty:
+            raise DomainError(409, f"Driver {driver_id} is already assigned to active duty {active_driver_duty['id']}", "driver_concurrent_assignment")
     if vehicle_id:
-        _assert_owned(conn, "domain_vehicles", vehicle_id, org)
+        vehicle = _assert_owned(conn, "domain_vehicles", vehicle_id, org)
+        if vehicle["status"] not in ("active", "available"):
+            raise DomainError(422, f"Cannot dispatch vehicle with inactive status '{vehicle['status']}'", "vehicle_compliance_inactive")
+        for doc_field in ("insurance_expiry", "puc_expiry", "rc_expiry"):
+            if doc_field in vehicle.keys() and vehicle[doc_field]:
+                if str(vehicle[doc_field])[:10] < today_str:
+                    raise DomainError(422, f"Cannot dispatch vehicle {vehicle_id}: Statutory {doc_field.replace('_expiry', '').upper()} expired on {vehicle[doc_field]}", "vehicle_compliance_document_expired")
+        active_veh_duty = conn.execute(
+            "SELECT id FROM domain_duties WHERE organization_id = ? AND vehicle_id = ? AND status IN ('assigned', 'accepted', 'en_route', 'arrived', 'started', 'active')",
+            (org, vehicle_id),
+        ).fetchone()
+        if active_veh_duty:
+            raise DomainError(409, f"Vehicle {vehicle_id} is already assigned to active duty {active_veh_duty['id']}", "vehicle_concurrent_assignment")
     if supplier_id:
         _assert_owned(conn, "domain_suppliers", supplier_id, org)
     status = "assigned" if driver_id or vehicle_id or supplier_id else "draft"
@@ -767,6 +803,40 @@ def _update_duty(conn, user, duty_id, payload, ip):
             raise DomainError(403, "Drivers can only update execution fields", "driver_field_forbidden")
     else:
         _require_role(user)
+
+    # Support odometer aliases (start_km / end_km)
+    if "start_km" in payload and "start_odometer" not in payload:
+        payload = {**payload, "start_odometer": payload["start_km"]}
+    if "end_km" in payload and "end_odometer" not in payload:
+        payload = {**payload, "end_odometer": payload["end_km"]}
+
+    # State Machine Lock: Protect completed, invoiced, or locked duties from unauthorized field modifications
+    is_terminal = row["status"] in ("completed", "invoiced", "locked")
+    existing_inv = conn.execute("SELECT id, status FROM domain_invoices WHERE duty_id = ? AND organization_id = ? AND status != 'void'", (duty_id, org)).fetchone()
+    if (is_terminal or existing_inv) and not payload.get("allow_locked_override"):
+        modifying_keys = set(payload) & {"start_odometer", "end_odometer", "driver_id", "vehicle_id", "supplier_id", "reporting_at"}
+        if modifying_keys:
+            raise DomainError(
+                409,
+                f"Cannot modify fields {sorted(modifying_keys)} because duty {duty_id} is {row['status']}" + (f" with invoice {existing_inv['id']}" if existing_inv else "") + ". Recalculations and odometer modifications are locked.",
+                "duty_locked",
+                {"duty_id": duty_id, "status": row["status"], "invoice_id": existing_inv["id"] if existing_inv else None}
+            )
+
+    # Validate odometer readings
+    candidate_start = payload.get("start_odometer", row["start_odometer"])
+    candidate_end = payload.get("end_odometer", row["end_odometer"])
+    if candidate_start is not None and candidate_end is not None:
+        try:
+            s_val = int(candidate_start)
+            e_val = int(candidate_end)
+            if s_val < 0 or e_val < 0:
+                raise DomainError(400, "Odometer readings must be non-negative", "validation_error")
+            if e_val < s_val:
+                raise DomainError(400, "End odometer must be greater than or equal to start odometer", "validation_error")
+        except (TypeError, ValueError) as exc:
+            raise DomainError(400, "Odometer readings must be valid integers", "validation_error") from exc
+
     updates = []
     values = []
     cols = {r["name"] for r in conn.execute("PRAGMA table_info(domain_duties)").fetchall()}
@@ -960,6 +1030,12 @@ def _replay_sync(conn, user, payload, ip):
 def _calculate(conn, user, duty_id, payload, ip):
     org = _org(user)
     row = _assert_owned(conn, "domain_duties", duty_id, org)
+
+    # State Machine Lock: Reject recalculation on invoiced duties unless voided
+    existing_invoice = conn.execute("SELECT id, status FROM domain_invoices WHERE duty_id = ? AND organization_id = ? AND status != 'void'", (duty_id, org)).fetchone()
+    if existing_invoice and not payload.get("allow_locked_override"):
+        raise DomainError(409, f"Cannot recalculate duty {duty_id} because invoice {existing_invoice['id']} has already been created ({existing_invoice['status']}).", "duty_invoiced")
+
     calculation_payload = dict(payload)
     price_item_id = str(calculation_payload.get("price_book_item_id") or "").strip()
     if price_item_id:
@@ -980,6 +1056,16 @@ def _create_invoice(conn, user, payload, ip):
     org = _org(user)
     _require_role(user)
     duty_id = _text(payload, "duty_id")
+    idempotency_key = _text(payload, "idempotency_key", maximum=160) or None
+    inv_cols = {r["name"] for r in conn.execute("PRAGMA table_info(domain_invoices)").fetchall()}
+    if idempotency_key and "idempotency_key" in inv_cols:
+        existing_run = conn.execute("SELECT id FROM domain_invoices WHERE organization_id = ? AND idempotency_key = ?", (org, idempotency_key)).fetchone()
+        if existing_run:
+            return {"ok": True, "item": _invoice(conn, existing_run["id"], org), "idempotent": True}
+    if duty_id:
+        existing_duty_inv = conn.execute("SELECT id FROM domain_invoices WHERE organization_id = ? AND duty_id = ? AND status != 'void'", (org, duty_id)).fetchone()
+        if existing_duty_inv:
+            return {"ok": True, "item": _invoice(conn, existing_duty_inv["id"], org), "duplicate": True}
     duty = _assert_owned(conn, "domain_duties", duty_id, org)
     snapshot = _json(duty["calculation_snapshot_json"], {})
     if not snapshot or not snapshot.get("total_paise"):
@@ -989,9 +1075,13 @@ def _create_invoice(conn, user, payload, ip):
     sequence = conn.execute("SELECT COUNT(*) + 1 AS next_number FROM domain_invoices WHERE organization_id = ?", (org,)).fetchone()["next_number"]
     invoice_number = _text(payload, "invoice_number") or f"INV-{datetime.now(timezone.utc):%Y}-{sequence:03d}"
     now = now_iso()
-    conn.execute("INSERT INTO domain_invoices(id, organization_id, customer_id, duty_id, invoice_number, status, subtotal_paise, tax_paise, total_paise, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?)", (invoice_id, org, booking["customer_id"], duty_id, invoice_number, snapshot["subtotal_paise"], snapshot["tax_paise"], snapshot["total_paise"], user["id"], now, now))
+    if "idempotency_key" in inv_cols:
+        conn.execute("INSERT INTO domain_invoices(id, organization_id, customer_id, duty_id, invoice_number, status, subtotal_paise, tax_paise, total_paise, idempotency_key, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?)", (invoice_id, org, booking["customer_id"], duty_id, invoice_number, snapshot["subtotal_paise"], snapshot["tax_paise"], snapshot["total_paise"], idempotency_key, user["id"], now, now))
+    else:
+        conn.execute("INSERT INTO domain_invoices(id, organization_id, customer_id, duty_id, invoice_number, status, subtotal_paise, tax_paise, total_paise, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?)", (invoice_id, org, booking["customer_id"], duty_id, invoice_number, snapshot["subtotal_paise"], snapshot["tax_paise"], snapshot["total_paise"], user["id"], now, now))
     for line in snapshot.get("lines", []):
         conn.execute("INSERT INTO domain_invoice_lines(id, invoice_id, code, label, quantity, unit_paise, amount_paise, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (new_id("line"), invoice_id, line["code"], line["label"], line["quantity"], line["unit_paise"], line["amount_paise"], now))
+    conn.execute("UPDATE domain_duties SET status = 'invoiced', updated_at = ? WHERE id = ? AND organization_id = ?", (now, duty_id, org))
     _audit(conn, user, "invoice.created", "invoice", invoice_id, ip, {"duty_id": duty_id, "total_paise": snapshot["total_paise"]})
     return {"ok": True, "item": _invoice(conn, invoice_id, org)}
 

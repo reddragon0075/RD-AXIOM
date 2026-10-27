@@ -224,6 +224,21 @@ def handle_impersonation_api(
     """Controller for admin impersonation and SaaS tenant management."""
     now_iso = dt.datetime.now(dt.timezone.utc).isoformat()
 
+    # RBAC Guard: Restrict SaaS Console and Impersonation APIs to verified superadmins and Axiom staff
+    u_dict = dict(actor_user) if hasattr(actor_user, "keys") else (actor_user if isinstance(actor_user, dict) else {})
+    is_admin = (
+        u_dict.get("role") in ("admin", "superadmin")
+        or u_dict.get("is_axiom_hq") is True
+        or str(u_dict.get("email") or "").endswith(("@axiomfleet.in", "@axiomfleet.com"))
+    )
+    if not is_admin:
+        return {
+            "error": "FORBIDDEN",
+            "message": "Super-Admin or Axiom HQ privileges required for SaaS management and impersonation.",
+            "code": 403,
+            "status": 403
+        }
+
     # 1. POST /api/v1/admin/impersonate
     if path == "/api/v1/admin/impersonate" and method == "POST":
         target_tenant_id = int(body.get("tenant_id", 169))

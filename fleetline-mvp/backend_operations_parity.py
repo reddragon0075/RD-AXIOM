@@ -434,7 +434,7 @@ def _closure_item(conn, duty_id: str, org: str):
 def _close_duty(conn, user, duty_id: str, payload: dict, ip: str):
     org = _org(user)
     duty = _assert_owned(conn, "domain_duties", duty_id, org)
-    if duty["status"] in ("cancelled", "completed"):
+    if duty["status"] in ("cancelled", "completed", "invoiced", "locked"):
         raise DomainError(409, f"Cannot close duty {duty_id} because it is already {duty['status']}.", "duty_already_closed_or_cancelled", {"current_status": duty["status"], "duty_id": duty_id})
     expected_version = payload.get("expected_version")
     if expected_version is None:
@@ -449,8 +449,8 @@ def _close_duty(conn, user, duty_id: str, payload: dict, ip: str):
             raise DomainError(403, "This duty is not assigned to the signed-in driver", "duty_assignment_required")
     else:
         _require_role(user)
-    start_odo = payload.get("start_odometer", duty["start_odometer"])
-    end_odo = payload.get("end_odometer", duty["end_odometer"])
+    start_odo = payload.get("start_odometer") if payload.get("start_odometer") is not None else (payload.get("start_km") if payload.get("start_km") is not None else duty["start_odometer"])
+    end_odo = payload.get("end_odometer") if payload.get("end_odometer") is not None else (payload.get("end_km") if payload.get("end_km") is not None else duty["end_odometer"])
     if start_odo in (None, "") or end_odo in (None, ""):
         raise DomainError(400, "Start and end odometer readings are required", "closure_incomplete")
     try:
@@ -459,6 +459,18 @@ def _close_duty(conn, user, duty_id: str, payload: dict, ip: str):
         raise DomainError(400, "Odometer readings must be integers", "validation_error") from exc
     if start_odo < 0 or end_odo < start_odo:
         raise DomainError(400, "End odometer must be greater than or equal to start odometer", "validation_error")
+    delta_km = end_odo - start_odo
+    duration_hours = float(payload.get("duration_hours", 0.0))
+    started_at = duty["started_at"] if "started_at" in duty.keys() else None
+    if not duration_hours and started_at:
+        try:
+            t_start = datetime.datetime.fromisoformat(started_at.replace("Z", "+00:00"))
+            t_now = datetime.datetime.now(datetime.timezone.utc)
+            duration_hours = max(0.1, (t_now - t_start).total_seconds() / 3600.0)
+        except Exception:
+            duration_hours = 0.0
+    if (duration_hours > 0 and (delta_km / duration_hours) > 180.0) or delta_km > 1500:
+        raise DomainError(422, f"Physical plausibility gate triggered: delta {delta_km} km or speed > 180 km/h is implausible for single duty.", "physical_plausibility_violation")
     evidence = payload.get("evidence") if isinstance(payload.get("evidence"), list) else []
     required = [str(value).strip().lower() for value in (payload.get("required_evidence") if isinstance(payload.get("required_evidence"), list) else []) if str(value).strip()]
     evidence_types = {str(item.get("evidence_type") or item.get("type") or "").strip().lower() for item in evidence if isinstance(item, dict)}
@@ -481,7 +493,9 @@ def _close_duty(conn, user, duty_id: str, payload: dict, ip: str):
         if not raw_hash and item.get("content"):
             raw_hash = hashlib.sha256(str(item["content"]).encode("utf-8")).hexdigest()
         conn.execute("INSERT OR IGNORE INTO domain_closure_evidence(id, organization_id, closure_id, duty_id, evidence_type, storage_path, sha256, metadata_json, required, captured_by, captured_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (new_id("evidence"), org, closure_id, duty_id, evidence_type, str(item.get("storage_path") or "")[:500], raw_hash, json.dumps(item.get("metadata") if isinstance(item.get("metadata"), dict) else {}), 1 if evidence_type in required else 0, user["id"], str(item.get("captured_at") or now_iso())))
-    conn.execute("UPDATE domain_duties SET status = \'completed\', version_id = COALESCE(version_id, 1) + 1, start_odometer = ?, end_odometer = ?, completed_at = COALESCE(completed_at, ?), updated_at = ? WHERE id = ? AND organization_id = ?", (start_odo, end_odo, now, now, duty_id, org))
+    cursor = conn.execute("UPDATE domain_duties SET status = 'completed', version_id = COALESCE(version_id, 1) + 1, start_odometer = ?, end_odometer = ?, completed_at = COALESCE(completed_at, ?), updated_at = ? WHERE id = ? AND organization_id = ? AND status NOT IN ('completed', 'cancelled', 'invoiced', 'locked')", (start_odo, end_odo, now, now, duty_id, org))
+    if cursor.rowcount == 0:
+        raise DomainError(409, f"Cannot close duty {duty_id} because it is already closed or cancelled.", "duty_already_closed_or_cancelled")
     booking_id = duty["booking_id"] if "booking_id" in duty.keys() else None
     if booking_id:
         conn.execute("UPDATE domain_bookings SET status = 'completed', updated_at = ? WHERE id = ? AND organization_id = ?", (now, booking_id, org))

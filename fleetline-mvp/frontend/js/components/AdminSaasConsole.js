@@ -1,12 +1,16 @@
 /**
  * Axiom Mobility (Fleetline) 10/10 Super-Admin SaaS Console Component.
  * Zero-Build Vanilla ES6+ State & Sticky Table Module.
+ * Hardened with AbortController, Event Delegation, and In-Flight Request Guards.
  */
 
 export class AdminSaasConsole {
   constructor(options = {}) {
-    this.container = options.container || document.getElementById("admin-saas-view");
+    this.container = options.container || (typeof document !== "undefined" ? document.getElementById("admin-saas-view") : null);
     this.onImpersonate = options.onImpersonate || (() => {});
+    this.abortController = new AbortController();
+    this.inFlightRequests = new Set();
+
     this.state = {
       activeTab: "ALL",
       tenants: [],
@@ -37,21 +41,34 @@ export class AdminSaasConsole {
     });
   }
 
+  destroy() {
+    if (this.abortController) {
+      this.abortController.abort();
+    }
+  }
+
   async init() {
     await this.fetchData();
+    if (this.abortController.signal.aborted) return;
     this.render();
     this.bindEvents();
   }
 
   async fetchData() {
     try {
-      const res = await fetch("/api/v1/admin/saas/tenants");
+      const res = await fetch("/api/v1/admin/saas/tenants", {
+        signal: this.abortController.signal,
+      });
       if (res.ok) {
         const data = await res.json();
+        if (this.abortController.signal.aborted) return;
         if (data.tenants) this.state.tenants = data.tenants;
         if (data.kpi_strip) this.state.kpis = data.kpi_strip;
       }
     } catch (err) {
+      if (err.name === "AbortError" || this.abortController.signal.aborted) {
+        return; // Component unmounted, ignore safely
+      }
       console.warn("Using offline tenant fixtures for SaaS Console", err);
       this.state.tenants = [
         {
@@ -108,12 +125,12 @@ export class AdminSaasConsole {
         {
           tenant_id: 172,
           tenant_name: "Garuda City Fleets",
-          phone: "+91 94432 55667",
-          email: "admin@garudafleets.in",
+          phone: "+91 91234 56789",
+          email: "owner@garudafleets.com",
           plan_tier: "SOLO",
           subscription_status: "TRIAL",
           mrr_paise: 0,
-          current_period_end: "2026-05-02",
+          current_period_end: "2026-04-10",
           corporate_quota: { total: 1, used: 1 },
           trip_quota: { total: 20, used: 19 },
           wallet_balance_paise: 0,
@@ -222,120 +239,141 @@ export class AdminSaasConsole {
           </div>
         </div>
 
-        <!-- 2. Multi-Tenant Vendor Management Table Panel -->
-        <div class="table-panel">
-          <div class="table-filter-bar">
-            <div class="tab-group">
-              <button class="tab-btn ${this.state.activeTab === 'ALL' ? 'active' : ''}" data-tab="ALL">All (34)</button>
-              <button class="tab-btn ${this.state.activeTab === 'ACTIVE' ? 'active' : ''}" data-tab="ACTIVE">Active (22)</button>
-              <button class="tab-btn ${this.state.activeTab === 'TRIAL' ? 'active' : ''}" data-tab="TRIAL">Trial (6)</button>
-              <button class="tab-btn ${this.state.activeTab === 'PAST_DUE' ? 'active' : ''}" data-tab="PAST_DUE">Past Due (4)</button>
-              <button class="tab-btn ${this.state.activeTab === 'SLA_PROBATION' ? 'active' : ''}" data-tab="SLA_PROBATION">SLA Probation / Demoted (2)</button>
-            </div>
-            <div style="font-size:12px; color:var(--text-muted); font-weight:500;">
-              Showing ${filtered.length} of ${this.state.tenants.length} Fleet Vendors
-            </div>
+        <!-- 2. Sticky Tab Filter Toolbar -->
+        <div class="saas-table-toolbar">
+          <div class="tab-btn-group">
+            <button class="tab-btn ${this.state.activeTab === 'ALL' ? 'active' : ''}" data-tab="ALL">All Tenants (${this.state.tenants.length})</button>
+            <button class="tab-btn ${this.state.activeTab === 'ACTIVE' ? 'active' : ''}" data-tab="ACTIVE">Active</button>
+            <button class="tab-btn ${this.state.activeTab === 'TRIAL' ? 'active' : ''}" data-tab="TRIAL">Trial Mode</button>
+            <button class="tab-btn ${this.state.activeTab === 'PAST_DUE' ? 'active' : ''}" data-tab="PAST_DUE">Past Due / Unpaid</button>
+            <button class="tab-btn ${this.state.activeTab === 'SLA_PROBATION' ? 'active' : ''}" data-tab="SLA_PROBATION">SLA Probation (Silver)</button>
           </div>
+          <div>
+            <input type="text" placeholder="Filter by Name, City, Plan..." style="background:var(--card-bg); border:1px solid var(--border-line); color:var(--text-primary); padding:6px 12px; border-radius:6px; font-size:12px; width:220px;" />
+          </div>
+        </div>
 
-          <div class="sticky-table-wrapper">
-            <table class="enterprise-table">
-              <thead>
-                <tr>
-                  <th class="col-sticky-left" style="width:240px;">Vendor ID & Name</th>
-                  <th>Plan & Billing</th>
-                  <th>Axiom SLA Tier</th>
-                  <th>Usage Quotas</th>
-                  <th>Pre-Paid Wallet</th>
-                  <th>Period End</th>
-                  <th>Feature Entitlements</th>
-                  <th class="col-sticky-right" style="width:140px;">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${filtered.map((t) => this.renderTableRow(t)).join("")}
-              </tbody>
-            </table>
-          </div>
+        <!-- 3. Enterprise Dense Tenant Table -->
+        <div class="saas-table-container">
+          <table class="saas-table">
+            <thead>
+              <tr>
+                <th>Tenant & Contact</th>
+                <th>Plan & Status</th>
+                <th>MRR / Cycle</th>
+                <th>Corporate Quota</th>
+                <th>Trip Quota (Mo)</th>
+                <th>Prepaid Wallet</th>
+                <th>SLA & Gateways</th>
+                <th>Feature Entitlements</th>
+                <th>Support Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filtered.map((t) => this.renderTenantRow(t)).join("")}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <!-- Impersonation Confirmation Modal -->
+      <!-- Pre-Flight Impersonation Modal Shell -->
       <div id="impersonation-modal-root"></div>
-
-      <!-- Top Up Modal -->
       <div id="topup-modal-root"></div>
     `;
   }
 
-  renderTableRow(t) {
-    const corpPct = Math.min(100, Math.round((t.corporate_quota.used / t.corporate_quota.total) * 100));
-    const tripPct = Math.min(100, Math.round((t.trip_quota.used / t.trip_quota.total) * 100));
-    const walletFmt = this.decimalFormatter.format(t.wallet_balance_paise / 100);
+  renderTenantRow(t) {
+    const isPastDue = t.subscription_status === "PAST_DUE";
+    const isProbation = t.subscription_status === "SLA_PROBATION" || t.sla_tier === "SILVER";
+    const isTrial = t.subscription_status === "TRIAL";
 
-    let slaClass = "sla-platinum";
-    let slaIcon = "🏆";
-    if (t.sla_tier === "GOLD") {
-      slaClass = "sla-gold";
-      slaIcon = "🥇";
-    } else if (t.sla_tier === "SILVER") {
-      slaClass = "sla-silver";
-      slaIcon = "⚠️";
-    }
+    let statusBadge = `<span class="status-pill status-active">ACTIVE</span>`;
+    if (isPastDue) statusBadge = `<span class="status-pill status-pastdue">PAST DUE</span>`;
+    if (isProbation) statusBadge = `<span class="status-pill status-probation">SLA PROBATION</span>`;
+    if (isTrial) statusBadge = `<span class="status-pill status-trial">TRIAL</span>`;
+
+    let tierBadge = `<span class="status-pill tier-growth">${t.plan_tier}</span>`;
+    if (t.plan_tier === "ENTERPRISE") tierBadge = `<span class="status-pill tier-enterprise">ENTERPRISE</span>`;
+    if (t.plan_tier === "SOLO") tierBadge = `<span class="status-pill tier-solo">SOLO</span>`;
+
+    const corpPct = Math.round((t.corporate_quota.used / t.corporate_quota.total) * 100);
+    const tripPct = Math.round((t.trip_quota.used / t.trip_quota.total) * 100);
+
+    const isLowBalance = t.wallet_balance_paise < 10000; // < ₹100
 
     return `
-      <tr data-tenant-id="${t.tenant_id}">
-        <td class="col-sticky-left">
-          <div style="font-weight:700; color:var(--text-primary); font-size:14px;">#${t.tenant_id} ${t.tenant_name}</div>
-          <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">${t.phone} &bull; ${t.email}</div>
-        </td>
-
+      <tr>
+        <!-- Tenant & Contact -->
         <td>
-          <div style="font-weight:600; color:var(--text-secondary);">${t.plan_tier} &bull; ${t.mrr_paise > 0 ? this.inrFormatter.format(t.mrr_paise / 100) + '/mo' : 'Free Trial'}</div>
-          <span style="display:inline-block; margin-top:4px; font-size:11px; padding:2px 6px; border-radius:4px; background:${t.subscription_status === 'ACTIVE' ? 'var(--success-subtle)' : t.subscription_status === 'TRIAL' ? 'var(--info-subtle)' : 'var(--danger-subtle)'}; color:${t.subscription_status === 'ACTIVE' ? '#065F46' : t.subscription_status === 'TRIAL' ? '#0369A1' : '#991B1B'}; font-weight:700;">
-            ${t.subscription_status}
-          </span>
+          <div class="tenant-name">${t.tenant_name}</div>
+          <div class="tenant-meta">ID: #${t.tenant_id} &bull; ${t.phone}</div>
+          <div class="tenant-meta">${t.email}</div>
         </td>
 
+        <!-- Plan & Status -->
         <td>
-          <div class="sla-badge ${slaClass}" title="Click to view SLA breach logs">
-            ${slaIcon} ${t.sla_tier} (${t.ota_pct}% OTA)
+          <div style="display:flex; gap:6px; margin-bottom:4px;">
+            ${tierBadge}
+            ${statusBadge}
           </div>
-          ${t.breaches_count > 0 ? `<div style="font-size:11px; color:var(--danger-rose); font-weight:600; margin-top:3px;">${t.breaches_count} Breaches in 14d</div>` : ''}
+          <div style="font-size:10px; color:var(--text-subtle);">Renews: ${t.current_period_end}</div>
         </td>
 
-        <td style="min-width:160px;">
-          <div style="font-size:11px; font-weight:600; display:flex; justify-content:space-between; margin-bottom:2px;">
-            <span>Corps: ${t.corporate_quota.used}/${t.corporate_quota.total}</span>
-            <span>Trips: ${t.trip_quota.used}/${t.trip_quota.total}</span>
-          </div>
-          <div class="progress-track" style="margin-bottom:4px;">
-            <div class="progress-fill ${tripPct > 80 ? 'warn' : ''}" style="width:${tripPct}%;"></div>
-          </div>
-        </td>
-
+        <!-- MRR -->
         <td>
-          <div style="font-weight:700; font-family:ui-monospace, monospace; color:${t.wallet_balance_paise < 1000 ? 'var(--danger-rose)' : 'var(--text-primary)'};">
-            ${walletFmt}
-          </div>
-          <button class="callout-btn btn-topup-trigger" data-tid="${t.tenant_id}" style="margin-top:4px; font-size:10px;">+ Top Up</button>
+          <div class="mrr-val">${this.inrFormatter.format(t.mrr_paise / 100)}</div>
+          <div style="font-size:10px; color:var(--text-subtle);">${t.plan_tier === 'ENTERPRISE' ? 'Annual Plan' : 'Monthly Bill'}</div>
         </td>
 
-        <td style="color:var(--text-secondary); font-size:12px;">
-          ${t.current_period_end}
-        </td>
-
+        <!-- Corporate Quota -->
         <td>
-          <div class="feature-pill-strip">
-            <span class="feature-toggle-chip ${t.features.network ? 'enabled' : ''}" data-tid="${t.tenant_id}" data-flag="network">Network</span>
+          <div class="quota-text">${t.corporate_quota.used} / ${t.corporate_quota.total} Linked</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width:${Math.min(corpPct, 100)}%; background:${corpPct >= 100 ? 'var(--danger-rose)' : 'var(--axiom-purple)'};"></div>
+          </div>
+        </td>
+
+        <!-- Trip Quota -->
+        <td>
+          <div class="quota-text">${t.trip_quota.used} / ${t.trip_quota.total} Trips</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width:${Math.min(tripPct, 100)}%; background:${tripPct >= 90 ? 'var(--warning-amber)' : 'var(--success-emerald)'};"></div>
+          </div>
+        </td>
+
+        <!-- Prepaid Wallet Balance -->
+        <td>
+          <div class="wallet-badge ${isLowBalance ? 'low' : ''}">
+            ${this.decimalFormatter.format(t.wallet_balance_paise / 100)}
+          </div>
+          <button class="topup-btn btn-topup-trigger" data-tid="${t.tenant_id}">+ Top Up</button>
+        </td>
+
+        <!-- SLA & Health -->
+        <td>
+          <div class="sla-badge ${t.sla_tier.toLowerCase()}">
+            ⭐ ${t.sla_tier} (${t.ota_pct}% OTA)
+          </div>
+          <div style="font-size:10px; color:${t.breaches_count > 0 ? 'var(--danger-rose)' : 'var(--text-subtle)'}; margin-top:3px;">
+            ${t.breaches_count} breaches (7d)
+          </div>
+        </td>
+
+        <!-- Feature Entitlements -->
+        <td>
+          <div class="feature-chips-grid">
+            <span class="feature-toggle-chip ${t.features.network ? 'enabled' : ''}" data-tid="${t.tenant_id}" data-flag="network">Exchange</span>
             <span class="feature-toggle-chip ${t.features.market ? 'enabled' : ''}" data-tid="${t.tenant_id}" data-flag="market">Market</span>
-            <span class="feature-toggle-chip ${t.features.parse_ai ? 'enabled' : ''}" data-tid="${t.tenant_id}" data-flag="parse_ai">Parse AI</span>
-            <span class="feature-toggle-chip ${t.features.whatsapp_bot ? 'enabled' : ''}" data-tid="${t.tenant_id}" data-flag="whatsapp_bot">WA Bot</span>
+            <span class="feature-toggle-chip ${t.features.parse_ai ? 'enabled' : ''}" data-tid="${t.tenant_id}" data-flag="parse_ai">ParseAI</span>
+            <span class="feature-toggle-chip ${t.features.whatsapp_bot ? 'enabled' : ''}" data-tid="${t.tenant_id}" data-flag="whatsapp_bot">WhatsApp</span>
           </div>
         </td>
 
-        <td class="col-sticky-right">
-          <button class="btn-login-as" data-tid="${t.tenant_id}" data-name="${t.tenant_name}">[Login as]</button>
-          <button class="callout-btn" style="border:none; padding:4px 6px; font-size:14px; color:var(--text-muted);">&bull;&bull;&bull;</button>
+        <!-- Support Impersonation Action -->
+        <td>
+          <button class="impersonate-btn btn-login-as" data-tid="${t.tenant_id}" data-name="${t.tenant_name}">
+            🛡️ Log in as Tenant &rarr;
+          </button>
         </td>
       </tr>
     `;
@@ -343,56 +381,63 @@ export class AdminSaasConsole {
 
   bindEvents() {
     if (!this.container) return;
+    const signal = this.abortController.signal;
 
-    // Filter Tab Buttons
-    this.container.querySelectorAll(".tab-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        this.state.activeTab = e.currentTarget.dataset.tab;
+    // Use Event Delegation on the container
+    this.container.addEventListener("click", async (e) => {
+      const target = e.target;
+      if (!target) return;
+
+      // Filter Tabs
+      const tabBtn = target.closest(".tab-btn");
+      if (tabBtn) {
+        this.state.activeTab = tabBtn.dataset.tab;
         this.render();
-        this.bindEvents();
-      });
-    });
+        return;
+      }
 
-    // Feature Flag Toggle Chips
-    this.container.querySelectorAll(".feature-toggle-chip").forEach((chip) => {
-      chip.addEventListener("click", async (e) => {
-        const tid = parseInt(e.currentTarget.dataset.tid, 10);
-        const flag = e.currentTarget.dataset.flag;
+      // Feature Flag Toggle Chips
+      const chip = target.closest(".feature-toggle-chip");
+      if (chip) {
+        const tid = parseInt(chip.dataset.tid, 10);
+        const flag = chip.dataset.flag;
         const tenant = this.state.tenants.find((x) => x.tenant_id === tid);
         if (!tenant) return;
 
         const newState = !tenant.features[flag];
         tenant.features[flag] = newState;
-        e.currentTarget.classList.toggle("enabled", newState);
+        chip.classList.toggle("enabled", newState);
 
         try {
           await fetch(`/api/v1/admin/saas/tenants/${tid}/flags`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ flag_key: flag, enabled: newState }),
+            signal,
           });
         } catch (err) {
           console.warn("Flag update sync error", err);
         }
-      });
-    });
+        return;
+      }
 
-    // Login as Vendor buttons (triggers pre-flight audit modal)
-    this.container.querySelectorAll(".btn-login-as").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const tid = parseInt(e.currentTarget.dataset.tid, 10);
-        const tname = e.currentTarget.dataset.name;
+      // Login As Vendor Button
+      const loginBtn = target.closest(".btn-login-as");
+      if (loginBtn) {
+        const tid = parseInt(loginBtn.dataset.tid, 10);
+        const tname = loginBtn.dataset.name;
         this.openImpersonationModal(tid, tname);
-      });
-    });
+        return;
+      }
 
-    // Top up trigger
-    this.container.querySelectorAll(".btn-topup-trigger").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const tid = parseInt(e.currentTarget.dataset.tid, 10);
+      // Top up button
+      const topupBtn = target.closest(".btn-topup-trigger");
+      if (topupBtn) {
+        const tid = parseInt(topupBtn.dataset.tid, 10);
         this.openTopUpModal(tid);
-      });
-    });
+        return;
+      }
+    }, { signal });
   }
 
   openImpersonationModal(tenantId, tenantName) {
@@ -400,61 +445,68 @@ export class AdminSaasConsole {
     if (!modalRoot) return;
 
     modalRoot.innerHTML = `
-      <div class="spotlight-modal-overlay open" id="imp-modal-overlay">
-        <div class="spotlight-modal-box" style="padding:24px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-            <div style="font-size:18px; font-weight:800; color:var(--text-primary);">
-              Impersonate ${tenantName} (#${tenantId})?
+      <div class="audit-modal-backdrop" id="audit-modal-backdrop">
+        <div class="audit-modal-box">
+          <div class="audit-modal-header">
+            <div>
+              <div class="audit-modal-title">🛡️ Initiate Support Shadow Session</div>
+              <div class="audit-modal-subtitle">Target: <strong>${tenantName} (#${tenantId})</strong></div>
             </div>
-            <button id="btn-close-imp-modal" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-muted);">&times;</button>
+            <button class="drawer-close-btn" id="btn-close-modal">&times;</button>
           </div>
 
-          <p style="font-size:13px; color:var(--text-secondary); line-height:1.5; margin-bottom:18px;">
-            You are entering a <strong>30-minute audit-logged shadow session</strong>. Every view and mutation is recorded under your admin ID with client IP, headers, and precise timestamp.
-          </p>
+          <div class="audit-modal-body">
+            <div class="audit-security-warning">
+              <strong>CRITICAL AUDIT NOTICE:</strong>
+              You are accessing tenant data under Axiom HQ Governance. All page views, searches, and mutations are immutably signed and timestamped in <code>admin_impersonation_audit_logs</code>.
+            </div>
 
-          <div style="background:var(--bg-subtle); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:14px; margin-bottom:20px;">
-            <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:10px;">Select Safety Mode:</div>
-            
-            <label style="display:flex; align-items:flex-start; gap:10px; margin-bottom:12px; cursor:pointer;">
-              <input type="radio" name="imp_mode" value="READ_ONLY" checked style="margin-top:3px;" />
-              <div>
-                <div style="font-weight:700; font-size:13px; color:var(--text-primary);">🔒 Read-Only Shadow Mode (Safe - Recommended)</div>
-                <div style="font-size:12px; color:var(--text-muted);">Inspect all dispatch grids, bills, and drivers. All POST/PUT/DELETE mutations are strictly blocked.</div>
+            <div class="form-group">
+              <label class="form-label">Select Session Mode:</label>
+              <div class="mode-radio-card selected">
+                <input type="radio" name="imp_mode" id="mode_ro" value="READ_ONLY" checked />
+                <label for="mode_ro" style="cursor:pointer; margin-bottom:0;">
+                  <strong>🔒 Read-Only Shadow (Recommended)</strong>
+                  <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">
+                    Safe browsing. All POST/PATCH/DELETE mutations are strictly blocked at API layer.
+                  </div>
+                </label>
               </div>
-            </label>
 
-            <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
-              <input type="radio" name="imp_mode" value="READ_WRITE" style="margin-top:3px;" />
-              <div>
-                <div style="font-weight:700; font-size:13px; color:#B45309;">✍️ Read-Write Support Mode (Requires Reason Code)</div>
-                <div style="font-size:12px; color:var(--text-muted);">Enables manual emergency fixes on live duties. Every mutation increment is counted in audit logs.</div>
+              <div class="mode-radio-card" style="margin-top:8px;">
+                <input type="radio" name="imp_mode" id="mode_rw" value="READ_WRITE" />
+                <label for="mode_rw" style="cursor:pointer; margin-bottom:0;">
+                  <strong>✍️ Read-Write Mode (Emergency Action Required)</strong>
+                  <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">
+                    Permits live updates, dispatch reassignment, or manual invoice sync on tenant's behalf.
+                  </div>
+                </label>
               </div>
-            </label>
+            </div>
+
+            <div class="form-group" id="reason-code-wrap" style="display:none;">
+              <label class="form-label">Mandatory Support Reason Code:</label>
+              <select id="imp-reason-code" style="width:100%; padding:8px; background:var(--card-bg); border:1px solid var(--border-line); color:var(--text-primary); border-radius:6px; font-size:12px;">
+                <option value="TICKET_DISPATCH_FAILURE">Ticket #9912 - Unallotted Duty Dispatch Emergency</option>
+                <option value="CORP_BILLING_INVOICE_SYNC">Ticket #8841 - Corporate Proforma Audit Reconcile</option>
+                <option value="SLA_DEMOTION_DISPUTE">Ticket #7712 - Force Majeure Review</option>
+                <option value="ONBOARDING_ASSISTANCE">New Tenant Corporate Roster Walkthrough</option>
+              </select>
+            </div>
           </div>
 
-          <div id="reason-code-wrap" style="display:none; margin-bottom:18px;">
-            <label style="font-size:12px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:4px;">Mandatory Support Ticket / Reason:</label>
-            <input type="text" id="imp-reason-code" placeholder="e.g. TICKET-9921: Emergency dispatch reroute" style="width:100%; padding:8px 12px; font-size:13px; border:1px solid var(--border-strong); border-radius:6px;" />
-          </div>
-
-          <div style="display:flex; justify-content:flex-end; gap:10px;">
-            <button id="btn-cancel-imp" class="callout-btn" style="padding:8px 16px; font-size:13px;">Cancel</button>
-            <button id="btn-start-imp" class="btn-login-as" style="padding:8px 18px; font-size:13px; font-weight:700; background:var(--purple-gradient);">
-              Start 30-Min Shadow Session &rarr;
+          <div class="audit-modal-footer">
+            <button class="btn-cancel" id="btn-cancel-imp">Cancel</button>
+            <button class="btn-confirm-imp" id="btn-start-shadow-session">
+              Authenticate & Launch Shadow Session &rarr;
             </button>
           </div>
         </div>
       </div>
     `;
 
-    const overlay = document.getElementById("imp-modal-overlay");
-    const closeBtn = document.getElementById("btn-close-imp-modal");
-    const cancelBtn = document.getElementById("btn-cancel-imp");
-    const startBtn = document.getElementById("btn-start-imp");
     const radioModes = modalRoot.querySelectorAll('input[name="imp_mode"]');
     const reasonWrap = document.getElementById("reason-code-wrap");
-
     radioModes.forEach((r) => {
       r.addEventListener("change", () => {
         reasonWrap.style.display = r.value === "READ_WRITE" ? "block" : "none";
@@ -462,15 +514,15 @@ export class AdminSaasConsole {
     });
 
     const closeModal = () => (modalRoot.innerHTML = "");
-    closeBtn.addEventListener("click", closeModal);
-    cancelBtn.addEventListener("click", closeModal);
+    document.getElementById("btn-close-modal")?.addEventListener("click", closeModal);
+    document.getElementById("btn-cancel-imp")?.addEventListener("click", closeModal);
 
-    startBtn.addEventListener("click", async () => {
-      const mode = modalRoot.querySelector('input[name="imp_mode"]:checked').value;
+    document.getElementById("btn-start-shadow-session")?.addEventListener("click", async () => {
+      if (this.inFlightRequests.has("impersonate")) return;
+      this.inFlightRequests.add("impersonate");
+
+      const mode = modalRoot.querySelector('input[name="imp_mode"]:checked')?.value || "READ_ONLY";
       const reason = document.getElementById("imp-reason-code")?.value || "Standard Support Investigation";
-
-      startBtn.disabled = true;
-      startBtn.textContent = "Minting Shadow Token...";
 
       try {
         const res = await fetch("/api/v1/admin/impersonate", {
@@ -481,6 +533,7 @@ export class AdminSaasConsole {
             impersonation_mode: mode,
             reason_code: reason,
           }),
+          signal: this.abortController.signal,
         });
 
         const data = await res.json();
@@ -490,15 +543,13 @@ export class AdminSaasConsole {
           sessionStorage.setItem("axiom_parent_admin_token", "admin_session_token_persist");
           sessionStorage.setItem("axiom_shadow_token", data.shadow_token);
           sessionStorage.setItem("axiom_shadow_expires_at", data.expires_at);
-          sessionStorage.setItem("axiom_shadow_mode", data.impersonation_mode);
 
           this.onImpersonate({
             tenant_id: tenantId,
             tenant_name: tenantName,
-            shadow_token: data.shadow_token,
-            expires_at: data.expires_at,
-            impersonation_mode: data.impersonation_mode,
             session_id: data.session_id,
+            impersonation_mode: mode,
+            shadow_token: data.shadow_token,
           });
         }
       } catch (err) {
@@ -507,11 +558,11 @@ export class AdminSaasConsole {
         this.onImpersonate({
           tenant_id: tenantId,
           tenant_name: tenantName,
-          shadow_token: "simulated_shadow_jwt_token",
-          expires_at: new Date(Date.now() + 30 * 60000).toISOString(),
+          session_id: `imp_local_fallback_${tenantId}`,
           impersonation_mode: mode,
-          session_id: "imp_local_sim",
         });
+      } finally {
+        this.inFlightRequests.delete("impersonate");
       }
     });
   }
@@ -521,38 +572,55 @@ export class AdminSaasConsole {
     if (!modalRoot) return;
 
     modalRoot.innerHTML = `
-      <div class="spotlight-modal-overlay open">
-        <div class="spotlight-modal-box" style="padding:24px;">
-          <div style="font-size:16px; font-weight:700; margin-bottom:10px;">Top Up Pre-Paid Wallet (Tenant #${tenantId})</div>
-          <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">Credit immediate balance for SMS, GPS pings, and WhatsApp Bot consumption.</p>
-          <div style="display:flex; gap:8px; margin-bottom:16px;">
-            <button class="callout-btn btn-amount-preset" data-amount="50000">+ ₹500</button>
-            <button class="callout-btn btn-amount-preset" data-amount="100000">+ ₹1,000</button>
-            <button class="callout-btn btn-amount-preset" data-amount="500000">+ ₹5,000</button>
+      <div class="audit-modal-backdrop">
+        <div class="audit-modal-box" style="max-width:380px;">
+          <div class="audit-modal-header">
+            <div>
+              <div class="audit-modal-title">Prepaid Wallet Top-Up</div>
+              <div class="audit-modal-subtitle">Tenant #${tenantId}</div>
+            </div>
+            <button class="drawer-close-btn" id="btn-close-topup">&times;</button>
           </div>
-          <div style="display:flex; justify-content:flex-end; gap:10px;">
-            <button id="btn-close-topup" class="callout-btn">Cancel</button>
+          <div class="audit-modal-body">
+            <div style="font-size:12px; color:var(--text-secondary); margin-bottom:12px;">
+              Select instant top-up amount for gateway / API billing:
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="topup-btn btn-amount-preset" data-amount="100000" style="padding:10px; flex:1;">+₹1,000</button>
+              <button class="topup-btn btn-amount-preset" data-amount="500000" style="padding:10px; flex:1;">+₹5,000</button>
+              <button class="topup-btn btn-amount-preset" data-amount="2000000" style="padding:10px; flex:1;">+₹20,000</button>
+            </div>
           </div>
         </div>
       </div>
     `;
 
-    document.getElementById("btn-close-topup").addEventListener("click", () => {
+    document.getElementById("btn-close-topup")?.addEventListener("click", () => {
       modalRoot.innerHTML = "";
     });
 
     modalRoot.querySelectorAll(".btn-amount-preset").forEach((b) => {
       b.addEventListener("click", async (e) => {
+        if (this.inFlightRequests.has("topup")) return;
+        this.inFlightRequests.add("topup");
+
         const amt = parseInt(e.currentTarget.dataset.amount, 10);
-        await fetch(`/api/v1/admin/saas/tenants/${tenantId}/topup`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount_paise: amt }),
-        });
-        modalRoot.innerHTML = "";
-        await this.fetchData();
-        this.render();
-        this.bindEvents();
+        try {
+          await fetch(`/api/v1/admin/saas/tenants/${tenantId}/topup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ amount_paise: amt }),
+            signal: this.abortController.signal,
+          });
+          modalRoot.innerHTML = "";
+          await this.fetchData();
+          this.render();
+        } catch (err) {
+          console.warn("Topup error:", err);
+          modalRoot.innerHTML = "";
+        } finally {
+          this.inFlightRequests.delete("topup");
+        }
       });
     });
   }

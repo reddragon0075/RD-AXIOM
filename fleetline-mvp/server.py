@@ -381,9 +381,14 @@ def initialize_database() -> None:
             try:
                 from seed_tenant_data import seed_organization
                 vendor_orgs = conn.execute("SELECT id FROM organizations WHERE kind = 'vendor' AND id != 'org_demo_blueorbit'").fetchall()
+                seeded_org_ids = {
+                    row["organization_id"]
+                    for row in conn.execute(
+                        "SELECT organization_id FROM domain_customers GROUP BY organization_id HAVING count(*) > 0"
+                    ).fetchall()
+                }
                 for vrow in vendor_orgs:
-                    cust_count = conn.execute("SELECT count(*) FROM domain_customers WHERE organization_id = ?", (vrow["id"],)).fetchone()[0]
-                    if cust_count == 0:
+                    if vrow["id"] not in seeded_org_ids:
                         seed_organization(conn, vrow["id"])
             except Exception:
                 pass
@@ -635,20 +640,21 @@ def current_user(conn: sqlite3.Connection, handler: SimpleHTTPRequestHandler) ->
             return row
         conn.execute("DELETE FROM sessions WHERE token_hash = ?", (token_hash(token),))
 
-    client_user_raw = handler.headers.get("X-Axiom-User")
-    if client_user_raw:
-        try:
-            client_user = json.loads(client_user_raw)
-            if isinstance(client_user, dict):
-                return ensure_user_from_client(conn, client_user, handler)
-        except Exception:
-            pass
+    if not is_production():
+        client_user_raw = handler.headers.get("X-Axiom-User")
+        if client_user_raw:
+            try:
+                client_user = json.loads(client_user_raw)
+                if isinstance(client_user, dict):
+                    return ensure_user_from_client(conn, client_user, handler)
+            except Exception:
+                pass
 
-    client_email = handler.headers.get("X-Axiom-User-Email", "").strip().lower()
-    if client_email:
-        row = conn.execute(user_select_sql() + " WHERE lower(u.email) = ?", (client_email,)).fetchone()
-        if row is not None:
-            return row
+        client_email = handler.headers.get("X-Axiom-User-Email", "").strip().lower()
+        if client_email:
+            row = conn.execute(user_select_sql() + " WHERE lower(u.email) = ?", (client_email,)).fetchone()
+            if row is not None:
+                return row
 
     req_path = getattr(handler, "path", "")
     if req_path.startswith("/api/v1/admin") and not is_production():
@@ -746,7 +752,8 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
     server_version = "AxiomFleetBackend/1.0"
 
     def _is_api(self) -> bool:
-        return urlsplit(self.path).path.startswith("/api/")
+        p = urlsplit(self.path).path
+        return p.startswith("/api/") or p in {"/health/live", "/health/ready"}
 
     def _read_json(self) -> dict:
         try:
@@ -786,7 +793,9 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Security-Policy", "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co https://*.supabase.in; worker-src 'self' blob:")
         if secure_cookie_enabled():
             self.send_header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-        self.send_header("X-Request-ID", self.headers.get("X-Request-ID", new_id("req"))[:100])
+        req_id = getattr(self, "request_id", None) or self.headers.get("X-Request-ID") or new_id("req")
+        self.request_id = req_id
+        self.send_header("X-Request-ID", req_id[:100])
 
     def _json(self, status: int, payload: dict, *, cookie: str | None = None) -> None:
         raw = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -814,7 +823,34 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
         return row
 
     def _api_health(self) -> None:
-        self._json(200, {"ok": True, "service": "axiom-fleet-backend", "storage": "sqlite", "time": utc_now()})
+        self._json(200, {"ok": True, "status": "alive", "service": "axiom-fleet-backend", "storage": "sqlite", "time": utc_now()})
+
+    def _api_health_ready(self) -> None:
+        try:
+            with db_connection() as conn:
+                conn.execute("SELECT 1").fetchone()
+            from tariff_engine import calculate_dual_ledger_duty
+            sanity = calculate_dual_ledger_duty(
+                {"billing_mode": "HR_KM_SLAB", "distance_km": 10.0, "duration_hours": 1.0},
+                {"base_paise": 100000, "extra_km_paise": 1000, "extra_hr_paise": 10000}
+            )
+            if not sanity or "client_receivable" not in sanity:
+                raise ValueError("Tariff engine sanity calculation failed")
+            self._json(200, {
+                "ok": True,
+                "status": "ready",
+                "database": "connected",
+                "tariff_engine": "operational",
+                "service": "axiom-fleet-backend",
+                "time": utc_now()
+            })
+        except Exception as exc:
+            self._json(503, {
+                "ok": False,
+                "status": "not_ready",
+                "error": str(exc),
+                "time": utc_now()
+            })
 
     def _api_public_payment_link(self, method: str, route: str) -> None:
         code = route.rsplit('/', 1)[-1]
@@ -1017,6 +1053,10 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
         if not isinstance(user_payload, dict):
             raise APIError(400, "User object required", "validation_error")
         with db_connection() as conn:
+            # Security Hardening: Guard against unauthenticated session hijacking
+            existing_user = self._user_from_request(conn)
+            if not existing_user and not demo_account_allowed():
+                raise APIError(401, "Authentication required to synchronize session", "auth_required")
             row = ensure_user_from_client(conn, user_payload, self)
             if not row:
                 raise APIError(400, "Valid user email required", "validation_error")
@@ -1268,8 +1308,10 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             return
 
         try:
-            if route == "/api/health" and method == "GET":
+            if route in ("/api/health", "/health/live") and method == "GET":
                 self._api_health()
+            elif route in ("/api/health/ready", "/health/ready") and method == "GET":
+                self._api_health_ready()
             elif route == "/api/auth/signup" and method == "POST":
                 self._api_signup()
             elif route == "/api/auth/login" and method == "POST":

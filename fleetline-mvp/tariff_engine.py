@@ -11,6 +11,7 @@ Dual-Ledger Resolution (Client Receivable vs. Supplier Payable) in exact integer
 
 from __future__ import annotations
 
+from decimal import Decimal, ROUND_HALF_UP
 import math
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -27,13 +28,17 @@ def resolve_auto_slab(
     min_gross_margin_threshold_pct: float = 8.0,    # 8% minimum margin floor
 ) -> Tuple[Dict[str, Any], int, str, bool]:
     """Auto-Slab Optimizer: Compares Base + Extras against higher packages to find optimal rate.
-    
+
     Includes Margin-Floor Guardrail: Never allows an auto-slab upgrade if
     (Optimized_Client_Receivable - Supplier_Payable) < min_gross_margin_threshold.
     """
     if not slabs:
         # Default fallback 4Hr/40Km
-        slabs = [{"hours": 4, "km": 40, "base_paise": 180000}, {"hours": 8, "km": 80, "base_paise": 320000}, {"hours": 12, "km": 120, "base_paise": 450000}]
+        slabs = [
+            {"hours": 4, "km": 40, "base_paise": 180000},
+            {"hours": 8, "km": 80, "base_paise": 320000},
+            {"hours": 12, "km": 120, "base_paise": 450000},
+        ]
 
     sorted_slabs = sorted(slabs, key=lambda s: (s["hours"], s["km"]))
     candidates = []
@@ -84,12 +89,45 @@ def calculate_dual_ledger_duty(
     client_rate_card: Dict[str, Any],
     supplier_rate_card: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-    """Calculates both Client Receivable and Supplier Payable ledgers deterministically in integer paise."""
-    mode = duty_params.get("billing_mode", "HR_KM_SLAB")
-    matrix = duty_params.get("garage_matrix", "P2P_STRICT")
+    """Calculates both Client Receivable and Supplier Payable ledgers deterministically in integer paise.
 
-    raw_km = float(duty_params.get("distance_km", 0.0))
+    Validates odometer, timing boundaries, and provides uniform contracts across all 6 billing models:
+    1. HR_KM_SLAB
+    2. OUTSTATION_CALENDAR_DAY
+    3. RADIAL_ZONE_RING
+    4. PER_SEAT_SHARED_POOL
+    5. MONTHLY_DEDICATED_FIXED_VARIABLE
+    6. FUEL_INDEXED_BACK_TO_BACK
+    """
+    mode = str(duty_params.get("billing_mode") or "HR_KM_SLAB").upper().strip()
+    matrix = str(duty_params.get("garage_matrix") or "P2P_STRICT").upper().strip()
+
+    # Input validation: odometer and distance
+    start_odo = duty_params.get("start_odometer") if duty_params.get("start_odometer") is not None else duty_params.get("start_km")
+    end_odo = duty_params.get("end_odometer") if duty_params.get("end_odometer") is not None else duty_params.get("end_km")
+
+    if start_odo is not None and end_odo is not None:
+        start_odo = float(start_odo)
+        end_odo = float(end_odo)
+        if start_odo < 0 or end_odo < 0:
+            raise ValueError("Odometer readings must be non-negative")
+        if end_odo < start_odo:
+            raise ValueError(f"Invalid odometer readings: end_odo ({end_odo}) < start_odo ({start_odo})")
+        raw_km = end_odo - start_odo
+    else:
+        raw_km = float(duty_params.get("distance_km", 0.0))
+        if raw_km < 0:
+            raise ValueError("Distance cannot be negative")
+
     raw_hrs = float(duty_params.get("duration_hours", 0.0))
+    if raw_hrs < 0:
+        raise ValueError("Duration cannot be negative")
+
+    # Timing validation if ISO timestamps are provided
+    start_time = duty_params.get("start_time") or duty_params.get("started_at")
+    end_time = duty_params.get("end_time") or duty_params.get("completed_at")
+    if start_time and end_time and str(end_time) < str(start_time):
+        raise ValueError("End time cannot be earlier than start time")
 
     # Apply Garage-to-Garage buffer if configured
     if matrix == "G2G_FIXED_BUFFER":
@@ -106,9 +144,7 @@ def calculate_dual_ledger_duty(
 
     tolls_paise = int(duty_params.get("toll_parking_paise", 0))
 
-    # =========================================================================
-    # 1. PRELIMINARY SUPPLIER PAYABLE ESTIMATE (FOR MARGIN-FLOOR GUARDRAIL)
-    # =========================================================================
+    # Base rates
     c_bhatta = int(client_rate_card.get("driver_bhatta_paise", 40000)) if duty_params.get("is_night_or_outstation") else 0
     c_extra_km_paise = int(client_rate_card.get("extra_km_paise", 1800))
     c_extra_hr_paise = int(client_rate_card.get("extra_hr_paise", 15000))
@@ -120,12 +156,17 @@ def calculate_dual_ledger_duty(
     s_base_default = int(s_card.get("base_paise", 140000))
     s_gross_estimate = s_base_default + (math.ceil(max(0.0, billable_km - 40.0)) * s_extra_km_paise) + s_bhatta + tolls_paise
 
-    # =========================================================================
-    # 2. CLIENT RECEIVABLE LEDGER WITH AUTO-SLAB MARGIN GUARDRAIL
-    # =========================================================================
     margin_floor_breached = False
     slab_note = "Standard Slab"
 
+    c_extra_km = 0
+    c_extra_hr = 0
+    s_extra_km = 0
+    s_extra_hr = 0
+
+    # =========================================================================
+    # CLIENT & SUPPLIER CALCULATION PER BILLING MODEL
+    # =========================================================================
     if mode == "HR_KM_SLAB":
         slabs = client_rate_card.get("slabs", [])
         min_margin_paise = int(client_rate_card.get("min_margin_paise", 15000))
@@ -142,8 +183,9 @@ def calculate_dual_ledger_duty(
             min_gross_margin_threshold_pct=min_margin_pct,
         )
         c_base = c_base_and_extras
-        c_extra_km = 0
-        c_extra_hr = 0
+        s_base = int(s_card.get("base_paise", round(c_base * 0.78)))
+        # In slab mode, supplier gets base plus extra km beyond 40km
+        s_extra_km = math.ceil(max(0.0, billable_km - 40.0)) * s_extra_km_paise
 
     elif mode == "OUTSTATION_CALENDAR_DAY":
         days = max(1, int(duty_params.get("calendar_days", 1)))
@@ -151,20 +193,41 @@ def calculate_dual_ledger_duty(
         min_billable_km = days * min_km_per_day
         effective_km = max(billable_km, min_billable_km)
         c_base = int(effective_km * c_extra_km_paise)
-        c_extra_km = 0
-        c_extra_hr = 0
         c_bhatta = int(client_rate_card.get("driver_bhatta_paise", 50000)) * days
+        slab_note = f"Outstation {days} Day(s) @ min {min_km_per_day} km/day"
+
+        s_base = int(effective_km * s_extra_km_paise)
+        s_bhatta = int(s_card.get("driver_bhatta_paise", round(c_bhatta * 0.85)))
+        s_extra_km = 0
+        s_extra_hr = 0
 
     elif mode == "RADIAL_ZONE_RING":
-        # Radial zone pricing (e.g. Ring 1: 0-10km @ 600, Ring 2: 10-25km @ 1200)
-        ring_rates = client_rate_card.get("zone_rings", [{"max_km": 10, "paise": 60000}, {"max_km": 25, "paise": 120000}, {"max_km": 50, "paise": 200000}])
-        matched = next((r["paise"] for r in ring_rates if billable_km <= r["max_km"]), ring_rates[-1]["paise"])
-        c_base = matched
-        c_extra_km = 0
-        c_extra_hr = 0
+        ring_rates = client_rate_card.get("zone_rings", [
+            {"max_km": 10, "paise": 60000},
+            {"max_km": 25, "paise": 120000},
+            {"max_km": 50, "paise": 200000},
+        ])
+        matched_ring = next((r for r in ring_rates if billable_km <= r["max_km"]), ring_rates[-1])
+        c_base = int(matched_ring["paise"])
+        slab_note = f"Radial Zone Ring (Max {matched_ring['max_km']} km)"
+
+        s_base = int(s_card.get("base_paise", round(c_base * 0.78)))
+        s_extra_km = 0
+        s_extra_hr = 0
+
+    elif mode == "PER_SEAT_SHARED_POOL":
+        # MoveInSync benchmark: Employee shuttle shared pool
+        passengers_count = max(1, int(duty_params.get("passengers_count", 1)))
+        per_seat_rate = int(client_rate_card.get("per_seat_rate_paise", 35000))
+        c_base = passengers_count * per_seat_rate
+        slab_note = f"Per-Seat Shared Pool ({passengers_count} seat(s) @ INR {per_seat_rate/100:.2f})"
+
+        supplier_seat_rate = int(s_card.get("per_seat_rate_paise", round(per_seat_rate * 0.75)))
+        s_base = passengers_count * supplier_seat_rate
+        s_extra_km = 0
+        s_extra_hr = 0
 
     elif mode == "MONTHLY_DEDICATED_FIXED_VARIABLE":
-        # Monthly dedicated prorated daily cap
         daily_fixed = int(client_rate_card.get("daily_fixed_paise", 250000))
         km_cap = float(client_rate_card.get("daily_km_cap", 100.0))
         hr_cap = float(client_rate_card.get("daily_hr_cap", 10.0))
@@ -173,6 +236,11 @@ def calculate_dual_ledger_duty(
         c_base = daily_fixed
         c_extra_km = math.ceil(extra_k) * c_extra_km_paise
         c_extra_hr = math.ceil(extra_h) * c_extra_hr_paise
+        slab_note = f"Monthly Dedicated Lease (Fixed {daily_fixed/100:.2f} + {extra_k:.0f}km/{extra_h:.0f}hr extras)"
+
+        s_base = int(s_card.get("daily_fixed_paise", round(daily_fixed * 0.80)))
+        s_extra_km = math.ceil(extra_k) * s_extra_km_paise
+        s_extra_hr = math.ceil(extra_h) * s_extra_hr_paise
 
     elif mode == "FUEL_INDEXED_BACK_TO_BACK":
         base_dry_paise = int(client_rate_card.get("dry_base_paise", 150000))
@@ -182,35 +250,37 @@ def calculate_dual_ledger_duty(
         fuel_diff_inr = max(0.0, current_fuel_price - base_fuel_price)
         fuel_surcharge_paise = int((billable_km / vehicle_mileage_kmpl) * (fuel_diff_inr * 100))
         c_base = base_dry_paise + fuel_surcharge_paise
-        c_extra_km = 0
-        c_extra_hr = 0
+        slab_note = f"Fuel Indexed (Fuel Diff INR {fuel_diff_inr:.2f}/L -> Surcharge INR {fuel_surcharge_paise/100:.2f})"
 
-    else:  # Standard fallback
+        s_base_dry = int(s_card.get("dry_base_paise", round(base_dry_paise * 0.80)))
+        s_base = s_base_dry + fuel_surcharge_paise  # Fuel surcharge passed through back-to-back
+        s_extra_km = 0
+        s_extra_hr = 0
+
+    else:
+        # Standard default fallback
         c_base = int(client_rate_card.get("base_paise", 200000))
         c_extra_km = math.ceil(max(0.0, billable_km - 40.0)) * c_extra_km_paise
         c_extra_hr = math.ceil(max(0.0, billable_hrs - 4.0)) * c_extra_hr_paise
+        s_base = int(s_card.get("base_paise", round(c_base * 0.78)))
+        s_extra_km = math.ceil(max(0.0, billable_km - 40.0)) * s_extra_km_paise
+        s_extra_hr = math.ceil(max(0.0, billable_hrs - 4.0)) * s_extra_hr_paise
 
+    # Totals Client Ledger
     c_gross = c_base + c_extra_km + c_extra_hr + c_bhatta + tolls_paise
-    gst_rate = float(client_rate_card.get("gst_rate_pct", 5.0))
-    c_tax = round(c_gross * (gst_rate / 100.0))
+    gst_rate = Decimal(str(client_rate_card.get("gst_rate_pct", 5.0)))
+    c_tax = int((Decimal(c_gross) * (gst_rate / Decimal("100"))).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
     c_net = c_gross + c_tax
 
-    # =========================================================================
-    # 2. SUPPLIER PAYABLE LEDGER (SUB-VENDOR OR DCO)
-    # =========================================================================
-    s_card = supplier_rate_card or {}
-    s_extra_km_paise = int(s_card.get("extra_km_paise", round(c_extra_km_paise * 0.80)))
-    s_extra_hr_paise = int(s_card.get("extra_hr_paise", round(c_extra_hr_paise * 0.80)))
-    s_base = int(s_card.get("base_paise", round(c_base * 0.78)))
-    s_bhatta = int(s_card.get("driver_bhatta_paise", round(c_bhatta * 0.85)))
+    # Totals Supplier Ledger
     penalty_deduction = int(duty_params.get("supplier_penalty_paise", 0))
-
-    s_gross = s_base + (math.ceil(max(0.0, billable_km - 40.0)) * s_extra_km_paise) + s_bhatta + tolls_paise
+    s_gross = s_base + s_extra_km + s_extra_hr + s_bhatta + tolls_paise
     s_net = max(0, s_gross - penalty_deduction)
 
     # Unit economics & Maker-Checker flag
     gross_margin_paise = c_gross - s_gross
     is_negative_margin = gross_margin_paise < 0
+    margin_pct = float((Decimal(gross_margin_paise) / Decimal(c_gross) * Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)) if c_gross > 0 else 0.0
 
     return {
         "billing_mode": mode,
@@ -229,6 +299,8 @@ def calculate_dual_ledger_duty(
         },
         "supplier_payable": {
             "base_paise": s_base,
+            "extra_km_paise": s_extra_km,
+            "extra_hr_paise": s_extra_hr,
             "driver_bhatta_paise": s_bhatta,
             "tolls_parking_paise": tolls_paise,
             "penalty_deduction_paise": penalty_deduction,
@@ -236,7 +308,10 @@ def calculate_dual_ledger_duty(
             "net_payable_paise": s_net,
         },
         "gross_margin_paise": gross_margin_paise,
-        "gross_margin_percentage": round((gross_margin_paise / c_gross) * 100.0, 2) if c_gross > 0 else 0.0,
+        "gross_margin_percentage": margin_pct,
+        "margin_pct": margin_pct,  # Frontend-compatible alias
+        "client_billing_paise": c_gross,  # Frontend PnL alias
+        "supplier_cost_paise": s_gross,    # Frontend PnL alias
         "is_negative_margin": is_negative_margin,
         "auto_slab_margin_floor_breached": margin_floor_breached,
         "slab_explanation": slab_note,

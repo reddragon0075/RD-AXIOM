@@ -421,9 +421,15 @@ def handle_tristack(
             current_hour=current_hour,
         )
 
+        user_org = _org(user)
+        target_vendor_id = data.get("vendor_id") or user_org
+        # Guard against arbitrary cross-tenant manipulation
+        if target_vendor_id != user_org and user.get("role") not in ("admin", "superadmin") and not str(user.get("email") or "").endswith(("@axiomfleet.in", "@axiomfleet.com")):
+            target_vendor_id = user_org
+
         debit_note = None
         if breach and not force_majeure:
-            debit_note = generate_penalty_debit_note(data.get("vendor_id", "ven_sample"), data.get("duty_id", "duty_sample"), breach)
+            debit_note = generate_penalty_debit_note(target_vendor_id, data.get("duty_id", "duty_sample"), breach)
             conn.execute(
                 """
                 INSERT INTO tristack_sla_breaches (
@@ -434,8 +440,8 @@ def handle_tristack(
                 """,
                 (
                     new_id("breach"),
-                    _org(user),
-                    data.get("vendor_id", "ven_sample"),
+                    user_org,
+                    target_vendor_id,
                     data.get("vendor_name", "Sample Vendor Partner"),
                     data.get("duty_id", "duty_sample"),
                     breach["breach_type"],
@@ -449,8 +455,8 @@ def handle_tristack(
             # Update tier and hourly lock
             if demoted:
                 conn.execute(
-                    "UPDATE tristack_partner_sla_profiles SET current_tier = ?, last_demoted_hour = ?, updated_at = ? WHERE vendor_id = ?",
-                    (new_tier, current_hour, now_iso(), data.get("vendor_id", "ven_sample")),
+                    "UPDATE tristack_partner_sla_profiles SET current_tier = ?, last_demoted_hour = ?, updated_at = ? WHERE vendor_id = ? AND organization_id = ?",
+                    (new_tier, current_hour, now_iso(), target_vendor_id, user_org),
                 )
             conn.commit()
 

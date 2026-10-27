@@ -1,0 +1,67 @@
+name: Axiom Mobility Enterprise Quality Gate
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+  workflow_dispatch:
+
+jobs:
+  static-seam-and-secrets:
+    name: Job 1 - Static Seam & Secret Guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Secret and Contract Audits
+        run: |
+          python scripts/check_contracts_and_secrets.py
+
+  backend-tariff-e2e:
+    name: Job 2 - Backend, Tariff Fuzzing & E2E Golden Path
+    runs-on: ubuntu-latest
+    needs: [static-seam-and-secrets]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Seam Contracts, Resilience Fuzzing & Golden Path E2E
+        run: |
+          python -m unittest fleetline-mvp/tests/test_seam_contracts.py fleetline-mvp/tests/test_system_resilience.py fleetline-mvp/tests/test_e2e_golden_path.py
+
+      - name: Run Tri-Stack Hardening Specification Suite
+        run: |
+          python fleetline-mvp/test_tristack_suite.py
+
+      - name: Run Financial Ledger Reconciliation Check
+        run: |
+          python fleetline-mvp/reconcile_ledger.py
+
+  frontend-lifecycle-and-locks:
+    name: Job 3 - Frontend Lifecycle & State Lock Suite
+    runs-on: ubuntu-latest
+    needs: [static-seam-and-secrets]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run Component Lifecycle & State Mutability Tests
+        run: |
+          node --test frontend/tests/seam_lifecycle.test.js frontend/tests/resilience.test.js
