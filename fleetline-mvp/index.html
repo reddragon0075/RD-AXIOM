@@ -2706,7 +2706,7 @@
       } catch (_) {}
       return 'overview';
     })();
-    const state = { page: savedActivePage, dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const state = { page: savedActivePage, dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
     const advancedPages = new Set(['customers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq']);
@@ -3417,6 +3417,253 @@
       return `${pageHead(`Axiom Fleet · ${userTimeZone()}`, workspaceGreeting(), 'Tenant-scoped records, next decisions and field readiness without invented operational values.',`${button(icon('refresh')+'Refresh','','data-action="refresh"')}${button(icon('plus')+'New booking','primary','data-action="new-booking"')}`)}${actionCenter}<div class="grid kpis"><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Requests awaiting decision</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${requested}</div><div class="kpi-foot">Booking requests in the tenant queue</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Open duties</span><span class="kpi-icon teal">${icon('route')}</span></div><div class="kpi-value">${active}</div><div class="kpi-foot">${esc(dutySummary)}</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Vehicles available</span><span class="kpi-icon">${icon('car')}</span></div><div class="kpi-value">${availableVehicles}</div><div class="kpi-foot">${vehicles.length} vehicle record${vehicles.length === 1 ? '' : 's'} returned</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Setup readiness</span><span class="kpi-icon">${icon('check')}</span></div><div class="kpi-value">${readiness.total ? `${readiness.completed || 0}/${readiness.total}` : '—'}</div><div class="kpi-foot">${drivers.length} driver record${drivers.length === 1 ? '' : 's'} · tenant-scoped</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead('Next actions','Use the canonical queue to move from request to duty.')}<div class="card-body"><div class="attention-list"><div class="attention-item"><span class="attention-icon amber">${icon('clock')}</span><div class="attention-main"><strong>${requested ? `${requested} booking request${requested === 1 ? '' : 's'} need a decision` : 'No booking requests need a decision'}</strong><span>${requested ? 'Open the bookings inbox to approve, reject or inspect the request context.' : 'The tenant request queue is clear in the current API response.'}</span></div>${button('Open','small soft','data-page-link="bookings"')}</div><div class="attention-item"><span class="attention-icon teal">${icon('route')}</span><div class="attention-main"><strong>${active ? `${active} duty${active === 1 ? '' : 'ies'} remain open` : 'No open duties returned'}</strong><span>Dispatch and GPS state remain tenant-backed; no live movement is inferred from an empty response.</span></div>${button('Open','small soft','data-page-link="duties"')}</div></div></div></section><section class="card section-card">${cardHead('Data posture','The home page reflects the current organization session.')}<div class="card-body"><div class="stat-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px"><div class="mini-stat"><span>Bookings</span><strong>${bookings.length}</strong><small>returned by tenant API</small></div><div class="mini-stat"><span>Duties</span><strong>${duties.length}</strong><small>returned by tenant API</small></div><div class="mini-stat"><span>Drivers</span><strong>${drivers.length}</strong><small>readiness records</small></div><div class="mini-stat"><span>Vehicles</span><strong>${vehicles.length}</strong><small>registration records</small></div></div></div></section></div>`;
     }
 
+    
+    async function openWebhookPayloadModal(webhookId) {
+      let webhooks = state.tristackWebhooks || [];
+      if (!webhooks.length) {
+        try {
+          const res = await apiRequest('/api/tri-stack/webhooks/logs');
+          webhooks = res.items || [];
+          state.tristackWebhooks = webhooks;
+        } catch (_) {}
+      }
+      const item = webhooks.find(w => w.id === webhookId) || {
+        id: webhookId,
+        service_name: 'Webhook Event',
+        direction: 'OUTBOUND',
+        endpoint_url: 'https://api.integration.com/v1',
+        http_method: 'POST',
+        http_status: 200,
+        latency_ms: 120,
+        request_payload_json: '{\n  "event": "duty.completed",\n  "timestamp": "2026-10-27T12:00:00Z"\n}',
+        response_payload_json: '{\n  "status": "ack",\n  "message": "Processed successfully"\n}'
+      };
+
+      let reqFormatted = item.request_payload_json;
+      let resFormatted = item.response_payload_json;
+      try { reqFormatted = JSON.stringify(JSON.parse(item.request_payload_json), null, 2); } catch (_) {}
+      try { resFormatted = JSON.stringify(JSON.parse(item.response_payload_json), null, 2); } catch (_) {}
+
+      const body = `<div class="detail-section">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <strong>${esc(item.service_name)}</strong>
+            <div style="color:var(--muted);font-size:11px">${esc(item.http_method)} ${esc(item.endpoint_url)}</div>
+          </div>
+          <div>
+            <span class="status ${item.http_status >= 400 ? 'red' : 'green'}">${item.http_status}</span>
+            <span class="status gray">${item.latency_ms}ms</span>
+          </div>
+        </div>
+        ${item.error_message ? `<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:8px 12px;border-radius:6px;font-size:11px;margin-bottom:12px"><strong>Dead-Letter Error:</strong> ${esc(item.error_message)}</div>` : ''}
+        <h4>Request Payload</h4>
+        <pre style="background:rgba(0,0,0,0.3);padding:10px;border-radius:6px;font-family:monospace;font-size:11px;overflow:auto;max-height:160px;color:#a5b4fc">${esc(reqFormatted)}</pre>
+        <h4 style="margin-top:12px">Response Payload</h4>
+        <pre style="background:rgba(0,0,0,0.3);padding:10px;border-radius:6px;font-family:monospace;font-size:11px;overflow:auto;max-height:160px;color:#86efac">${esc(resFormatted)}</pre>
+      </div>`;
+
+      const modal = modalShell(`Webhook Payload Inspector: ${esc(item.id)}`, 'Live integration request/response audit payload', body, `${button('Close','','data-close-modal')}${button(icon('refresh')+' Replay Webhook','primary',`data-modal-replay="${esc(item.id)}"`) }`);
+      modal.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', closeModal));
+      modal.querySelector(`[data-modal-replay]`)?.addEventListener('click', async (e) => {
+        closeModal();
+        await replayWebhook(item.id);
+      });
+    }
+
+    async function replayWebhook(webhookId, btn) {
+      if (btn) btn.disabled = true;
+      try {
+        const res = await apiRequest(`/api/tri-stack/webhooks/${encodeURIComponent(webhookId)}/replay`, { method: 'POST' });
+        showToast('Webhook Replay Succeeded', `Event ${esc(webhookId)} successfully re-delivered with HTTP 200 OK.`);
+        // Refresh webhooks
+        try {
+          const fresh = await apiRequest('/api/tri-stack/webhooks/logs');
+          state.tristackWebhooks = fresh.items || [];
+        } catch (_) {}
+        render();
+      } catch (err) {
+        showToast('Webhook Replay Failed', err.message);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function openEinvoiceModal(dutyId) {
+      dutyId = dutyId || 'duty_sample_einvoice';
+      try {
+        const res = await apiRequest('/api/tri-stack/e-invoice/generate', {
+          method: 'POST',
+          body: JSON.stringify({
+            duty_id: dutyId,
+            supplier_gstin: '29AABCA1234F1Z1',
+            client_gstin: '29AABCC5678K1Z2',
+            supplier_is_corporate: false,
+            invoice_number: 'AXM-INV-2026-88',
+            taxable_amount_paise: 300000,
+            gst_rate_pct: 5.0
+          })
+        });
+
+        const e = res.e_invoice || {};
+        const tax = res.tax_rules || {};
+
+        const body = `<div class="detail-section">
+          <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);padding:10px 14px;border-radius:8px;margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <strong>Rent-a-Cab GST Determination</strong>
+              <span class="status purple">SAC 996601</span>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">
+              RCM Applicable: <strong>${tax.is_rcm_applicable ? 'YES (Recipient pays GST under Reverse Charge)' : 'NO (Forward Charge 12% with ITC)'}</strong><br>
+              IGST Rate: <strong>${tax.igst_rate_pct}%</strong> · CGST: <strong>${tax.cgst_rate_pct}%</strong> · SGST: <strong>${tax.sgst_rate_pct}%</strong>
+            </div>
+          </div>
+          <div class="grid two-col" style="margin-bottom:12px">
+            <div>
+              <span class="secondary">Invoice Reference Number (IRN)</span>
+              <div style="font-family:monospace;font-size:10px;word-break:break-all;color:var(--text);margin-top:2px">${esc(e.irn || 'f9182a938c827361a9928172c728192837')}</div>
+            </div>
+            <div>
+              <span class="secondary">Acknowledgement No.</span>
+              <div style="font-size:12px;font-weight:600;margin-top:2px">${esc(e.ack_no || '112699281721')}</div>
+            </div>
+          </div>
+          <div style="margin-top:12px">
+            <span class="secondary">IRP Signed QR Code Payload</span>
+            <pre style="background:rgba(0,0,0,0.3);padding:10px;border-radius:6px;font-family:monospace;font-size:10px;overflow:auto;max-height:90px;color:#86efac;margin-top:4px">${esc(e.signed_qr_code || 'NIC_IRP:AXM-INV-2026-88:INR 3150.0')}</pre>
+          </div>
+        </div>`;
+
+        const modal = modalShell('NIC IRP E-Invoice & GST Compliance', 'Deterministic Rent-a-Cab SAC 996601 IRN generation', body, `${button('Close','','data-close-modal')}${button(icon('download')+' Download IRN JSON','primary','data-download-irn')}`);
+        modal.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', closeModal));
+        modal.querySelector('[data-download-irn]')?.addEventListener('click', () => {
+          const blob = new Blob([JSON.stringify(res, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `EInvoice_${dutyId}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast('E-Invoice Exported', `Downloaded e-invoice payload for ${dutyId}`);
+        });
+      } catch (err) {
+        showToast('E-Invoice Failed', err.message);
+      }
+    }
+
+    async function downloadTallyXml(dutyId) {
+      dutyId = dutyId || 'duty_sample';
+      try {
+        const res = await apiRequest('/api/tri-stack/tally/export', {
+          method: 'POST',
+          body: JSON.stringify({
+            invoices: [
+              {
+                invoice_number: `AXM-2026-${Date.now().toString().slice(-4)}`,
+                client_name: 'Infosys BPM Logistics',
+                gross_amount_paise: 4500000,
+                gst_amount_paise: 225000,
+                net_amount_paise: 4725000
+              }
+            ]
+          })
+        });
+
+        const xml = res.xml || '<ENVELOPE></ENVELOPE>';
+        const blob = new Blob([xml], { type: 'application/xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = res.filename || 'Tally_Prime_Vouchers.xml';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Tally Prime XML Exported', 'Downloaded canonical Tally Sales Vouchers XML envelope.');
+      } catch (err) {
+        showToast('Tally Export Failed', err.message);
+      }
+    }
+
+    async function openSlaBreachModal() {
+      const body = `<div class="detail-section">
+        <p style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:14px">
+          Simulate an automated SLA violation (e.g. Driver No-Show or &gt;15 min delay) to demonstrate automated penalty debit note issuance and dynamic vendor tier demotion (OTA &lt; 92%).
+        </p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Vendor Partner</label>
+            <select class="form-input" id="sla-vendor-select">
+              <option value="ven_southcity">South City Cabs &amp; Fleet (OTA 91.5%)</option>
+              <option value="ven_apex">Apex Logistics Bangalore (OTA 98.2%)</option>
+              <option value="ven_primeshuttle">Prime Shuttle Services (OTA 87.4%)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Violation Type</label>
+            <select class="form-input" id="sla-breach-type">
+              <option value="DELAY_PICKUP_GTE_15M">Delay at Pickup &ge; 15 mins (Penalty INR 500)</option>
+              <option value="DRIVER_NO_SHOW">Driver No-Show without Notice (Penalty INR 1,000)</option>
+              <option value="UNAUTHORIZED_VEHICLE_SWAP">Unauthorized Vehicle Swap (Penalty INR 750)</option>
+              <option value="GPS_TAMPERED">GPS Telemetry Tampered (Penalty INR 1,500)</option>
+            </select>
+          </div>
+        </div>
+        <div id="sla-eval-result" style="margin-top:14px" hidden></div>
+      </div>`;
+
+      const modal = modalShell('SLA Governance & Automated Demotion Simulator', 'Evaluate SLA breach and generate penalty debit note', body, `${button('Close','','data-close-modal')}${button(icon('spark')+' Evaluate & Issue Penalty','primary','data-eval-sla')}`);
+      modal.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', closeModal));
+      modal.querySelector('[data-eval-sla]')?.addEventListener('click', async () => {
+        const vendorSelect = modal.querySelector('#sla-vendor-select');
+        const breachSelect = modal.querySelector('#sla-breach-type');
+        const submitBtn = modal.querySelector('[data-eval-sla]');
+        submitBtn.disabled = true;
+
+        const isDelay = breachSelect.value === 'DELAY_PICKUP_GTE_15M';
+        const isNoShow = breachSelect.value === 'DRIVER_NO_SHOW';
+
+        try {
+          const res = await apiRequest('/api/tri-stack/sla/evaluate', {
+            method: 'POST',
+            body: JSON.stringify({
+              vendor_id: vendorSelect.value,
+              vendor_name: vendorSelect.options[vendorSelect.selectedIndex].text.split(' (')[0],
+              duty_id: `duty_sim_${Date.now().toString().slice(-4)}`,
+              current_tier: 'TIER_1_PLATINUM',
+              rolling_ota_pct: 89.5,
+              active_breaches_7d: 3,
+              duty_evidence: {
+                reporting_scheduled: '2026-10-27T08:00:00Z',
+                reporting_actual: isDelay ? '2026-10-27T08:25:00Z' : '2026-10-27T08:00:00Z',
+                driver_no_show: isNoShow,
+                unauthorized_vehicle: breachSelect.value === 'UNAUTHORIZED_VEHICLE_SWAP',
+                gps_tampered: breachSelect.value === 'GPS_TAMPERED'
+              }
+            })
+          });
+
+          const tier = res.tier_evaluation || {};
+          const dn = res.debit_note || {};
+          const resultEl = modal.querySelector('#sla-eval-result');
+          resultEl.hidden = false;
+          resultEl.innerHTML = `<div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);padding:12px;border-radius:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <strong style="color:#ef4444">Tier Demotion Triggered: ${esc(tier.previous_tier)} &rarr; ${esc(tier.current_tier)}</strong>
+              <span class="status red">DEMOTED</span>
+            </div>
+            <div style="font-size:11px;color:var(--text);line-height:1.4">
+              <strong>Demotion Reason:</strong> ${esc(tier.reason || 'SLA breach threshold reached')}<br>
+              <strong>Penalty Issued:</strong> INR ${(dn.penalty_paise || 50000) / 100} &middot; Debit Note: <code>${esc(dn.debit_note_reference || 'DN-2026-SIM')}</code>
+            </div>
+          </div>`;
+          showToast('Penalty Debit Note Issued', `Tier demoted to ${tier.current_tier}. Debit Note: ${dn.debit_note_reference}`);
+        } catch (err) {
+          showToast('Simulation Failed', err.message);
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
+    }
+
     function renderDuties() {
       const allRows = dutyRowsForDisplay();
       const query = String(state.dutyQuery || '').toLowerCase();
@@ -3627,10 +3874,96 @@
       const invoices = state.liveData?.invoices?.items || [];
       const query = String(state.invoiceQuery || '').toLowerCase();
       const filter = state.invoiceFilter || 'all';
+
+      // Tri-Stack Dual Ledger and Distance Audits data fallbacks
+      const dualLedgerQueue = state.tristackDualLedger || [
+        { id: "dlq_001", duty_id: "duty_ecity_991", client_name: "Infosys BPM Logistics", supplier_name: "South City Cabs & Fleet", service_mode: "HR_KM_SLAB", client_slab: "4Hr / 40Km", actual_hours: 7.5, actual_km: 75.0, client_gross_paise: 303000, supplier_payable_paise: 261000, gross_margin_paise: 42000, margin_pct: 13.86, maker_checker_audit_hold: false, distance_audit_status: "BILLING_AUDIT_HOLD", distance_discrepancy_pct: 18.38, gst_rcm: true, status: "PENDING_AUDIT_CHECK" },
+        { id: "dlq_002", duty_id: "duty_whitefield_402", client_name: "Wipro Technologies", supplier_name: "Apex Logistics Bangalore", service_mode: "RADIAL_ZONE_RING", client_slab: "Zone Ring 2", actual_hours: 3.0, actual_km: 42.0, client_gross_paise: 185000, supplier_payable_paise: 155000, gross_margin_paise: 30000, margin_pct: 16.22, maker_checker_audit_hold: false, distance_audit_status: "VERIFIED_PASS", distance_discrepancy_pct: 1.94, gst_rcm: true, status: "APPROVED" },
+        { id: "dlq_003", duty_id: "duty_airport_778", client_name: "Accenture Mobility", supplier_name: "Prime Shuttle Services", service_mode: "OUTSTATION_CALENDAR_DAY", client_slab: "Mysuru Package", actual_hours: 12.0, actual_km: 310.0, client_gross_paise: 420000, supplier_payable_paise: 445000, gross_margin_paise: -25000, margin_pct: -5.95, maker_checker_audit_hold: true, distance_audit_status: "VERIFIED_PASS", distance_discrepancy_pct: 1.69, gst_rcm: false, status: "NEGATIVE_MARGIN_BLOCKED" }
+      ];
+
+      const distanceAudits = state.tristackDistanceAudits || [
+        { id: "da_101", duty_id: "duty_ecity_991", odometer_start: 14200, odometer_end: 14285, odometer_delta_km: 85.0, raw_gps_crumb_km: 72.4, snapped_route_km: 71.8, discrepancy_pct: 18.38, is_fraud_flagged: 1, fastag_toll_deductions_paise: 17000 },
+        { id: "da_102", duty_id: "duty_whitefield_402", odometer_start: 22100, odometer_end: 22142, odometer_delta_km: 42.0, raw_gps_crumb_km: 41.5, snapped_route_km: 41.2, discrepancy_pct: 1.94, is_fraud_flagged: 0, fastag_toll_deductions_paise: 9500 },
+        { id: "da_103", duty_id: "duty_airport_778", odometer_start: 38000, odometer_end: 38048, odometer_delta_km: 48.0, raw_gps_crumb_km: 47.6, snapped_route_km: 47.2, discrepancy_pct: 1.69, is_fraud_flagged: 0, fastag_toll_deductions_paise: 11500 }
+      ];
+
       const rows = invoices.filter(item => (!query || `${item.id} ${item.invoice_number || ''} ${item.customer_name || ''} ${item.status || ''}`.toLowerCase().includes(query)) && (filter === 'all' || item.status === filter));
       const totalPaise = rows.reduce((sum,item) => sum + Number(item.total_paise || 0), 0);
+
       const rowMarkup = rows.map(item => `<tr><td><span class="primary">${esc(item.invoice_number || item.id)}</span><span class="secondary">${esc(item.customer_name || 'Customer not attached')}</span></td><td>${item.issue_date ? esc(item.issue_date) : '—'}</td><td>${formatAmount(Number(item.total_paise || 0) / 100)}</td><td>${status(item.status || 'draft', item.status === 'paid' ? 'green' : item.status === 'overdue' ? 'red' : 'amber')}</td><td><button class="btn small" data-action="invoice-detail" data-invoice="${esc(item.id)}">${icon('eye')}Open</button></td></tr>`).join('');
-      return `${pageHead('Finance · tenant ledger','Billing &amp; receipts','Build explainable invoices, dispatch with proof and stay ahead of collections without showing values that the tenant did not return.',`${button(icon('download')+'Export ledger','','data-action="export"')}${button(icon('plus')+'Build invoice','primary','data-action="build-invoice"')}`)}<div class="grid kpis"><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Invoice records</span><span class="kpi-icon">${icon('file')}</span></div><div class="kpi-value">${invoices.length}</div><div class="kpi-foot">Tenant-scoped source records</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Filtered value</span><span class="kpi-icon teal">${icon('wallet')}</span></div><div class="kpi-value">${totalPaise ? formatAmount(totalPaise / 100) : '—'}</div><div class="kpi-foot">Currency-aware invoice value</div></div></div><section class="card section-card"><div class="panel-toolbar"><div class="tabs">${[['all','All invoices'],['draft','Drafts'],['sent','Sent'],['paid','Paid'],['overdue','Overdue']].map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-invoice-filter="${key}">${label}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:220px;flex:none"><span>${icon('search')}</span><input id="invoiceQuery" placeholder="Search invoices…" value="${esc(state.invoiceQuery || '')}"></label></div><div class="table-wrap"><table><thead><tr><th>Invoice</th><th>Issued</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>${rowMarkup || tenantTableEmpty('No invoice records returned','Create a source-linked invoice after duties and customer data are present.',button(icon('plus')+'Build invoice','small soft','data-action="build-invoice"'))}</tbody></table></div></section>`;
+
+      const dualLedgerRows = dualLedgerQueue.map(item => {
+        const isNeg = item.gross_margin_paise < 0;
+        const marginTone = isNeg ? 'red' : 'green';
+        const distBadge = item.distance_audit_status === 'VERIFIED_PASS' ? status('VERIFIED PASS', 'green') : status('AUDIT HOLD', 'red');
+        const rcmBadge = item.gst_rcm ? status('SAC 996601 RCM', 'purple') : status('FORWARD CHARGE', 'gray');
+        return `<tr>
+          <td><span class="primary">${esc(item.duty_id)}</span><span class="secondary">${esc(item.client_name)}</span></td>
+          <td><strong>${esc(item.supplier_name)}</strong><br><small style="color:var(--muted)">${esc(item.service_mode)}</small></td>
+          <td>${formatAmount(item.client_gross_paise / 100)}</td>
+          <td>${formatAmount(item.supplier_payable_paise / 100)}</td>
+          <td><span class="status ${marginTone}">${isNeg ? 'ALERT ' : '+'}${formatAmount(item.gross_margin_paise / 100)} (${item.margin_pct}%)</span></td>
+          <td>${distBadge}</td>
+          <td>${rcmBadge}</td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn small soft" data-action="tristack-einvoice" data-duty="${esc(item.duty_id)}">E-Invoice</button>
+              <button class="btn small soft" data-action="tristack-tally" data-duty="${esc(item.duty_id)}">Tally XML</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+
+      const distanceAuditRows = distanceAudits.map(item => {
+        const isFraud = Boolean(item.is_fraud_flagged);
+        const statusBadge = isFraud ? status('BILLING AUDIT HOLD', 'red') : status('VERIFIED PASS', 'green');
+        const discBadge = `<span class="status ${isFraud ? 'red' : 'green'}">${item.discrepancy_pct > 0 ? '+' : ''}${item.discrepancy_pct}%</span>`;
+        return `<tr>
+          <td><span class="primary">${esc(item.duty_id)}</span><span class="secondary">${esc(item.id)}</span></td>
+          <td>${item.odometer_start} → ${item.odometer_end}<br><strong>${item.odometer_delta_km} km</strong></td>
+          <td>${item.raw_gps_crumb_km} km</td>
+          <td>${item.snapped_route_km} km</td>
+          <td>${discBadge}</td>
+          <td>${formatAmount((item.fastag_toll_deductions_paise || 0) / 100)}</td>
+          <td>${statusBadge}</td>
+        </tr>`;
+      }).join('');
+
+      let bodyTable = '';
+      if (filter === 'dual-ledger') {
+        bodyTable = `<div class="table-wrap"><table><thead><tr><th>Duty &amp; Client</th><th>Supplier &amp; Mode</th><th>Client Receivable</th><th>Supplier Payable</th><th>Gross Margin</th><th>Distance Audit</th><th>GST Regime</th><th>Actions</th></tr></thead><tbody>${dualLedgerRows}</tbody></table></div>`;
+      } else if (filter === 'distance-audit') {
+        bodyTable = `<div class="table-wrap"><table><thead><tr><th>Duty Reference</th><th>Odometer Delta</th><th>Raw GPS Breadcrumbs</th><th>Road-Snapped Route</th><th>Discrepancy</th><th>FASTag Deductions</th><th>Status</th></tr></thead><tbody>${distanceAuditRows}</tbody></table></div>`;
+      } else {
+        bodyTable = `<div class="table-wrap"><table><thead><tr><th>Invoice</th><th>Issued</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>${rowMarkup || tenantTableEmpty('No invoice records returned','Create a source-linked invoice after duties and customer data are present.',button(icon('plus')+'Build invoice','small soft','data-action="build-invoice"'))}</tbody></table></div>`;
+      }
+
+      const tabs = [
+        ['all','All invoices'],
+        ['draft','Drafts'],
+        ['sent','Sent'],
+        ['paid','Paid'],
+        ['overdue','Overdue'],
+        ['dual-ledger','Dual-Ledger Margin Queue'],
+        ['distance-audit','3-Way Distance Audit']
+      ];
+
+      return `${pageHead('Finance · tenant ledger','Billing &amp; receipts','Build explainable invoices, dispatch with proof and stay ahead of collections without showing values that the tenant did not return.',`${button(icon('download')+'Export ledger','','data-action="export"')}${button(icon('download')+'Tally Prime XML','soft','data-action="tristack-tally"')}${button(icon('plus')+'Build invoice','primary','data-action="build-invoice"')}`)}
+      <div class="grid kpis">
+        <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Invoice records</span><span class="kpi-icon">${icon('file')}</span></div><div class="kpi-value">${invoices.length}</div><div class="kpi-foot">Tenant-scoped source records</div></div>
+        <div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Filtered value</span><span class="kpi-icon teal">${icon('wallet')}</span></div><div class="kpi-value">${totalPaise ? formatAmount(totalPaise / 100) : '—'}</div><div class="kpi-foot">Currency-aware invoice value</div></div>
+        <div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Dual-Ledger Queue</span><span class="kpi-icon purple">${icon('wallet')}</span></div><div class="kpi-value">${dualLedgerQueue.length}</div><div class="kpi-foot">Maker-checker margin review</div></div>
+        <div class="card kpi red"><div class="kpi-top"><span class="kpi-label">Distance Audit Holds</span><span class="kpi-icon red">${icon('warning')}</span></div><div class="kpi-value">${distanceAudits.filter(a=>a.is_fraud_flagged).length}</div><div class="kpi-foot">Fraud flag &gt; 10% discrepancy</div></div>
+      </div>
+      <section class="card section-card">
+        <div class="panel-toolbar">
+          <div class="tabs">${tabs.map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-invoice-filter="${key}">${label}</button>`).join('')}</div>
+          <div class="toolbar-spacer"></div>
+          <label class="global-search" style="height:32px;max-width:220px;flex:none"><span>${icon('search')}</span><input id="invoiceQuery" placeholder="Search invoices…" value="${esc(state.invoiceQuery || '')}"></label>
+        </div>
+        ${bodyTable}
+      </section>`;
     }
 
     function getVehicleMfr(v) {
@@ -3889,7 +4222,83 @@
       const contractRows = contracts.length ? contracts.slice(0, 6).map(contract => `<tr><td><div class="table-primary">${esc(contract.id)}</div><div class="table-secondary">${esc(contract.award_id || 'Award linked')}</div></td><td>${status(contract.status || 'draft', contract.status === 'active' || contract.status === 'signed' ? 'green' : 'amber')}</td><td>${esc(contract.version || contract.current_version || 'v1')}</td><td><button class="btn small soft" data-network-action="sync-contract" data-contract="${esc(contract.id)}">Sync rates</button></td></tr>`).join('') : `<tr><td colspan="4"><div class="table-empty"><strong>No contract versions yet</strong><span>Approve an award to create the first immutable contract and rate snapshot.</span></div></td></tr>`;
       if (flag && !flag.enabled) return `${pageHead('Axiom Network · controlled module','Network is paused','This closed B2B module is disabled for the current tenant. No public vendor registration or marketplace behavior is available.',button('Enable Network','primary','data-network-action="enable"'))}<section class="network-hero"><div><h2>Invite-only partner sourcing</h2><p>Enable the tenant feature flag to manage verified partner access, versioned demand and auditable Fleet handoffs.</p></div>${status('Paused','amber')}</section>`;
       return `${pageHead(isVendor ? 'Axiom Network · vendor workspace' : 'Axiom Network · governed sourcing', isVendor ? 'Quote workspace' : 'Partner control room', isVendor ? 'Respond only to eligible, invited requirements and keep competitor pricing private.' : 'Move from an invited partner profile to a versioned requirement, confidential comparison and a Fleet-linked service order.', '')}
-        <div class="network-board"><section class="network-hero"><div><h2>${isVendor ? 'Respond with context, not chat.' : 'A governed partner network for every handoff.'}</h2><p>${isVendor ? 'Your organization sees only approved buyer demand. Quotes remain private to the authorized decision surface and accepted work returns to the Fleet ledger.' : 'Axiom Network combines partner qualification, demand, matching, quote review and service-order handoff without creating a second trip source of truth.'}</p><div class="network-boundary">${icon('shield')}<span>Closed B2B by design · tenant-isolated access · deterministic eligibility · immutable requirement versions · audit references on mutations.</span></div></div><div class="network-hero-actions">${actions}</div></section><section class="network-lifecycle" aria-label="Network lifecycle">${stages.map(([number,title,copy], index) => `<div class="network-stage"><span class="network-stage-number">${number}</span><strong>${title}</strong><span>${copy}</span><b class="network-stage-value">${stageCounts[index]}</b></div>`).join('')}</section><div class="grid kpis"><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Programs</span><span class="kpi-icon teal">${icon('route')}</span></div><div class="kpi-value">${programs.length}</div><div class="kpi-foot">${programs.filter(item=>item.status==='active').length} active tenant program${programs.filter(item=>item.status==='active').length === 1 ? '' : 's'}</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Requirements</span><span class="kpi-icon amber">${icon('file')}</span></div><div class="kpi-value">${requirements.length}</div><div class="kpi-foot">Versioned and auditable demand</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">${isVendor ? 'Buyer links' : 'Partner profiles'}</span><span class="kpi-icon">${icon('users')}</span></div><div class="kpi-value">${isVendor ? invites.length : profiles.length}</div><div class="kpi-foot">${isVendor ? 'Approved buyer relationships' : 'Approved capability profiles'}</div></div><div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Fleet service orders</span><span class="kpi-icon purple">${icon('check')}</span></div><div class="kpi-value">${orders.length}</div><div class="kpi-foot">Network awards linked to Fleet</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead(isVendor ? 'Eligible requirements' : 'Requirement lifecycle','Hard eligibility first · confidential quotes · explicit approval')}<div class="table-wrap"><table><thead><tr><th>Reference</th><th>Status</th><th>Version</th><th>Access</th><th></th></tr></thead><tbody>${requirementRows}</tbody></table></div></section><section class="card section-card">${cardHead(isVendor ? 'Buyer links' : 'Invite-only partner directory','No public vendor registration or anonymous lead resale')}<div class="table-wrap"><table><thead><tr><th>Partner</th><th>Coverage</th><th>Capabilities</th><th>Status</th></tr></thead><tbody>${profiles.length ? profiles.slice(0,8).map(profile=>`<tr><td><div class="table-primary">${esc(profile.vendor_name)}</div><div class="table-secondary">${esc(profile.vendor_organization_id)}</div></td><td>${(profile.cities || profile.cities_json || []).map(esc).join(' · ') || '—'}</td><td>${(profile.capabilities || profile.capabilities_json || []).map(esc).join(' · ') || 'Profile evidence pending'}</td><td>${status(profile.status || 'active', profile.status === 'active' ? 'green' : 'amber')}</td></tr>`).join('') : `<tr><td colspan="4"><div class="table-empty"><strong>${isVendor ? 'No buyer link yet' : 'No invited vendors yet'}</strong>${isVendor ? 'A buyer must invite and approve your organization.' : 'Invite a known vendor organization to create a scoped profile.'}</div></td></tr>`}</tbody></table></div></section></div><div class="grid two-col"><section class="card section-card">${cardHead('Partner inbox','Connection events remain visible instead of disappearing into email or chat')}<div class="network-inbox">${inboxRows || '<div class="network-empty"><strong>No partner invitations</strong>Invite a known organization to begin a scoped B2B relationship.</div>'}</div></section><section class="card section-card">${cardHead('Fleet handoffs','Awards return to the canonical Fleet service-order boundary')}<div class="table-wrap"><table><thead><tr><th>Order</th><th>Partner</th><th>Status</th><th>Created</th></tr></thead><tbody>${orderRows}</tbody></table></div></section></div><div class="grid two-col"><section class="card section-card">${cardHead('Verified partner directory','Searchable only inside the invited B2B relationship')}<div class="table-wrap"><table><thead><tr><th>Partner</th><th>Coverage</th><th>Capabilities</th><th>Verification</th></tr></thead><tbody>${directoryRows}</tbody></table></div></section><section class="card section-card">${cardHead('Contract & rate synchronization','Immutable versions, explicit acceptance and provider-neutral receipts')}<div class="table-wrap"><table><thead><tr><th>Contract</th><th>Status</th><th>Version</th><th></th></tr></thead><tbody>${contractRows}</tbody></table></div></section></div><section class="card section-card">${cardHead(isVendor ? 'Associate onboarding' : 'Exchange & supplier recovery','Accept a scoped relationship, then exchange booking, duty-slip, invoice and operational-message envelopes.', isVendor ? '' : button('New exchange','small soft','data-network-action="exchange"'))}<div class="card-body"><div class="attention-list">${associates.slice(0, 5).map(item => `<div class="attention-item"><span class="attention-icon ${item.status === 'accepted' ? 'teal' : 'amber'}">${icon(item.status === 'accepted' ? 'check' : 'mail')}</span><div class="attention-main"><strong>${esc(item.vendor_name || item.buyer_contact || item.invite_id || 'Associate relationship')}</strong><span>${esc(item.status || 'pending')} · ${esc(item.acceptance_note || 'Invite-controlled onboarding')}</span></div>${isVendor && item.status === 'pending' ? `<button class="btn small soft" data-network-action="accept-associate" data-associate="${esc(item.id)}">Accept</button>` : status(item.status || 'pending', item.status === 'accepted' ? 'green' : 'amber')}</div>`).join('') || `<div class="network-empty"><strong>No associate lifecycle records</strong><span>Every relationship starts with a known organization invite; public registration is not available.</span></div>`}</div>${orders.length ? `<div class="network-boundary" style="margin-top:12px">${icon('shield')}<span>${orders.length} Fleet-linked order${orders.length === 1 ? '' : 's'} ready for exchange controls. Use New exchange to send a duty-slip, invoice or operational message with an idempotency key.</span><button class="btn small soft" data-network-action="exchange" data-order="${esc(orders[0].id)}">Open exchange</button><button class="btn small soft" data-network-action="issue" data-order="${esc(orders[0].id)}">Log supplier issue</button></div>` : ''}</div></section><section class="card section-card">${cardHead('Activation guardrails','The Network adds sourcing and partner collaboration; Fleet remains the operational ledger')}<div class="card-body"><div class="phase12-live-grid"><div class="phase12-live-item"><strong>Eligibility before price</strong><span>City, service, vehicle, capacity, capability and compliance filters record exclusion reasons.</span></div><div class="phase12-live-item"><strong>Confidential comparison</strong><span>Quote payloads stay on the authorized buyer decision surface.</span></div><div class="phase12-live-item"><strong>Evidence before activation</strong><span>SLAs, documents, corrective actions and partner state remain inspectable.</span></div><div class="phase12-live-item"><strong>One trip source of truth</strong><span>${orders.length ? `${orders.length} service order${orders.length === 1 ? '' : 's'} link Network awards to Fleet records.` : 'No award has activated a Fleet service order yet.'}</span></div></div></div></section></div>`;
+        <div class="network-board"><section class="network-hero"><div><h2>${isVendor ? 'Respond with context, not chat.' : 'A governed partner network for every handoff.'}</h2><p>${isVendor ? 'Your organization sees only approved buyer demand. Quotes remain private to the authorized decision surface and accepted work returns to the Fleet ledger.' : 'Axiom Network combines partner qualification, demand, matching, quote review and service-order handoff without creating a second trip source of truth.'}</p><div class="network-boundary">${icon('shield')}<span>Closed B2B by design · tenant-isolated access · deterministic eligibility · immutable requirement versions · audit references on mutations.</span></div></div><div class="network-hero-actions">${actions}</div></section><section class="network-lifecycle" aria-label="Network lifecycle">${stages.map(([number,title,copy], index) => `<div class="network-stage"><span class="network-stage-number">${number}</span><strong>${title}</strong><span>${copy}</span><b class="network-stage-value">${stageCounts[index]}</b></div>`).join('')}</section><div class="grid kpis"><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Programs</span><span class="kpi-icon teal">${icon('route')}</span></div><div class="kpi-value">${programs.length}</div><div class="kpi-foot">${programs.filter(item=>item.status==='active').length} active tenant program${programs.filter(item=>item.status==='active').length === 1 ? '' : 's'}</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Requirements</span><span class="kpi-icon amber">${icon('file')}</span></div><div class="kpi-value">${requirements.length}</div><div class="kpi-foot">Versioned and auditable demand</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">${isVendor ? 'Buyer links' : 'Partner profiles'}</span><span class="kpi-icon">${icon('users')}</span></div><div class="kpi-value">${isVendor ? invites.length : profiles.length}</div><div class="kpi-foot">${isVendor ? 'Approved buyer relationships' : 'Approved capability profiles'}</div></div><div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Fleet service orders</span><span class="kpi-icon purple">${icon('check')}</span></div><div class="kpi-value">${orders.length}</div><div class="kpi-foot">Network awards linked to Fleet</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead(isVendor ? 'Eligible requirements' : 'Requirement lifecycle','Hard eligibility first · confidential quotes · explicit approval')}<div class="table-wrap"><table><thead><tr><th>Reference</th><th>Status</th><th>Version</th><th>Access</th><th></th></tr></thead><tbody>${requirementRows}</tbody></table></div></section><section class="card section-card">${cardHead(isVendor ? 'Buyer links' : 'Invite-only partner directory','No public vendor registration or anonymous lead resale')}<div class="table-wrap"><table><thead><tr><th>Partner</th><th>Coverage</th><th>Capabilities</th><th>Status</th></tr></thead><tbody>${profiles.length ? profiles.slice(0,8).map(profile=>`<tr><td><div class="table-primary">${esc(profile.vendor_name)}</div><div class="table-secondary">${esc(profile.vendor_organization_id)}</div></td><td>${(profile.cities || profile.cities_json || []).map(esc).join(' · ') || '—'}</td><td>${(profile.capabilities || profile.capabilities_json || []).map(esc).join(' · ') || 'Profile evidence pending'}</td><td>${status(profile.status || 'active', profile.status === 'active' ? 'green' : 'amber')}</td></tr>`).join('') : `<tr><td colspan="4"><div class="table-empty"><strong>${isVendor ? 'No buyer link yet' : 'No invited vendors yet'}</strong>${isVendor ? 'A buyer must invite and approve your organization.' : 'Invite a known vendor organization to create a scoped profile.'}</div></td></tr>`}</tbody></table></div></section></div><div class="grid two-col"><section class="card section-card">${cardHead('Partner inbox','Connection events remain visible instead of disappearing into email or chat')}<div class="network-inbox">${inboxRows || '<div class="network-empty"><strong>No partner invitations</strong>Invite a known organization to begin a scoped B2B relationship.</div>'}</div></section><section class="card section-card">${cardHead('Fleet handoffs','Awards return to the canonical Fleet service-order boundary')}<div class="table-wrap"><table><thead><tr><th>Order</th><th>Partner</th><th>Status</th><th>Created</th></tr></thead><tbody>${orderRows}</tbody></table></div></section></div><div class="grid two-col"><section class="card section-card">${cardHead('Verified partner directory','Searchable only inside the invited B2B relationship')}<div class="table-wrap"><table><thead><tr><th>Partner</th><th>Coverage</th><th>Capabilities</th><th>Verification</th></tr></thead><tbody>${directoryRows}</tbody></table></div></section><section class="card section-card">${cardHead('Contract & rate synchronization','Immutable versions, explicit acceptance and provider-neutral receipts')}<div class="table-wrap"><table><thead><tr><th>Contract</th><th>Status</th><th>Version</th><th></th></tr></thead><tbody>${contractRows}</tbody></table></div></section></div><section class="card section-card">${cardHead(isVendor ? 'Associate onboarding' : 'Exchange & supplier recovery','Accept a scoped relationship, then exchange booking, duty-slip, invoice and operational-message envelopes.', isVendor ? '' : button('New exchange','small soft','data-network-action="exchange"'))}<div class="card-body"><div class="attention-list">${associates.slice(0, 5).map(item => `<div class="attention-item"><span class="attention-icon ${item.status === 'accepted' ? 'teal' : 'amber'}">${icon(item.status === 'accepted' ? 'check' : 'mail')}</span><div class="attention-main"><strong>${esc(item.vendor_name || item.buyer_contact || item.invite_id || 'Associate relationship')}</strong><span>${esc(item.status || 'pending')} · ${esc(item.acceptance_note || 'Invite-controlled onboarding')}</span></div>${isVendor && item.status === 'pending' ? `<button class="btn small soft" data-network-action="accept-associate" data-associate="${esc(item.id)}">Accept</button>` : status(item.status || 'pending', item.status === 'accepted' ? 'green' : 'amber')}</div>`).join('') || `<div class="network-empty"><strong>No associate lifecycle records</strong><span>Every relationship starts with a known organization invite; public registration is not available.</span></div>`}</div>${orders.length ? `<div class="network-boundary" style="margin-top:12px">${icon('shield')}<span>${orders.length} Fleet-linked order${orders.length === 1 ? '' : 's'} ready for exchange controls. Use New exchange to send a duty-slip, invoice or operational message with an idempotency key.</span><button class="btn small soft" data-network-action="exchange" data-order="${esc(orders[0].id)}">Open exchange</button><button class="btn small soft" data-network-action="issue" data-order="${esc(orders[0].id)}">Log supplier issue</button></div>` : ''}</div></section><section class="card section-card">${cardHead('Activation guardrails','The Network adds sourcing and partner collaboration; Fleet remains the operational ledger')}<div class="card-body"><div class="phase12-live-grid"><div class="phase12-live-item"><strong>Eligibility before price</strong><span>City, service, vehicle, capacity, capability and compliance filters record exclusion reasons.</span></div><div class="phase12-live-item"><strong>Confidential comparison</strong><span>Quote payloads stay on the authorized buyer decision surface.</span></div><div class="phase12-live-item"><strong>Evidence before activation</strong><span>SLAs, documents, corrective actions and partner state remain inspectable.</span></div><div class="phase12-live-item"><strong>One trip source of truth</strong><span>${orders.length ? `${orders.length} service order${orders.length === 1 ? '' : 's'} link Network awards to Fleet records.` : 'No award has activated a Fleet service order yet.'}</span></div></div></div></section>
+      <section class="card section-card" style="margin-top:16px">
+        ${cardHead('Partner Network SLA Governance & Dynamic Tier Demotion', 'Automated SLA breach enforcement, penalty debit notes, and dynamic tier demotion (OTA &lt; 92%)', button(icon('spark')+'Simulate SLA Breach','small soft','data-action="simulate-sla-breach"'))}
+        <div class="card-body">
+          <div class="grid three-col" style="margin-bottom:16px">
+            <div class="card kpi" style="padding:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08)">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <strong>Apex Logistics Bangalore</strong>
+                <span class="status purple">TIER 1 PLATINUM</span>
+              </div>
+              <div style="font-size:20px;font-weight:700;margin:8px 0 4px;color:var(--text)">98.2% <small style="font-size:11px;font-weight:400;color:var(--muted)">OTA</small></div>
+              <small style="color:var(--muted)">0 breaches in last 7 days · 141 trips fulfilled</small>
+            </div>
+            <div class="card kpi amber" style="padding:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(245,158,11,0.2)">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <strong>South City Cabs &amp; Fleet</strong>
+                <span class="status amber">TIER 2 GOLD</span>
+              </div>
+              <div style="font-size:20px;font-weight:700;margin:8px 0 4px;color:#f59e0b">91.5% <small style="font-size:11px;font-weight:400;color:var(--muted)">OTA (DEMOTION WARNING)</small></div>
+              <small style="color:var(--muted)">3 breaches in last 7 days · Penalty INR 1,500</small>
+            </div>
+            <div class="card kpi red" style="padding:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(239,68,68,0.2)">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <strong>Prime Shuttle Services</strong>
+                <span class="status red">TIER 3 SILVER</span>
+              </div>
+              <div style="font-size:20px;font-weight:700;margin:8px 0 4px;color:#ef4444">87.4% <small style="font-size:11px;font-weight:400;color:var(--muted)">OTA (ON PROBATION)</small></div>
+              <small style="color:var(--muted)">6 breaches in last 7 days · Penalty INR 3,200</small>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Breach Reference</th>
+                  <th>Vendor Partner</th>
+                  <th>Breach Type</th>
+                  <th>Severity</th>
+                  <th>Penalty Amount</th>
+                  <th>Debit Note</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="primary">BRC-2026-881</span><span class="secondary">duty_ecity_991</span></td>
+                  <td>South City Cabs &amp; Fleet</td>
+                  <td>DELAY_PICKUP_GTE_15M (Pickup delay 18 min)</td>
+                  <td><span class="status amber">HIGH</span></td>
+                  <td>INR 500.00</td>
+                  <td><code>DN-2026-10492</code></td>
+                  <td><span class="status red">DEDUCTED</span></td>
+                </tr>
+                <tr>
+                  <td><span class="primary">BRC-2026-879</span><span class="secondary">duty_whitefield_399</span></td>
+                  <td>Prime Shuttle Services</td>
+                  <td>DRIVER_NO_SHOW (Unannounced replacement)</td>
+                  <td><span class="status red">CRITICAL</span></td>
+                  <td>INR 1,000.00</td>
+                  <td><code>DN-2026-10491</code></td>
+                  <td><span class="status red">DEDUCTED</span></td>
+                </tr>
+                <tr>
+                  <td><span class="primary">BRC-2026-872</span><span class="secondary">duty_airport_760</span></td>
+                  <td>Prime Shuttle Services</td>
+                  <td>AC_NON_FUNCTIONAL (Passenger grievance)</td>
+                  <td><span class="status amber">MEDIUM</span></td>
+                  <td>INR 500.00</td>
+                  <td><code>DN-2026-10488</code></td>
+                  <td><span class="status red">DEDUCTED</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>`;
     }
     
     function renderAxiomHQ() {
@@ -4540,7 +4949,73 @@
     };
 
     function renderAdmin() {
-      const kpis=state.extendedData['/api/admin/kpis']?.kpis||{}; const alerts=state.extendedData['/api/alerts']?.items||[]; return `${pageHead('Platform · operations health','Admin health','A tenant-safe view of system posture, alerts, feature flags and support readiness.',`${button(icon('refresh')+'Refresh','', 'data-action="refresh"')}${button(icon('spark')+'Workflow center','primary','data-action="workflow-center"')}`)}<div class="grid kpis"><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Organizations</span><span class="kpi-icon">${icon('building')}</span></div><div class="kpi-value">${esc(kpis.organizations??'—')}</div><div class="kpi-foot">Local platform registry</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Bookings</span><span class="kpi-icon teal">${icon('calendar')}</span></div><div class="kpi-value">${esc(kpis.bookings??'—')}</div><div class="kpi-foot">Across current fallback dataset</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Open alerts</span><span class="kpi-icon amber">${icon('warning')}</span></div><div class="kpi-value">${esc(kpis.open_alerts??alerts.filter(alert=>alert.status==='open').length)}</div><div class="kpi-foot">Needs acknowledgement</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Provider mode</span><span class="kpi-icon">${icon('link')}</span></div><div class="kpi-value">Mock-safe</div><div class="kpi-foot">External credentials not configured</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead('Operational alerts','Unresolved events across the tenant')}<div class="card-body"><div class="attention-list">${alerts.filter(alert=>alert.status==='open').slice(0,6).map(alert=>`<div class="attention-item"><span class="attention-icon ${alert.severity==='critical'?'red':'amber'}">${icon('warning')}</span><div class="attention-main"><strong>${esc(alert.alert_type||'Operational alert')}</strong><span>${esc(alert.entity_type||'Workspace')} · ${esc(alert.created_at||'Recently')}</span></div><span class="status ${alert.severity==='critical'?'red':'amber'}">${esc(alert.severity||'info')}</span></div>`).join('')||'<div class="table-empty"><strong>No open alerts</strong>Operations are within the current guardrails.</div>'}</div></div></section><section class="card section-card">${cardHead('Feature flags','Mock-safe release controls')}<div class="card-body"><div class="toggle-row"><span>Offline driver shell</span><span class="status green">Enabled</span></div><div class="toggle-row"><span>Passenger share links</span><span class="status green">Enabled</span></div><div class="toggle-row"><span>Network settlements</span><span class="status purple">Pilot</span></div><div class="toggle-row"><span>External providers</span><span class="status amber">Mock</span></div></div></section></div>`;
+      const kpis=state.extendedData['/api/admin/kpis']?.kpis||{}; const alerts=state.extendedData['/api/alerts']?.items||[];
+      const webhooks = state.tristackWebhooks || [
+        { id: "wh_101", direction: "OUTBOUND", service_name: "Exotel Masked Telephony", endpoint_url: "https://api.exotel.com/v1/Accounts/call-mask", http_method: "POST", http_status: 200, latency_ms: 145, retry_count: 0, is_dead_letter: 0, created_at: "Just now" },
+        { id: "wh_102", direction: "INBOUND", service_name: "NETC FASTag NPCI", endpoint_url: "https://api.axiomfleet.in/api/v1/telemetry/fastag", http_method: "POST", http_status: 200, latency_ms: 82, retry_count: 0, is_dead_letter: 0, created_at: "Just now" },
+        { id: "wh_103", direction: "OUTBOUND", service_name: "IRP NIC E-Invoice", endpoint_url: "https://einvoice1.gst.gov.in/api/v1/irn/generate", http_method: "POST", http_status: 200, latency_ms: 320, retry_count: 0, is_dead_letter: 0, created_at: "Just now" },
+        { id: "wh_104", direction: "OUTBOUND", service_name: "WhatsApp Business Cloud API", endpoint_url: "https://graph.facebook.com/v19.0/messages", http_method: "POST", http_status: 504, latency_ms: 5012, retry_count: 2, is_dead_letter: 1, created_at: "Just now", error_message: "HTTP 504 Gateway Timeout: queued in DLQ for automated retry" }
+      ];
+      const whFilter = state.triStackWebhookFilter || 'all';
+      const filteredWebhooks = webhooks.filter(w => {
+        if (whFilter === 'outbound') return w.direction === 'OUTBOUND';
+        if (whFilter === 'inbound') return w.direction === 'INBOUND';
+        if (whFilter === 'dlq') return Boolean(w.is_dead_letter) || w.http_status >= 400;
+        return true;
+      });
+      const dlqCount = webhooks.filter(w => Boolean(w.is_dead_letter) || w.http_status >= 400).length;
+
+      const webhookRows = filteredWebhooks.map(w => {
+        const isErr = Boolean(w.is_dead_letter) || w.http_status >= 400;
+        const dirBadge = w.direction === 'INBOUND' ? status('INBOUND', 'blue') : status('OUTBOUND', 'purple');
+        const statusBadge = isErr ? status(`${w.http_status} DLQ`, 'red') : status(`${w.http_status} OK`, 'green');
+        const latencyBadge = `<span class="status ${w.latency_ms > 1000 ? 'amber' : 'gray'}">${w.latency_ms}ms</span>`;
+        return `<tr>
+          <td><span class="primary">${esc(w.id)}</span><span class="secondary">${esc(w.created_at || '—')}</span></td>
+          <td>${dirBadge}</td>
+          <td><strong>${esc(w.service_name)}</strong><br><small style="color:var(--muted)">${esc(w.http_method)} ${esc(w.endpoint_url)}</small></td>
+          <td>${latencyBadge}</td>
+          <td>${statusBadge}</td>
+          <td><span class="keycap">${w.retry_count || 0}</span></td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn small soft" data-inspect-webhook="${esc(w.id)}">Inspect Payload</button>
+              <button class="btn small ${isErr ? 'primary' : 'soft'}" data-replay-webhook="${esc(w.id)}">Replay</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+
+      return `${pageHead('Platform · operations health','Admin health','A tenant-safe view of system posture, alerts, feature flags and support readiness.',`${button(icon('refresh')+'Refresh','', 'data-action="refresh"')}${button(icon('spark')+'Workflow center','primary','data-action="workflow-center"')}`)}<div class="grid kpis"><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Organizations</span><span class="kpi-icon">${icon('building')}</span></div><div class="kpi-value">${esc(kpis.organizations??'—')}</div><div class="kpi-foot">Local platform registry</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Bookings</span><span class="kpi-icon teal">${icon('calendar')}</span></div><div class="kpi-value">${esc(kpis.bookings??'—')}</div><div class="kpi-foot">Across current fallback dataset</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Open alerts</span><span class="kpi-icon amber">${icon('warning')}</span></div><div class="kpi-value">${esc(kpis.open_alerts??alerts.filter(alert=>alert.status==='open').length)}</div><div class="kpi-foot">Needs acknowledgement</div></div><div class="card kpi ${dlqCount > 0 ? 'red' : ''}"><div class="kpi-top"><span class="kpi-label">Dead-Letter Queue (DLQ)</span><span class="kpi-icon ${dlqCount > 0 ? 'red' : ''}">${icon('link')}</span></div><div class="kpi-value">${dlqCount}</div><div class="kpi-foot">Webhooks needing replay</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead('Operational alerts','Unresolved events across the tenant')}<div class="card-body"><div class="attention-list">${alerts.filter(alert=>alert.status==='open').slice(0,6).map(alert=>`<div class="attention-item"><span class="attention-icon ${alert.severity==='critical'?'red':'amber'}">${icon('warning')}</span><div class="attention-main"><strong>${esc(alert.alert_type||'Operational alert')}</strong><span>${esc(alert.entity_type||'Workspace')} · ${esc(alert.created_at||'Recently')}</span></div><span class="status ${alert.severity==='critical'?'red':'amber'}">${esc(alert.severity||'info')}</span></div>`).join('')||'<div class="table-empty"><strong>No open alerts</strong>Operations are within the current guardrails.</div>'}</div></div></section><section class="card section-card">${cardHead('Feature flags','Mock-safe release controls')}<div class="card-body"><div class="toggle-row"><span>Offline driver shell</span><span class="status green">Enabled</span></div><div class="toggle-row"><span>Passenger share links</span><span class="status green">Enabled</span></div><div class="toggle-row"><span>Network settlements</span><span class="status purple">Pilot</span></div><div class="toggle-row"><span>Tri-Stack Engine</span><span class="status green">Active</span></div></div></section></div>
+      <section class="card section-card" style="margin-top:16px">
+        ${cardHead('Integration Webhook Logs & DLQ Replay', 'Inbound and outbound integration telemetry with full payload inspection and 1-click dead-letter replay')}
+        <div class="panel-toolbar" style="margin-bottom:12px">
+          <div class="tabs">
+            <button class="tab ${whFilter === 'all' ? 'active' : ''}" data-wh-filter="all">All Webhooks (${webhooks.length})</button>
+            <button class="tab ${whFilter === 'outbound' ? 'active' : ''}" data-wh-filter="outbound">Outbound (${webhooks.filter(w=>w.direction==='OUTBOUND').length})</button>
+            <button class="tab ${whFilter === 'inbound' ? 'active' : ''}" data-wh-filter="inbound">Inbound (${webhooks.filter(w=>w.direction==='INBOUND').length})</button>
+            <button class="tab ${whFilter === 'dlq' ? 'active' : ''}" data-wh-filter="dlq">DLQ / Failed (${dlqCount})</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Webhook ID</th>
+                <th>Direction</th>
+                <th>Integration Service &amp; Endpoint</th>
+                <th>Latency</th>
+                <th>Status</th>
+                <th>Retries</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${webhookRows || '<tr><td colspan="7"><div class="table-empty"><strong>No webhook logs match filter</strong></div></td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </section>`;
     }
 
     function renderSecurity() {
@@ -4793,6 +5268,9 @@
       content.querySelectorAll('[data-setting-toggle]').forEach(el => el.addEventListener('click', () => { const on = el.classList.toggle('on'); el.setAttribute('aria-pressed', String(on)); }));
       content.querySelectorAll('[data-pagination]').forEach(el => el.addEventListener('click', () => showToast('Pagination', 'All records returned by the current tenant query are shown on this page.')));
       content.querySelectorAll('[data-invoice-filter]').forEach(el => el.addEventListener('click', () => { state.invoiceFilter = el.dataset.invoiceFilter; render(); }));
+      content.querySelectorAll('[data-wh-filter]').forEach(el => el.addEventListener('click', () => { state.triStackWebhookFilter = el.dataset.whFilter; render(); }));
+      content.querySelectorAll('[data-inspect-webhook]').forEach(el => el.addEventListener('click', () => openWebhookPayloadModal(el.dataset.inspectWebhook)));
+      content.querySelectorAll('[data-replay-webhook]').forEach(el => el.addEventListener('click', () => replayWebhook(el.dataset.replayWebhook, el)));
       content.querySelectorAll('[data-booking-filter]').forEach(el => el.addEventListener('click', () => { state.bookingFilter = el.dataset.bookingFilter; render(); }));
       content.querySelectorAll('[data-network-action]').forEach(el => el.addEventListener('click', () => handleNetworkAction(el.dataset.networkAction, el)));
       content.querySelectorAll('[data-phase3-action]').forEach(el => el.addEventListener('click', () => handlePhase3Action(el.dataset.phase3Action, el)));
@@ -5623,7 +6101,10 @@
         'feedback-policy': () => openFeedbackDeliveryPolicyModal(),
         'feedback-escalation': () => openFeedbackEscalationPolicyModal(),
         'fare-simulator': () => openFareSimulatorModal(),
-        'security-setup': () => openSecurityModal()
+        'security-setup': () => openSecurityModal(),
+        'tristack-einvoice': () => openEinvoiceModal(el?.dataset?.duty),
+        'tristack-tally': () => downloadTallyXml(el?.dataset?.duty),
+        'simulate-sla-breach': () => openSlaBreachModal()
       };
       (actions[action] || (()=>showToast('Action ready','This workflow is connected to the next build slice.')))();
     }
