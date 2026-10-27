@@ -3906,32 +3906,25 @@
       }
 
       if (!state.axiomHqData && !state.axiomHqLoading) {
-        state.axiomHqLoading = true;
-        Promise.all([
-          apiRequest('/api/axiom-hq/vendors').catch(() => ({ items: [] })),
-          apiRequest('/api/axiom-hq/corporates').catch(() => ({ items: [] })),
-          apiRequest('/api/axiom-hq/kpis').catch(() => ({})),
-        ]).then(([vRes, cRes, kRes]) => {
-          state.axiomHqData = {
-            vendors: vRes.items || [],
-            corporates: cRes.items || [],
-            kpis: kRes || {},
-          };
-          state.axiomHqLoading = false;
-          render();
-        }).catch(err => {
-          state.axiomHqLoading = false;
-          console.error(err);
-        });
+        refreshAxiomHqData();
         return `<div class="p-8 text-center" style="padding:60px;text-align:center;"><p style="color:var(--muted);margin-top:12px;">Loading Axiom HQ telemetry...</p></div>`;
       }
 
-      const hq = state.axiomHqData || { vendors: [], corporates: [], kpis: {} };
+      const hq = state.axiomHqData || { vendors: [], corporates: [], kpis: {}, plans: [], invoices: [] };
       const kpis = hq.kpis || {};
       const vendors = hq.vendors || [];
       const corporates = hq.corporates || [];
+      const plans = hq.plans || [];
+      const invoices = hq.invoices || [];
 
-      return `${pageHead('Axiom Fleet HQ • Internal Staff Only', 'Super-Admin Command Center', 'Track vendor SaaS subscription lifecycles, next billing dates, and corporate portal ownership.', button(icon('refresh')+'Refresh HQ Data', 'primary', 'data-action="refresh-hq"'))}
+      return `${pageHead('Axiom Fleet HQ • Internal Staff Only', 'Super-Admin Command Center', 'Manage multi-tenant SaaS subscription lifecycles, automated recurring billing, custom pricing tiers, and corporate ownership.', `
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${button(icon('refresh')+'Refresh Telemetry', 'soft', 'onclick="refreshAxiomHqData()"')}
+          ${button(icon('spark')+'Run Billing Automation', 'primary', 'onclick="runHqBillingAutomation()"')}
+          ${button(icon('plus')+'New Pricing Tier', 'soft', 'onclick="openHqNewPlanModal()"')}
+          ${button(icon('file')+'Issue SaaS Invoice', 'soft', 'onclick="openHqCreateInvoiceModal()"')}
+        </div>
+      `)}
 <div class="grid kpis" style="margin-bottom:24px;">
   <div class="card kpi">
     <div class="kpi-top"><span class="kpi-label">Active Fleet Vendors</span><span class="kpi-icon">${icon('building')}</span></div>
@@ -3939,19 +3932,24 @@
     <div class="kpi-foot">Onboarded SaaS operators</div>
   </div>
   <div class="card kpi teal">
-    <div class="kpi-top"><span class="kpi-label">Live Corporate Portals</span><span class="kpi-icon teal">${icon('building')}</span></div>
-    <div class="kpi-value">${kpis.total_corporate_portals ?? corporates.length}</div>
-    <div class="kpi-foot">Active white-label domains</div>
-  </div>
-  <div class="card kpi">
-    <div class="kpi-top"><span class="kpi-label">Monthly SaaS MRR</span><span class="kpi-icon">${icon('shield')}</span></div>
+    <div class="kpi-top"><span class="kpi-label">Monthly SaaS MRR</span><span class="kpi-icon teal">${icon('shield')}</span></div>
     <div class="kpi-value">₹${Number(kpis.monthly_saas_mrr_inr || 0).toLocaleString('en-IN')}</div>
     <div class="kpi-foot">ARR: ₹${Number(kpis.annual_saas_arr_inr || 0).toLocaleString('en-IN')}</div>
   </div>
+  <div class="card kpi purple">
+    <div class="kpi-top"><span class="kpi-label">Invoice Ledger</span><span class="kpi-icon purple">${icon('file')}</span></div>
+    <div class="kpi-value">₹${Number(kpis.total_invoices_paid_inr || 0).toLocaleString('en-IN')}</div>
+    <div class="kpi-foot">Pending: ₹${Number(kpis.total_invoices_pending_inr || 0).toLocaleString('en-IN')}</div>
+  </div>
   <div class="card kpi ${kpis.vendors_overdue_payment > 0 ? 'amber' : 'teal'}">
-    <div class="kpi-top"><span class="kpi-label">Billing Overdue</span><span class="kpi-icon amber">${icon('warning')}</span></div>
-    <div class="kpi-value">${kpis.vendors_overdue_payment ?? 0}</div>
-    <div class="kpi-foot">${kpis.vendors_overdue_payment > 0 ? 'Action required: Send reminder' : 'All vendor accounts current'}</div>
+    <div class="kpi-top"><span class="kpi-label">Billing Compliance</span><span class="kpi-icon amber">${icon('warning')}</span></div>
+    <div class="kpi-value">${kpis.vendors_overdue_payment ?? 0} Overdue</div>
+    <div class="kpi-foot">${kpis.vendors_suspended > 0 ? `${kpis.vendors_suspended} suspended for default` : 'All accounts current or in grace'}</div>
+  </div>
+  <div class="card kpi">
+    <div class="kpi-top"><span class="kpi-label">Live Corporate Portals</span><span class="kpi-icon">${icon('building')}</span></div>
+    <div class="kpi-value">${kpis.total_corporate_portals ?? corporates.length}</div>
+    <div class="kpi-foot">White-label subdomains</div>
   </div>
 </div>
 
@@ -3960,8 +3958,8 @@
   <section class="card section-card">
     <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
       <div>
-        <h3 style="margin:0;font-size:15px;color:var(--text);">1. Vendor Partners • SaaS Plans & Payment Dates</h3>
-        <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Track when each vendor joined Axiom, their SaaS subscription plan, and when their next payment is due.</p>
+        <h3 style="margin:0;font-size:15px;color:var(--text);">1. Vendor Partners • SaaS Plans & Custom Pricing Controls</h3>
+        <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Configure custom pricing plans, fee overrides, billing cycles, and next payment dates per operator.</p>
       </div>
       <span class="status blue">${vendors.length} Vendors Registered</span>
     </div>
@@ -3972,18 +3970,21 @@
             <th>Vendor & Contact</th>
             <th>Joined Date</th>
             <th>SaaS Plan</th>
-            <th>Monthly Fee</th>
-            <th>Next Payment Due</th>
-            <th>Owned Corp Portals</th>
-            <th>Reliability & Tier</th>
-            <th>Reminder Action</th>
+            <th>Fee & Billing Cycle</th>
+            <th>Next Due Date</th>
+            <th>Payment Status</th>
+            <th>Owned Portals</th>
+            <th>Pricing & Lifecycle Actions</th>
           </tr>
         </thead>
         <tbody>
           ${vendors.map(v => {
             const days = Number(v.days_until_payment_due || 0);
-            const dueBadge = days < 0 ? status('Overdue', 'red') : (days <= 7 ? status(`Due in ${days}d`, 'amber') : status(`Due in ${days}d`, 'green'));
-            const planBadge = v.saas_plan === 'ENTERPRISE_WHITE_LABEL' ? status('Enterprise White-Label', 'purple') : (v.saas_plan === 'GROWTH' ? status('Growth', 'blue') : status('Starter', 'soft'));
+            const dueBadge = days < 0 ? status(`Overdue by ${Math.abs(days)}d`, 'red') : (days <= 7 ? status(`Due in ${days}d`, 'amber') : status(`Due in ${days}d`, 'green'));
+            const pStatus = v.payment_status === 'ACTIVE_PAID' ? status('Active / Paid', 'green') : (v.payment_status === 'DUE_SOON' ? status('Due Soon', 'amber') : (v.payment_status === 'SUSPENDED' ? status('Suspended', 'red') : status('Grace Period', 'amber')));
+            const planName = v.custom_plan_name || (v.saas_plan === 'ENTERPRISE_WHITE_LABEL' ? 'Enterprise White-Label' : (v.saas_plan === 'GROWTH' ? 'Growth Plan' : (v.saas_plan === 'STARTER' ? 'Starter Plan' : v.saas_plan)));
+            const planBadge = v.saas_plan === 'ENTERPRISE_WHITE_LABEL' ? status(planName, 'purple') : (v.saas_plan === 'GROWTH' ? status(planName, 'blue') : status(planName, 'soft'));
+            const discountNote = Number(v.custom_discount_pct || 0) > 0 ? `<br><small style="color:var(--green);font-weight:600;">-${v.custom_discount_pct}% VIP Disc</small>` : '';
             return `<tr>
               <td>
                 <strong>${esc(v.vendor_name)}</strong><br>
@@ -3991,12 +3992,15 @@
               </td>
               <td class="font-mono">${esc(v.joined_date)}</td>
               <td>${planBadge}</td>
-              <td style="font-weight:600;">₹${Number(v.saas_fee_inr || 0).toLocaleString('en-IN')}<br><small style="color:var(--muted);">${esc(v.billing_cycle)}</small></td>
+              <td style="font-weight:600;">₹${Number(v.saas_fee_inr || 0).toLocaleString('en-IN')}<br><small style="color:var(--muted);">${esc(v.billing_cycle)}</small>${discountNote}</td>
               <td><strong>${esc(v.next_payment_due_date)}</strong><br>${dueBadge}</td>
+              <td>${pStatus}</td>
               <td style="text-align:center;"><strong style="font-size:14px;color:var(--blue);">${v.owned_corporate_portals_count ?? 0}</strong></td>
-              <td><span style="font-weight:600;">${v.reliability_score}%</span> <small style="color:var(--muted);">(${esc(v.priority_tier)})</small></td>
               <td>
-                <button class="btn btn-outline btn-xs" onclick="dispatchHqReminder('${v.id}')">Send Reminder</button>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button class="btn btn-outline btn-xs" onclick="openHqCustomPlanModal('${v.id}')">Customize Plan & Fee</button>
+                  <button class="btn btn-outline btn-xs" onclick="dispatchHqReminder('${v.id}')">Send Reminder</button>
+                </div>
               </td>
             </tr>`;
           }).join('')}
@@ -4005,11 +4009,112 @@
     </div>
   </section>
 
-  <!-- Section 2: Corporate Portals & Owning Vendor Mapping -->
+  <!-- Section 2: Subscription Invoices & Billing Ledger -->
   <section class="card section-card">
     <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
       <div>
-        <h3 style="margin:0;font-size:15px;color:var(--text);">2. Corporate Portals • Vendor Ownership Mapping</h3>
+        <h3 style="margin:0;font-size:15px;color:var(--text);">2. Subscription Invoices & Billing Automation Ledger</h3>
+        <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Automated recurring subscription invoices, GST taxation, cycle tracking, and payment verification.</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-xs" onclick="runHqBillingAutomation()">Run Automation</button>
+        <button class="btn btn-primary btn-xs" onclick="openHqCreateInvoiceModal()">Issue Invoice</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Invoice #</th>
+            <th>Vendor Partner</th>
+            <th>Plan & Period</th>
+            <th>Base + 18% GST</th>
+            <th>Total Payable</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Payment Verification</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${invoices.length ? invoices.map(inv => {
+            const invStatusBadge = inv.status === 'PAID' ? status('Paid', 'green') : (inv.status === 'OVERDUE' ? status('Overdue', 'red') : status('Due', 'amber'));
+            return `<tr>
+              <td class="font-mono"><strong>${esc(inv.invoice_number)}</strong></td>
+              <td><strong>${esc(inv.vendor_name)}</strong><br><small style="color:var(--muted);">${esc(inv.vendor_email || '')}</small></td>
+              <td><strong>${esc(inv.plan_name)}</strong><br><small style="color:var(--muted);">${esc(inv.period_start)} to ${esc(inv.period_end)}</small></td>
+              <td>₹${Number(inv.base_amount_inr || 0).toLocaleString('en-IN')} + ₹${Number(inv.gst_amount_inr || 0).toLocaleString('en-IN')}</td>
+              <td><strong style="color:var(--blue);font-size:13px;">₹${Number(inv.total_amount_inr || 0).toLocaleString('en-IN')}</strong></td>
+              <td class="font-mono">${esc(inv.due_date)}</td>
+              <td>${invStatusBadge}</td>
+              <td>
+                ${inv.status === 'PAID' 
+                  ? `<small style="color:var(--muted);font-weight:600;">Paid: ${esc(inv.payment_reference || 'Verified')}<br>${inv.paid_at ? inv.paid_at.slice(0, 10) : ''}</small>`
+                  : `<button class="btn btn-primary btn-xs" onclick="openHqPayInvoiceModal('${inv.id}', '${inv.invoice_number}', ${inv.total_amount_inr})">Record Payment</button>`
+                }
+              </td>
+            </tr>`;
+          }).join('') : `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">No subscription invoices in ledger.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Section 3: Master SaaS Pricing Plans (Tier Engine) -->
+  <section class="card section-card">
+    <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+      <div>
+        <h3 style="margin:0;font-size:15px;color:var(--text);">3. Master SaaS Pricing Plans • Tier & Feature Matrix</h3>
+        <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Catalog of standard and bespoke subscription tiers with fleet caps, white-label flags, and SLAs.</p>
+      </div>
+      <button class="btn btn-outline btn-xs" onclick="openHqNewPlanModal()">+ Add New Plan</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Plan Name & Tier</th>
+            <th>Monthly Fee</th>
+            <th>Annual Fee</th>
+            <th>Duty & Fleet Cap</th>
+            <th>Feature Matrix</th>
+            <th>Support SLA</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${plans.map(p => {
+            const dutiesCap = p.duty_limit === -1 ? 'Unlimited Duties' : `Up to ${p.duty_limit} duties/mo`;
+            const fleetCap = p.vehicle_limit === -1 ? 'Unlimited Fleet' : `Up to ${p.vehicle_limit} vehicles`;
+            return `<tr>
+              <td><strong>${esc(p.name)}</strong><br><small class="font-mono" style="color:var(--muted);">${esc(p.tier)}</small></td>
+              <td style="font-weight:600;">₹${Number(p.monthly_fee_inr || 0).toLocaleString('en-IN')}/mo</td>
+              <td style="font-weight:600;">₹${Number(p.annual_fee_inr || 0).toLocaleString('en-IN')}/yr</td>
+              <td><small>${dutiesCap}<br>${fleetCap}</small></td>
+              <td>
+                <small>
+                  White-label: ${p.white_label_enabled ? '✅ Yes' : '❌ No'} · 
+                  API: ${p.api_access_enabled ? '✅ Yes' : '❌ No'}<br>
+                  Custom Pricing: ${p.custom_pricing_enabled ? '✅ Enabled' : '❌ Disabled'}
+                </small>
+              </td>
+              <td><small style="color:var(--muted);">${esc(p.support_tier)}</small></td>
+              <td>${p.is_active ? status('Active', 'green') : status('Archived', 'soft')}</td>
+              <td>
+                <button class="btn btn-outline btn-xs" onclick="openHqEditPlanModal('${p.id}')">Edit Plan</button>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Section 4: Corporate Portals & Owning Vendor Mapping -->
+  <section class="card section-card">
+    <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+      <div>
+        <h3 style="margin:0;font-size:15px;color:var(--text);">4. Corporate Portals • Vendor Ownership Mapping</h3>
         <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Full audit of which corporate portal is owned and operated by what vendor partner.</p>
       </div>
       <span class="status teal">${corporates.length} Portals Mapped</span>
@@ -4054,6 +4159,32 @@
 </div>`;
     }
 
+    window.refreshAxiomHqData = async function() {
+      state.axiomHqLoading = true;
+      render();
+      try {
+        const [vRes, cRes, kRes, pRes, iRes] = await Promise.all([
+          apiRequest('/api/axiom-hq/vendors').catch(() => ({ items: [] })),
+          apiRequest('/api/axiom-hq/corporates').catch(() => ({ items: [] })),
+          apiRequest('/api/axiom-hq/kpis').catch(() => ({})),
+          apiRequest('/api/axiom-hq/plans').catch(() => ({ items: [] })),
+          apiRequest('/api/axiom-hq/invoices').catch(() => ({ items: [] })),
+        ]);
+        state.axiomHqData = {
+          vendors: vRes.items || [],
+          corporates: cRes.items || [],
+          kpis: kRes || {},
+          plans: pRes.items || [],
+          invoices: iRes.items || [],
+        };
+      } catch (err) {
+        showToast('Telemetry Sync Failed', err.message, 'error');
+      } finally {
+        state.axiomHqLoading = false;
+        render();
+      }
+    };
+
     window.dispatchHqReminder = async function(vendorId) {
       try {
         const res = await apiRequest(`/api/axiom-hq/vendors/${vendorId}/payment-reminder`, { method: 'POST' });
@@ -4061,6 +4192,351 @@
       } catch (err) {
         showToast('Dispatch Failed', err.message || 'Could not send reminder.', 'error');
       }
+    };
+
+    window.runHqBillingAutomation = async function() {
+      try {
+        const res = await apiRequest('/api/axiom-hq/billing/run-automation', { method: 'POST' });
+        const summary = `Analyzed ${res.vendors_analyzed} vendors: ${res.invoices_generated} new invoices generated, ${res.reminders_dispatched} reminders sent, ${res.accounts_suspended} accounts suspended.`;
+        showToast('Billing Automation Complete', summary);
+        await refreshAxiomHqData();
+      } catch (err) {
+        showToast('Automation Error', err.message, 'error');
+      }
+    };
+
+    window.openHqCustomPlanModal = function(vendorId) {
+      const v = (state.axiomHqData?.vendors || []).find(item => item.id === vendorId);
+      if (!v) return showToast('Vendor Not Found', 'Could not locate vendor profile.', 'error');
+      const body = `
+        <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group full">
+            <label>Vendor Partner</label>
+            <input class="form-input" value="${esc(v.vendor_name)}" disabled style="background:var(--card-alt);">
+          </div>
+          <div class="form-group">
+            <label>Base SaaS Plan Tier</label>
+            <select id="hq-custom-plan" class="form-input">
+              <option value="STARTER" ${v.saas_plan === 'STARTER' ? 'selected' : ''}>Starter Operator Plan</option>
+              <option value="GROWTH" ${v.saas_plan === 'GROWTH' ? 'selected' : ''}>Growth Fleet Plan</option>
+              <option value="ENTERPRISE_WHITE_LABEL" ${v.saas_plan === 'ENTERPRISE_WHITE_LABEL' ? 'selected' : ''}>Enterprise White-Label</option>
+              <option value="BESPOKE" ${v.saas_plan === 'BESPOKE' ? 'selected' : ''}>Bespoke Custom Plan</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Custom Plan Name (Optional Override)</label>
+            <input id="hq-custom-plan-name" class="form-input" value="${esc(v.custom_plan_name || '')}" placeholder="e.g. South Region Special Tier">
+          </div>
+          <div class="form-group">
+            <label>Negotiated Monthly Fee (INR)</label>
+            <input id="hq-custom-fee" type="number" class="form-input" value="${v.saas_fee_inr || 25000}">
+          </div>
+          <div class="form-group">
+            <label>Billing Cycle</label>
+            <select id="hq-custom-cycle" class="form-input">
+              <option value="MONTHLY" ${v.billing_cycle === 'MONTHLY' ? 'selected' : ''}>Monthly</option>
+              <option value="QUARTERLY" ${v.billing_cycle === 'QUARTERLY' ? 'selected' : ''}>Quarterly</option>
+              <option value="ANNUAL" ${v.billing_cycle === 'ANNUAL' ? 'selected' : ''}>Annual</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Custom Discount (%)</label>
+            <input id="hq-custom-discount" type="number" class="form-input" value="${v.custom_discount_pct || 0}" min="0" max="100">
+          </div>
+          <div class="form-group">
+            <label>Next Payment Due Date</label>
+            <input id="hq-custom-due" type="date" class="form-input" value="${esc(v.next_payment_due_date)}">
+          </div>
+          <div class="form-group full">
+            <label>Account Payment Status</label>
+            <select id="hq-custom-status" class="form-input">
+              <option value="ACTIVE_PAID" ${v.payment_status === 'ACTIVE_PAID' ? 'selected' : ''}>ACTIVE_PAID (Account Current)</option>
+              <option value="DUE_SOON" ${v.payment_status === 'DUE_SOON' ? 'selected' : ''}>DUE_SOON (Upcoming Renewal)</option>
+              <option value="OVERDUE_GRACE" ${v.payment_status === 'OVERDUE_GRACE' ? 'selected' : ''}>OVERDUE_GRACE (15-Day Grace Period)</option>
+              <option value="SUSPENDED" ${v.payment_status === 'SUSPENDED' ? 'selected' : ''}>SUSPENDED (Access Locked)</option>
+            </select>
+          </div>
+        </div>
+      `;
+      const modal = modalShell('Customize SaaS Plan & Pricing', `Configure customized commercial terms for ${v.vendor_name}`, body, `
+        ${button('Cancel', '', 'data-close-modal')}
+        ${button('Save Custom Pricing', 'primary', 'id="btn-save-custom-plan"')}
+      `);
+      modal.querySelector('#btn-save-custom-plan').addEventListener('click', async () => {
+        const btn = modal.querySelector('#btn-save-custom-plan');
+        btn.disabled = true;
+        try {
+          const payload = {
+            saas_plan: modal.querySelector('#hq-custom-plan').value,
+            custom_plan_name: modal.querySelector('#hq-custom-plan-name').value.trim() || undefined,
+            saas_fee_inr: Number(modal.querySelector('#hq-custom-fee').value),
+            billing_cycle: modal.querySelector('#hq-custom-cycle').value,
+            custom_discount_pct: Number(modal.querySelector('#hq-custom-discount').value || 0),
+            next_payment_due_date: modal.querySelector('#hq-custom-due').value,
+            payment_status: modal.querySelector('#hq-custom-status').value,
+          };
+          await apiRequest(`/api/axiom-hq/vendors/${vendorId}/custom-plan`, { method: 'POST', body: JSON.stringify(payload) });
+          closeModal();
+          showToast('Custom Pricing Saved', `Updated commercial contract terms for ${v.vendor_name}`);
+          await refreshAxiomHqData();
+        } catch (err) {
+          btn.disabled = false;
+          showToast('Save Failed', err.message, 'error');
+        }
+      });
+    };
+
+    window.openHqNewPlanModal = function() {
+      const body = `
+        <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>Plan Name</label>
+            <input id="hq-plan-name" class="form-input" placeholder="e.g. Enterprise Cloud Tier">
+          </div>
+          <div class="form-group">
+            <label>Category Code</label>
+            <input id="hq-plan-tier" class="form-input" placeholder="e.g. ENTERPRISE_PLUS">
+          </div>
+          <div class="form-group">
+            <label>Monthly Fee (INR)</label>
+            <input id="hq-plan-mfee" type="number" class="form-input" value="35000">
+          </div>
+          <div class="form-group">
+            <label>Annual Fee (INR)</label>
+            <input id="hq-plan-afee" type="number" class="form-input" value="350000">
+          </div>
+          <div class="form-group">
+            <label>Monthly Duty Cap (-1 for Unlimited)</label>
+            <input id="hq-plan-duties" type="number" class="form-input" value="-1">
+          </div>
+          <div class="form-group">
+            <label>Vehicle Fleet Cap (-1 for Unlimited)</label>
+            <input id="hq-plan-vehicles" type="number" class="form-input" value="-1">
+          </div>
+          <div class="form-group full">
+            <label>Support SLA</label>
+            <input id="hq-plan-sla" class="form-input" value="Dedicated Account Executive (24/7 SLA)">
+          </div>
+          <div class="form-group full">
+            <label class="check-row"><input type="checkbox" id="hq-plan-whitelabel" checked> Include White-Label Corporate Portals</label>
+            <label class="check-row" style="margin-top:6px;"><input type="checkbox" id="hq-plan-api" checked> Include Full REST API & Webhooks Access</label>
+          </div>
+        </div>
+      `;
+      const modal = modalShell('Create Master SaaS Pricing Tier', 'Define a new standardized commercial plan for fleet operators.', body, `
+        ${button('Cancel', '', 'data-close-modal')}
+        ${button('Create Plan', 'primary', 'id="btn-create-plan"')}
+      `);
+      modal.querySelector('#btn-create-plan').addEventListener('click', async () => {
+        const btn = modal.querySelector('#btn-create-plan');
+        const name = modal.querySelector('#hq-plan-name').value.trim();
+        const tier = modal.querySelector('#hq-plan-tier').value.trim() || 'CUSTOM';
+        if (!name) return showToast('Plan Name Required', 'Please enter a name for the pricing plan.', 'error');
+        btn.disabled = true;
+        try {
+          const payload = {
+            name,
+            tier: tier.toUpperCase().replace(/\s+/g, '_'),
+            monthly_fee_inr: Number(modal.querySelector('#hq-plan-mfee').value),
+            annual_fee_inr: Number(modal.querySelector('#hq-plan-afee').value),
+            duty_limit: Number(modal.querySelector('#hq-plan-duties').value),
+            vehicle_limit: Number(modal.querySelector('#hq-plan-vehicles').value),
+            support_tier: modal.querySelector('#hq-plan-sla').value.trim(),
+            white_label_enabled: modal.querySelector('#hq-plan-whitelabel').checked,
+            api_access_enabled: modal.querySelector('#hq-plan-api').checked,
+            custom_pricing_enabled: true,
+          };
+          await apiRequest('/api/axiom-hq/plans', { method: 'POST', body: JSON.stringify(payload) });
+          closeModal();
+          showToast('Plan Created', `New pricing plan ${name} added to catalog.`);
+          await refreshAxiomHqData();
+        } catch (err) {
+          btn.disabled = false;
+          showToast('Save Failed', err.message, 'error');
+        }
+      });
+    };
+
+    window.openHqEditPlanModal = function(planId) {
+      const p = (state.axiomHqData?.plans || []).find(item => item.id === planId);
+      if (!p) return showToast('Plan Not Found', 'Could not locate pricing tier.', 'error');
+      const body = `
+        <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>Plan Name</label>
+            <input id="hq-edit-plan-name" class="form-input" value="${esc(p.name)}">
+          </div>
+          <div class="form-group">
+            <label>Tier Code</label>
+            <input id="hq-edit-plan-tier" class="form-input" value="${esc(p.tier)}" disabled style="background:var(--card-alt);">
+          </div>
+          <div class="form-group">
+            <label>Monthly Fee (INR)</label>
+            <input id="hq-edit-plan-mfee" type="number" class="form-input" value="${p.monthly_fee_inr}">
+          </div>
+          <div class="form-group">
+            <label>Annual Fee (INR)</label>
+            <input id="hq-edit-plan-afee" type="number" class="form-input" value="${p.annual_fee_inr}">
+          </div>
+          <div class="form-group">
+            <label>Monthly Duty Cap (-1 for Unlimited)</label>
+            <input id="hq-edit-plan-duties" type="number" class="form-input" value="${p.duty_limit}">
+          </div>
+          <div class="form-group">
+            <label>Vehicle Fleet Cap (-1 for Unlimited)</label>
+            <input id="hq-edit-plan-vehicles" type="number" class="form-input" value="${p.vehicle_limit}">
+          </div>
+          <div class="form-group full">
+            <label>Support SLA</label>
+            <input id="hq-edit-plan-sla" class="form-input" value="${esc(p.support_tier)}">
+          </div>
+          <div class="form-group full">
+            <label class="check-row"><input type="checkbox" id="hq-edit-plan-whitelabel" ${p.white_label_enabled ? 'checked' : ''}> Include White-Label Corporate Portals</label>
+            <label class="check-row" style="margin-top:6px;"><input type="checkbox" id="hq-edit-plan-api" ${p.api_access_enabled ? 'checked' : ''}> Include Full REST API & Webhooks Access</label>
+          </div>
+        </div>
+      `;
+      const modal = modalShell('Edit Pricing Plan', `Update commercial limits and pricing for ${p.name}`, body, `
+        ${button('Cancel', '', 'data-close-modal')}
+        ${button('Save Plan Changes', 'primary', 'id="btn-edit-plan"')}
+      `);
+      modal.querySelector('#btn-edit-plan').addEventListener('click', async () => {
+        const btn = modal.querySelector('#btn-edit-plan');
+        btn.disabled = true;
+        try {
+          const payload = {
+            id: planId,
+            name: modal.querySelector('#hq-edit-plan-name').value.trim(),
+            tier: p.tier,
+            monthly_fee_inr: Number(modal.querySelector('#hq-edit-plan-mfee').value),
+            annual_fee_inr: Number(modal.querySelector('#hq-edit-plan-afee').value),
+            duty_limit: Number(modal.querySelector('#hq-edit-plan-duties').value),
+            vehicle_limit: Number(modal.querySelector('#hq-edit-plan-vehicles').value),
+            support_tier: modal.querySelector('#hq-edit-plan-sla').value.trim(),
+            white_label_enabled: modal.querySelector('#hq-edit-plan-whitelabel').checked,
+            api_access_enabled: modal.querySelector('#hq-edit-plan-api').checked,
+            custom_pricing_enabled: true,
+          };
+          await apiRequest('/api/axiom-hq/plans', { method: 'POST', body: JSON.stringify(payload) });
+          closeModal();
+          showToast('Plan Updated', `Saved commercial changes to ${p.name}.`);
+          await refreshAxiomHqData();
+        } catch (err) {
+          btn.disabled = false;
+          showToast('Save Failed', err.message, 'error');
+        }
+      });
+    };
+
+    window.openHqCreateInvoiceModal = function() {
+      const vendors = state.axiomHqData?.vendors || [];
+      if (!vendors.length) return showToast('No Vendors Available', 'No registered vendors found to invoice.', 'error');
+      const vendorOptions = vendors.map(v => `<option value="${v.id}">${esc(v.vendor_name)} (Plan: ${esc(v.saas_plan)} - ₹${v.saas_fee_inr}/mo)</option>`).join('');
+      const defaultVendor = vendors[0];
+      const today = new Date().toISOString().slice(0, 10);
+      const nextMonth = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+
+      const body = `
+        <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group full">
+            <label>Select Vendor Partner</label>
+            <select id="hq-inv-vendor" class="form-input">${vendorOptions}</select>
+          </div>
+          <div class="form-group">
+            <label>Base Subscription Amount (INR)</label>
+            <input id="hq-inv-base" type="number" class="form-input" value="${defaultVendor.saas_fee_inr}">
+          </div>
+          <div class="form-group">
+            <label>GST Tax Rate</label>
+            <input class="form-input" value="18% (Automated CGST + SGST)" disabled style="background:var(--card-alt);">
+          </div>
+          <div class="form-group">
+            <label>Period Start Date</label>
+            <input id="hq-inv-start" type="date" class="form-input" value="${today}">
+          </div>
+          <div class="form-group">
+            <label>Period End Date</label>
+            <input id="hq-inv-end" type="date" class="form-input" value="${nextMonth}">
+          </div>
+          <div class="form-group full">
+            <label>Payment Due Date</label>
+            <input id="hq-inv-due" type="date" class="form-input" value="${today}">
+          </div>
+          <div class="form-group full">
+            <label>Invoice Memo / Notes</label>
+            <input id="hq-inv-notes" class="form-input" value="Axiom SaaS Platform recurring subscription fee">
+          </div>
+        </div>
+      `;
+      const modal = modalShell('Issue SaaS Subscription Invoice', 'Generate an official GST invoice for a vendor partner.', body, `
+        ${button('Cancel', '', 'data-close-modal')}
+        ${button('Generate & Issue Invoice', 'primary', 'id="btn-issue-inv"')}
+      `);
+      modal.querySelector('#hq-inv-vendor').addEventListener('change', e => {
+        const chosen = vendors.find(v => v.id === e.target.value);
+        if (chosen) modal.querySelector('#hq-inv-base').value = chosen.saas_fee_inr;
+      });
+      modal.querySelector('#btn-issue-inv').addEventListener('click', async () => {
+        const btn = modal.querySelector('#btn-issue-inv');
+        btn.disabled = true;
+        try {
+          const payload = {
+            vendor_id: modal.querySelector('#hq-inv-vendor').value,
+            base_amount_inr: Number(modal.querySelector('#hq-inv-base').value),
+            period_start: modal.querySelector('#hq-inv-start').value,
+            period_end: modal.querySelector('#hq-inv-end').value,
+            due_date: modal.querySelector('#hq-inv-due').value,
+            notes: modal.querySelector('#hq-inv-notes').value.trim(),
+          };
+          const res = await apiRequest('/api/axiom-hq/invoices', { method: 'POST', body: JSON.stringify(payload) });
+          closeModal();
+          showToast('Invoice Issued', `Generated invoice ${res.invoice_number} for ₹${res.total_amount_inr.toLocaleString('en-IN')}`);
+          await refreshAxiomHqData();
+        } catch (err) {
+          btn.disabled = false;
+          showToast('Issue Failed', err.message, 'error');
+        }
+      });
+    };
+
+    window.openHqPayInvoiceModal = function(invoiceId, invoiceNumber, amount) {
+      const body = `
+        <div class="form-grid" style="display:grid;gap:12px;">
+          <div class="form-group">
+            <label>Invoice Details</label>
+            <input class="form-input" value="${esc(invoiceNumber)} — Total ₹${Number(amount).toLocaleString('en-IN')}" disabled style="background:var(--card-alt);">
+          </div>
+          <div class="form-group">
+            <label>Payment Reference / Transaction ID</label>
+            <input id="hq-pay-ref" class="form-input" placeholder="e.g. HDFC-NEFT-99182 / UPI-882736" value="HQ-REC-${Date.now().toString().slice(-6)}">
+          </div>
+          <div class="form-group">
+            <label>Verification Notes</label>
+            <input id="hq-pay-notes" class="form-input" value="Payment reconciled and verified by Axiom HQ Operations">
+          </div>
+        </div>
+      `;
+      const modal = modalShell('Record SaaS Invoice Payment', 'Confirm receipt of subscription payment and advance billing cycle.', body, `
+        ${button('Cancel', '', 'data-close-modal')}
+        ${button('Confirm & Advance Billing Cycle', 'primary', 'id="btn-confirm-pay"')}
+      `);
+      modal.querySelector('#btn-confirm-pay').addEventListener('click', async () => {
+        const btn = modal.querySelector('#btn-confirm-pay');
+        btn.disabled = true;
+        try {
+          const payload = {
+            payment_reference: modal.querySelector('#hq-pay-ref').value.trim(),
+            notes: modal.querySelector('#hq-pay-notes').value.trim(),
+          };
+          await apiRequest(`/api/axiom-hq/invoices/${invoiceId}/pay`, { method: 'POST', body: JSON.stringify(payload) });
+          closeModal();
+          showToast('Payment Verified', `Invoice ${invoiceNumber} marked as PAID. Vendor billing cycle advanced.`);
+          await refreshAxiomHqData();
+        } catch (err) {
+          btn.disabled = false;
+          showToast('Payment Record Failed', err.message, 'error');
+        }
+      });
     };
 
     function renderAdmin() {

@@ -2,9 +2,11 @@
 
 REST API Controller for Axiom HQ Staff:
 1. Vendor SaaS Subscription lifecycle (joined date, plan, next payment date, payment reminders)
-2. Corporate Portal Ownership mapping (which corporate portal is owned by which vendor)
-3. Platform-wide KPIs & Revenue metrics
-4. Strict 403 isolation preventing vendors, corporates, or drivers from accessing HQ data
+2. Custom Pricing Plan Controls (bespoke plans, fee overrides, feature toggles, discounts)
+3. Subscription Billing Automation (auto invoice generation, cycle advancement, grace & suspension)
+4. Corporate Portal Ownership mapping (which corporate portal is owned by which vendor)
+5. Platform-wide KPIs & Revenue metrics (MRR, ARR, invoice telemetry)
+6. Strict 403 isolation preventing vendors, corporates, or drivers from accessing HQ data
 """
 
 from __future__ import annotations
@@ -49,6 +51,22 @@ def _require_axiom_internal(user: Dict[str, Any]) -> None:
         )
 
 
+def _advance_due_date(base_date_str: str, cycle: str) -> str:
+    """Advances a date string by the subscription billing cycle."""
+    try:
+        base = dt.date.fromisoformat(base_date_str)
+    except Exception:
+        base = dt.date.today()
+    cycle_upper = (cycle or "MONTHLY").upper()
+    if cycle_upper == "ANNUAL":
+        new_date = base + dt.timedelta(days=365)
+    elif cycle_upper == "QUARTERLY":
+        new_date = base + dt.timedelta(days=90)
+    else:  # MONTHLY default
+        new_date = base + dt.timedelta(days=30)
+    return new_date.isoformat()
+
+
 def initialize_axiom_hq_schema(conn: sqlite3.Connection) -> None:
     """Initializes schema and seeds baseline HQ records."""
     conn.execute(
@@ -62,7 +80,7 @@ def initialize_axiom_hq_schema(conn: sqlite3.Connection) -> None:
             email TEXT NOT NULL,
             city TEXT NOT NULL,
             joined_date TEXT NOT NULL,
-            saas_plan TEXT NOT NULL CHECK (saas_plan IN ('STARTER', 'GROWTH', 'ENTERPRISE_WHITE_LABEL')),
+            saas_plan TEXT NOT NULL CHECK (saas_plan IN ('STARTER', 'GROWTH', 'ENTERPRISE_WHITE_LABEL', 'BESPOKE', 'CUSTOM')),
             billing_cycle TEXT NOT NULL CHECK (billing_cycle IN ('MONTHLY', 'QUARTERLY', 'ANNUAL')),
             saas_fee_inr REAL NOT NULL,
             last_payment_date TEXT NOT NULL,
@@ -74,6 +92,16 @@ def initialize_axiom_hq_schema(conn: sqlite3.Connection) -> None:
         )
         """
     )
+
+    # Safe column additions if table was created in earlier iteration
+    try:
+        conn.execute("ALTER TABLE axiom_hq_vendors ADD COLUMN custom_discount_pct REAL DEFAULT 0.0")
+    except Exception:
+        pass
+    try:
+        conn.execute("ALTER TABLE axiom_hq_vendors ADD COLUMN custom_plan_name TEXT")
+    except Exception:
+        pass
 
     conn.execute(
         """
@@ -95,12 +123,138 @@ def initialize_axiom_hq_schema(conn: sqlite3.Connection) -> None:
         )
         """
     )
+
+    # Pricing Plans Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS axiom_hq_plans (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            tier TEXT NOT NULL,
+            monthly_fee_inr REAL NOT NULL,
+            annual_fee_inr REAL NOT NULL,
+            duty_limit INTEGER NOT NULL DEFAULT 500,
+            vehicle_limit INTEGER NOT NULL DEFAULT 25,
+            white_label_enabled INTEGER NOT NULL DEFAULT 0,
+            custom_pricing_enabled INTEGER NOT NULL DEFAULT 1,
+            api_access_enabled INTEGER NOT NULL DEFAULT 0,
+            support_tier TEXT NOT NULL DEFAULT 'Standard Email',
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+
+    # Subscription Invoices Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS axiom_hq_invoices (
+            id TEXT PRIMARY KEY,
+            invoice_number TEXT NOT NULL UNIQUE,
+            vendor_id TEXT NOT NULL,
+            vendor_name TEXT NOT NULL,
+            plan_name TEXT NOT NULL,
+            billing_cycle TEXT NOT NULL,
+            period_start TEXT NOT NULL,
+            period_end TEXT NOT NULL,
+            base_amount_inr REAL NOT NULL,
+            gst_amount_inr REAL NOT NULL,
+            total_amount_inr REAL NOT NULL,
+            due_date TEXT NOT NULL,
+            status TEXT NOT NULL CHECK (status IN ('PAID', 'DUE', 'OVERDUE', 'VOID')),
+            paid_at TEXT,
+            payment_reference TEXT,
+            dispatched_at TEXT,
+            notes TEXT,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
     conn.commit()
 
+    now = now_iso()
+
+    # Seed baseline plans if empty
+    cur_p = conn.execute("SELECT count(*) FROM axiom_hq_plans")
+    if cur_p.fetchone()[0] == 0:
+        sample_plans = [
+            (
+                "plan_starter",
+                "Starter Operator Plan",
+                "STARTER",
+                12000.0,
+                120000.0,
+                250,
+                15,
+                0,
+                1,
+                0,
+                "Standard Email (24h SLA)",
+                1,
+                now,
+            ),
+            (
+                "plan_growth",
+                "Growth Fleet Plan",
+                "GROWTH",
+                25000.0,
+                250000.0,
+                1200,
+                60,
+                0,
+                1,
+                1,
+                "Priority WhatsApp + Phone (8h SLA)",
+                1,
+                now,
+            ),
+            (
+                "plan_enterprise",
+                "Enterprise White-Label",
+                "ENTERPRISE_WHITE_LABEL",
+                45000.0,
+                450000.0,
+                -1,
+                -1,
+                1,
+                1,
+                1,
+                "Dedicated Account Executive (24/7 SLA)",
+                1,
+                now,
+            ),
+            (
+                "plan_bespoke",
+                "Bespoke Custom Plan",
+                "BESPOKE",
+                65000.0,
+                650000.0,
+                -1,
+                -1,
+                1,
+                1,
+                1,
+                "Executive Concierge + Custom Integrations",
+                1,
+                now,
+            ),
+        ]
+        conn.executemany(
+            """
+            INSERT INTO axiom_hq_plans (
+                id, name, tier, monthly_fee_inr, annual_fee_inr,
+                duty_limit, vehicle_limit, white_label_enabled,
+                custom_pricing_enabled, api_access_enabled, support_tier,
+                is_active, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            sample_plans,
+        )
+        conn.commit()
+
     # Seed baseline vendors and corporate portal mapping if empty
-    cur = conn.execute("SELECT count(*) FROM axiom_hq_vendors")
-    if cur.fetchone()[0] == 0:
-        now = now_iso()
+    cur_v = conn.execute("SELECT count(*) FROM axiom_hq_vendors")
+    if cur_v.fetchone()[0] == 0:
         sample_vendors = [
             (
                 "ven_swift",
@@ -251,6 +405,104 @@ def initialize_axiom_hq_schema(conn: sqlite3.Connection) -> None:
         )
         conn.commit()
 
+    # Seed baseline invoices if empty
+    cur_i = conn.execute("SELECT count(*) FROM axiom_hq_invoices")
+    if cur_i.fetchone()[0] == 0:
+        sample_invoices = [
+            (
+                "inv_101",
+                "AXM-2026-101",
+                "ven_swift",
+                "Swift Fleet Mobility Ltd",
+                "Enterprise White-Label",
+                "MONTHLY",
+                "2026-09-15",
+                "2026-10-14",
+                45000.0,
+                8100.0,
+                53100.0,
+                "2026-09-15",
+                "PAID",
+                "2026-09-15T10:00:00Z",
+                "HDFC-RTGS-9921",
+                "2026-09-08T09:00:00Z",
+                "Enterprise recurring subscription invoice",
+                now,
+            ),
+            (
+                "inv_102",
+                "AXM-2026-102",
+                "ven_swift",
+                "Swift Fleet Mobility Ltd",
+                "Enterprise White-Label",
+                "MONTHLY",
+                "2026-10-15",
+                "2026-11-14",
+                45000.0,
+                8100.0,
+                53100.0,
+                "2026-11-15",
+                "PAID",
+                "2026-10-15T11:30:00Z",
+                "HDFC-RTGS-1044",
+                "2026-10-08T09:00:00Z",
+                "Enterprise recurring subscription invoice",
+                now,
+            ),
+            (
+                "inv_103",
+                "AXM-2026-103",
+                "ven_apex",
+                "Apex Corporate Transports",
+                "Growth Fleet Plan",
+                "MONTHLY",
+                "2026-09-25",
+                "2026-10-24",
+                25000.0,
+                4500.0,
+                29500.0,
+                "2026-10-25",
+                "DUE",
+                None,
+                None,
+                "2026-10-18T10:00:00Z",
+                "Growth subscription renewal invoice",
+                now,
+            ),
+            (
+                "inv_104",
+                "AXM-2026-104",
+                "ven_metroroyal",
+                "Metro Royal Cabs Pvt Ltd",
+                "Starter Operator Plan",
+                "MONTHLY",
+                "2026-09-18",
+                "2026-10-17",
+                12000.0,
+                2160.0,
+                14160.0,
+                "2026-10-18",
+                "OVERDUE",
+                None,
+                None,
+                "2026-10-11T09:00:00Z",
+                "Overdue notice dispatched to director@metroroyal.example",
+                now,
+            ),
+        ]
+        conn.executemany(
+            """
+            INSERT INTO axiom_hq_invoices (
+                id, invoice_number, vendor_id, vendor_name, plan_name,
+                billing_cycle, period_start, period_end, base_amount_inr,
+                gst_amount_inr, total_amount_inr, due_date, status,
+                paid_at, payment_reference, dispatched_at, notes, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            sample_invoices,
+        )
+        conn.commit()
+
 
 def handle_axiom_hq(
     conn: sqlite3.Connection,
@@ -350,7 +602,329 @@ def handle_axiom_hq(
             "message": reminder_msg,
         }
 
-    # 3. Corporate Portals & Ownership Mapping
+    # 3. Custom Pricing Plan Controls: Set or Customize Plan for Vendor
+    if clean_path.startswith("/api/axiom-hq/vendors/") and clean_path.endswith("/custom-plan") and method == "POST":
+        vendor_id = clean_path.split("/")[4]
+        cur = conn.execute("SELECT * FROM axiom_hq_vendors WHERE id = ?", (vendor_id,))
+        row = cur.fetchone()
+        if not row:
+            raise DomainError(404, f"Vendor {vendor_id} not found", "not_found")
+        data = payload or {}
+        plan_code = data.get("saas_plan") or dict(row)["saas_plan"]
+        custom_name = data.get("custom_plan_name") or data.get("plan_name")
+        custom_fee = float(data.get("saas_fee_inr", dict(row)["saas_fee_inr"]))
+        billing_cycle = (data.get("billing_cycle") or dict(row)["billing_cycle"]).upper()
+        custom_disc = float(data.get("custom_discount_pct", 0.0))
+        next_due = data.get("next_payment_due_date") or dict(row)["next_payment_due_date"]
+        p_status = data.get("payment_status") or dict(row)["payment_status"]
+
+        conn.execute(
+            """
+            UPDATE axiom_hq_vendors
+            SET saas_plan = ?,
+                custom_plan_name = ?,
+                saas_fee_inr = ?,
+                billing_cycle = ?,
+                custom_discount_pct = ?,
+                next_payment_due_date = ?,
+                payment_status = ?
+            WHERE id = ?
+            """,
+            (plan_code, custom_name, custom_fee, billing_cycle, custom_disc, next_due, p_status, vendor_id),
+        )
+        conn.commit()
+        return {
+            "status": "success",
+            "vendor_id": vendor_id,
+            "saas_plan": plan_code,
+            "custom_plan_name": custom_name,
+            "saas_fee_inr": custom_fee,
+            "billing_cycle": billing_cycle,
+            "next_payment_due_date": next_due,
+        }
+
+    # 4. Master SaaS Plans catalog
+    if clean_path == "/api/axiom-hq/plans":
+        if method == "GET":
+            cur = conn.execute("SELECT * FROM axiom_hq_plans ORDER BY monthly_fee_inr ASC")
+            return {"items": [dict(r) for r in cur.fetchall()]}
+
+        if method == "POST":
+            data = payload or {}
+            pid = data.get("id") or new_id("plan")
+            now = now_iso()
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO axiom_hq_plans (
+                    id, name, tier, monthly_fee_inr, annual_fee_inr,
+                    duty_limit, vehicle_limit, white_label_enabled,
+                    custom_pricing_enabled, api_access_enabled, support_tier,
+                    is_active, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    pid,
+                    _text(data, "name"),
+                    _text(data, "tier", default="CUSTOM"),
+                    float(data.get("monthly_fee_inr", 25000.0)),
+                    float(data.get("annual_fee_inr", 250000.0)),
+                    int(data.get("duty_limit", -1)),
+                    int(data.get("vehicle_limit", -1)),
+                    1 if data.get("white_label_enabled") else 0,
+                    1 if data.get("custom_pricing_enabled", True) else 0,
+                    1 if data.get("api_access_enabled") else 0,
+                    _text(data, "support_tier", default="Standard SLA"),
+                    1 if data.get("is_active", True) else 0,
+                    now,
+                ),
+            )
+            conn.commit()
+            return {"status": "success", "id": pid}
+
+    # 5. SaaS Invoices Ledger & Operations
+    if clean_path == "/api/axiom-hq/invoices":
+        if method == "GET":
+            cur = conn.execute(
+                """
+                SELECT i.*, v.email AS vendor_email, v.phone AS vendor_phone, v.city AS vendor_city
+                FROM axiom_hq_invoices i
+                LEFT JOIN axiom_hq_vendors v ON i.vendor_id = v.id
+                ORDER BY i.created_at DESC
+                """
+            )
+            return {"items": [dict(r) for r in cur.fetchall()]}
+
+        if method == "POST":
+            # Manually generate / issue an invoice for a vendor
+            data = payload or {}
+            vid = data.get("vendor_id")
+            cur = conn.execute("SELECT * FROM axiom_hq_vendors WHERE id = ?", (vid,))
+            vrow = cur.fetchone()
+            if not vrow:
+                raise DomainError(404, f"Vendor {vid} not found", "not_found")
+            v = dict(vrow)
+
+            inv_id = new_id("inv_hq")
+            # Generate sequential invoice number
+            count_cur = conn.execute("SELECT count(*) FROM axiom_hq_invoices")
+            inv_seq = (count_cur.fetchone()[0] or 0) + 101
+            inv_number = f"AXM-2026-{inv_seq}"
+
+            base_fee = float(data.get("base_amount_inr", v["saas_fee_inr"]))
+            gst_fee = round(base_fee * 0.18, 2)
+            total_fee = round(base_fee + gst_fee, 2)
+            now = now_iso()
+            today_str = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d")
+
+            period_start = data.get("period_start", v["next_payment_due_date"])
+            period_end = data.get("period_end", _advance_due_date(period_start, v["billing_cycle"]))
+            due_date = data.get("due_date", v["next_payment_due_date"])
+
+            conn.execute(
+                """
+                INSERT INTO axiom_hq_invoices (
+                    id, invoice_number, vendor_id, vendor_name, plan_name,
+                    billing_cycle, period_start, period_end, base_amount_inr,
+                    gst_amount_inr, total_amount_inr, due_date, status,
+                    paid_at, payment_reference, dispatched_at, notes, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    inv_id,
+                    inv_number,
+                    vid,
+                    v["vendor_name"],
+                    data.get("plan_name", v.get("custom_plan_name") or v["saas_plan"]),
+                    v["billing_cycle"],
+                    period_start,
+                    period_end,
+                    base_fee,
+                    gst_fee,
+                    total_fee,
+                    due_date,
+                    "DUE",
+                    None,
+                    None,
+                    now,
+                    data.get("notes", "HQ generated SaaS subscription invoice"),
+                    now,
+                ),
+            )
+            conn.commit()
+            return {"status": "success", "id": inv_id, "invoice_number": inv_number, "total_amount_inr": total_fee}
+
+    # 6. Record Payment for an Invoice
+    if clean_path.startswith("/api/axiom-hq/invoices/") and clean_path.endswith("/pay") and method == "POST":
+        inv_id = clean_path.split("/")[4]
+        cur = conn.execute("SELECT * FROM axiom_hq_invoices WHERE id = ?", (inv_id,))
+        inv_row = cur.fetchone()
+        if not inv_row:
+            raise DomainError(404, f"Invoice {inv_id} not found", "not_found")
+        inv = dict(inv_row)
+        data = payload or {}
+        now = now_iso()
+        today_str = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d")
+        pay_ref = data.get("payment_reference") or f"HQ-REC-{int(dt.datetime.now(dt.timezone.utc).timestamp())}"
+
+        # 1. Update invoice to PAID
+        conn.execute(
+            """
+            UPDATE axiom_hq_invoices
+            SET status = 'PAID',
+                paid_at = ?,
+                payment_reference = ?,
+                notes = COALESCE(notes || ' | ' || ?, ?)
+            WHERE id = ?
+            """,
+            (now, pay_ref, data.get("notes", "Payment verified by Axiom HQ"), data.get("notes", "Payment verified by Axiom HQ"), inv_id),
+        )
+
+        # 2. Advance vendor next due date and mark ACTIVE_PAID
+        v_cur = conn.execute("SELECT * FROM axiom_hq_vendors WHERE id = ?", (inv["vendor_id"],))
+        v_row = v_cur.fetchone()
+        if v_row:
+            v = dict(v_row)
+            new_due_date = _advance_due_date(v["next_payment_due_date"], v["billing_cycle"])
+            conn.execute(
+                """
+                UPDATE axiom_hq_vendors
+                SET payment_status = 'ACTIVE_PAID',
+                    last_payment_date = ?,
+                    next_payment_due_date = ?
+                WHERE id = ?
+                """,
+                (today_str, new_due_date, inv["vendor_id"]),
+            )
+
+        conn.commit()
+        return {
+            "status": "success",
+            "invoice_id": inv_id,
+            "invoice_number": inv["invoice_number"],
+            "payment_reference": pay_ref,
+            "paid_at": now,
+        }
+
+    # 7. Subscription Billing Automation Engine (Cron / On-Demand Execution)
+    if clean_path == "/api/axiom-hq/billing/run-automation" and method == "POST":
+        now = now_iso()
+        today_date = dt.date.today()
+        today_str = today_date.isoformat()
+
+        vendors_cur = conn.execute("SELECT * FROM axiom_hq_vendors")
+        vendors = [dict(r) for r in vendors_cur.fetchall()]
+
+        invoices_generated = 0
+        reminders_dispatched = 0
+        accounts_suspended = 0
+        actions_log = []
+
+        for v in vendors:
+            try:
+                due_date = dt.date.fromisoformat(v["next_payment_due_date"])
+                days_left = (due_date - today_date).days
+            except Exception:
+                days_left = 0
+
+            # A. Upcoming due date within 7 days -> Auto-generate next cycle invoice if not already generated
+            if 0 <= days_left <= 7:
+                # Check if invoice for this due date already exists
+                existing = conn.execute(
+                    "SELECT id FROM axiom_hq_invoices WHERE vendor_id = ? AND due_date = ?",
+                    (v["id"], v["next_payment_due_date"]),
+                ).fetchone()
+
+                if not existing:
+                    count_cur = conn.execute("SELECT count(*) FROM axiom_hq_invoices")
+                    inv_seq = (count_cur.fetchone()[0] or 0) + 101
+                    inv_number = f"AXM-2026-{inv_seq}"
+                    inv_id = new_id("inv_hq")
+                    base_fee = float(v["saas_fee_inr"])
+                    gst_fee = round(base_fee * 0.18, 2)
+                    total_fee = round(base_fee + gst_fee, 2)
+                    p_end = _advance_due_date(v["next_payment_due_date"], v["billing_cycle"])
+
+                    conn.execute(
+                        """
+                        INSERT INTO axiom_hq_invoices (
+                            id, invoice_number, vendor_id, vendor_name, plan_name,
+                            billing_cycle, period_start, period_end, base_amount_inr,
+                            gst_amount_inr, total_amount_inr, due_date, status,
+                            paid_at, payment_reference, dispatched_at, notes, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            inv_id,
+                            inv_number,
+                            v["id"],
+                            v["vendor_name"],
+                            v.get("custom_plan_name") or v["saas_plan"],
+                            v["billing_cycle"],
+                            v["next_payment_due_date"],
+                            p_end,
+                            base_fee,
+                            gst_fee,
+                            total_fee,
+                            v["next_payment_due_date"],
+                            "DUE",
+                            None,
+                            None,
+                            now,
+                            "Automated renewal billing cycle generation",
+                            now,
+                        ),
+                    )
+                    invoices_generated += 1
+                    actions_log.append(f"Generated invoice {inv_number} for {v['vendor_name']} (Due: {v['next_payment_due_date']})")
+
+                # Update vendor status to DUE_SOON if still marked ACTIVE_PAID
+                if v["payment_status"] == "ACTIVE_PAID":
+                    conn.execute(
+                        "UPDATE axiom_hq_vendors SET payment_status = 'DUE_SOON' WHERE id = ?",
+                        (v["id"],),
+                    )
+                reminders_dispatched += 1
+                actions_log.append(f"Dispatched automated 7-day payment alert to {v['vendor_name']}")
+
+            # B. Overdue: past due date
+            elif days_left < 0:
+                overdue_days = abs(days_left)
+                # Mark unpaid invoices for this vendor as OVERDUE
+                conn.execute(
+                    "UPDATE axiom_hq_invoices SET status = 'OVERDUE' WHERE vendor_id = ? AND status = 'DUE'",
+                    (v["id"],),
+                )
+
+                if overdue_days <= 15:
+                    if v["payment_status"] != "OVERDUE_GRACE":
+                        conn.execute(
+                            "UPDATE axiom_hq_vendors SET payment_status = 'OVERDUE_GRACE' WHERE id = ?",
+                            (v["id"],),
+                        )
+                    reminders_dispatched += 1
+                    actions_log.append(f"Flagged {v['vendor_name']} in 15-day Grace Period ({overdue_days}d overdue)")
+                else:
+                    # > 15 days overdue -> Automated suspension
+                    if v["payment_status"] != "SUSPENDED":
+                        conn.execute(
+                            "UPDATE axiom_hq_vendors SET payment_status = 'SUSPENDED' WHERE id = ?",
+                            (v["id"],),
+                        )
+                        accounts_suspended += 1
+                        actions_log.append(f"SUSPENDED {v['vendor_name']} due to payment default ({overdue_days}d overdue)")
+
+        conn.commit()
+        return {
+            "status": "success",
+            "executed_at": now,
+            "vendors_analyzed": len(vendors),
+            "invoices_generated": invoices_generated,
+            "reminders_dispatched": reminders_dispatched,
+            "accounts_suspended": accounts_suspended,
+            "actions_log": actions_log,
+        }
+
+    # 8. Corporate Portals & Ownership Mapping
     if clean_path == "/api/axiom-hq/corporates":
         if method == "GET":
             cur = conn.execute(
@@ -396,7 +970,7 @@ def handle_axiom_hq(
             conn.commit()
             return {"status": "success", "id": cid}
 
-    # 4. Axiom Platform Command KPIs
+    # 9. Axiom Platform Command KPIs
     if clean_path == "/api/axiom-hq/kpis" and method == "GET":
         v_count = conn.execute("SELECT count(*) FROM axiom_hq_vendors").fetchone()[0]
         c_count = conn.execute("SELECT count(*) FROM axiom_hq_corporates").fetchone()[0]
@@ -404,6 +978,11 @@ def handle_axiom_hq(
         total_gmv = conn.execute("SELECT sum(monthly_gross_gmv_inr) FROM axiom_hq_corporates").fetchone()[0] or 0.0
         total_duties = conn.execute("SELECT sum(monthly_duty_volume) FROM axiom_hq_corporates").fetchone()[0] or 0
         overdue_count = conn.execute("SELECT count(*) FROM axiom_hq_vendors WHERE payment_status = 'OVERDUE_GRACE'").fetchone()[0]
+        suspended_count = conn.execute("SELECT count(*) FROM axiom_hq_vendors WHERE payment_status = 'SUSPENDED'").fetchone()[0]
+
+        paid_invoices_sum = conn.execute("SELECT sum(total_amount_inr) FROM axiom_hq_invoices WHERE status = 'PAID'").fetchone()[0] or 0.0
+        pending_invoices_sum = conn.execute("SELECT sum(total_amount_inr) FROM axiom_hq_invoices WHERE status IN ('DUE', 'OVERDUE')").fetchone()[0] or 0.0
+        plans_count = conn.execute("SELECT count(*) FROM axiom_hq_plans WHERE is_active = 1").fetchone()[0]
 
         return {
             "total_vendors": v_count,
@@ -413,6 +992,10 @@ def handle_axiom_hq(
             "monthly_platform_gmv_inr": round(total_gmv, 2),
             "monthly_duty_volume": total_duties,
             "vendors_overdue_payment": overdue_count,
+            "vendors_suspended": suspended_count,
+            "total_invoices_paid_inr": round(paid_invoices_sum, 2),
+            "total_invoices_pending_inr": round(pending_invoices_sum, 2),
+            "active_plans_count": plans_count,
         }
 
     return None
