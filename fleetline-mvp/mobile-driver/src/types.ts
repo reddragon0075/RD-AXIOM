@@ -15,6 +15,7 @@ export type Duty = {
   vehicle_id?: string | null;
   duty_type?: string;
   booking_reference?: string;
+  version_id?: number;
   calculation_snapshot?: { total_paise?: number };
 };
 
@@ -68,12 +69,4 @@ export type Phase3SustainabilitySummary = {
   average_emissions_kg: number;
   electric_distance_share_pct: number;
   factor_version: string;
-};
-
-export type ApiResponse<T> = {
-  ok: boolean;
-  items?: T[];
-  user?: SessionUser;
-  access_token?: string;
-  [key: string]: unknown;
 };

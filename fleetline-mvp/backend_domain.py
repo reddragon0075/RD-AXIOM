@@ -338,6 +338,9 @@ def initialize_domain_schema(conn) -> None:
     }.items():
         if column not in driver_columns:
             conn.execute(f"ALTER TABLE domain_drivers ADD COLUMN {column} {definition}")
+    duty_columns = {row["name"] for row in conn.execute("PRAGMA table_info(domain_duties)").fetchall()}
+    if "version_id" not in duty_columns:
+        conn.execute("ALTER TABLE domain_duties ADD COLUMN version_id INTEGER NOT NULL DEFAULT 1")
 
 
 def _json(value, fallback):
@@ -742,12 +745,24 @@ def _create_duty(conn, user, payload, ip):
 def _update_duty(conn, user, duty_id, payload, ip):
     org = _org(user)
     row = _assert_owned(conn, "domain_duties", duty_id, org)
+    expected_version = payload.get("expected_version")
+    if expected_version is None:
+        expected_version = payload.get("version_id")
+    if expected_version is not None:
+        current_version = row["version_id"] if "version_id" in row.keys() else 1
+        if int(expected_version) != int(current_version):
+            raise DomainError(
+                409,
+                f"Duty {duty_id} was modified concurrently (current version {current_version} != expected {expected_version}). Refresh and reconcile.",
+                "concurrency_conflict",
+                {"duty_id": duty_id, "current_version": current_version, "expected_version": int(expected_version), "current_status": row["status"]},
+            )
     driver_actor = user["role"] == "driver"
     if driver_actor:
         assignment = conn.execute("SELECT id FROM domain_drivers WHERE id = ? AND user_id = ? AND organization_id = ?", (row["driver_id"], user["id"], org)).fetchone()
         if assignment is None:
             raise DomainError(403, "This duty is not assigned to the signed-in driver", "duty_assignment_required")
-        forbidden = set(payload) - {"status", "start_odometer", "end_odometer", "idempotency_key", "source"}
+        forbidden = set(payload) - {"status", "start_odometer", "end_odometer", "idempotency_key", "source", "expected_version", "version_id"}
         if forbidden:
             raise DomainError(403, "Drivers can only update execution fields", "driver_field_forbidden")
     else:
@@ -794,7 +809,7 @@ def _update_duty(conn, user, duty_id, payload, ip):
             updates.append("completed_at = ?"); values.append(now_iso())
     if not updates:
         return {"ok": True, "item": _duty(conn, duty_id, org)}
-    updates.append("updated_at = ?"); values.append(now_iso()); values.append(duty_id); values.append(org)
+    updates.append("version_id = COALESCE(version_id, 1) + 1"); updates.append("updated_at = ?"); values.append(now_iso()); values.append(duty_id); values.append(org)
     conn.execute(f"UPDATE domain_duties SET {', '.join(updates)} WHERE id = ? AND organization_id = ?", values)
     if next_status:
         conn.execute("INSERT INTO domain_duty_events(id, organization_id, duty_id, event_type, source, payload_json, idempotency_key, event_at, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (new_id("event"), org, duty_id, "status_changed", _text(payload, "source", "driver_app" if driver_actor else "web", maximum=40), json.dumps({"from": row["status"], "to": next_status, "payload": payload}), idempotency_key, now_iso(), user["id"]))

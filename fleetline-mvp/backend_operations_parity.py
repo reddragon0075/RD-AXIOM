@@ -434,6 +434,15 @@ def _closure_item(conn, duty_id: str, org: str):
 def _close_duty(conn, user, duty_id: str, payload: dict, ip: str):
     org = _org(user)
     duty = _assert_owned(conn, "domain_duties", duty_id, org)
+    if duty["status"] in ("cancelled", "completed"):
+        raise DomainError(409, f"Cannot close duty {duty_id} because it is already {duty['status']}.", "duty_already_closed_or_cancelled", {"current_status": duty["status"], "duty_id": duty_id})
+    expected_version = payload.get("expected_version")
+    if expected_version is None:
+        expected_version = payload.get("version_id")
+    if expected_version is not None:
+        current_version = duty["version_id"] if "version_id" in duty.keys() else 1
+        if int(expected_version) != int(current_version):
+            raise DomainError(409, f"Duty {duty_id} was updated concurrently by dispatch (current version {current_version} != expected {expected_version}).", "concurrency_conflict", {"duty_id": duty_id, "current_version": current_version, "expected_version": int(expected_version)})
     if user["role"] == "driver":
         assignment = conn.execute("SELECT id FROM domain_drivers WHERE id = ? AND user_id = ? AND organization_id = ?", (duty["driver_id"], user["id"], org)).fetchone()
         if assignment is None:
@@ -472,7 +481,7 @@ def _close_duty(conn, user, duty_id: str, payload: dict, ip: str):
         if not raw_hash and item.get("content"):
             raw_hash = hashlib.sha256(str(item["content"]).encode("utf-8")).hexdigest()
         conn.execute("INSERT OR IGNORE INTO domain_closure_evidence(id, organization_id, closure_id, duty_id, evidence_type, storage_path, sha256, metadata_json, required, captured_by, captured_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (new_id("evidence"), org, closure_id, duty_id, evidence_type, str(item.get("storage_path") or "")[:500], raw_hash, json.dumps(item.get("metadata") if isinstance(item.get("metadata"), dict) else {}), 1 if evidence_type in required else 0, user["id"], str(item.get("captured_at") or now_iso())))
-    conn.execute("UPDATE domain_duties SET status = 'completed', start_odometer = ?, end_odometer = ?, completed_at = COALESCE(completed_at, ?), updated_at = ? WHERE id = ? AND organization_id = ?", (start_odo, end_odo, now, now, duty_id, org))
+    conn.execute("UPDATE domain_duties SET status = \'completed\', version_id = COALESCE(version_id, 1) + 1, start_odometer = ?, end_odometer = ?, completed_at = COALESCE(completed_at, ?), updated_at = ? WHERE id = ? AND organization_id = ?", (start_odo, end_odo, now, now, duty_id, org))
     booking_id = duty["booking_id"] if "booking_id" in duty.keys() else None
     if booking_id:
         conn.execute("UPDATE domain_bookings SET status = 'completed', updated_at = ? WHERE id = ? AND organization_id = ?", (now, booking_id, org))
