@@ -2489,6 +2489,23 @@
         <div class="workspace-name"><span><i class="workspace-dot"></i> <span id="workspaceName">Workspace</span></span><svg class="workspace-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></div>
       </div>
       <div class="sidebar-scroll" id="sidebarScroll">
+        <!-- Axiom Internal Staff Control Plane (Strictly @axiomfleet.in Only) -->
+        <div class="nav-accordion-group" id="nav-group-axiom-hq" data-section="internal-hq" hidden style="margin-bottom: 8px;">
+          <button class="nav-section nav-section-header" type="button" aria-expanded="true" aria-controls="section-items-internal-hq" style="color: #38bdf8;">
+            <span class="nav-section-label" style="color: #38bdf8; display: flex; align-items: center; gap: 5px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Axiom HQ Staff
+            </span>
+            <span class="nav-section-count" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">STAFF</span>
+            <svg class="nav-accordion-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="nav-section-items" id="section-items-internal-hq">
+            <div class="nav-section-items-inner">
+              <button class="nav-item" id="nav-item-axiom-hq" data-page="axiom-hq" data-tooltip="Axiom HQ Super-Admin Control Plane" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2);"><svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span style="color: #e0f2fe; font-weight: 600;">HQ Command Center</span></button>
+            </div>
+          </div>
+        </div>
+
         <!-- Operations Accordion -->
         <div class="nav-accordion-group" data-section="operations">
           <button class="nav-section nav-section-header" type="button" aria-expanded="true" aria-controls="section-items-operations">
@@ -2574,7 +2591,6 @@
               <div class="nav-section-items-inner">
                 <button class="nav-item" data-page="driver" data-tooltip="Driver app mode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 5h4M11 19h2"/></svg><span>Driver app mode</span></button>
                 <button class="nav-item" data-page="passenger" data-tooltip="Passenger view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3"/><path d="M5 21c.7-4.1 3-6 7-6s6.3 1.9 7 6M4 4h3M17 4h3M3 12h3M18 12h3"/></svg><span>Passenger view</span></button>
-                <button class="nav-item" id="nav-item-axiom-hq" data-page="axiom-hq" data-tooltip="Axiom HQ Command Center" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Axiom HQ Command</span></button>
                 <button class="nav-item" data-page="enterprise" data-tooltip="Enterprise controls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 21V5l8-3 8 3v16M8 9h1M15 9h1M8 13h1M15 13h1M8 17h1M15 17h1M3 21h18"/></svg><span>Enterprise controls</span></button>
                 <button class="nav-item" data-page="parity" data-tooltip="Parity center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="11" cy="18" r="1.5"/></svg><span>Parity center</span></button>
                 <button class="nav-item" data-page="settings" data-tooltip="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="m19.4 15 .1.1a2 2 0 1 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.2a2 2 0 1 1-4 0v-.2a2 2 0 0 0-3.4-1.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A2 2 0 0 0 3.7 11H3.5a2 2 0 1 1 0-4h.2a2 2 0 0 0 1.4-3.4L5 3.5a2 2 0 1 1 2.8-2.8l.1.1A2 2 0 0 0 11.3 2h.2a2 2 0 1 1 4 0v.2a2 2 0 0 0 3.4 1.4l.1-.1A2 2 0 1 1 21.8 6l-.1.1a2 2 0 0 0 1.4 3.4h.2a2 2 0 1 1 0 4h-.2a2 2 0 0 0-1.4 3.4Z" transform="scale(.82) translate(2.6 2.6)"/></svg><span>Settings</span></button>
@@ -2951,7 +2967,9 @@
       const label = toggle.querySelector('span');
       if (label) label.lastChild.textContent = currentUser?.role === 'driver' ? 'Driver menu' : currentUser?.role === 'corporate' ? 'Advanced tools' : 'More tools';
       const role = currentUser?.role;
-      const isStaffUser = Boolean(currentUser?.email?.toLowerCase().endsWith('@axiomfleet.in') || role === 'axiom_admin');
+      const isStaffUser = Boolean(currentUser?.email?.toLowerCase().endsWith('@axiomfleet.in') || role === 'axiom_admin' || role === 'axiom_super_admin');
+      const hqGroup = document.getElementById('nav-group-axiom-hq');
+      if (hqGroup) hqGroup.hidden = !isStaffUser;
       const hqNavBtn = document.getElementById('nav-item-axiom-hq');
       if (hqNavBtn) hqNavBtn.hidden = !isStaffUser;
       const allowed = role === 'driver'
