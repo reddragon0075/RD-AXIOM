@@ -1459,10 +1459,10 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
 
 
 class AxiomFleetHTTPServer(ThreadingHTTPServer):
-    """Threaded local server with enough accept backlog for dashboard bursts."""
+    """Threaded local server with high-capacity accept backlog for shift stampede bursts."""
 
     allow_reuse_address = True
-    request_queue_size = 128
+    request_queue_size = 512
 
 
 def main() -> None:

@@ -111,6 +111,22 @@ export class VendorCommandDashboard {
     fn(this.state);
   }
 
+  appendTelemetryPing(ping) {
+    if (!this.state.telemetryStream) this.state.telemetryStream = [];
+    this.state.telemetryStream.push({ ...ping, timestamp: Date.now() });
+    if (this.state.telemetryStream.length > 500) {
+      this.state.telemetryStream = this.state.telemetryStream.slice(-500);
+    }
+  }
+
+  appendAuditLog(log) {
+    if (!this.state.auditLogs) this.state.auditLogs = [];
+    this.state.auditLogs.unshift({ ...log, timestamp: Date.now() });
+    if (this.state.auditLogs.length > 500) {
+      this.state.auditLogs = this.state.auditLogs.slice(0, 500);
+    }
+  }
+
   init() {
     this.render();
     this.bindEvents();

@@ -267,10 +267,30 @@ def calculate_dual_ledger_duty(
         s_extra_hr = math.ceil(max(0.0, billable_hrs - 4.0)) * s_extra_hr_paise
 
     # Totals Client Ledger
-    c_gross = c_base + c_extra_km + c_extra_hr + c_bhatta + tolls_paise
+    taxable_base_fare_paise = c_base + c_extra_km + c_extra_hr + c_bhatta
+    non_taxable_passthrough_paise = tolls_paise
+    c_gross = taxable_base_fare_paise + non_taxable_passthrough_paise
+
     gst_rate = Decimal(str(client_rate_card.get("gst_rate_pct", 5.0)))
-    c_tax = int((Decimal(c_gross) * (gst_rate / Decimal("100"))).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+    # Pure agent rule (Rule 33 of CGST Rules 2017): GST applies strictly to taxable transport base, excluding actual tolls/parking
+    pure_agent_exempt = client_rate_card.get("pure_agent_toll_exemption", True)
+    tax_base = taxable_base_fare_paise if pure_agent_exempt else c_gross
+    c_tax = int((Decimal(tax_base) * (gst_rate / Decimal("100"))).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
     c_net = c_gross + c_tax
+
+    # Statutory Tax Breakdown: Intra-State (CGST + SGST) vs Inter-State (IGST)
+    is_interstate = bool(duty_params.get("is_interstate", False) or client_rate_card.get("is_interstate", False))
+    if is_interstate:
+        igst_paise = c_tax
+        cgst_paise = 0
+        sgst_paise = 0
+    else:
+        cgst_paise = int(c_tax // 2)
+        sgst_paise = c_tax - cgst_paise
+        igst_paise = 0
+
+    rcm_applicable = bool(client_rate_card.get("rcm_applicable", False))
+    sac_code = str(client_rate_card.get("sac_code", "996601"))
 
     # Totals Supplier Ledger
     penalty_deduction = int(duty_params.get("supplier_penalty_paise", 0))
@@ -288,6 +308,8 @@ def calculate_dual_ledger_duty(
         "billable_km": round(billable_km, 2),
         "billable_hours": round(billable_hrs, 2),
         "client_receivable": {
+            "taxable_base_fare_paise": taxable_base_fare_paise,
+            "pure_agent_passthrough_paise": non_taxable_passthrough_paise,
             "base_paise": c_base,
             "extra_km_paise": c_extra_km,
             "extra_hr_paise": c_extra_hr,
@@ -295,6 +317,11 @@ def calculate_dual_ledger_duty(
             "tolls_parking_paise": tolls_paise,
             "gross_receivable_paise": c_gross,
             "gst_tax_paise": c_tax,
+            "cgst_paise": cgst_paise,
+            "sgst_paise": sgst_paise,
+            "igst_paise": igst_paise,
+            "rcm_applicable": rcm_applicable,
+            "sac_code": sac_code,
             "net_receivable_paise": c_net,
         },
         "supplier_payable": {
