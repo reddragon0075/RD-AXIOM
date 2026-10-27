@@ -242,8 +242,9 @@ def handle_impersonation_api(
             t_name = row[1]
             v_user = f"usr_{row[2]}"
 
-        admin_id = actor_user.get("id", "usr_superadmin")
-        admin_email = actor_user.get("email", "ops-head@axiommDMobility.com")
+        u_dict = dict(actor_user) if hasattr(actor_user, "keys") else (actor_user if isinstance(actor_user, dict) else {})
+        admin_id = u_dict.get("id", "usr_superadmin")
+        admin_email = u_dict.get("email", "ops-head@axiomfleet.com")
 
         token, exp_ts = mint_shadow_jwt(target_tenant_id, t_name, admin_id, v_user, impersonation_mode)
         session_id = f"imp_{uuid.uuid4().hex[:12]}"
