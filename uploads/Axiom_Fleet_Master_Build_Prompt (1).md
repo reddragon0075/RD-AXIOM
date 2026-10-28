@@ -37,7 +37,7 @@ The product must be comparable to leading employee-transportation platforms in f
 - Product language
 - Branding
 
-Do **not** copy or imitate proprietary code, designs, text, private APIs, private technical documents, model weights, datasets, trademarks, product names or protected implementation details belonging to RouteMatic, MoveInSync or any other third party.
+Do **not** copy or imitate proprietary code, designs, text, private APIs, private technical documents, model weights, datasets, trademarks, product names or protected implementation details belonging to Legacy Dispatch Platform, Legacy ETS Platform or any other third party.
 
 Build clean-room functionality based on generic industry requirements and Axiom Fleet and Axiom Network's own product strategy.
 
@@ -2371,7 +2371,7 @@ Requirements:
 - Internationalization-ready architecture
 - Dark mode only if it can be implemented accessibly
 
-Do not copy the visual style, layouts or interaction patterns of RouteMatic, MoveInSync or another competitor pixel-for-pixel.
+Do not copy the visual style, layouts or interaction patterns of Legacy Dispatch Platform, Legacy ETS Platform or another competitor pixel-for-pixel.
 
 ### Axiom Network experience
 

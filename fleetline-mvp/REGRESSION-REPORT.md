@@ -167,7 +167,7 @@ npx esbuild supabase/functions/phase3-orchestrator/index.ts --bundle --external:
 
 ## Corporate account and policy foundation slice
 
-The principal account/policy gap identified in the Indecab comparison is now implemented as an additive domain boundary:
+The principal account/policy gap identified in the legacy rental platform comparison is now implemented as an additive domain boundary:
 
 - Corporate account connection, setup wizard data, copied scope/pricing snapshots, activation guard and idempotent setup replay.
 - Explicit admin, employee-admin and booker/passenger users with grants/denies and tenant visibility evaluation for branch, customer entity, sister company, city, vehicle group, duty type and company scope.
@@ -194,7 +194,7 @@ Focused validation: `python3 corporate_foundation_smoke_test.py` passed all asse
 - The corporate role now opens an account-operations workspace rather than a generic fleet control room: direct/delegated request approvals, Super Admin → employee-admin → booker/passenger hierarchy, tenant-backed people access, policy/SLA watch, supplier and scope coverage, duty-slip governance, Network handoffs, finance evidence and audit activity are visible in one tenant-scoped hierarchy.
 - The recovery surface now distinguishes a missing organization-linked session from a transient sync error. It explains why records are withheld and offers a sign-in or retry path instead of leaving a large blank workspace.
 - The Network page now presents the closed B2B lifecycle as invite and qualify → publish demand → match and quote → approve award → Fleet handoff. Counts come from Network API collections; the page continues to avoid public vendor registration, anonymous lead resale and a second trip ledger.
-- Competitive findings from Indecab's corporate page, Indecab Network walkthrough and driver walkthrough are recorded in `docs/competitor-dashboard-analysis-20260930.md`. The review uses public product behavior as research and does not copy proprietary code, designs or text.
+- Competitive findings from the corporate page, partner network walkthrough and driver walkthrough are recorded in `docs/competitor-dashboard-analysis-20260930.md`. The review uses public product behavior as research and does not copy proprietary code, designs or text.
 
 The correct release description is: **feature-complete local fallback with a Supabase production foundation; not yet a live production deployment.**
 

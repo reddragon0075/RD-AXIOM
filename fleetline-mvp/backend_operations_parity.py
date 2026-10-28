@@ -501,7 +501,16 @@ def _close_duty(conn, user, duty_id: str, payload: dict, ip: str):
         conn.execute("UPDATE domain_bookings SET status = 'completed', updated_at = ? WHERE id = ? AND organization_id = ?", (now, booking_id, org))
     conn.execute("INSERT INTO domain_duty_events(id, organization_id, duty_id, event_type, source, payload_json, event_at, created_by) VALUES (?, ?, ?, 'closed', ?, ?, ?, ?)", (new_id("event"), org, duty_id, str(payload.get("source") or ("driver_app" if user["role"] == "driver" else "web"))[:40], json.dumps({"closure_id": closure_id, "closure_version": version, "completeness": completeness}), now, user["id"]))
     _audit(conn, user, "duty.closed", "duty", duty_id, ip, {"closure_id": closure_id, "closure_version": version, "evidence_count": len(evidence)})
-    return {"ok": True, "item": _closure_item(conn, duty_id, org), "duty": _serialize(conn.execute("SELECT * FROM domain_duties WHERE id = ?", (duty_id,)).fetchone(), ("calculation_snapshot_json",))}
+    trust_audit = None
+    try:
+        from backend_autonomous import compute_trip_trust_score
+        trust_audit = compute_trip_trust_score(conn, duty_id, payload, duty)
+    except Exception as ex:
+        pass
+    ret = {"ok": True, "item": _closure_item(conn, duty_id, org), "duty": _serialize(conn.execute("SELECT * FROM domain_duties WHERE id = ?", (duty_id,)).fetchone(), ("calculation_snapshot_json",))}
+    if trust_audit:
+        ret["trust_audit"] = trust_audit
+    return ret
 
 
 def handle_operations_parity(conn, user, method: str, raw_route: str, payload: dict, ip: str):

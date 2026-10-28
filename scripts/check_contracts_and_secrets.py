@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""Axiom Mobility (Fleetline) CI/CD Quality Gate: Static Seam & Secret Guard.
+"""Axiom Mobility (Fleetline) CI/CD Quality Gate: Static Seam, Secret & Brand Guard.
 
 Verifies:
 1. Zero private secrets, service_role keys, or unauthorized localhost references in client bundles
 2. Key & type contract integrity between backend responses and frontend/mobile consumers
+3. 100% Zero-Trace Eradication: Zero competitor brand terms across entire repository
 """
 
 from __future__ import annotations
 
-import glob
+import base64
 import os
 from pathlib import Path
 import re
@@ -69,14 +70,60 @@ def check_contracts() -> list[str]:
     return violations
 
 
+def check_forbidden_brand_terms() -> list[str]:
+    """Scan all files for forbidden competitor brand terms using base64 encoded patterns."""
+    violations = []
+    # Base64 decoded patterns to prevent self-matching in scanner
+    b64_patterns = [
+        b"bW92ZVxzKlstX10/XHMqaW5ccypbLV9dP1xzKnN5bmM=",  # pattern 1
+        b"cm91dGVccypbLV9dP1xzKm1hdGlj",                  # pattern 2
+        b"aW5kZVxzKlstX10/XHMqY2Ficz8=",                  # pattern 3
+    ]
+    compiled_patterns = [
+        re.compile(base64.b64decode(bp).decode('utf-8'), re.IGNORECASE)
+        for bp in b64_patterns
+    ]
+
+    exclude_dirs = {'.git', 'node_modules', 'venv', '.venv', '__pycache__', 'dist', 'build', '.pytest_cache'}
+    exclude_files = {'competitor_matches.json'}
+
+    for root_dir, dirs, files in os.walk(ROOT):
+        dirs[:] = [d for d in dirs if d not in exclude_dirs]
+        for file in files:
+            if file in exclude_files:
+                continue
+            file_path = Path(root_dir) / file
+            # Check filename
+            for pattern in compiled_patterns:
+                if pattern.search(file):
+                    violations.append(
+                        f"[BRAND_TERM] Prohibited competitor brand in filename: {file_path.relative_to(ROOT)}"
+                    )
+            # Check contents
+            try:
+                with open(file_path, "r", encoding="utf-8", errors="ignore") as fp:
+                    for line_num, line in enumerate(fp, 1):
+                        for pattern in compiled_patterns:
+                            match = pattern.search(line)
+                            if match:
+                                violations.append(
+                                    f"[BRAND_TERM] {file_path.relative_to(ROOT)}:{line_num} contains prohibited competitor term '{match.group(0)}': {line.strip()[:80]}"
+                                )
+            except Exception:
+                pass
+
+    return violations
+
+
 def main():
     print("=" * 60)
-    print("AXIOM MOBILITY QUALITY GATE: CONTRACT & SECRET AUDIT")
+    print("AXIOM MOBILITY QUALITY GATE: CONTRACT, SECRET & BRAND AUDIT")
     print("=" * 60)
 
     secret_violations = check_secrets_and_config()
     contract_violations = check_contracts()
-    all_violations = secret_violations + contract_violations
+    brand_violations = check_forbidden_brand_terms()
+    all_violations = secret_violations + contract_violations + brand_violations
 
     if all_violations:
         print(f"\n[FAIL] Found {len(all_violations)} violation(s):")
@@ -86,6 +133,7 @@ def main():
 
     print("\n[PASS] Zero secret leaks detected.")
     print("[PASS] Contract key definitions fully compliant.")
+    print("[PASS] 100% Zero-Trace Brand Sanitization verified (0 competitor traces).")
     print("=" * 60)
     sys.exit(0)
 

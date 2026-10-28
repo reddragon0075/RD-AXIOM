@@ -1,6 +1,6 @@
 -- ============================================================================
 -- AXIOM MOBILITY (FLEETLINE) "TRI-STACK" ENTERPRISE UPGRADE MIGRATION
--- Benchmark: MoveInSync (ETMS/Safety) + Routematic (SLA/Rings) + Indecab (Dual-Ledger/ERP)
+-- Benchmark: Axiom Tri-Stack Enterprise (ETMS/Safety + SLA/Rings + Dual-Ledger/ERP)
 -- Migration: 20261027020000_schema_tristack_upgrade.sql
 -- ============================================================================
 

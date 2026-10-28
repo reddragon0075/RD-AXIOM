@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression coverage for the additive Indecab-parity completion contracts."""
+"""Regression coverage for the additive enterprise-parity completion contracts."""
 from __future__ import annotations
 import sys
 

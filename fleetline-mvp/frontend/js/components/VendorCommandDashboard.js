@@ -268,6 +268,11 @@ export class VendorCommandDashboard {
             <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; font-size:12px; color:#334155; margin-bottom:22px; line-height:1.6;">
               New dispatches, bookings, and telematics streams are locked. Please contact <strong>billing@axiomfleet.in</strong> or call <strong>+91 80 6900 8800</strong> to complete settlement and immediately unblock your fleet.
             </div>
+            <div>
+              <button class="tab-btn" data-action="self-settle-dues" style="background:#16a34a; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-size:13px; font-weight:800; cursor:pointer; box-shadow:0 4px 12px rgba(22,163,74,0.3);">
+                ⚡ Self-Serve Instant Settlement &amp; Unblock
+              </button>
+            </div>
           </div>
         </div>
       `;
@@ -283,9 +288,14 @@ export class VendorCommandDashboard {
             <span style="font-size:11.5px; color:#b91c1c; margin-left:6px;">(${reason})</span>
           </div>
         </div>
-        <a href="mailto:billing@axiomfleet.in" style="background:#dc2626; color:#fff; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:750; text-decoration:none; white-space:nowrap;">
-          Settle Dues ↗
-        </a>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button class="tab-btn" data-action="self-settle-dues" style="background:#16a34a; color:#fff; border:none; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:800; cursor:pointer;">
+            ⚡ Self-Serve Settle
+          </button>
+          <a href="mailto:billing@axiomfleet.in" style="background:#dc2626; color:#fff; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:750; text-decoration:none; white-space:nowrap;">
+            Billing Help ↗
+          </a>
+        </div>
       </div>
     `;
   }
@@ -368,8 +378,87 @@ export class VendorCommandDashboard {
     `;
   }
 
+  renderSLARadarStrip() {
+    const radar = this.state.slaRadar || {
+      high_risk_count: 1,
+      critical_trips: [
+        {
+          duty_id: "DT-9104",
+          booking_id: "BK-4421",
+          sla_risk_level: "CRITICAL",
+          risk_reason: "Vehicle KA-05-AB-1200 stationary 6.2km away in high congestion",
+          minutes_to_pickup: 14,
+          suggested_backups: [
+            { driver_name: "Kiran R.", vehicle_no: "KA-01-EQ-9021", eta_minutes: 6 }
+          ]
+        }
+      ],
+      night_safety_alerts: [
+        {
+          duty_id: "DT-9104",
+          type: "NIGHT_SAFETY_UNESCORTED",
+          passenger_type: "FEMALE_SOLO",
+          alert: "Night Drop (21:15) requires active Geofence tracking & Escort verification"
+        }
+      ]
+    };
+
+    const criticals = radar.critical_trips || [];
+    const nightAlerts = radar.night_safety_alerts || [];
+    if (!criticals.length && !nightAlerts.length) return "";
+
+    return `
+      <div class="sla-radar-strip" style="background:linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); color:#fff; border-radius:12px; padding:16px 20px; margin-bottom:20px; box-shadow:0 8px 24px rgba(49, 46, 129, 0.25); border:1px solid #4338ca;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:18px;">📡</span>
+            <strong style="font-size:14px; letter-spacing:-0.01em;">Autonomous SLA Breach Radar &amp; Night Safety Guardian</strong>
+            <span style="font-size:10px; background:rgba(239,68,68,0.3); color:#fca5a5; padding:3px 8px; border-radius:6px; font-weight:800; border:1px solid #ef4444;">
+              ${criticals.length} AT-RISK
+            </span>
+          </div>
+          <button data-action="refresh-sla-radar" style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25); color:#fff; padding:5px 12px; font-size:11px; font-weight:700; border-radius:6px; cursor:pointer;">
+            ↻ Scan Radar
+          </button>
+        </div>
+
+        <div style="display:grid; grid-template-columns:${criticals.length && nightAlerts.length ? '1fr 1fr' : '1fr'}; gap:14px;">
+          ${criticals.length ? `
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:12px;">
+              <div style="font-size:11px; font-weight:750; color:#fbbf24; text-transform:uppercase; margin-bottom:6px;">⚠️ Imminent SLA Breach Alert</div>
+              ${criticals.map(t => `
+                <div style="font-size:12px; line-height:1.5;">
+                  <strong>${t.duty_id}</strong> &bull; Pickup within ${t.minutes_to_pickup || 15}m<br/>
+                  <span style="color:#fca5a5;">${t.risk_reason || 'High delay probability'}</span>
+                  ${t.suggested_backups && t.suggested_backups.length ? `
+                    <div style="margin-top:6px; font-size:11px; color:#c7d2fe; display:flex; align-items:center; gap:6px;">
+                      <span>Suggested Fast Backup:</span>
+                      <strong style="color:#fff;">${t.suggested_backups[0].driver_name} (${t.suggested_backups[0].vehicle_no}) &bull; ${t.suggested_backups[0].eta_minutes}m ETA</strong>
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          ${nightAlerts.length ? `
+            <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:12px;">
+              <div style="font-size:11px; font-weight:750; color:#c084fc; text-transform:uppercase; margin-bottom:6px;">🛡️ Night Safety Guardian Active (20:00 - 06:00)</div>
+              ${nightAlerts.map(a => `
+                <div style="font-size:12px; line-height:1.5; color:#e0e7ff;">
+                  <strong>${a.duty_id}</strong>: ${a.alert}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
   renderOperationalView(data, isETS, fin) {
     return `
+      ${this.renderSLARadarStrip()}
       <div class="hero-stats-row">
         <div class="hero-stat-card">
           <div class="hero-title">Total Active Roster Today</div>
@@ -579,7 +668,103 @@ export class VendorCommandDashboard {
         this.onEndImpersonation();
         return;
       }
+
+      // 7. Autonomous: Refresh SLA Radar
+      if (target.closest("[data-action='refresh-sla-radar']")) {
+        await this.fetchSLARadar();
+        return;
+      }
+
+      // 8. Autonomous: Resolve Discrepancy Audit
+      const resolveBtn = target.closest("[data-action='resolve-audit']");
+      if (resolveBtn) {
+        const dutyId = resolveBtn.dataset.dutyId;
+        const resolution = resolveBtn.dataset.resolution;
+        await this.handleResolveAudit(dutyId, resolution);
+        return;
+      }
+
+      // 9. Autonomous: Self-Serve Dunning Unblock
+      if (target.closest("[data-action='self-settle-dues']")) {
+        await this.handleSelfSettleDues();
+        return;
+      }
     }, { signal });
+  }
+
+  async fetchSLARadar() {
+    try {
+      const res = await fetch("/api/v1/ops/sla-radar", { signal: this.abortController.signal });
+      const data = await res.json();
+      if (data.ok) {
+        this.state.slaRadar = data;
+        this.render();
+      }
+    } catch (err) {
+      console.warn("SLA Radar fetch error:", err);
+    }
+  }
+
+  async handleResolveAudit(dutyId, action) {
+    if (this.inFlightRequests.has(`resolve_${dutyId}`)) return;
+    this.inFlightRequests.add(`resolve_${dutyId}`);
+
+    try {
+      const res = await fetch(`/api/v1/duties/${dutyId}/resolve-audit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: action,
+          reason: "Dispatcher 1-click resolution from command center",
+        }),
+        signal: this.abortController.signal,
+      });
+      const data = await res.json();
+      if (data.ok) {
+        alert(`Audit resolved for ${dutyId}: ${action === 'snap_gps_distance' ? 'Snapped to GPS distance' : 'Approved as-is'}. Duty slip ready for billing!`);
+        const actionsEl = document.getElementById(`resolver-actions-${dutyId}`);
+        if (actionsEl) {
+          actionsEl.innerHTML = `<span style="font-size:11px; font-weight:800; color:#16a34a;">✓ Audit Resolved (${action})</span>`;
+        }
+      } else {
+        alert("Resolve error: " + (data.error || "Failed to resolve discrepancy"));
+      }
+    } catch (err) {
+      console.warn("Resolve audit error:", err);
+      alert("Network error resolving audit discrepancy.");
+    } finally {
+      this.inFlightRequests.delete(`resolve_${dutyId}`);
+    }
+  }
+
+  async handleSelfSettleDues() {
+    if (this.inFlightRequests.has("self_settle")) return;
+    this.inFlightRequests.add("self_settle");
+
+    try {
+      const res = await fetch("/api/v1/tenant/self-settle-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          payment_method: "UPI_INSTANT",
+          reference_id: "SETTLE_" + Date.now(),
+        }),
+        signal: this.abortController.signal,
+      });
+      const data = await res.json();
+      if (data.ok) {
+        alert("Payment settled successfully! Account status restored to ACTIVE.");
+        this.state.tenantBlockedState = { account_status: "ACTIVE", amount_owed_paise: 0 };
+        this.render();
+      } else {
+        alert("Settlement failed: " + (data.error || "Please contact billing support."));
+      }
+    } catch (err) {
+      console.warn("Self settle error:", err);
+      alert("Network error processing settlement.");
+    } finally {
+      this.inFlightRequests.delete("self_settle");
+    }
   }
 
   bindDirectButtons() {
@@ -655,6 +840,14 @@ export class VendorCommandDashboard {
             Driver: Ramesh Kumar &bull; Vehicle: KA-01-MJ-4491<br/>
             <strong>Odometer:</strong> 88.0 km &bull; <strong>Raw GPS:</strong> 72.0 km &bull; <strong>Road Snapped:</strong> 71.8 km<br/>
             Discrepancy: +16.0 km exceeds 10% &amp; 5km gate &bull; Held Amount: ₹3,850
+          </div>
+          <div style="display:flex; gap:8px; margin-top:10px;" id="resolver-actions-DT-8819">
+            <button class="tab-btn" data-action="resolve-audit" data-duty-id="DT-8819" data-resolution="snap_gps_distance" style="background:#2563eb; color:#fff; border:none; padding:6px 12px; font-size:11px; font-weight:750; border-radius:6px; cursor:pointer;">
+              🎯 Snap to GPS (71.8 km)
+            </button>
+            <button class="tab-btn" data-action="resolve-audit" data-duty-id="DT-8819" data-resolution="approve_as_is" style="background:var(--surface-soft); color:var(--text-primary); border:1px solid var(--border-line); padding:6px 12px; font-size:11px; font-weight:750; border-radius:6px; cursor:pointer;">
+              ✓ Approve Driver Odo (88 km)
+            </button>
           </div>
         </div>
       `;

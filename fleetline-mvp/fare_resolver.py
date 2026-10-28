@@ -6,7 +6,7 @@ Implements the 4-Tier Waterfall Resolution:
   Tier 3: Tenant Branch/City Default Rack Rate (entity_id IS NULL)
   Tier 4: Tenant Global Base Rate (entity_id IS NULL AND city_id IS NULL)
 
-Also enforces Indecab-style Vehicle Upgrade protection:
+Also enforces enterprise-standard Vehicle Upgrade protection:
 - RECEIVABLE (Customer): Billed on requested_vehicle_group unless charge_upgrade_to_client=True
 - PAYABLE (Supplier): Billed on allotted_vehicle_group (the actual vehicle dispatched)
 """

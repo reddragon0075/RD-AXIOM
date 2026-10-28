@@ -1,4 +1,4 @@
--- Axiom Fleet Indecab-parity completion contracts.
+-- Axiom Fleet enterprise completion contracts.
 --
 -- This migration is intentionally additive.  It covers the employee/passenger
 -- request boundary, route/location evidence, driver rollout readiness, safe

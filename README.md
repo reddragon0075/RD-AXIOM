@@ -3,9 +3,9 @@
 **Axiom Mobility** is a mission-critical, enterprise B2B car rental and employee transport operating platform. It unifies corporate travel desks, associate fleet vendors, driver mobile execution, and partner network clearing houses into a hardened sovereign runtime.
 
 Axiom Mobility is architected to match and surpass the combined industry "Tri-Stack" benchmark:
-1. **MoveInSync Benchmark**: Enterprise Employee Transport Management (ETMS), vehicle routing, and statutory night-shift women's safety compliance.
-2. **Routematic Benchmark**: Multi-vendor SLA governance, automated tier demotion, penalty debit notes, and dynamic fleet dispatch.
-3. **Indecab Benchmark**: B2B spot/contract rental ERP, dual-ledger accounting (Client Receivable vs. Supplier Payable), 3-way distance anti-fraud reconciliation, and Tally Prime XML / GST e-Invoicing.
+1. **Enterprise ETMS Benchmark**: Enterprise Employee Transport Management (ETMS), vehicle routing, and statutory night-shift women's safety compliance.
+2. **Dynamic Dispatch & SLA Benchmark**: Multi-vendor SLA governance, automated tier demotion, penalty debit notes, and dynamic fleet dispatch.
+3. **B2B Rental ERP & Dual-Ledger Benchmark**: B2B spot/contract rental ERP, dual-ledger accounting (Client Receivable vs. Supplier Payable), 3-way distance anti-fraud reconciliation, and Tally Prime XML / GST e-Invoicing.
 
 ---
 

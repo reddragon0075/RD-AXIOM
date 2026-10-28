@@ -1,4 +1,4 @@
-"""Comprehensive Tri-Stack Engine Hardening Test Suite (MoveInSync + Routematic + Indecab Parity)."""
+"""Comprehensive Tri-Stack Engine Hardening Test Suite (Enterprise Fleet + Dynamic Dispatch + ETMS Parity)."""
 
 import json
 import sqlite3

@@ -1,8 +1,8 @@
-# Indecab Help Center → Axiom Fleet product gap analysis
+# Legacy Rental Platform Help Center → Axiom Fleet product gap analysis
 
 **Research date:** 30 September 2026  
 **Product compared:** Axiom Fleet local/mock-first product and Supabase production foundation  
-**Source:** [Indecab Help Center](https://help.indecab.com/)
+**Source:** [Legacy Rental Platform Help Center](https://help.legacyfleet.example.com/)
 
 ## Implementation update — 30 September 2026
 
@@ -29,7 +29,7 @@ records the deeper product gaps that these slices do not claim to close.
 
 ## Executive summary
 
-Indecab is not only a booking and dispatch tool. Its public help center describes a mature car-rental operating system built around:
+Legacy Rental Platform is not only a booking and dispatch tool. Its public help center describes a mature car-rental operating system built around:
 
 1. deeply configurable masters and pricing;
 2. booking, availability and multi-path allotment;
@@ -42,7 +42,7 @@ Indecab is not only a booking and dispatch tool. Its public help center describe
 9. invite-controlled supplier Network workflows; and
 10. India-specific communications, GST and payment operations.
 
-Axiom Fleet already has a stronger foundation in some areas—tenant isolation, auditability, idempotent replay, Supabase/RLS direction, additive Network governance, predictive/sustainability contracts, bill intelligence and an offline-first Driver foundation. The principal gap is **depth of operational productization**: many Axiom endpoints and contracts exist, but the Indecab comparison exposes missing domain detail, configuration UX, production integrations and several day-to-day car-rental workflows.
+Axiom Fleet already has a stronger foundation in some areas—tenant isolation, auditability, idempotent replay, Supabase/RLS direction, additive Network governance, predictive/sustainability contracts, bill intelligence and an offline-first Driver foundation. The principal gap is **depth of operational productization**: many Axiom endpoints and contracts exist, but the Legacy Rental Platform comparison exposes missing domain detail, configuration UX, production integrations and several day-to-day car-rental workflows.
 
 The most important next investment is not another KPI panel. It is a **versioned account, master, policy and entitlement foundation** that can drive booking, allotment, duty, billing and corporate experiences consistently.
 
@@ -53,26 +53,26 @@ The help center was crawled recursively from its public home page.
 - **282 internal URLs** were discovered and fetched.
 - **1 stale public URL** returned 404: an old DLT SMS-template article.
 - **490 unique embedded media assets** were catalogued; the public walkthrough media is GIF-based rather than MP4/WebM-based.
-- The complete sanitized URL/page inventory is in [`indecab-help-crawl-20260930.json`](./indecab-help-crawl-20260930.json).
-- The earlier corporate-account media review covered all seven corporate-account articles and their walkthroughs. For the full 490-asset corpus, this report uses the articles, captions, page flows and linked media inventory; it does not copy Indecab’s assets, code or protected implementation.
+- The complete sanitized URL/page inventory is in [`legacy-fleet-help-crawl-20260930.json`](./legacy-fleet-help-crawl-20260930.json).
+- The earlier corporate-account media review covered all seven corporate-account articles and their walkthroughs. For the full 490-asset corpus, this report uses the articles, captions, page flows and linked media inventory; it does not copy Legacy Rental Platform’s assets, code or protected implementation.
 
 The crawl covered the top-level categories and linked articles for Getting Started, Masters, Operations, Duties, Driver App and Location Tracking, Reports, Network, Business Settings, Corporate Accounts, Tutorials, Purchase and Payments, and release updates through September 2026.
 
 ## What the public product teaches us
 
-### 1. Indecab has a configuration-led operating model
+### 1. Legacy Rental Platform has a configuration-led operating model
 
 The operating system starts with a large set of linked masters: duty types, vehicle groups and categories, taxes, customers, suppliers, drivers, vehicles, duty supporters, labels, feedback forms, employees, billing items, pricing, branches, bank accounts and company/sister-company records. Pricing, taxes, branches, customer defaults and supplier relationships are not secondary settings; they determine what can be booked, allotted, closed and invoiced.
 
 Relevant sources:
 
-- [Masters](https://help.indecab.com/masters)
-- [Duty Types](https://help.indecab.com/duty-types)
-- [Vehicle Groups](https://help.indecab.com/vehicle-groups)
-- [Pricing](https://help.indecab.com/pricing)
-- [Understanding copy pricing functionality](https://help.indecab.com/understanding-copy-pricing-functionality-in-depth)
-- [Branches and access/visibility](https://help.indecab.com/different-ways-to-use-branches-for-access-visibility)
-- [My Companies and sister companies](https://help.indecab.com/how-to-setup-my-companies-and-sister-companies)
+- [Masters](https://help.legacyfleet.example.com/masters)
+- [Duty Types](https://help.legacyfleet.example.com/duty-types)
+- [Vehicle Groups](https://help.legacyfleet.example.com/vehicle-groups)
+- [Pricing](https://help.legacyfleet.example.com/pricing)
+- [Understanding copy pricing functionality](https://help.legacyfleet.example.com/understanding-copy-pricing-functionality-in-depth)
+- [Branches and access/visibility](https://help.legacyfleet.example.com/different-ways-to-use-branches-for-access-visibility)
+- [My Companies and sister companies](https://help.legacyfleet.example.com/how-to-setup-my-companies-and-sister-companies)
 
 ### 2. Booking is a policy and availability engine, not a single form
 
@@ -80,14 +80,14 @@ The help center describes manual, bulk, itinerary and monthly bookings, customer
 
 Relevant sources:
 
-- [Bookings](https://help.indecab.com/bookings)
-- [How to add a booking](https://help.indecab.com/how-to-add-a-booking)
-- [Itinerary booking](https://help.indecab.com/how-to-create-an-itinerary-booking)
-- [Bulk booking](https://help.indecab.com/how-to-add-a-bulk-booking)
-- [Monthly booking](https://help.indecab.com/how-to-add-a-monthly-booking)
-- [Multiple ways to manage allotment](https://help.indecab.com/multiple-ways-to-manage-allotment)
-- [Automated allotment](https://help.indecab.com/how-to-setup-and-use-automated-allotment)
-- [City/duty type/vehicle group restrictions](https://help.indecab.com/how-to-restrict-city-duty-type-vehicle-group-selection-based-on-pricing)
+- [Bookings](https://help.legacyfleet.example.com/bookings)
+- [How to add a booking](https://help.legacyfleet.example.com/how-to-add-a-booking)
+- [Itinerary booking](https://help.legacyfleet.example.com/how-to-create-an-itinerary-booking)
+- [Bulk booking](https://help.legacyfleet.example.com/how-to-add-a-bulk-booking)
+- [Monthly booking](https://help.legacyfleet.example.com/how-to-add-a-monthly-booking)
+- [Multiple ways to manage allotment](https://help.legacyfleet.example.com/multiple-ways-to-manage-allotment)
+- [Automated allotment](https://help.legacyfleet.example.com/how-to-setup-and-use-automated-allotment)
+- [City/duty type/vehicle group restrictions](https://help.legacyfleet.example.com/how-to-restrict-city-duty-type-vehicle-group-selection-based-on-pricing)
 
 ### 3. A duty is an evidence and settlement object
 
@@ -95,11 +95,11 @@ A duty can be closed manually, through an SMS link, through the driver app or th
 
 Relevant sources:
 
-- [How to close a duty](https://help.indecab.com/how-to-close-a-duty)
-- [Close via SMS link](https://help.indecab.com/how-to-close-a-duty-via-an-sms-link)
-- [Indecab Go Driver App](https://help.indecab.com/an-introduction-to-the-indecab-go-driver-app)
-- [Duty-based tracking](https://help.indecab.com/how-to-setup-and-use-duty-based-tracking)
-- [September 2026 updates](https://help.indecab.com/updates-for-sep-2026)
+- [How to close a duty](https://help.legacyfleet.example.com/how-to-close-a-duty)
+- [Close via SMS link](https://help.legacyfleet.example.com/how-to-close-a-duty-via-an-sms-link)
+- [Legacy Rental Platform Go Driver App](https://help.legacyfleet.example.com/an-introduction-to-the-legacy-fleet-go-driver-app)
+- [Duty-based tracking](https://help.legacyfleet.example.com/how-to-setup-and-use-duty-based-tracking)
+- [September 2026 updates](https://help.legacyfleet.example.com/updates-for-sep-2026)
 
 ### 4. Finance is a complete operational loop
 
@@ -107,14 +107,14 @@ The help center covers customer invoices, proforma invoices, monthly and per-dut
 
 Relevant sources:
 
-- [Billing and Receipts](https://help.indecab.com/billing-and-receipts-articles)
-- [How to generate an invoice](https://help.indecab.com/how-to-generate-an-invoice)
-- [Automatic invoice generation](https://help.indecab.com/how-to-automatically-generate-an-invoice-once-a-duty-is-completed)
-- [E-invoices](https://help.indecab.com/how-to-create-an-e-invoice)
-- [Receipts](https://help.indecab.com/how-to-find-and-apply-receipts)
-- [Payment Gateway](https://help.indecab.com/payment-gateway)
-- [Auto-collect](https://help.indecab.com/how-to-setup-and-use-auto-collect)
-- [Driver Payroll](https://help.indecab.com/how-to-calculate-and-export-driver-payroll-data)
+- [Billing and Receipts](https://help.legacyfleet.example.com/billing-and-receipts-articles)
+- [How to generate an invoice](https://help.legacyfleet.example.com/how-to-generate-an-invoice)
+- [Automatic invoice generation](https://help.legacyfleet.example.com/how-to-automatically-generate-an-invoice-once-a-duty-is-completed)
+- [E-invoices](https://help.legacyfleet.example.com/how-to-create-an-e-invoice)
+- [Receipts](https://help.legacyfleet.example.com/how-to-find-and-apply-receipts)
+- [Payment Gateway](https://help.legacyfleet.example.com/payment-gateway)
+- [Auto-collect](https://help.legacyfleet.example.com/how-to-setup-and-use-auto-collect)
+- [Driver Payroll](https://help.legacyfleet.example.com/how-to-calculate-and-export-driver-payroll-data)
 
 ### 5. Corporate Accounts are an entitlement product
 
@@ -122,52 +122,52 @@ The corporate flow connects a customer-side corporate account to the rental acco
 
 Relevant sources:
 
-- [Understanding Corporate Accounts](https://help.indecab.com/understanding-corporate-accounts)
-- [Corporate account structure](https://help.indecab.com/understanding-the-structure-of-corporate-accounts)
-- [Admin employee accounts](https://help.indecab.com/how-to-set-up-an-admin-employee-account)
-- [Booker/passenger accounts](https://help.indecab.com/how-to-create-booker-passenger-accounts)
-- [Passenger duty-slip approval](https://help.indecab.com/how-to-set-up-up-duty-slip-approval-by-passengers)
-- [Custom booking SLA](https://help.indecab.com/how-to-set-up-a-custom-sla-for-bookings)
-- [Cancellation SLA](https://help.indecab.com/how-to-set-a-booking-cancellation-time-sla)
+- [Understanding Corporate Accounts](https://help.legacyfleet.example.com/understanding-corporate-accounts)
+- [Corporate account structure](https://help.legacyfleet.example.com/understanding-the-structure-of-corporate-accounts)
+- [Admin employee accounts](https://help.legacyfleet.example.com/how-to-set-up-an-admin-employee-account)
+- [Booker/passenger accounts](https://help.legacyfleet.example.com/how-to-create-booker-passenger-accounts)
+- [Passenger duty-slip approval](https://help.legacyfleet.example.com/how-to-set-up-up-duty-slip-approval-by-passengers)
+- [Custom booking SLA](https://help.legacyfleet.example.com/how-to-set-up-a-custom-sla-for-bookings)
+- [Cancellation SLA](https://help.legacyfleet.example.com/how-to-set-a-booking-cancellation-time-sla)
 
 ### 6. Network is supplier collaboration, not a public marketplace
 
-Indecab’s public documentation describes supplier invitations, associates, contract/rate synchronisation, booking requests, accept/decline, multiple supplier requests, duty-particular changes and Network duty completion. This confirms the direction already chosen for Axiom Network: closed B2B relationships and controlled handoff rather than public vendor registration.
+Legacy Rental Platform’s public documentation describes supplier invitations, associates, contract/rate synchronisation, booking requests, accept/decline, multiple supplier requests, duty-particular changes and Network duty completion. This confirms the direction already chosen for Axiom Network: closed B2B relationships and controlled handoff rather than public vendor registration.
 
 Relevant sources:
 
-- [Network](https://help.indecab.com/network)
-- [How to start using Network](https://help.indecab.com/how-to-start-using-the-indecab-network)
-- [Invite a supplier](https://help.indecab.com/how-to-invite-a-supplier-to-the-indecab-network)
-- [Add an associate](https://help.indecab.com/how-to-add-an-associate)
-- [Accept a Network booking](https://help.indecab.com/how-to-accept-a-network-booking)
-- [Auto-sync contracts](https://help.indecab.com/how-to-auto-sync-contract-with-your-vendor-accounts)
+- [Network](https://help.legacyfleet.example.com/network)
+- [How to start using Network](https://help.legacyfleet.example.com/how-to-start-using-the-legacy-fleet-network)
+- [Invite a supplier](https://help.legacyfleet.example.com/how-to-invite-a-supplier-to-the-legacy-fleet-network)
+- [Add an associate](https://help.legacyfleet.example.com/how-to-add-an-associate)
+- [Accept a Network booking](https://help.legacyfleet.example.com/how-to-accept-a-network-booking)
+- [Auto-sync contracts](https://help.legacyfleet.example.com/how-to-auto-sync-contract-with-your-vendor-accounts)
 
 ### 7. The Driver product is operationally specific
 
-Indecab documents mobile login, duty start/stop, automatic KM/time tracking, passenger signature, toll/parking images, battery settings, audio alerts, driver-efficiency controls, OTPs, route logging, garage-to-garage duties, SMS closure, DCO users and passenger/customer location sharing.
+Legacy Rental Platform documents mobile login, duty start/stop, automatic KM/time tracking, passenger signature, toll/parking images, battery settings, audio alerts, driver-efficiency controls, OTPs, route logging, garage-to-garage duties, SMS closure, DCO users and passenger/customer location sharing.
 
 Relevant sources:
 
-- [Driver App introduction](https://help.indecab.com/an-introduction-to-the-indecab-go-driver-app)
-- [Driver phone/battery settings](https://help.indecab.com/driver-phone-battery-settings-for-the-indecab-go-driver-app)
-- [Driver efficiency alerts](https://help.indecab.com/driver-efficiency-alerts-and-controls)
-- [Route logging](https://help.indecab.com/how-to-enable-and-use-route-logging)
-- [OTPs to start/stop a duty](https://help.indecab.com/how-to-enable-and-use-otps-to-start-and-stop-a-duty)
-- [Location sharing](https://help.indecab.com/how-to-enable-or-disable-location-sharing)
+- [Driver App introduction](https://help.legacyfleet.example.com/an-introduction-to-the-legacy-fleet-go-driver-app)
+- [Driver phone/battery settings](https://help.legacyfleet.example.com/driver-phone-battery-settings-for-the-legacy-fleet-go-driver-app)
+- [Driver efficiency alerts](https://help.legacyfleet.example.com/driver-efficiency-alerts-and-controls)
+- [Route logging](https://help.legacyfleet.example.com/how-to-enable-and-use-route-logging)
+- [OTPs to start/stop a duty](https://help.legacyfleet.example.com/how-to-enable-and-use-otps-to-start-and-stop-a-duty)
+- [Location sharing](https://help.legacyfleet.example.com/how-to-enable-or-disable-location-sharing)
 
 ### 8. Reports are configurable and export-oriented
 
-Indecab documents business reports by duty or invoice date, customer and supplier ageing, number-of-duties reports, vehicle profitability by vehicle/group, favourites, refresh, filters by customer/supplier/duty type/vehicle group/city/branch/company, data import/export, Tally/Tally Prime and export profiles.
+Legacy Rental Platform documents business reports by duty or invoice date, customer and supplier ageing, number-of-duties reports, vehicle profitability by vehicle/group, favourites, refresh, filters by customer/supplier/duty type/vehicle group/city/branch/company, data import/export, Tally/Tally Prime and export profiles.
 
 Relevant sources:
 
-- [Understanding Reports](https://help.indecab.com/understanding-reports)
-- [Supplier Reports](https://help.indecab.com/understanding-supplier-reports)
-- [Export data](https://help.indecab.com/how-to-export-data)
-- [Export to Tally](https://help.indecab.com/how-to-export-to-tally)
-- [Create an export profile](https://help.indecab.com/how-to-create-an-export-profile)
-- [Vehicle profitability](https://help.indecab.com/how-to-generate-a-vehicle-profitability-report)
+- [Understanding Reports](https://help.legacyfleet.example.com/understanding-reports)
+- [Supplier Reports](https://help.legacyfleet.example.com/understanding-supplier-reports)
+- [Export data](https://help.legacyfleet.example.com/how-to-export-data)
+- [Export to Tally](https://help.legacyfleet.example.com/how-to-export-to-tally)
+- [Create an export profile](https://help.legacyfleet.example.com/how-to-create-an-export-profile)
+- [Vehicle profitability](https://help.legacyfleet.example.com/how-to-generate-a-vehicle-profitability-report)
 
 ## Comparison matrix
 
@@ -178,7 +178,7 @@ Status key:
 - **Missing:** not currently represented as a complete Axiom Fleet capability.
 - **Intentional boundary:** not a gap to copy because it conflicts with the chosen MVP boundary.
 
-| Product area | Indecab capability observed | Axiom Fleet status | Gap / implication |
+| Product area | Legacy Rental Platform capability observed | Axiom Fleet status | Gap / implication |
 |---|---|---|---|
 | Tenant identity and audit | Corporate/vendor/driver accounts, employee logins, role-based access and operating account hierarchy | **Covered / partial** | Axiom has Auth, tenant isolation, audit, invitations, roles and Supabase/RLS direction. Per-user corporate entitlements and production SSO are not complete. |
 | Corporate-to-rental connection | Link customer-side corporate account to rental account; copy scope and pricing | **Missing / partial** | Axiom needs an explicit `corporate_account_connection` and setup wizard with source customer, default supplier, copied duty types, vehicle groups, pricing, GST/address and immutable setup evidence. |
@@ -207,7 +207,7 @@ Status key:
 | Reports | Business, duty count, customer/supplier ageing, vehicle profitability, supplier reports and configurable filters | **Implemented / provider-gated** | Configurable report builder, customer/supplier/city/branch/company/vehicle-group filters, favourites/refresh, profitability/pricing/bill-to-duty outputs and private async exports are present. |
 | Export/import | Rich driver/vehicle/duty imports, Tally/Tally Prime, export profiles, customer/supplier pricing export and Bill To duty export | **Implemented except explicit exclusion** | Rich templates, validation preview, row-level correction/commit UX, CSV/JSON export profiles, pricing and bill-to-duty report types are present. Tally/Tally Prime formats are intentionally skipped. |
 | Feedback | Feedback forms, post-duty feedback and service recovery | **Implemented / provider-gated** | Public token-only links, anonymous submission, notification queue/worker boundary, trend analytics and negative-feedback corrective-action routing are present. |
-| Network | Invite suppliers, associates, contract sync, requests, accept/decline, multi-supplier requests, duty changes and Network completion | **Partial / stronger governance** | Axiom Network has deeper versioned demand, matching, quotes, awards, readiness, scorecards, settlements and disputes. It still needs Indecab-parity associate onboarding, contract/rate sync, supplier booking UX and operational message flows. |
+| Network | Invite suppliers, associates, contract sync, requests, accept/decline, multi-supplier requests, duty changes and Network completion | **Partial / stronger governance** | Axiom Network has deeper versioned demand, matching, quotes, awards, readiness, scorecards, settlements and disputes. It still needs legacy-fleet-parity associate onboarding, contract/rate sync, supplier booking UX and operational message flows. |
 | Driver app | Mobile duty, GPS, digital slip, photo/signature, audio/battery guidance, route logging, SMS fallback | **Partial / release-gated** | Axiom has PWA/native foundations, offline replay, proof, expense, SOS, device and location contracts. Real Android matrix, push credentials, background location, production storage and pilot remain. |
 | Carbon/sustainability | Carbon/emissions reports and vehicle profitability | **Axiom advantage / partial production** | Axiom Phase 3 has factor-versioned emissions, EV eligibility, charging, passenger-km intensity, avoided emissions and targets. Provider/factor governance and production deployment remain. |
 | Product administration | Company profiles, signatures, custom fields, business settings, plan/add-on packaging | **Partial / missing** | Axiom has settings, onboarding, policies and security. Custom fields, company profile/signature, entitlement billing and plan/add-on administration are incomplete. |
@@ -297,7 +297,7 @@ Status key:
     - Signature profiles, custom fields, custom invoice letterhead and branding controls.
 
 15. **Entitlement-based plans and add-ons**
-    - Basic/Pro/driver-mobility/network/API feature entitlements, usage metering and billing. This is not a current MVP requirement but appears in Indecab’s public packaging.
+    - Basic/Pro/driver-mobility/network/API feature entitlements, usage metering and billing. This is not a current MVP requirement but appears in Legacy Rental Platform’s public packaging.
 
 16. **Expanded API/SSO surface**
     - Passenger SSO, company-email SSO, passenger API, HRMS sync, Google Places and external telematics connectors.
@@ -314,7 +314,7 @@ Some differences are deliberate product decisions rather than gaps:
 - Do not duplicate Fleet trips inside Network; keep Fleet as the canonical booking/duty source of truth.
 - Do not start Passenger native development before the Driver physical-device matrix and pilot pass.
 - Do not expose demo operational data simply to make the dashboard look populated.
-- Do not copy Indecab’s proprietary visual design, code, private APIs or help-center text.
+- Do not copy Legacy Rental Platform’s proprietary visual design, code, private APIs or help-center text.
 
 ## Recommended Axiom Fleet improvement sequence
 

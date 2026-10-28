@@ -179,8 +179,9 @@ def check_tenant_killswitch(conn: sqlite3.Connection, organization_id: Optional[
         )
     elif status == "SOFT_BLOCKED":
         # Disallow new booking or duty creations; allow active duty closings, telemetry, and reads
-        is_new_trip_action = (method == "POST" and route in {"/api/bookings", "/api/duties", "/api/trips"}) or (
-            method == "POST" and route.startswith("/api/bookings/") and route.endswith("/dispatch")
+        norm_route = route.replace("/api/v1", "/api") if route.startswith("/api/v1") else route
+        is_new_trip_action = (method == "POST" and norm_route in {"/api/bookings", "/api/duties", "/api/trips"}) or (
+            method == "POST" and norm_route.startswith("/api/bookings/") and norm_route.endswith("/dispatch")
         )
         if is_new_trip_action:
             raise DomainError(

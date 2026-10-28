@@ -23,7 +23,7 @@ A comprehensive security and architectural seam audit across all 143 repository 
 
 #### Bug A.1: Missing `PER_SEAT_SHARED_POOL` Model in Tariff Engine
 - **Files & Lines:** `fleetline-mvp/tariff_engine.py:7, 129-188`
-- **Root Cause:** Model #4 (`PER_SEAT_SHARED_POOL`) is documented in docstrings as a core Tri-Stack capability (MoveInSync benchmark), but is omitted from the `if/elif` dispatch chain in `calculate_dual_ledger_duty()`. It falls into the `else:` block, erroneously billing employee shuttle seat pools as standard 4H/40KM spot rentals.
+- **Root Cause:** Model #4 (`PER_SEAT_SHARED_POOL`) is documented in docstrings as a core Tri-Stack capability (Enterprise ETMS benchmark), but is omitted from the `if/elif` dispatch chain in `calculate_dual_ledger_duty()`. It falls into the `else:` block, erroneously billing employee shuttle seat pools as standard 4H/40KM spot rentals.
 - **Severity:** CRITICAL (Financial calculation error)
 
 #### Bug A.2: Outstation & Zone Ring Double-Deduction & Asymmetric Breakdown in Supplier Payable

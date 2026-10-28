@@ -174,9 +174,9 @@ The production-oriented database/auth foundation is now prepared in `supabase/`:
 
 Copy `supabase/config.example.js` to `supabase/config.js`, add the Supabase project URL and anon key, apply the migration with `supabase db push`, then restart `server.py`. Until configured, the frontend continues to use the local backend fallback.
 
-## Indecab parity completion (2026-10-01)
+## Enterprise parity completion (2026-10-01)
 
-The additive completion slice is documented in `docs/indecab-gap-completion-20261001.md` and covered by `gap_completion_smoke_test.py`. It adds employee/passenger booking requests, availability auto-assignment, route/location evidence, Driver readiness and alert policies, provider-neutral maps/communications/payments/e-invoicing contracts, expense budgets/forecasting, lifecycle sync, closed Network supplier exchange and enterprise custom-field values. Tally/Tally Prime export is intentionally excluded. The matching Supabase migration is `supabase/migrations/20261001000000_gap_completion_contracts.sql` and the Edge boundary is `supabase/functions/gap-completion-orchestrator/`.
+The additive completion slice is documented in `docs/enterprise-gap-completion-20261001.md` and covered by `gap_completion_smoke_test.py`. It adds employee/passenger booking requests, availability auto-assignment, route/location evidence, Driver readiness and alert policies, provider-neutral maps/communications/payments/e-invoicing contracts, expense budgets/forecasting, lifecycle sync, closed Network supplier exchange and enterprise custom-field values. Tally/Tally Prime export is intentionally excluded. The matching Supabase migration is `supabase/migrations/20261001000000_gap_completion_contracts.sql` and the Edge boundary is `supabase/functions/gap-completion-orchestrator/`.
 
 The follow-on usability slice adds the **Axiom action center**: an exception-first queue with source, reason, next step, priority, blocking state and one-click open/snooze/resolve actions. It is implemented locally in `backend_command_center.py`, mirrored by `supabase/migrations/20261001010000_workspace_action_center.sql` and `supabase/functions/workspace-orchestrator/`, and covered by `command_center_smoke_test.py` plus `command_center_contract_test.py`. This is an intentional product advantage over dashboard-heavy operations software: operators see what needs a decision before they learn the whole system.
 
@@ -212,7 +212,7 @@ The follow-on usability slice adds the **Axiom action center**: an exception-fir
 - `domain_smoke_test.py` — end-to-end booking → duty → calculation → invoice → payment test.
 - `execution_smoke_test.py` — driver assignment, execution milestones, offline replay/idempotency, OTP proof and location tracking test.
 - `provider_adapters.py` — mock-first payment, messaging, telephony, maps, e-invoice and storage contracts.
-- `backend_gap_completion.py` — additive Indecab-parity contracts for passenger requests, availability, route/location evidence, alerts, device readiness, provider connections, auto-collect, sync, Network exchange and expense forecasting.
+- `backend_gap_completion.py` — additive enterprise-parity contracts for passenger requests, availability, route/location evidence, alerts, device readiness, provider connections, auto-collect, sync, Network exchange and expense forecasting.
 - `backend_command_center.py` — exception-first action projection and per-user acknowledge/snooze/resolve state over canonical tenant records.
 - `command_center_smoke_test.py` and `command_center_contract_test.py` — local behavior and local/Supabase/OpenAPI contract coverage for the action center.
 - `gap_completion_smoke_test.py` — regression coverage for the additive parity completion slice.

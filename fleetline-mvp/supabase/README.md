@@ -216,7 +216,7 @@ supabase functions deploy feedback-public
 
 Large exports are intended to be asynchronous jobs stored in private object storage with short-lived signed URLs. A production worker should retry `feedback_notifications`, finalize queued report jobs and reconcile provider/bank outcomes. Real bank, payroll, SMS/email and object-storage credentials, plus Tally/Tally Prime integration, remain release-gated or explicitly out of scope.
 
-## Indecab parity completion contracts
+## Enterprise parity completion contracts
 
 Apply `migrations/20261001000000_gap_completion_contracts.sql` after the existing parity migrations, then deploy `functions/gap-completion-orchestrator`. It owns the additive passenger booking request, availability, route/location evidence, Driver readiness/alerts, provider configuration, tokenized auto-collect, invoice automation, lifecycle sync, closed Network supplier exchange and expense budget/forecast routes. The browser adapter routes these contracts through the function when Supabase is enabled and keeps SQLite as the local fallback.
 

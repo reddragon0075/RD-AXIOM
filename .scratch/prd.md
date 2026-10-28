@@ -196,8 +196,8 @@ Technical PRD — Car Rental Operations Platform
  ul li { margin-bottom: 4px; }
  .arch-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin: 16px 0; }
  .arch-box h4 { margin-top: 0; }
- .indecab-teardown { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 20px 24px; margin: 16px 0; }
- .indecab-teardown h4 { color: #9a3412; margin-top: 0; }
+ .legacy-fleet-teardown { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 20px 24px; margin: 16px 0; }
+ .legacy-fleet-teardown h4 { color: #9a3412; margin-top: 0; }
  @media (max-width: 900px) {
  nav { display: none; }
  main { padding: 24px 20px; }
@@ -292,29 +292,29 @@ This Technical PRD specifies what the Car Rental Operations Platform must do and
 
 
 
-### 1.2 Background & Competitor Analysis (Indecab Teardown)
+### 1.2 Background & Competitor Analysis (Legacy Rental Platform Teardown)
 
 
-Indecab (Indecab Technology Services Pvt. Ltd, Mumbai) is the primary competitor in the Indian B2B fleet-operations SaaS segment. A systematic analysis of their published product surface reveals the following capabilities and structural gaps that this platform must address or exceed:
+Legacy Rental Platform (Legacy Rental Platform Technology Services Pvt. Ltd, Mumbai) is the primary competitor in the Indian B2B fleet-operations SaaS segment. A systematic analysis of their published product surface reveals the following capabilities and structural gaps that this platform must address or exceed:
 
 
 
-#### Indecab Product Surface — What They Ship
+#### Legacy Rental Platform Product Surface — What They Ship
 
 
 
 
 | Surface | App / Channel | Observed Capabilities | Known Weaknesses (from public reviews) |
 | --- | --- | --- | --- |
-| Fleet Web Console | app.indecab.com | Duty allotment, driver notification, duty slip auto-creation (KM + time tracking), expense recording, fuel reports, digital signatures, customer management, invoicing, basic billing | No public API, no CSVbulk import documented, UI inconsistency flagged by users |
-| Driver App (Indecab Go) | com.indecab.go · 100K+ DL · 4.5★ | Push notifications on allotment, duty start/stop, auto KM+time tracking, expense input with photo receipts, fuel entry, digital signature capture | GPS lock failure on open areas, "stop duty" hang requiring cache clear (active July 2026), phone overheating reported on low-end devices, odometer photo re-upload loop (Aug 2026) |
-| Corporate Passenger App | com.indecab.corporate · 5K+ DL · 4.5★ | Booking requests, booking status, past trips + route history, supplier/driver contact | Very low adoption (5K vs 100K driver DLs), authentication issues ("daily issue making me late"), no self-service corporate policy controls visible |
-| Indecall Dialer | com.indecab.indecall · 10K+ DL · 3.9★ | Click-to-call from web platform to office phone, call log, duty activity log integration | Requires a separate app install for a basic click-to-dial; poor ratings (3.9); in-app purchases on a workflow tool; most reviews very old (2019–2022) |
+| Fleet Web Console | app.legacyfleet.example.com | Duty allotment, driver notification, duty slip auto-creation (KM + time tracking), expense recording, fuel reports, digital signatures, customer management, invoicing, basic billing | No public API, no CSVbulk import documented, UI inconsistency flagged by users |
+| Driver App (Legacy Rental Platform Go) | com.legacyfleet.app · 100K+ DL · 4.5★ | Push notifications on allotment, duty start/stop, auto KM+time tracking, expense input with photo receipts, fuel entry, digital signature capture | GPS lock failure on open areas, "stop duty" hang requiring cache clear (active July 2026), phone overheating reported on low-end devices, odometer photo re-upload loop (Aug 2026) |
+| Corporate Passenger App | com.legacyfleet.app · 5K+ DL · 4.5★ | Booking requests, booking status, past trips + route history, supplier/driver contact | Very low adoption (5K vs 100K driver DLs), authentication issues ("daily issue making me late"), no self-service corporate policy controls visible |
+| Indecall Dialer | com.legacyfleet.app · 10K+ DL · 3.9★ | Click-to-call from web platform to office phone, call log, duty activity log integration | Requires a separate app install for a basic click-to-dial; poor ratings (3.9); in-app purchases on a workflow tool; most reviews very old (2019–2022) |
 
 
 
 
-#### Indecab Legacy Stack — Inferred Architectural Constraints
+#### Legacy Rental Platform Legacy Stack — Inferred Architectural Constraints
 
 
 * **Monolithic web application:** Single web console for fleet operations. No evidence of micro-frontend or modular tenant architecture.
@@ -981,7 +981,7 @@ Start duty captures reporting location (GPS), odometer (manual + optional photo)
 
 
 **AC:** (1) Start confirmed to server or queued for sync within 5s of tap; (2) GPS accuracy <50m required or warned; (3) tracking initiated even if confirmation is delayed by poor connectivity.
-**TN:** Offline-first: start event written to local WatermelonDB immediately; background sync queue retries until acknowledged by server. GPS: minimum accuracy threshold configurable; accuracy and battery level stored with each point. Tracking: background location service using platform APIs (Foreground Service on Android, Background Location on iOS); foreground notification persistent while duty is active — this directly addresses Indecab Go's GPS failure mode.
+**TN:** Offline-first: start event written to local WatermelonDB immediately; background sync queue retries until acknowledged by server. GPS: minimum accuracy threshold configurable; accuracy and battery level stored with each point. Tracking: background location service using platform APIs (Foreground Service on Android, Background Location on iOS); foreground notification persistent while duty is active — this directly addresses Legacy Rental Platform Go's GPS failure mode.
 
 
 
@@ -995,7 +995,7 @@ Background GPS batching (configurable interval: 30s default), expense add (toll/
 
 
 **AC:** (1) GPS points queued locally during offline periods and synced with gap annotation on reconnect; (2) expense photos uploaded async without blocking duty flow; (3) no fabricated points (interpolated points marked).
-**TN:** GPS batch: local SQLite buffer; flush when ≥10 points or 60s elapsed or connectivity restored. Gap annotation: if gap between last known point and reconnect point >5 min, both endpoints tagged with gap\_type='connectivity'. Photo upload: separate upload queue; slip close not blocked by pending photo uploads but uploads must complete before slip is finalised. Interpolated points marked with `source='interpolated'` — direct fix for Indecab Go's GPS accuracy issue.
+**TN:** GPS batch: local SQLite buffer; flush when ≥10 points or 60s elapsed or connectivity restored. Gap annotation: if gap between last known point and reconnect point >5 min, both endpoints tagged with gap\_type='connectivity'. Photo upload: separate upload queue; slip close not blocked by pending photo uploads but uploads must complete before slip is finalised. Interpolated points marked with `source='interpolated'` — direct fix for Legacy Rental Platform Go's GPS accuracy issue.
 
 
 
@@ -1009,7 +1009,7 @@ Stop duty captures drop location (GPS), odometer, end OTP (V1), digital signatur
 
 
 **AC:** (1) Stop available offline and syncs on reconnect without hang; (2) calculation preview shown before submit; (3) final submit idempotent (retry safe).
-**TN:** Stop duty: event written locally first; server submission with idempotency key = duty\_id + 'stop'. Retry logic: exponential backoff, max 5 retries, then escalate to attention queue. This directly addresses Indecab Go's "stop duty hang requiring cache clear" bug — state is never dependent on a synchronous server response before the local state transition. Calculation preview: computed locally from cached duty type + price book (synced at allotment); server validates and may adjust on submission.
+**TN:** Stop duty: event written locally first; server submission with idempotency key = duty\_id + 'stop'. Retry logic: exponential backoff, max 5 retries, then escalate to attention queue. This directly addresses Legacy Rental Platform Go's "stop duty hang requiring cache clear" bug — state is never dependent on a synchronous server response before the local state transition. Calculation preview: computed locally from cached duty type + price book (synced at allotment); server validates and may adjust on submission.
 
 
 
@@ -1026,7 +1026,7 @@ P1V1
 | FR-175 | OTP start/stop: passenger-delivered codes; supervisor override | OTP: 6-digit, 10-min expiry, max 3 resends, 5-min resend cooldown. Override: permission-gated, requires reason + evidence note. OTP events stored in duty\_otp\_events. |
 | FR-176 | SOS: single-tap distress; 3-channel delivery (push + SMS + WhatsApp) to configured contacts | SOS always visible as FAB during active duty. Delivery via 3 parallel channels; delivery receipts stored. SOS button non-dismissable during active trip. |
 | FR-177 | Live share: tokenised link with expiry, revoke, view count | Token: 32-byte random, stored hashed, 24h expiry default. Revoke: Redis blocklist, effective in <5s. View count: Redis INCR on each access. |
-| FR-178 | Masked calling: click-to-call from app; no separate dialer app required | Native SDK integration (Exotel/Knowlarity) — no separate app install, directly addressing Indecab's Indecall anti-pattern. Call log stored on duty timeline. Recording retention per policy. |
+| FR-178 | Masked calling: click-to-call from app; no separate dialer app required | Native SDK integration (Exotel/Knowlarity) — no separate app install, directly addressing Legacy Rental Platform's Indecall anti-pattern. Call log stored on duty timeline. Recording retention per policy. |
 | FR-182 | Post-trip: history, slips, approve/reject with reason, rating with issue tags | Rating prompt: sent via push 10 min after duty completion, respects quiet hours (22:00–07:00 IST). |
 
 
@@ -1037,7 +1037,7 @@ P1V1
 ### E9 — Passenger App Gap-Filled
 
 
-**GAP IDENTIFIED:** The original PRD referenced the passenger app (U7) in personas and release strategy but had no dedicated epic with FRs. The corporate app is Indecab's weakest surface (5K downloads, auth failures). This is a major competitive opportunity — addressed here.
+**GAP IDENTIFIED:** The original PRD referenced the passenger app (U7) in personas and release strategy but had no dedicated epic with FRs. The corporate app is Legacy Rental Platform's weakest surface (5K downloads, auth failures). This is a major competitive opportunity — addressed here.
 
 
 FR-185
@@ -1049,7 +1049,7 @@ Company-email-based authentication via corporate SSO (OIDC/SAML) or invite-code 
 
 
 **AC:** (1) SSO login completes <5s round-trip; (2) invite-code auth works without SSO; (3) unauthenticated users see clear "contact your admin" message, not a blank error.
-**TN:** SSO via OIDC: redirect flow; token exchanged for platform JWT. Invite-code: 8-char alphanumeric, single-use, 48h expiry, sent to corporate email. This fixes Indecab Corporate's "daily login failure" issue by supporting SSO as primary auth rather than username/password only.
+**TN:** SSO via OIDC: redirect flow; token exchanged for platform JWT. Invite-code: 8-char alphanumeric, single-use, 48h expiry, sent to corporate email. This fixes Legacy Rental Platform Corporate's "daily login failure" issue by supporting SSO as primary auth rather than username/password only.
 
 
 
@@ -1148,14 +1148,14 @@ Provider failover, delivery log, DLT sender/template onboarding tracker; brand m
 FR-202
 Masked Calling (Native — No Separate App)
 P1V1
-Competitive Gap vs Indecab
+Competitive Gap vs Legacy Rental Platform
 
 
 Click-to-call with number masking, consent + recording disclosure, and call entries on the duty timeline. No separate dialer app required.
 
 
 **AC:** (1) Real numbers never exposed to counterparties; (2) unanswered-call retries logged; (3) recordings retained per policy with access control; (4) no app install required beyond core platform apps.
-**TN:** Integration via Exotel or Knowlarity API (not Indecab's "install a separate app" pattern). Web console: click-to-call button triggers API call that bridges the two parties. Driver app: in-app call via SDK bridge. Call events stored in duty\_call\_log (duty\_id, caller\_type, callee\_type, duration, recording\_key, timestamp). Recording: S3 storage, access restricted to supervisor+ roles, 90-day retention default.
+**TN:** Integration via Exotel or Knowlarity API (not Legacy Rental Platform's "install a separate app" pattern). Web console: click-to-call button triggers API call that bridges the two parties. Driver app: in-app call via SDK bridge. Call events stored in duty\_call\_log (duty\_id, caller\_type, callee\_type, duration, recording\_key, timestamp). Recording: S3 storage, access restricted to supervisor+ roles, 90-day retention default.
 
 
 
@@ -1234,7 +1234,7 @@ Separate admin console with SSO-enforced staff login, internal roles, deny-by-de
 ### E15 — Offline-First Architecture & Resilience New Epic
 
 
-**GAP IDENTIFIED:** The original PRD mentioned offline tolerance as a goal and in UX notes but had no dedicated functional requirements defining the offline contract, sync protocol, or conflict resolution. This is a critical gap given that Indecab Go's most-reported failures are connectivity-related. This epic makes the offline contract explicit and testable.
+**GAP IDENTIFIED:** The original PRD mentioned offline tolerance as a goal and in UX notes but had no dedicated functional requirements defining the offline contract, sync protocol, or conflict resolution. This is a critical gap given that Legacy Rental Platform Go's most-reported failures are connectivity-related. This epic makes the offline contract explicit and testable.
 
 
 FR-250

@@ -2,7 +2,7 @@
 
 **Implemented 30 September 2026 · local fallback plus Supabase production boundary**
 
-This slice closes the principal corporate-account gap identified in the Indecab comparison without opening Axiom Network registration or inventing operational data. It is additive to the existing hybrid console and keeps the current tenant/auth/audit/idempotency contracts.
+This slice closes the principal corporate-account gap identified in the Legacy Rental Platform comparison without opening Axiom Network registration or inventing operational data. It is additive to the existing hybrid console and keeps the current tenant/auth/audit/idempotency contracts.
 
 ## Delivered contracts
 

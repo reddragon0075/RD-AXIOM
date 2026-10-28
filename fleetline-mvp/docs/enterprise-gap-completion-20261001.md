@@ -1,8 +1,8 @@
-# Indecab parity completion slice
+# Legacy Rental Platform parity completion slice
 
 Date: 2026-10-01
 
-This slice closes the remaining local/Supabase contract gaps identified in the Indecab comparison. Tally/Tally Prime export is explicitly excluded.
+This slice closes the remaining local/Supabase contract gaps identified in the Legacy Rental Platform comparison. Tally/Tally Prime export is explicitly excluded.
 
 ## Implemented contracts
 

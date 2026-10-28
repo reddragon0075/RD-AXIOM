@@ -71,6 +71,15 @@ from backend_commercial import (
     handle_public_prospects,
     initialize_commercial_schema,
 )
+from backend_autonomous import (
+    check_credit_limit_dunning,
+    compute_trip_trust_score,
+    initialize_autonomous_schema,
+    resolve_duty_audit,
+    scan_sla_radar,
+    self_settle_tenant_dues,
+    simulate_tariff_scenarios,
+)
 
 
 ROOT = Path(__file__).resolve().parent
@@ -383,6 +392,7 @@ def initialize_database() -> None:
         initialize_tristack_schema(conn)
         initialize_impersonation_schema(conn)
         initialize_commercial_schema(conn)
+        initialize_autonomous_schema(conn)
         if not test_fixtures_enabled():
             purge_demo_records(conn)
             try:
@@ -1216,6 +1226,10 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             route = urlsplit(self.path).path.rstrip("/") or "/"
             mutation = method in {"POST", "PATCH", "DELETE"}
 
+            # Auto-Dunning Credit Limit Check
+            if user.get("organization_id"):
+                check_credit_limit_dunning(conn, user["organization_id"])
+
             # Delinquent Tenant Kill-Switch Check
             check_tenant_killswitch(conn, user.get("organization_id"), method, route)
 
@@ -1242,6 +1256,20 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 raise DomainError(409, "Corporate booking policy blocked this request", "corporate_policy_blocked", corporate_evaluation)
             booking_approval_route = re.match(r"^/api/bookings/([^/]+)/approve$", route)
             booking_approval_created = bool(booking_approval_route and conn.execute("SELECT 1 FROM domain_booking_approvals WHERE organization_id = ? AND booking_id = ? AND status = 'pending' LIMIT 1", (user["organization_id"], booking_approval_route.group(1))).fetchone()) if user["organization_id"] else False
+            # Autonomous Mobility Platform Handlers
+            result = None
+            if (route in {"/api/ops/sla-radar", "/api/v1/ops/sla-radar"}) and method == "GET":
+                result = scan_sla_radar(conn, user.get("organization_id"))
+            elif (route in {"/api/admin/tariff-simulator", "/api/v1/admin/tariff-simulator"}) and method == "POST":
+                result = simulate_tariff_scenarios(payload)
+            elif (route in {"/api/tenant/self-settle-payment", "/api/v1/tenant/self-settle-payment"}) and method == "POST":
+                result = self_settle_tenant_dues(conn, user, payload, self.client_address[0])
+            else:
+                audit_resolve_match = re.match(r"^/api/duties/([^/]+)/resolve-audit$", route)
+                if audit_resolve_match and method == "POST":
+                    duty_id = audit_resolve_match.group(1)
+                    result = resolve_duty_audit(conn, user, duty_id, str(payload.get("action") or "approve_as_is"), str(payload.get("reason") or ""), self.client_address[0])
+
             # Network owns its role guard before generic domain handlers. This
             # keeps a driver account from being misreported as organization-
             # missing when it attempts a closed Network route.
@@ -1367,7 +1395,7 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 self._api_public_feedback(method)
             elif route in {"/api/public/prospects", "/api/v1/public/prospects"} and method == "POST":
                 self._api_public_prospects(method)
-            elif route.startswith(("/api/overview",  "/api/customers", "/api/drivers", "/api/vehicles", "/api/manufacturers", "/api/bookings", "/api/duties", "/api/invoices", "/api/payments", "/api/sync", "/api/branches", "/api/suppliers", "/api/price-books", "/api/fare", "/api/documents", "/api/invitations", "/api/employees", "/api/policies", "/api/approvals", "/api/notifications", "/api/reports", "/api/audit", "/api/tickets", "/api/privacy", "/api/integrations", "/api/organization", "/api/settings", "/api/onboarding", "/api/setup", "/api/duplicates", "/api/receipts", "/api/supplier-bills", "/api/costs", "/api/vehicle-costs", "/api/supplier-payouts", "/api/driver-payouts", "/api/financial-actions", "/api/reconciliations", "/api/approval-steps", "/api/admin", "/api/network", "/api/alerts", "/api/geofences", "/api/passenger", "/api/devices", "/api/practice-duties", "/api/webhooks", "/api/trips", "/api/updates", "/api/sla", "/api/tax", "/api/capacity", "/api/availability", "/api/allotment", "/api/billing-notes", "/api/payment-links", "/api/payment-authorizations", "/api/auto-collect", "/api/invoice-automation", "/api/provider-connections", "/api/maps", "/api/driver", "/api/driver-alert-policies", "/api/jobs", "/api/security", "/api/masters", "/api/operations", "/api/safety", "/api/permissions", "/api/mobile", "/api/views", "/api/bill-intelligence", "/api/corporate", "/api/enterprise", "/api/duty-closure-jobs", "/api/phase3", "/api/invoice-runs", "/api/collections", "/api/export-profiles", "/api/workspace", "/api/finance", "/api/communications", "/api/supplier-purchases", "/api/supplier-ageing", "/api/supplier-settlements", "/api/supplier-payment-requests", "/api/supplier-advances", "/api/supplier-settlement-approvals", "/api/fuel-entries", "/api/fuel-stations", "/api/fuel-prices", "/api/fuel-analytics", "/api/petty-cash", "/api/driver-allowances", "/api/payroll", "/api/reporting", "/api/imports", "/api/feedback", "/api/axiom-hq", "/api/legal-entities", "/api/tri-stack", "/api/v1/admin")):
+            elif route.startswith(("/api/overview",  "/api/customers", "/api/drivers", "/api/vehicles", "/api/manufacturers", "/api/bookings", "/api/duties", "/api/invoices", "/api/payments", "/api/sync", "/api/branches", "/api/suppliers", "/api/price-books", "/api/fare", "/api/documents", "/api/invitations", "/api/employees", "/api/policies", "/api/approvals", "/api/notifications", "/api/reports", "/api/audit", "/api/tickets", "/api/privacy", "/api/integrations", "/api/organization", "/api/settings", "/api/onboarding", "/api/setup", "/api/duplicates", "/api/receipts", "/api/supplier-bills", "/api/costs", "/api/vehicle-costs", "/api/supplier-payouts", "/api/driver-payouts", "/api/financial-actions", "/api/reconciliations", "/api/approval-steps", "/api/admin", "/api/network", "/api/alerts", "/api/geofences", "/api/passenger", "/api/devices", "/api/practice-duties", "/api/webhooks", "/api/trips", "/api/updates", "/api/sla", "/api/tax", "/api/capacity", "/api/availability", "/api/allotment", "/api/billing-notes", "/api/payment-links", "/api/payment-authorizations", "/api/auto-collect", "/api/invoice-automation", "/api/provider-connections", "/api/maps", "/api/driver", "/api/driver-alert-policies", "/api/jobs", "/api/security", "/api/masters", "/api/operations", "/api/safety", "/api/permissions", "/api/mobile", "/api/views", "/api/bill-intelligence", "/api/corporate", "/api/enterprise", "/api/duty-closure-jobs", "/api/phase3", "/api/invoice-runs", "/api/collections", "/api/export-profiles", "/api/workspace", "/api/finance", "/api/communications", "/api/supplier-purchases", "/api/supplier-ageing", "/api/supplier-settlements", "/api/supplier-payment-requests", "/api/supplier-advances", "/api/supplier-settlement-approvals", "/api/fuel-entries", "/api/fuel-stations", "/api/fuel-prices", "/api/fuel-analytics", "/api/petty-cash", "/api/driver-allowances", "/api/payroll", "/api/reporting", "/api/imports", "/api/feedback", "/api/axiom-hq", "/api/legal-entities", "/api/tri-stack", "/api/v1/admin", "/api/ops", "/api/v1/ops", "/api/tenant", "/api/v1/tenant")):
                 self._api_domain(method)
             else:
                 raise APIError(404, "API route not found", "not_found")

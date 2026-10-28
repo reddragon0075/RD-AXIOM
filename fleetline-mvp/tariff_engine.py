@@ -4,7 +4,7 @@ Dual-Ledger Resolution (Client Receivable vs. Supplier Payable) in exact integer
 1. HR_KM_SLAB (Spot Rental with Auto-Slab Package Optimizer)
 2. OUTSTATION_CALENDAR_DAY (Calendar-Day Rules & Driver Bhatta)
 3. RADIAL_ZONE_RING (Campus concentric geofenced rings)
-4. PER_SEAT_SHARED_POOL (MoveInSync shared employee seat split)
+4. PER_SEAT_SHARED_POOL (Axiom shared employee seat split)
 5. MONTHLY_DEDICATED_FIXED_VARIABLE (Dedicated monthly fleet lease)
 6. FUEL_INDEXED_BACK_TO_BACK (Dynamic daily fuel tariff index adjustment)
 """
@@ -216,7 +216,7 @@ def calculate_dual_ledger_duty(
         s_extra_hr = 0
 
     elif mode == "PER_SEAT_SHARED_POOL":
-        # MoveInSync benchmark: Employee shuttle shared pool
+        # Axiom Enterprise benchmark: Employee shuttle shared pool
         passengers_count = max(1, int(duty_params.get("passengers_count", 1)))
         per_seat_rate = int(client_rate_card.get("per_seat_rate_paise", 35000))
         c_base = passengers_count * per_seat_rate
@@ -344,3 +344,9 @@ def calculate_dual_ledger_duty(
         "slab_explanation": slab_note,
         "maker_checker_audit_hold": is_negative_margin or margin_floor_breached,
     }
+
+
+def simulate_tariff_scenarios(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Runs What-If Tariff Simulation across all 6 billing models."""
+    from backend_autonomous import simulate_tariff_scenarios as _sim
+    return _sim(payload)

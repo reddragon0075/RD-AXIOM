@@ -1,4 +1,4 @@
-"""Additive Indecab-parity completion contracts.
+"""Additive enterprise-parity completion contracts.
 
 This module contains the small pieces that were still missing from the local
 Axiom Fleet contract surface: employee/passenger booking requests, resource

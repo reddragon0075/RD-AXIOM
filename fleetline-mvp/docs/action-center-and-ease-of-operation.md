@@ -67,7 +67,7 @@ Action state is per user and tenant. Resolving the action does not mutate the bo
 
 ## Product advantage beyond parity
 
-Indecab comparison work identified a mature set of configuration and operational workflows. Axiom Fleet should close those gaps without copying its interface or creating configuration fatigue. The action center is the first layer of that advantage. The next product improvements should preserve the same rule: turn complexity into guided decisions, not more navigation.
+Legacy Rental Platform comparison work identified a mature set of configuration and operational workflows. Axiom Fleet should close those gaps without copying its interface or creating configuration fatigue. The action center is the first layer of that advantage. The next product improvements should preserve the same rule: turn complexity into guided decisions, not more navigation.
 
 Recommended follow-ons:
 

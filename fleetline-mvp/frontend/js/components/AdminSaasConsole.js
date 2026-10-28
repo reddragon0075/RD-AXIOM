@@ -114,6 +114,7 @@ export class AdminSaasConsole {
       ],
       selectedTenantForImpersonation: null,
       topUpModalTenant: null,
+      tariffSimulation: null,
     };
 
     this.inrFormatter = new Intl.NumberFormat("en-IN", {
@@ -279,6 +280,9 @@ export class AdminSaasConsole {
             <button class="tab-btn ${this.state.activeView === 'PROSPECTS' ? 'active' : ''}" data-view="PROSPECTS">
               📋 Website Prospects & Sales CRM (${this.state.prospects.length})
             </button>
+            <button class="tab-btn ${this.state.activeView === 'SIMULATOR' ? 'active' : ''}" data-view="SIMULATOR">
+              📊 What-If Tariff Simulator
+            </button>
           </div>
           <div style="font-size:11px; color:var(--text-secondary); font-weight:700;">
             Axiom HQ Commercial Governance &bull; Strict IDOR Enforced
@@ -286,7 +290,13 @@ export class AdminSaasConsole {
         </div>
 
         <!-- 3. Dynamic View Content -->
-        ${this.state.activeView === 'RECEIVABLES' ? this.renderReceivablesView() : (this.state.activeView === 'PROSPECTS' ? this.renderProspectsView() : this.renderTenantsView())}
+        ${this.state.activeView === 'RECEIVABLES'
+          ? this.renderReceivablesView()
+          : (this.state.activeView === 'PROSPECTS'
+              ? this.renderProspectsView()
+              : (this.state.activeView === 'SIMULATOR'
+                  ? this.renderSimulatorView()
+                  : this.renderTenantsView()))}
       </div>
 
       <!-- Modals -->
@@ -462,6 +472,99 @@ export class AdminSaasConsole {
             }).join("")}
           </tbody>
         </table>
+      </div>
+    `;
+  }
+
+  renderSimulatorView() {
+    const sim = this.state.tariffSimulation;
+    return `
+      <div style="background:var(--card-bg); border:1px solid var(--border-line); border-radius:12px; padding:20px; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div>
+            <h3 style="margin:0 0 4px; font-size:16px; font-weight:800; color:var(--text-primary);">⚡ "What-If" Multi-Model Tariff Savings Simulator</h3>
+            <p style="margin:0; font-size:12px; color:var(--text-secondary);">Run prospective corporate fleet parameters across all 6 tariff models simultaneously to find optimal spend.</p>
+          </div>
+          <button class="tab-btn" data-action="run-tariff-sim" style="background:var(--axiom-purple); color:#fff; font-weight:800; padding:8px 16px; border-radius:8px; border:none; cursor:pointer;">
+            ▶ Run 6-Model Simulation
+          </button>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; margin-bottom:18px;">
+          <div>
+            <label style="font-size:11px; font-weight:750; color:var(--text-secondary); display:block; margin-bottom:6px;">Monthly Trip Volume</label>
+            <input type="number" id="sim-trips" value="120" style="width:100%; padding:8px 12px; background:var(--surface-soft); border:1px solid var(--border-line); border-radius:6px; font-size:13px; font-weight:700;" />
+          </div>
+          <div>
+            <label style="font-size:11px; font-weight:750; color:var(--text-secondary); display:block; margin-bottom:6px;">Average Distance / Trip (KM)</label>
+            <input type="number" id="sim-distance" value="40" style="width:100%; padding:8px 12px; background:var(--surface-soft); border:1px solid var(--border-line); border-radius:6px; font-size:13px; font-weight:700;" />
+          </div>
+          <div>
+            <label style="font-size:11px; font-weight:750; color:var(--text-secondary); display:block; margin-bottom:6px;">Average Duration / Trip (Hours)</label>
+            <input type="number" id="sim-duration" value="3.5" step="0.5" style="width:100%; padding:8px 12px; background:var(--surface-soft); border:1px solid var(--border-line); border-radius:6px; font-size:13px; font-weight:700;" />
+          </div>
+        </div>
+
+        ${sim ? `
+          <div style="background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:10px; padding:16px; margin-bottom:18px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <span class="status-pill status-active" style="font-size:10px;">OPTIMAL RECOMMENDATION</span>
+                <h4 style="margin:6px 0 2px; font-size:18px; color:#166534; font-weight:800;">
+                  ${sim.optimal_recommendation.optimal_title} (₹${this.decimalFormatter.format(sim.optimal_recommendation.effective_cost_per_km_inr)} / km)
+                </h4>
+                <p style="margin:0; font-size:12px; color:#15803d;">
+                  ${sim.optimal_recommendation.pitch_summary}
+                </p>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:#15803d; font-weight:700;">Projected Monthly Savings</div>
+                <div style="font-size:22px; font-weight:900; color:#166534;">
+                  ₹${this.decimalFormatter.format(sim.optimal_recommendation.projected_monthly_savings_inr)}
+                </div>
+                <span style="font-size:11px; font-weight:800; background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:4px;">
+                  ${sim.optimal_recommendation.savings_percentage}% ROI
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <table class="saas-table">
+            <thead>
+              <tr>
+                <th>Tariff Model</th>
+                <th>Single Trip Rate (₹)</th>
+                <th>Monthly Client Spend (₹)</th>
+                <th>Monthly Vendor Cost (₹)</th>
+                <th>Projected Gross Margin (₹)</th>
+                <th>Effective Cost / KM (₹)</th>
+                <th>Recommendation</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sim.comparison_matrix.map(m => `
+                <tr style="${m.model === sim.optimal_recommendation.optimal_model ? 'background:rgba(22, 101, 52, 0.05); font-weight:750;' : ''}">
+                  <td>
+                    <strong>${m.model_title}</strong>
+                    ${m.model === sim.optimal_recommendation.optimal_model ? ' <span class="status-pill status-active" style="font-size:9px;">BEST VALUE</span>' : ''}
+                  </td>
+                  <td>${this.inrFormatter.format(m.single_trip_client_inr)}</td>
+                  <td style="font-weight:800;">${this.inrFormatter.format(m.monthly_client_spend_inr)}</td>
+                  <td>${this.inrFormatter.format(m.monthly_vendor_cost_inr)}</td>
+                  <td style="color:var(--success-emerald); font-weight:700;">${this.inrFormatter.format(m.gross_margin_inr)} (${m.gross_margin_percentage}%)</td>
+                  <td>₹${m.effective_cost_per_km_inr}</td>
+                  <td>
+                    ${m.model === sim.optimal_recommendation.optimal_model ? '<strong style="color:#166534;">Recommended for Pitch</strong>' : '<span style="color:var(--text-subtle);">Alternative</span>'}
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        ` : `
+          <div style="text-align:center; padding:30px; border:1px dashed var(--border-line); border-radius:8px; color:var(--text-secondary);">
+            Click <strong>"Run 6-Model Simulation"</strong> to evaluate projected spending across Slab, Outstation, Zone Ring, Package, Flat, and Day Rate models.
+          </div>
+        `}
       </div>
     `;
   }
@@ -646,7 +749,45 @@ export class AdminSaasConsole {
         this.openPaymentModal(tid, tname, owed);
         return;
       }
+
+      // Autonomous: Run Tariff Simulator
+      const simBtn = target.closest("[data-action='run-tariff-sim']");
+      if (simBtn) {
+        await this.runTariffSimulation();
+        return;
+      }
     }, { signal });
+  }
+
+  async runTariffSimulation() {
+    const tripsInput = this.container.querySelector("#sim-trips");
+    const distInput = this.container.querySelector("#sim-distance");
+    const durInput = this.container.querySelector("#sim-duration");
+
+    const payload = {
+      monthly_trips: tripsInput ? parseInt(tripsInput.value, 10) || 120 : 120,
+      average_distance_km: distInput ? parseFloat(distInput.value) || 40 : 40,
+      average_duration_hours: durInput ? parseFloat(durInput.value) || 3.5 : 3.5,
+    };
+
+    try {
+      const res = await fetch("/api/v1/admin/tariff-simulator", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: this.abortController.signal,
+      });
+      const data = await res.json();
+      if (data.ok) {
+        this.state.tariffSimulation = data;
+        this.render();
+      } else {
+        alert("Simulator error: " + (data.error || "Failed to run simulation"));
+      }
+    } catch (err) {
+      console.warn("Simulator fetch error:", err);
+      alert("Network error running tariff simulator.");
+    }
   }
 
   async onboardProspect(prospectId) {
