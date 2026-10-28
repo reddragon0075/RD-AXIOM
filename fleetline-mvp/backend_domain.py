@@ -322,6 +322,9 @@ def initialize_domain_schema(conn) -> None:
         "seating_capacity": "INTEGER NOT NULL DEFAULT 4",
         "luggage_capacity": "INTEGER NOT NULL DEFAULT 0",
         "ownership_type": "TEXT NOT NULL DEFAULT 'owned'",
+        "supplier_id": "TEXT NOT NULL DEFAULT ''",
+        "supplier_name": "TEXT NOT NULL DEFAULT ''",
+        "owner_name": "TEXT NOT NULL DEFAULT ''",
         "branch_name": "TEXT NOT NULL DEFAULT ''",
         "gps_provider": "TEXT NOT NULL DEFAULT ''",
         "rc_expiry": "TEXT",
@@ -607,6 +610,10 @@ def _create_vehicle(conn, user, payload, ip):
             parts = make_model.split(" ", 1)
             manufacturer = parts[0]
             model = parts[1] if len(parts) > 1 else ""
+    if not manufacturer:
+        raise DomainError(400, "Manufacturer is a required field and cannot be empty", "validation_error")
+    if not model:
+        raise DomainError(400, "Model is a required field and cannot be empty", "validation_error")
     values = (
         vehicle_id, org, registration, _text(payload, "vehicle_type", "sedan", 40),
         _text(payload, "vehicle_group", maximum=80), make_model,
@@ -621,7 +628,11 @@ def _create_vehicle(conn, user, payload, ip):
         _text(payload, "charging_status", "unknown", 24),
         _int(payload, "energy_price_per_kwh_minor", 0) or None,
         _int(payload, "seating_capacity", 4), _int(payload, "luggage_capacity", 0),
-        _text(payload, "ownership_type", "owned", 30), _text(payload, "branch_name", maximum=100),
+        _text(payload, "ownership_type", "owned", 30),
+        _text(payload, "supplier_id", maximum=64),
+        _text(payload, "supplier_name", maximum=120),
+        _text(payload, "owner_name", maximum=120),
+        _text(payload, "branch_name", maximum=100),
         _text(payload, "gps_provider", maximum=80), _text(payload, "rc_expiry", maximum=40) or None,
         _text(payload, "insurance_expiry", maximum=40) or None, _text(payload, "puc_expiry", maximum=40) or None,
         _text(payload, "notes", maximum=500), manufacturer, model, now, now,
@@ -630,9 +641,9 @@ def _create_vehicle(conn, user, payload, ip):
         id, organization_id, registration_number, vehicle_type, vehicle_group, make_model, year, city, status,
         fuel_type, ev_eligible, battery_capacity_kwh, usable_range_km, energy_consumption_kwh_per_km,
         charging_connector, charging_power_kw, charging_status, energy_price_per_kwh_minor,
-        seating_capacity, luggage_capacity, ownership_type, branch_name, gps_provider, rc_expiry,
+        seating_capacity, luggage_capacity, ownership_type, supplier_id, supplier_name, owner_name, branch_name, gps_provider, rc_expiry,
         insurance_expiry, puc_expiry, notes, manufacturer, model, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
     _audit(conn, user, "vehicle.created", "vehicle", vehicle_id, ip, {"registration_number": registration})
     return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_vehicles WHERE id = ?", (vehicle_id,)).fetchone())}
 

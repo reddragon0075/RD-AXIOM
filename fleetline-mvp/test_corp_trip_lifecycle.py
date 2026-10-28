@@ -83,13 +83,18 @@ def main():
     else:
         print(f"✓ Found Company: '{target_cust['name']}' with Code: '{target_cust.get('code')}' (ID: {target_cust['id']})")
 
-    # 3. Get active supplier, driver and vehicle (supplier first)
+    # 3. Get active supplier, driver and vehicle (pick ones without active duty conflict)
     status, suppliers = api("GET", "/api/suppliers")
     supplier = suppliers["items"][0] if suppliers.get("items") else None
+    status, duties = api("GET", "/api/duties?limit=200")
+    active_duties = [d for d in duties.get("items", []) if d.get("status") not in ("completed", "billed", "cancelled")]
+    busy_drivers = {d.get("driver_id") for d in active_duties if d.get("driver_id")}
+    busy_vehicles = {d.get("vehicle_id") for d in active_duties if d.get("vehicle_id")}
+
     status, drivers = api("GET", "/api/drivers")
-    driver = drivers["items"][0]
+    driver = next((d for d in drivers.get("items", []) if d.get("id") not in busy_drivers), drivers["items"][0])
     status, vehicles = api("GET", "/api/vehicles")
-    vehicle = vehicles["items"][0]
+    vehicle = next((v for v in vehicles.get("items", []) if v.get("id") not in busy_vehicles), vehicles["items"][0])
 
     now_utc = datetime.now(timezone.utc)
     reporting_iso = (now_utc + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ")

@@ -220,8 +220,12 @@ def handle_impersonation_api(
     path: str,
     body: Dict[str, Any],
     ip_address: str = "127.0.0.1"
-) -> Dict[str, Any]:
+) -> Optional[Dict[str, Any]]:
     """Controller for admin impersonation and SaaS tenant management."""
+    clean_path = path.split("?")[0]
+    if not (clean_path.startswith("/api/v1/admin/impersonate") or clean_path.startswith("/api/v1/admin/saas")):
+        return None
+
     now_iso = dt.datetime.now(dt.timezone.utc).isoformat()
 
     # RBAC Guard: Restrict SaaS Console and Impersonation APIs to verified superadmins and Axiom staff

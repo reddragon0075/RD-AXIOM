@@ -637,7 +637,24 @@ def ensure_user_from_client(conn: sqlite3.Connection, user_data: dict, handler: 
     return conn.execute(user_select_sql() + " WHERE u.id = ?", (user_id,)).fetchone()
 
 
-def current_user(conn: sqlite3.Connection, handler: SimpleHTTPRequestHandler) -> sqlite3.Row | None:
+class UserRecord(dict):
+    """Dict-compatible wrapper around sqlite3.Row supporting key/index access and .get()."""
+
+    def __init__(self, row: sqlite3.Row | dict):
+        if isinstance(row, dict):
+            super().__init__(row)
+            self._row = row
+        else:
+            super().__init__(dict(row))
+            self._row = row
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self._row[key]
+        return super().__getitem__(key)
+
+
+def current_user(conn: sqlite3.Connection, handler: SimpleHTTPRequestHandler) -> UserRecord | None:
     shadow_header = handler.headers.get("X-Axiom-Shadow-Token") or (handler.headers.get("Authorization", "").split("Bearer ")[-1].strip() if "Bearer " in handler.headers.get("Authorization", "") else None)
     if shadow_header and "." in shadow_header:
         shadow_payload = verify_shadow_jwt(shadow_header)
@@ -655,7 +672,8 @@ def current_user(conn: sqlite3.Connection, handler: SimpleHTTPRequestHandler) ->
                     "city": "Bengaluru"
                 }
             }
-            return ensure_user_from_client(conn, v_user_data, handler)
+            res = ensure_user_from_client(conn, v_user_data, handler)
+            return UserRecord(res) if res is not None else None
 
     token = request_token(handler)
     if token:
@@ -664,7 +682,7 @@ def current_user(conn: sqlite3.Connection, handler: SimpleHTTPRequestHandler) ->
             (token_hash(token), utc_now()),
         ).fetchone()
         if row is not None:
-            return row
+            return UserRecord(row)
         conn.execute("DELETE FROM sessions WHERE token_hash = ?", (token_hash(token),))
 
     if not is_production():
@@ -673,7 +691,8 @@ def current_user(conn: sqlite3.Connection, handler: SimpleHTTPRequestHandler) ->
             try:
                 client_user = json.loads(client_user_raw)
                 if isinstance(client_user, dict):
-                    return ensure_user_from_client(conn, client_user, handler)
+                    res = ensure_user_from_client(conn, client_user, handler)
+                    return UserRecord(res) if res is not None else None
             except Exception:
                 pass
 
@@ -681,18 +700,20 @@ def current_user(conn: sqlite3.Connection, handler: SimpleHTTPRequestHandler) ->
         if client_email:
             row = conn.execute(user_select_sql() + " WHERE lower(u.email) = ?", (client_email,)).fetchone()
             if row is not None:
-                return row
+                return UserRecord(row)
 
     req_path = getattr(handler, "path", "")
     if req_path.startswith("/api/v1/admin") and not is_production():
-        return ensure_user_from_client(conn, {
+        res = ensure_user_from_client(conn, {
             "id": "usr_superadmin",
             "email": "ops-head@axiomfleet.com",
             "role": "vendor",
             "name": "Axiom SuperAdmin"
         }, handler)
+        return UserRecord(res) if res is not None else None
 
     return None
+
 
 
 def create_session(conn: sqlite3.Connection, user_id: str, handler: SimpleHTTPRequestHandler) -> str:
@@ -843,11 +864,14 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             payload["details"] = details
         self._json(error.status, payload)
 
-    def _require_user(self, conn: sqlite3.Connection) -> sqlite3.Row:
+    def _require_user(self, conn: sqlite3.Connection) -> UserRecord:
         row = current_user(conn, self)
         if row is None:
             raise APIError(401, "Sign in required", "unauthorized")
         return row
+
+    def _user_from_request(self, conn: sqlite3.Connection) -> UserRecord | None:
+        return current_user(conn, self)
 
     def _api_health(self) -> None:
         self._json(200, {"ok": True, "status": "alive", "service": "axiom-fleet-backend", "storage": "sqlite", "time": utc_now()})
@@ -1289,9 +1313,12 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 or route in {"/api/vendor/payout-balance", "/api/v1/vendor/payout-balance"}
             ):
                 result = handle_treasury_release(conn, user, method, self.path, payload, self.client_address[0])
-            result = result if result is not None else (handle_network(conn, user, method, self.path, payload, self.client_address[0]) if route.startswith("/api/network/v1") else None)
-            result = result if result is not None else handle_hyper_network(conn, user, method, self.path, payload, self.client_address[0])
-            result = result if result is not None else handle_bill_intelligence(conn, user, method, self.path, payload, self.client_address[0])
+            if result is None:
+                result = handle_network(conn, user, method, self.path, payload, self.client_address[0]) if route.startswith("/api/network/v1") else None
+            if result is None:
+                result = handle_hyper_network(conn, user, method, self.path, payload, self.client_address[0])
+            if result is None:
+                result = handle_bill_intelligence(conn, user, method, self.path, payload, self.client_address[0])
             if result is None:
                 result = handle_commercial(conn, user, method, self.path, payload, self.client_address[0])
             if result is None:

@@ -698,7 +698,7 @@ def _soft_update(conn, user, route, method, payload, ip):
         "manufacturers": ("domain_manufacturers", ("name", "code", "country", "status")),
         "vehicles": ("domain_vehicles", (
             "registration_number", "vehicle_type", "vehicle_group", "make_model", "manufacturer", "model", "year", "city", "status",
-            "fuel_type", "seating_capacity", "luggage_capacity", "ownership_type", "branch_name",
+            "fuel_type", "seating_capacity", "luggage_capacity", "ownership_type", "supplier_id", "supplier_name", "owner_name", "branch_name",
             "gps_provider", "rc_expiry", "insurance_expiry", "puc_expiry", "notes",
         )),
         "suppliers": ("domain_suppliers", ("name", "email", "phone", "gstin", "status")),
@@ -724,6 +724,11 @@ def _soft_update(conn, user, route, method, payload, ip):
             else:
                 value = str(payload[key] or "").strip()
             updates.append(f"{key} = ?"); values.append(value)
+    if parts[2] == "vehicles":
+        if "manufacturer" in payload and not str(payload["manufacturer"] or "").strip():
+            raise DomainError(400, "Manufacturer is a required field and cannot be empty", "validation_error")
+        if "model" in payload and not str(payload["model"] or "").strip():
+            raise DomainError(400, "Model is a required field and cannot be empty", "validation_error")
     if parts[2] == "vehicles" and ("manufacturer" in payload or "model" in payload) and "make_model" not in payload:
         new_mfr = str(payload.get("manufacturer") or (row["manufacturer"] if "manufacturer" in row.keys() else "")).strip()
         new_model = str(payload.get("model") or (row["model"] if "model" in row.keys() else "")).strip()

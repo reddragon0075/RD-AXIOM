@@ -16,6 +16,8 @@ Thumbs.db
 .temp/
 *.log
 temp_chrome*/
+temp_p_snap/
+temp_*/
 Axiom_Corporate/
 brag-output/
 uploads/

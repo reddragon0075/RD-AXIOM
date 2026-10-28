@@ -1437,6 +1437,121 @@
     .booking-duty-type-pill { display: inline-block; padding: 2px 7px; font-size: 10px; font-weight: 650; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; border-radius: 4px; white-space: nowrap; }
     .booking-cell-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+    /* Universal Table & Booking Pagination Controls */
+    .table-pagination,
+    .booking-pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 12px 18px;
+      border-top: 1px solid #e2e8f0;
+      background: #fafbfe;
+      font-size: 11.5px;
+      color: #475569;
+    }
+    .table-pagination-left,
+    .booking-pagination-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .table-pagination-summary,
+    .booking-pagination-summary {
+      font-weight: 500;
+      color: #475569;
+    }
+    .table-pagination-summary strong,
+    .booking-pagination-summary strong {
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .table-page-size-wrap,
+    .booking-page-size-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      color: #64748b;
+    }
+    .table-page-size-select,
+    .booking-page-size-select {
+      height: 28px;
+      padding: 0 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #1e293b;
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+    .table-page-size-select:focus,
+    .table-page-size-select:hover,
+    .booking-page-size-select:focus,
+    .booking-page-size-select:hover {
+      border-color: var(--blue, #2563eb);
+      box-shadow: 0 0 0 2px rgba(37,99,235,.1);
+    }
+    .table-pagination-right,
+    .booking-pagination-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .table-page-btn,
+    .booking-page-btn {
+      min-width: 28px;
+      height: 28px;
+      padding: 0 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #334155;
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      transition: all .15s ease;
+    }
+    .table-page-btn:hover:not(:disabled),
+    .booking-page-btn:hover:not(:disabled) {
+      background: #f1f5f9;
+      color: var(--blue, #2563eb);
+      border-color: #94a3b8;
+    }
+    .table-page-btn.active,
+    .booking-page-btn.active {
+      background: var(--blue, #2563eb);
+      color: #fff;
+      border-color: var(--blue, #2563eb);
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(37,99,235,.25);
+    }
+    .table-page-btn:disabled,
+    .booking-page-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: #f8fafc;
+      border-color: #e2e8f0;
+      color: #94a3b8;
+    }
+    .table-page-ellipsis,
+    .booking-page-ellipsis {
+      padding: 0 4px;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      user-select: none;
+    }
+
     /* Inline Assignment Controls for Bookings (Zero-popup quick allotment) */
     .booking-inline-cell {
       position: relative;
@@ -2706,7 +2821,7 @@
       } catch (_) {}
       return 'overview';
     })();
-    const state = { page: savedActivePage, dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const state = { page: savedActivePage, dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
     const advancedPages = new Set(['customers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq']);
@@ -3464,6 +3579,16 @@
 
       const modal = modalShell(`Webhook Payload Inspector: ${esc(item.id)}`, 'Live integration request/response audit payload · <span class="status green">PII &amp; Secrets Sanitized</span>', body, `${button('Close','','data-close-modal')}${button(icon('refresh')+' Replay Webhook','primary',`data-modal-replay="${esc(item.id)}"`) }`);
       modal.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', closeModal));
+      const ownSelect = modal.querySelector('#vehOwnershipSelect');
+      if (ownSelect) {
+        ownSelect.addEventListener('change', e => {
+          const val = e.target.value;
+          const supWrap = modal.querySelector('#vehSupplierWrap');
+          const dcoWrap = modal.querySelector('#vehDcoWrap');
+          if (supWrap) supWrap.style.display = (val === 'supplier') ? '' : 'none';
+          if (dcoWrap) dcoWrap.style.display = (val === 'dco') ? '' : 'none';
+        });
+      }
       modal.querySelector(`[data-modal-replay]`)?.addEventListener('click', async (e) => {
         closeModal();
         await replayWebhook(item.id);
@@ -3760,6 +3885,75 @@
         return sortDir === 'asc' ? timeA - timeB : timeB - timeA;
       });
 
+      // Booking pagination calculation
+      const totalItems = rows.length;
+      const pageSizeRaw = state.bookingPageSize || 10;
+      const pageSize = pageSizeRaw === 'all' ? (totalItems || 1) : Math.max(1, Number(pageSizeRaw) || 10);
+      const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+      const currentPage = Math.min(Math.max(1, Number(state.bookingPage) || 1), totalPages);
+      state.bookingPage = currentPage;
+
+      const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, totalItems);
+      const paginatedRows = rows.slice(startIndex, endIndex);
+
+      function generateBookingPageButtons() {
+        if (totalPages <= 1) {
+          return `<button type="button" class="booking-page-btn active" data-booking-page="1">1</button>`;
+        }
+        const pageNumbers = [];
+        const delta = 1;
+        const left = Math.max(2, currentPage - delta);
+        const right = Math.min(totalPages - 1, currentPage + delta);
+
+        pageNumbers.push(1);
+        if (left > 2) {
+          pageNumbers.push('...');
+        }
+        for (let i = left; i <= right; i++) {
+          pageNumbers.push(i);
+        }
+        if (right < totalPages - 1) {
+          pageNumbers.push('...');
+        }
+        if (totalPages > 1) {
+          pageNumbers.push(totalPages);
+        }
+
+        return pageNumbers.map(p => {
+          if (p === '...') return `<span class="booking-page-ellipsis">…</span>`;
+          const isActive = p === currentPage;
+          return `<button type="button" class="booking-page-btn ${isActive ? 'active' : ''}" data-booking-page="${p}">${p}</button>`;
+        }).join('');
+      }
+
+      const paginationMarkup = `
+        <div class="booking-pagination">
+          <div class="booking-pagination-left">
+            <div class="booking-pagination-summary">
+              Showing <strong>${totalItems === 0 ? 0 : startIndex + 1}–${endIndex}</strong> of <strong>${totalItems}</strong> bookings
+            </div>
+            <div class="booking-page-size-wrap">
+              <label for="bookingPageSizeSelect">Rows per page:</label>
+              <select id="bookingPageSizeSelect" class="booking-page-size-select" data-action="booking-page-size">
+                <option value="10" ${pageSizeRaw == 10 ? 'selected' : ''}>10</option>
+                <option value="20" ${pageSizeRaw == 20 ? 'selected' : ''}>20</option>
+                <option value="50" ${pageSizeRaw == 50 ? 'selected' : ''}>50</option>
+                <option value="100" ${pageSizeRaw == 100 ? 'selected' : ''}>100</option>
+                <option value="all" ${pageSizeRaw === 'all' ? 'selected' : ''}>All (${totalItems})</option>
+              </select>
+            </div>
+          </div>
+          <div class="booking-pagination-right">
+            <button type="button" class="booking-page-btn" data-action="booking-page-first" title="First page" aria-label="First page" ${currentPage <= 1 ? 'disabled' : ''}>«</button>
+            <button type="button" class="booking-page-btn" data-action="booking-page-prev" title="Previous page" aria-label="Previous page" ${currentPage <= 1 ? 'disabled' : ''}>‹</button>
+            ${generateBookingPageButtons()}
+            <button type="button" class="booking-page-btn" data-action="booking-page-next" title="Next page" aria-label="Next page" ${currentPage >= totalPages ? 'disabled' : ''}>›</button>
+            <button type="button" class="booking-page-btn" data-action="booking-page-last" title="Last page" aria-label="Last page" ${currentPage >= totalPages ? 'disabled' : ''}>»</button>
+          </div>
+        </div>
+      `;
+
       const requested = (state.liveData?.bookings?.items || []).filter(item => ['requested','pending_approval'].includes(item.status)).length;
       const attentionCount = allRows.filter(r => r.attentionNeeded).length;
 
@@ -3874,7 +4068,7 @@
   const isAmber = tab === 'Incoming' && tabCounts[tab];
   const countClass = isAlert ? 'alert' : (isAmber ? 'amber' : '');
   return `<button class="tab ${activeTab === tab ? 'active' : ''}" data-booking-tab="${esc(tab)}">${tab} <span class="booking-tab-count ${countClass}">${tabCounts[tab]}</span></button>`;
-}).join('')}</div></div><div class="booking-filter-bar"><label class="booking-search-label"><span>${icon('search')}</span><input id="bookingQuery" class="booking-search-input" placeholder="Type here to filter by name, number, city, duty type, company name or booking ID" value="${esc(state.bookingQuery || '')}">${state.bookingQuery ? `<button type="button" class="booking-search-clear" data-action="clear-booking-search" title="Clear search">×</button>` : ''}</label><div class="booking-date-controls"><button class="btn icon small" data-action="booking-date-prev" title="Previous 30 days" aria-label="Previous 30 days">‹</button><div class="booking-date-range"><input type="date" id="bookingDateFrom" class="booking-date-input" value="${esc(state.bookingDateFrom || '')}" title="From date"><span class="booking-date-sep">→</span><input type="date" id="bookingDateTo" class="booking-date-input" value="${esc(state.bookingDateTo || '')}" title="To date"></div><button class="btn icon small" data-action="booking-date-next" title="Next 30 days" aria-label="Next 30 days">›</button><button class="booking-clear-btn" id="clearBookingFilters" data-action="clear-booking-filters">CLEAR FILTERS</button><span class="booking-total-view">Total: ${rows.length} view</span></div></div>${quickInsertMarkup}<div class="table-wrap booking-table-wrap"><table class="booking-table"><thead><tr><th class="sortable" data-action="sort-booking-date" title="Sort by date" style="cursor:pointer">Date <span style="font-size:9px">${sortDir === 'asc' ? '▲' : '▼'}</span></th><th>Customer</th><th>Passenger</th><th>Supplier</th><th>Driver</th><th>Vehicle</th><th>Duty Type</th><th>Rep. Address</th><th>Drop Address</th><th>Remarks</th><th>City</th><th>Rep.Time</th><th>Est.Drop</th><th>Status</th></tr></thead><tbody>${rows.length ? rows.map(row => `<tr class="${row.attentionNeeded ? 'booking-row-attention' : ''}"><td><div style="display:flex;align-items:center;gap:6px;white-space:nowrap">${row.passengerPhone ? `<a href="tel:${esc(row.passengerPhone)}" title="Call ${esc(row.passengerPhone)}" style="color:#059669;display:inline-flex;align-items:center;text-decoration:none">${icon('phone', 13)}</a>` : `<span style="color:#10b981;display:inline-flex;align-items:center">${icon('phone', 13)}</span>`}<span style="font-weight:600;color:var(--ink)">${esc(row.displayDate)}</span></div></td><td><div class="booking-cell-truncate" title="${esc(row.customer)}" style="max-width:140px;font-weight:600;color:var(--ink)">${esc(row.customer)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.passenger)}" style="max-width:120px;font-weight:500;color:#334155">${esc(row.passenger)}</div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="supplier"><select class="booking-inline-select ${row.hasSupplier ? 'has-value' : 'empty'}" data-inline-assign="supplier" data-booking-id="${esc(row.rawId || row.id)}" title="Select supplier or click + to type"><option value="" ${!row.hasSupplier ? 'selected' : ''}>To be assigned</option>${supplierList.map(s => `<option value="${esc(s.id)}" ${(row.supplierId === s.id || row.supplier === s.name) ? 'selected' : ''}>${esc(s.name || s.id)}</option>`).join('')}<option value="__new__">+ Type new supplier...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="supplier" data-booking-id="${esc(row.rawId || row.id)}" title="Type supplier name directly without popup">+</button></div></td><td><div class="booking-inline-cell ${!row.hasSupplier ? 'disabled-allotment' : ''}" data-booking-id="${esc(row.rawId || row.id)}" data-field="driver"><select class="booking-inline-select ${row.hasDriver ? 'has-value' : 'empty'} ${!row.hasSupplier ? 'supplier-locked' : ''}" data-inline-assign="driver" data-booking-id="${esc(row.rawId || row.id)}" title="${!row.hasSupplier ? 'Supplier must be added first' : 'Select driver or click + to type'}" ${!row.hasSupplier ? 'data-locked="true"' : ''}><option value="" ${!row.hasDriver ? 'selected' : ''}>${!row.hasSupplier ? 'Assign supplier first' : 'To be assigned'}</option>${driverList.map(d => `<option value="${esc(d.id)}" ${(row.driverId === d.id || row.driver === d.full_name) ? 'selected' : ''}>${esc(d.full_name || d.id)}${d.phone ? ` (${esc(d.phone)})` : ''}</option>`).join('')}<option value="__new__">+ Type new driver...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="driver" data-booking-id="${esc(row.rawId || row.id)}" title="${!row.hasSupplier ? 'Supplier must be added first' : 'Type driver name directly without popup'}" ${!row.hasSupplier ? 'data-locked="true" style="opacity:0.4"' : ''}>+</button></div></td><td><div class="booking-inline-cell ${!row.hasSupplier ? 'disabled-allotment' : ''}" data-booking-id="${esc(row.rawId || row.id)}" data-field="vehicle"><select class="booking-inline-select vehicle-pill ${row.hasVehicle ? 'has-value' : 'empty'} ${!row.hasSupplier ? 'supplier-locked' : ''}" data-inline-assign="vehicle" data-booking-id="${esc(row.rawId || row.id)}" title="${!row.hasSupplier ? 'Supplier must be added first' : 'Select vehicle or click + to type'}" ${!row.hasSupplier ? 'data-locked="true"' : ''}><option value="" ${!row.hasVehicle ? 'selected' : ''}>${!row.hasSupplier ? 'Assign supplier first' : 'To be assigned'}</option>${vehicleList.map(v => `<option value="${esc(v.id)}" ${(row.vehicleId === v.id || row.vehicle === v.registration_number) ? 'selected' : ''}>${esc(v.registration_number)}${v.make_model ? ` (${esc(v.make_model)})` : ''}</option>`).join('')}<option value="__new__">+ Type new vehicle...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="vehicle" data-booking-id="${esc(row.rawId || row.id)}" title="${!row.hasSupplier ? 'Supplier must be added first' : 'Type vehicle number directly without popup'}" ${!row.hasSupplier ? 'data-locked="true" style="opacity:0.4"' : ''}>+</button></div></td><td><span class="booking-duty-type-pill">${esc(row.dutyType)}</span></td><td><div class="booking-cell-truncate" title="${esc(row.repAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.repAddress)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.dropAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.dropAddress)}</div></td><td><span style="color:var(--muted);font-size:11px">${esc(row.remarks)}</span></td><td><span style="font-weight:500">${esc(row.city)}</span></td><td><span style="font-weight:600;font-family:var(--font-mono, monospace)">${esc(row.repTime)}</span></td><td><span style="font-family:var(--font-mono, monospace);color:var(--muted)">${esc(row.estDrop)}</span></td><td><div style="display:flex;align-items:center;justify-content:space-between;gap:8px">${status(row.status, row.tone)}<button class="btn small icon" data-open-booking-actions="${esc(row.rawId || row.id)}" aria-label="Open booking actions for ${esc(row.id)}" title="Booking settings / actions">${icon('settings', 13)}</button></div></td></tr>`).join('') : tenantTableEmpty('No booking records match this view','Try clearing filters or changing status tabs.',button(icon('plus')+'New booking','small soft','data-action="new-booking"'))}</tbody></table></div><div style="display:flex;justify-content:flex-end;padding:12px 18px;color:var(--muted);font-size:11px;font-weight:600">Total: ${rows.length} view</div></section>`;
+}).join('')}</div></div><div class="booking-filter-bar"><label class="booking-search-label"><span>${icon('search')}</span><input id="bookingQuery" class="booking-search-input" placeholder="Type here to filter by name, number, city, duty type, company name or booking ID" value="${esc(state.bookingQuery || '')}">${state.bookingQuery ? `<button type="button" class="booking-search-clear" data-action="clear-booking-search" title="Clear search">×</button>` : ''}</label><div class="booking-date-controls"><button class="btn icon small" data-action="booking-date-prev" title="Previous 30 days" aria-label="Previous 30 days">‹</button><div class="booking-date-range"><input type="date" id="bookingDateFrom" class="booking-date-input" value="${esc(state.bookingDateFrom || '')}" title="From date"><span class="booking-date-sep">→</span><input type="date" id="bookingDateTo" class="booking-date-input" value="${esc(state.bookingDateTo || '')}" title="To date"></div><button class="btn icon small" data-action="booking-date-next" title="Next 30 days" aria-label="Next 30 days">›</button><button class="booking-clear-btn" id="clearBookingFilters" data-action="clear-booking-filters">CLEAR FILTERS</button><span class="booking-total-view">Page ${currentPage} of ${totalPages} · ${totalItems} view</span></div></div>${quickInsertMarkup}<div class="table-wrap booking-table-wrap"><table class="booking-table"><thead><tr><th class="sortable" data-action="sort-booking-date" title="Sort by date" style="cursor:pointer">Date <span style="font-size:9px">${sortDir === 'asc' ? '▲' : '▼'}</span></th><th>Customer</th><th>Passenger</th><th>Supplier</th><th>Driver</th><th>Vehicle</th><th>Duty Type</th><th>Rep. Address</th><th>Drop Address</th><th>Remarks</th><th>City</th><th>Rep.Time</th><th>Est.Drop</th><th>Status</th></tr></thead><tbody>${paginatedRows.length ? paginatedRows.map(row => `<tr class="${row.attentionNeeded ? 'booking-row-attention' : ''}"><td><div style="display:flex;align-items:center;gap:6px;white-space:nowrap">${row.passengerPhone ? `<a href="tel:${esc(row.passengerPhone)}" title="Call ${esc(row.passengerPhone)}" style="color:#059669;display:inline-flex;align-items:center;text-decoration:none">${icon('phone', 13)}</a>` : `<span style="color:#10b981;display:inline-flex;align-items:center">${icon('phone', 13)}</span>`}<span style="font-weight:600;color:var(--ink)">${esc(row.displayDate)}</span></div></td><td><div class="booking-cell-truncate" title="${esc(row.customer)}" style="max-width:140px;font-weight:600;color:var(--ink)">${esc(row.customer)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.passenger)}" style="max-width:120px;font-weight:500;color:#334155">${esc(row.passenger)}</div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="supplier"><select class="booking-inline-select ${row.hasSupplier ? 'has-value' : 'empty'}" data-inline-assign="supplier" data-booking-id="${esc(row.rawId || row.id)}" title="Select supplier or click + to type"><option value="" ${!row.hasSupplier ? 'selected' : ''}>To be assigned</option>${supplierList.map(s => `<option value="${esc(s.id)}" ${(row.supplierId === s.id || row.supplier === s.name) ? 'selected' : ''}>${esc(s.name || s.id)}</option>`).join('')}<option value="__new__">+ Type new supplier...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="supplier" data-booking-id="${esc(row.rawId || row.id)}" title="Type supplier name directly without popup">+</button></div></td><td><div class="booking-inline-cell ${!row.hasSupplier ? 'disabled-allotment' : ''}" data-booking-id="${esc(row.rawId || row.id)}" data-field="driver"><select class="booking-inline-select ${row.hasDriver ? 'has-value' : 'empty'} ${!row.hasSupplier ? 'supplier-locked' : ''}" data-inline-assign="driver" data-booking-id="${esc(row.rawId || row.id)}" title="${!row.hasSupplier ? 'Supplier must be added first' : 'Select driver or click + to type'}" ${!row.hasSupplier ? 'data-locked="true"' : ''}><option value="" ${!row.hasDriver ? 'selected' : ''}>${!row.hasSupplier ? 'Assign supplier first' : 'To be assigned'}</option>${driverList.map(d => `<option value="${esc(d.id)}" ${(row.driverId === d.id || row.driver === d.full_name) ? 'selected' : ''}>${esc(d.full_name || d.id)}${d.phone ? ` (${esc(d.phone)})` : ''}</option>`).join('')}<option value="__new__">+ Type new driver...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="driver" data-booking-id="${esc(row.rawId || row.id)}" title="${!row.hasSupplier ? 'Supplier must be added first' : 'Type driver name directly without popup'}" ${!row.hasSupplier ? 'data-locked="true" style="opacity:0.4"' : ''}>+</button></div></td><td><div class="booking-inline-cell ${!row.hasSupplier ? 'disabled-allotment' : ''}" data-booking-id="${esc(row.rawId || row.id)}" data-field="vehicle"><select class="booking-inline-select vehicle-pill ${row.hasVehicle ? 'has-value' : 'empty'} ${!row.hasSupplier ? 'supplier-locked' : ''}" data-inline-assign="vehicle" data-booking-id="${esc(row.rawId || row.id)}" title="${!row.hasSupplier ? 'Supplier must be added first' : 'Select vehicle or click + to type'}" ${!row.hasSupplier ? 'data-locked="true"' : ''}><option value="" ${!row.hasVehicle ? 'selected' : ''}>${!row.hasSupplier ? 'Assign supplier first' : 'To be assigned'}</option>${vehicleList.map(v => `<option value="${esc(v.id)}" ${(row.vehicleId === v.id || row.vehicle === v.registration_number) ? 'selected' : ''}>${esc(v.registration_number)}${v.make_model ? ` (${esc(v.make_model)})` : ''}</option>`).join('')}<option value="__new__">+ Type new vehicle...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="vehicle" data-booking-id="${esc(row.rawId || row.id)}" title="${!row.hasSupplier ? 'Supplier must be added first' : 'Type vehicle number directly without popup'}" ${!row.hasSupplier ? 'data-locked="true" style="opacity:0.4"' : ''}>+</button></div></td><td><span class="booking-duty-type-pill">${esc(row.dutyType)}</span></td><td><div class="booking-cell-truncate" title="${esc(row.repAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.repAddress)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.dropAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.dropAddress)}</div></td><td><span style="color:var(--muted);font-size:11px">${esc(row.remarks)}</span></td><td><span style="font-weight:500">${esc(row.city)}</span></td><td><span style="font-weight:600;font-family:var(--font-mono, monospace)">${esc(row.repTime)}</span></td><td><span style="font-family:var(--font-mono, monospace);color:var(--muted)">${esc(row.estDrop)}</span></td><td><div style="display:flex;align-items:center;justify-content:space-between;gap:8px">${status(row.status, row.tone)}<button class="btn small icon" data-open-booking-actions="${esc(row.rawId || row.id)}" aria-label="Open booking actions for ${esc(row.id)}" title="Booking settings / actions">${icon('settings', 13)}</button></div></td></tr>`).join('') : tenantTableEmpty('No booking records match this view','Try clearing filters or changing status tabs.',button(icon('plus')+'New booking','small soft','data-action="new-booking"'))}</tbody></table></div>${paginationMarkup}</section>`;
     }
 
     function renderBilling() {
@@ -4063,16 +4257,40 @@
       return `${pageHead('Workspace setup · governed master data', label, 'Configure reference records behind branches, customers, suppliers, vehicle manufacturers and workspace operations. Drivers and vehicles are managed from the main menu.', headActions)}${tabsBar}${bodyContent}`;
     }
 
+    function vehicleOwnershipBadge(item) {
+      const type = String(item.ownership_type || 'owned').toLowerCase();
+      if (type === 'supplier' || type === 'attached') {
+        const sup = item.supplier_name || (state.liveData?.suppliers?.items || []).find(s => s.id === item.supplier_id)?.name || 'Supplier Fleet';
+        return `<div><span class="status purple" style="font-weight:700">Supplier</span><div class="secondary" style="margin-top:2px;font-size:10.5px;font-weight:600;color:#6b21a8;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(sup)}">${esc(sup)}</div></div>`;
+      }
+      if (type === 'dco') {
+        const owner = item.owner_name || (state.liveData?.drivers?.items || []).find(d => d.id === item.driver_id || d.vehicle_registration === item.registration_number)?.full_name || 'Driver-cum-Owner';
+        return `<div><span class="status teal" style="font-weight:700">DCO</span><div class="secondary" style="margin-top:2px;font-size:10.5px;font-weight:600;color:#0f766e;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(owner)}">${esc(owner)}</div></div>`;
+      }
+      if (type === 'leased') {
+        const lessor = item.owner_name || 'Lease Partner';
+        return `<div><span class="status amber" style="font-weight:700">Leased</span><div class="secondary" style="margin-top:2px;font-size:10.5px;color:var(--muted)">${esc(lessor)}</div></div>`;
+      }
+      return `<div><span class="status blue" style="font-weight:700">Own</span><div class="secondary" style="margin-top:2px;font-size:10.5px;color:var(--muted)">Company Fleet</div></div>`;
+    }
+
     function renderVehicles() {
       const vehicles = state.liveData?.vehicles?.items || [];
       const availableVehicles = vehicles.filter(item => !['inactive','archived','on_duty'].includes(item.status)).length;
       const onDutyVehicles = vehicles.filter(item => item.status === 'on_duty').length;
       const inactiveVehicles = vehicles.filter(item => ['inactive','archived'].includes(item.status)).length;
       const filter = state.vehicleFilter || 'all';
+      const ownershipFilter = state.vehicleOwnershipFilter || 'all';
       const q = String(state.vehicleQuery || '').trim().toLowerCase();
 
+      const ownedCount = vehicles.filter(v => String(v.ownership_type || 'owned').toLowerCase() === 'owned').length;
+      const dcoCount = vehicles.filter(v => String(v.ownership_type || '').toLowerCase() === 'dco').length;
+      const supplierCount = vehicles.filter(v => ['supplier', 'attached'].includes(String(v.ownership_type || '').toLowerCase())).length;
+      const leasedCount = vehicles.filter(v => String(v.ownership_type || '').toLowerCase() === 'leased').length;
+
       const filteredVehicles = vehicles.filter(item => {
-        const matchesQuery = !q || `${item.registration_number || ''} ${item.manufacturer || ''} ${item.model || ''} ${item.make_model || ''} ${item.vehicle_group || ''} ${item.vehicle_type || ''} ${item.fuel_type || ''} ${item.city || ''} ${item.status || ''}`.toLowerCase().includes(q);
+        const oType = String(item.ownership_type || 'owned').toLowerCase();
+        const matchesQuery = !q || `${item.registration_number || ''} ${oType} ${item.supplier_name || ''} ${item.owner_name || ''} ${item.manufacturer || ''} ${item.model || ''} ${item.make_model || ''} ${item.vehicle_group || ''} ${item.vehicle_type || ''} ${item.fuel_type || ''} ${item.city || ''} ${item.status || ''}`.toLowerCase().includes(q);
         const matchesFilter = filter === 'all'
           ? true
           : filter === 'available'
@@ -4080,14 +4298,110 @@
             : filter === 'on_duty'
               ? item.status === 'on_duty'
               : ['inactive','archived'].includes(item.status);
-        return matchesQuery && matchesFilter;
+        const matchesOwnership = ownershipFilter === 'all'
+          ? true
+          : ownershipFilter === 'owned'
+            ? oType === 'owned'
+            : ownershipFilter === 'dco'
+              ? oType === 'dco'
+              : ownershipFilter === 'supplier'
+                ? (oType === 'supplier' || oType === 'attached')
+                : oType === 'leased';
+        return matchesQuery && matchesFilter && matchesOwnership;
       });
 
-      const kpis = `<div class="grid three-col" style="margin-bottom:16px"><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Total fleet</span><span class="kpi-icon">${icon('car')}</span></div><div class="kpi-value">${vehicles.length}</div><div class="kpi-foot">Registered vehicles</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Available for dispatch</span><span class="kpi-icon teal">${icon('check')}</span></div><div class="kpi-value">${availableVehicles}</div><div class="kpi-foot">Ready for allotment</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Active / on duty</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${onDutyVehicles}</div><div class="kpi-foot">${inactiveVehicles} inactive or maintenance</div></div></div>`;
+      // Pagination calculation for vehicles
+      const totalVehicles = filteredVehicles.length;
+      const pageSizeRaw = state.vehiclePageSize || 10;
+      const pageSize = pageSizeRaw === 'all' ? (totalVehicles || 1) : Math.max(1, Number(pageSizeRaw) || 10);
+      const totalPages = Math.max(1, Math.ceil(totalVehicles / pageSize));
+      const currentPage = Math.min(Math.max(1, Number(state.vehiclePage) || 1), totalPages);
+      state.vehiclePage = currentPage;
 
-      const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px"><div class="tabs">${[['all','All vehicles'],['available',`Available (${availableVehicles})`],['on_duty',`On duty (${onDutyVehicles})`],['inactive',`Inactive (${inactiveVehicles})`]].map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-vehicle-filter="${key}">${label}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="vehicleQuery" placeholder="Search vehicles…" value="${esc(state.vehicleQuery || '')}"></label></div>`;
+      const startIndex = totalVehicles === 0 ? 0 : (currentPage - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, totalVehicles);
+      const paginatedVehicles = filteredVehicles.slice(startIndex, endIndex);
 
-      const vehiclesTable = `<section class="card section-card">${cardHead('Vehicles register','Registration number, manufacturer, model, capacity and compliance records',`${button(icon('upload')+'Import roster','small','data-action="import-master"')}${button(icon('plus')+'Add vehicle','small primary','data-action="add-vehicle"')}`)}<div class="table-wrap"><table><thead><tr><th>Vehicle</th><th>Manufacturer</th><th>Model</th><th>Group / fuel</th><th>Capacity</th><th>Status</th><th></th></tr></thead><tbody>${filteredVehicles.length ? filteredVehicles.map(item => `<tr><td><span class="primary">${esc(item.registration_number || '—')}</span>${item.city ? `<span class="secondary">${esc(item.city)}</span>` : ''}</td><td><span class="primary">${esc(getVehicleMfr(item))}</span></td><td>${esc(getVehicleModel(item))}</td><td>${esc(item.vehicle_group || item.vehicle_type || 'Standard')} · ${esc(item.fuel_type || 'Fuel not added')}</td><td>${item.seating_capacity ? `${item.seating_capacity} seats` : '—'}</td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="vehicle-edit" data-vehicle-id="${esc(item.id)}">${icon('edit', 13)}Edit</button></td></tr>`).join('') : tenantTableEmpty('No vehicles returned','Add the first vehicle or import a fleet roster via CSV.',button(icon('plus')+'Add vehicle','small soft','data-action="add-vehicle"'))}</tbody></table></div></section>`;
+      function generateVehiclePageButtons() {
+        if (totalPages <= 1) {
+          return `<button type="button" class="table-page-btn active" data-vehicle-page="1">1</button>`;
+        }
+        const pageNumbers = [];
+        const delta = 1;
+        const left = Math.max(2, currentPage - delta);
+        const right = Math.min(totalPages - 1, currentPage + delta);
+
+        pageNumbers.push(1);
+        if (left > 2) pageNumbers.push('...');
+        for (let i = left; i <= right; i++) pageNumbers.push(i);
+        if (right < totalPages - 1) pageNumbers.push('...');
+        if (totalPages > 1) pageNumbers.push(totalPages);
+
+        return pageNumbers.map(p => {
+          if (p === '...') return `<span class="table-page-ellipsis">…</span>`;
+          const isActive = p === currentPage;
+          return `<button type="button" class="table-page-btn ${isActive ? 'active' : ''}" data-vehicle-page="${p}">${p}</button>`;
+        }).join('');
+      }
+
+      const vehiclePaginationMarkup = `
+        <div class="table-pagination">
+          <div class="table-pagination-left">
+            <div class="table-pagination-summary">
+              Showing <strong>${totalVehicles === 0 ? 0 : startIndex + 1}–${endIndex}</strong> of <strong>${totalVehicles}</strong> vehicles
+            </div>
+            <div class="table-page-size-wrap">
+              <label for="vehiclePageSizeSelect">Rows per page:</label>
+              <select id="vehiclePageSizeSelect" class="table-page-size-select" data-action="vehicle-page-size">
+                <option value="10" ${pageSizeRaw == 10 ? 'selected' : ''}>10</option>
+                <option value="20" ${pageSizeRaw == 20 ? 'selected' : ''}>20</option>
+                <option value="50" ${pageSizeRaw == 50 ? 'selected' : ''}>50</option>
+                <option value="100" ${pageSizeRaw == 100 ? 'selected' : ''}>100</option>
+                <option value="all" ${pageSizeRaw === 'all' ? 'selected' : ''}>All (${totalVehicles})</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-pagination-right">
+            <button type="button" class="table-page-btn" data-action="vehicle-page-first" title="First page" aria-label="First page" ${currentPage <= 1 ? 'disabled' : ''}>«</button>
+            <button type="button" class="table-page-btn" data-action="vehicle-page-prev" title="Previous page" aria-label="Previous page" ${currentPage <= 1 ? 'disabled' : ''}>‹</button>
+            ${generateVehiclePageButtons()}
+            <button type="button" class="table-page-btn" data-action="vehicle-page-next" title="Next page" aria-label="Next page" ${currentPage >= totalPages ? 'disabled' : ''}>›</button>
+            <button type="button" class="table-page-btn" data-action="vehicle-page-last" title="Last page" aria-label="Last page" ${currentPage >= totalPages ? 'disabled' : ''}>»</button>
+          </div>
+        </div>
+      `;
+
+      const kpis = `<div class="grid four-col" style="margin-bottom:16px;grid-template-columns:repeat(4,1fr)">
+        <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Total fleet</span><span class="kpi-icon">${icon('car')}</span></div><div class="kpi-value">${vehicles.length}</div><div class="kpi-foot">${availableVehicles} ready · ${onDutyVehicles} on duty</div></div>
+        <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Company Owned</span><span class="kpi-icon blue">${icon('shield')}</span></div><div class="kpi-value">${ownedCount}</div><div class="kpi-foot">Self-owned assets</div></div>
+        <div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">DCO Network</span><span class="kpi-icon teal">${icon('users')}</span></div><div class="kpi-value">${dcoCount}</div><div class="kpi-foot">Driver-cum-owner fleet</div></div>
+        <div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Supplier Attached</span><span class="kpi-icon purple">${icon('link')}</span></div><div class="kpi-value">${supplierCount}</div><div class="kpi-foot">${leasedCount ? `${leasedCount} leased · ` : ''}Partner vendors</div></div>
+      </div>`;
+
+      const ownershipTabs = [
+        ['all', `All (${vehicles.length})`],
+        ['owned', `Own (${ownedCount})`],
+        ['dco', `DCO (${dcoCount})`],
+        ['supplier', `Supplier (${supplierCount})`],
+        ...(leasedCount ? [['leased', `Leased (${leasedCount})`]] : [])
+      ];
+
+      const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px;flex-wrap:wrap;gap:8px">
+        <div class="tabs">${[['all','All status'],['available',`Available (${availableVehicles})`],['on_duty',`On duty (${onDutyVehicles})`],['inactive',`Inactive (${inactiveVehicles})`]].map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-vehicle-filter="${key}">${label}</button>`).join('')}</div>
+        <div style="height:18px;width:1px;background:#cbd5e1;margin:0 4px"></div>
+        <div class="tabs">${ownershipTabs.map(([key,label]) => `<button class="tab ${ownershipFilter === key ? 'active' : ''}" data-vehicle-ownership="${key}">${label}</button>`).join('')}</div>
+        <div class="toolbar-spacer"></div>
+        <label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="vehicleQuery" placeholder="Search vehicles, owner, supplier…" value="${esc(state.vehicleQuery || '')}"></label>
+        <span class="booking-total-view" style="margin-left:8px">Page ${currentPage} of ${totalPages} · ${totalVehicles} total</span>
+      </div>`;
+
+      const vehiclesTable = `<section class="card section-card">${cardHead('Vehicles register','Registration number, ownership, manufacturer, model, capacity and compliance records',`${button(icon('upload')+'Import roster','small','data-action="import-master"')}${button(icon('plus')+'Add vehicle','small primary','data-action="add-vehicle"')}`)}<div class="table-wrap"><table><thead><tr><th>Vehicle</th><th>Ownership / Belongs to</th><th>Manufacturer</th><th>Model</th><th>Group / fuel</th><th>Capacity</th><th>Status</th><th></th></tr></thead><tbody>${paginatedVehicles.length ? paginatedVehicles.map(item => `<tr><td><span class="primary">${esc(item.registration_number || '—')}</span>${item.city ? `<span class="secondary">${esc(item.city)}</span>` : ''}</td><td>${vehicleOwnershipBadge(item)}</td><td>${(() => {
+                const m = getVehicleMfr(item);
+                return (!m || m === '—') ? '<span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5">Required</span>' : `<span class="primary" style="font-weight:600">${esc(m)}</span>`;
+              })()}</td><td>${(() => {
+                const mo = getVehicleModel(item);
+                return (!mo || mo === '—') ? '<span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5">Required</span>' : `<span style="font-weight:550;color:#1e293b">${esc(mo)}</span>`;
+              })()}</td><td>${esc(item.vehicle_group || item.vehicle_type || 'Standard')} · ${esc(item.fuel_type || 'Fuel not added')}</td><td>${item.seating_capacity ? `${item.seating_capacity} seats` : '—'}</td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="vehicle-edit" data-vehicle-id="${esc(item.id)}">${icon('edit', 13)}Edit</button></td></tr>`).join('') : tenantTableEmpty('No vehicles returned','Add the first vehicle or import a fleet roster via CSV.',button(icon('plus')+'Add vehicle','small soft','data-action="add-vehicle"'))}</tbody></table></div>${vehiclePaginationMarkup}</section>`;
 
       return `${pageHead('Fleet · asset management','Vehicles register','Manage vehicle identity, registration records, seating capacity and dispatch readiness.',`${button(icon('upload')+'Import roster','','data-action="import-master"')}${button(icon('plus')+'Add vehicle','primary','data-action="add-vehicle"')}`)}${kpis}${tabsBar}${vehiclesTable}`;
     }
@@ -4112,11 +4426,72 @@
         return matchesQuery && matchesFilter;
       });
 
+      // Pagination calculation for drivers
+      const totalDrivers = filteredDrivers.length;
+      const pageSizeRaw = state.driverPageSize || 10;
+      const pageSize = pageSizeRaw === 'all' ? (totalDrivers || 1) : Math.max(1, Number(pageSizeRaw) || 10);
+      const totalPages = Math.max(1, Math.ceil(totalDrivers / pageSize));
+      const currentPage = Math.min(Math.max(1, Number(state.driverPage) || 1), totalPages);
+      state.driverPage = currentPage;
+
+      const startIndex = totalDrivers === 0 ? 0 : (currentPage - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, totalDrivers);
+      const paginatedDrivers = filteredDrivers.slice(startIndex, endIndex);
+
+      function generateDriverPageButtons() {
+        if (totalPages <= 1) {
+          return `<button type="button" class="table-page-btn active" data-driver-page="1">1</button>`;
+        }
+        const pageNumbers = [];
+        const delta = 1;
+        const left = Math.max(2, currentPage - delta);
+        const right = Math.min(totalPages - 1, currentPage + delta);
+
+        pageNumbers.push(1);
+        if (left > 2) pageNumbers.push('...');
+        for (let i = left; i <= right; i++) pageNumbers.push(i);
+        if (right < totalPages - 1) pageNumbers.push('...');
+        if (totalPages > 1) pageNumbers.push(totalPages);
+
+        return pageNumbers.map(p => {
+          if (p === '...') return `<span class="table-page-ellipsis">…</span>`;
+          const isActive = p === currentPage;
+          return `<button type="button" class="table-page-btn ${isActive ? 'active' : ''}" data-driver-page="${p}">${p}</button>`;
+        }).join('');
+      }
+
+      const driverPaginationMarkup = `
+        <div class="table-pagination">
+          <div class="table-pagination-left">
+            <div class="table-pagination-summary">
+              Showing <strong>${totalDrivers === 0 ? 0 : startIndex + 1}–${endIndex}</strong> of <strong>${totalDrivers}</strong> drivers
+            </div>
+            <div class="table-page-size-wrap">
+              <label for="driverPageSizeSelect">Rows per page:</label>
+              <select id="driverPageSizeSelect" class="table-page-size-select" data-action="driver-page-size">
+                <option value="10" ${pageSizeRaw == 10 ? 'selected' : ''}>10</option>
+                <option value="20" ${pageSizeRaw == 20 ? 'selected' : ''}>20</option>
+                <option value="50" ${pageSizeRaw == 50 ? 'selected' : ''}>50</option>
+                <option value="100" ${pageSizeRaw == 100 ? 'selected' : ''}>100</option>
+                <option value="all" ${pageSizeRaw === 'all' ? 'selected' : ''}>All (${totalDrivers})</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-pagination-right">
+            <button type="button" class="table-page-btn" data-action="driver-page-first" title="First page" aria-label="First page" ${currentPage <= 1 ? 'disabled' : ''}>«</button>
+            <button type="button" class="table-page-btn" data-action="driver-page-prev" title="Previous page" aria-label="Previous page" ${currentPage <= 1 ? 'disabled' : ''}>‹</button>
+            ${generateDriverPageButtons()}
+            <button type="button" class="table-page-btn" data-action="driver-page-next" title="Next page" aria-label="Next page" ${currentPage >= totalPages ? 'disabled' : ''}>›</button>
+            <button type="button" class="table-page-btn" data-action="driver-page-last" title="Last page" aria-label="Last page" ${currentPage >= totalPages ? 'disabled' : ''}>»</button>
+          </div>
+        </div>
+      `;
+
       const kpis = `<div class="grid three-col" style="margin-bottom:16px"><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Total drivers</span><span class="kpi-icon teal">${icon('users')}</span></div><div class="kpi-value">${drivers.length}</div><div class="kpi-foot">Onboarded driver records</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Ready for duty</span><span class="kpi-icon">${icon('check')}</span></div><div class="kpi-value">${readyDrivers}</div><div class="kpi-foot">Duty & device ready</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Active / on duty</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${onDutyDrivers}</div><div class="kpi-foot">${inactiveDrivers} inactive or suspended</div></div></div>`;
 
-      const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px"><div class="tabs">${[['all','All drivers'],['ready',`Ready (${readyDrivers})`],['on_duty',`On duty (${onDutyDrivers})`],['inactive',`Inactive (${inactiveDrivers})`]].map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-driver-filter="${key}">${label}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="driverQuery" placeholder="Search drivers…" value="${esc(state.driverQuery || '')}"></label></div>`;
+      const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px"><div class="tabs">${[['all','All drivers'],['ready',`Ready (${readyDrivers})`],['on_duty',`On duty (${onDutyDrivers})`],['inactive',`Inactive (${inactiveDrivers})`]].map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-driver-filter="${key}">${label}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="driverQuery" placeholder="Search drivers…" value="${esc(state.driverQuery || '')}"></label><span class="booking-total-view" style="margin-left:8px">Page ${currentPage} of ${totalPages} · ${totalDrivers} total</span></div>`;
 
-      const driversTable = `<section class="card section-card">${cardHead('Drivers register','Physical-device and duty readiness starts from this record',button(icon('plus')+'Add driver','small primary','data-action="add-driver"'))}<div class="table-wrap"><table><thead><tr><th>Driver</th><th>Type</th><th>Phone</th><th>City</th><th>License / ID</th><th>Status</th><th></th></tr></thead><tbody>${filteredDrivers.length ? filteredDrivers.map(item => `<tr><td><span class="primary">${esc(item.full_name || 'Driver')}</span>${item.city ? `<span class="secondary">${esc(item.city)}</span>` : ''}</td><td><span class="status ${driverTypeTone(item.driver_type)}">${driverTypeLabel(item.driver_type)}</span></td><td>${esc(item.phone || '—')}</td><td>${esc(item.city || '—')}</td><td><span class="keycap">${esc(item.license_number || '—')}</span></td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="driver-detail" data-driver="${esc(item.full_name || item.id)}" data-driver-id="${esc(item.id)}">${icon('eye', 13)}Open</button></td></tr>`).join('') : tenantTableEmpty('No drivers returned','Add the first driver record before assigning a duty.',button(icon('plus')+'Add driver','small soft','data-action="add-driver"'))}</tbody></table></div></section>`;
+      const driversTable = `<section class="card section-card">${cardHead('Drivers register','Physical-device and duty readiness starts from this record',button(icon('plus')+'Add driver','small primary','data-action="add-driver"'))}<div class="table-wrap"><table><thead><tr><th>Driver</th><th>Type</th><th>Phone</th><th>City</th><th>License / ID</th><th>Status</th><th></th></tr></thead><tbody>${paginatedDrivers.length ? paginatedDrivers.map(item => `<tr><td><span class="primary">${esc(item.full_name || 'Driver')}</span>${item.city ? `<span class="secondary">${esc(item.city)}</span>` : ''}</td><td><span class="status ${driverTypeTone(item.driver_type)}">${driverTypeLabel(item.driver_type)}</span></td><td>${esc(item.phone || '—')}</td><td>${esc(item.city || '—')}</td><td><span class="keycap">${esc(item.license_number || '—')}</span></td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="driver-detail" data-driver="${esc(item.full_name || item.id)}" data-driver-id="${esc(item.id)}">${icon('eye', 13)}Open</button></td></tr>`).join('') : tenantTableEmpty('No drivers returned','Add the first driver record before assigning a duty.',button(icon('plus')+'Add driver','small soft','data-action="add-driver"'))}</tbody></table></div>${driverPaginationMarkup}</section>`;
 
       return `${pageHead('Fleet · workforce readiness','Drivers register','Manage driver workforce profiles, license verification and physical-device onboarding.',`${button(icon('upload')+'Import roster','','data-action="import-master"')}${button(icon('plus')+'Add driver','primary','data-action="add-driver"')}`)}${kpis}${tabsBar}${driversTable}`;
     }
@@ -5268,8 +5643,9 @@
         state.masterSection = key;
         render();
       }));
-      content.querySelectorAll('[data-vehicle-filter]').forEach(el => el.addEventListener('click', () => { state.vehicleFilter = el.dataset.vehicleFilter; render(); }));
-      content.querySelectorAll('[data-driver-filter]').forEach(el => el.addEventListener('click', () => { state.driverFilter = el.dataset.driverFilter; render(); }));
+      content.querySelectorAll('[data-vehicle-filter]').forEach(el => el.addEventListener('click', () => { state.vehicleFilter = el.dataset.vehicleFilter; state.vehiclePage = 1; render(); }));
+      content.querySelectorAll('[data-vehicle-ownership]').forEach(el => el.addEventListener('click', () => { state.vehicleOwnershipFilter = el.dataset.vehicleOwnership; state.vehiclePage = 1; render(); }));
+      content.querySelectorAll('[data-driver-filter]').forEach(el => el.addEventListener('click', () => { state.driverFilter = el.dataset.driverFilter; state.driverPage = 1; render(); }));
       content.querySelectorAll('[data-fleet-tab]').forEach(el => el.addEventListener('click', () => { state.fleetSection = el.dataset.fleetTab; render(); }));
       content.querySelectorAll('[data-action]').forEach(el => el.addEventListener('click', () => handleAction(el.dataset.action, el)));
       content.querySelectorAll('[data-setting-toggle]').forEach(el => el.addEventListener('click', () => { const on = el.classList.toggle('on'); el.setAttribute('aria-pressed', String(on)); }));
@@ -5292,20 +5668,43 @@
       content.querySelectorAll('[data-duty-tab]').forEach(el => el.addEventListener('click', () => { state.dutyFilter = el.dataset.dutyTab; render(); }));
       content.querySelectorAll('[data-duty-view]').forEach(el => el.addEventListener('click', () => { state.dutyView = el.dataset.dutyView; render(); }));
       const dutyQuery = document.getElementById('dutyQuery'); if (dutyQuery) dutyQuery.addEventListener('input', e => { state.dutyQuery = e.target.value; renderDutiesInPlace(); });
-      content.querySelectorAll('[data-booking-tab]').forEach(el => el.addEventListener('click', () => { state.bookingTab = el.dataset.bookingTab; renderBookingsInPlace(); }));
-      const bookingQuery = document.getElementById('bookingQuery'); if (bookingQuery) bookingQuery.addEventListener('input', e => { state.bookingQuery = e.target.value; renderBookingsInPlace(); });
-      const bookingDateFrom = document.getElementById('bookingDateFrom'); if (bookingDateFrom) bookingDateFrom.addEventListener('change', e => { state.bookingDateFrom = e.target.value; renderBookingsInPlace(); });
-      const bookingDateTo = document.getElementById('bookingDateTo'); if (bookingDateTo) bookingDateTo.addEventListener('change', e => { state.bookingDateTo = e.target.value; renderBookingsInPlace(); });
-      content.querySelectorAll('#clearBookingFilters, [data-action="clear-booking-filters"]').forEach(el => el.addEventListener('click', () => { state.bookingQuery = ''; state.bookingDateFrom = ''; state.bookingDateTo = ''; state.bookingTab = 'All'; renderBookingsInPlace(); }));
-      content.querySelectorAll('[data-action="clear-booking-search"]').forEach(el => el.addEventListener('click', () => { state.bookingQuery = ''; renderBookingsInPlace(); }));
+      content.querySelectorAll('[data-booking-tab]').forEach(el => el.addEventListener('click', () => { state.bookingTab = el.dataset.bookingTab; state.bookingPage = 1; renderBookingsInPlace(); }));
+      const bookingQuery = document.getElementById('bookingQuery'); if (bookingQuery) bookingQuery.addEventListener('input', e => { state.bookingQuery = e.target.value; state.bookingPage = 1; renderBookingsInPlace(); });
+      const bookingDateFrom = document.getElementById('bookingDateFrom'); if (bookingDateFrom) bookingDateFrom.addEventListener('change', e => { state.bookingDateFrom = e.target.value; state.bookingPage = 1; renderBookingsInPlace(); });
+      const bookingDateTo = document.getElementById('bookingDateTo'); if (bookingDateTo) bookingDateTo.addEventListener('change', e => { state.bookingDateTo = e.target.value; state.bookingPage = 1; renderBookingsInPlace(); });
+      content.querySelectorAll('#clearBookingFilters, [data-action="clear-booking-filters"]').forEach(el => el.addEventListener('click', () => { state.bookingQuery = ''; state.bookingDateFrom = ''; state.bookingDateTo = ''; state.bookingTab = 'All'; state.bookingPage = 1; renderBookingsInPlace(); }));
+      content.querySelectorAll('[data-action="clear-booking-search"]').forEach(el => el.addEventListener('click', () => { state.bookingQuery = ''; state.bookingPage = 1; renderBookingsInPlace(); }));
       content.querySelectorAll('[data-action="sort-booking-date"]').forEach(el => el.addEventListener('click', () => { state.bookingSortDir = state.bookingSortDir === 'asc' ? 'desc' : 'asc'; renderBookingsInPlace(); }));
-      content.querySelectorAll('[data-action="booking-date-prev"]').forEach(el => el.addEventListener('click', () => shiftBookingDate(-30)));
-      content.querySelectorAll('[data-action="booking-date-next"]').forEach(el => el.addEventListener('click', () => shiftBookingDate(30)));
+      content.querySelectorAll('[data-action="booking-date-prev"]').forEach(el => el.addEventListener('click', () => { shiftBookingDate(-30); state.bookingPage = 1; }));
+      content.querySelectorAll('[data-action="booking-date-next"]').forEach(el => el.addEventListener('click', () => { shiftBookingDate(30); state.bookingPage = 1; }));
+      // Booking pagination controls
+      content.querySelectorAll('[data-action="booking-page-first"]').forEach(el => el.addEventListener('click', () => { state.bookingPage = 1; renderBookingsInPlace(); }));
+      content.querySelectorAll('[data-action="booking-page-prev"]').forEach(el => el.addEventListener('click', () => { state.bookingPage = Math.max(1, (Number(state.bookingPage) || 1) - 1); renderBookingsInPlace(); }));
+      content.querySelectorAll('[data-action="booking-page-next"]').forEach(el => el.addEventListener('click', () => { state.bookingPage = (Number(state.bookingPage) || 1) + 1; renderBookingsInPlace(); }));
+      content.querySelectorAll('[data-action="booking-page-last"]').forEach(el => el.addEventListener('click', () => { state.bookingPage = 999999; renderBookingsInPlace(); }));
+      content.querySelectorAll('[data-booking-page]').forEach(el => el.addEventListener('click', () => { const p = Number(el.dataset.bookingPage); if (!isNaN(p)) { state.bookingPage = p; renderBookingsInPlace(); } }));
+      const bPageSize = document.getElementById('bookingPageSizeSelect'); if (bPageSize) bPageSize.addEventListener('change', e => { state.bookingPageSize = e.target.value; state.bookingPage = 1; renderBookingsInPlace(); });
       const invoiceQuery = document.getElementById('invoiceQuery'); if (invoiceQuery) invoiceQuery.addEventListener('input', e => { state.invoiceQuery = e.target.value; render(); });
       const fleetQuery = document.getElementById('fleetQuery'); if (fleetQuery) fleetQuery.addEventListener('input', e => { state.fleetQuery = e.target.value; render(); requestAnimationFrame(() => { const next=document.getElementById('fleetQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
-      const driverQuery = document.getElementById('driverQuery'); if (driverQuery) driverQuery.addEventListener('input', e => { state.driverQuery = e.target.value; render(); requestAnimationFrame(() => { const next=document.getElementById('driverQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
+      const driverQuery = document.getElementById('driverQuery'); if (driverQuery) driverQuery.addEventListener('input', e => { state.driverQuery = e.target.value; state.driverPage = 1; render(); requestAnimationFrame(() => { const next=document.getElementById('driverQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
       const masterQuery = document.getElementById('masterQuery'); if (masterQuery) masterQuery.addEventListener('input', e => { state.masterQuery = e.target.value; render(); requestAnimationFrame(() => { const next=document.getElementById('masterQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
-      const vehicleQuery = document.getElementById('vehicleQuery'); if (vehicleQuery) vehicleQuery.addEventListener('input', e => { state.vehicleQuery = e.target.value; render(); requestAnimationFrame(() => { const next=document.getElementById('vehicleQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
+      const vehicleQuery = document.getElementById('vehicleQuery'); if (vehicleQuery) vehicleQuery.addEventListener('input', e => { state.vehicleQuery = e.target.value; state.vehiclePage = 1; render(); requestAnimationFrame(() => { const next=document.getElementById('vehicleQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
+
+      // Vehicle pagination controls
+      content.querySelectorAll('[data-action="vehicle-page-first"]').forEach(el => el.addEventListener('click', () => { state.vehiclePage = 1; render(); }));
+      content.querySelectorAll('[data-action="vehicle-page-prev"]').forEach(el => el.addEventListener('click', () => { state.vehiclePage = Math.max(1, (Number(state.vehiclePage) || 1) - 1); render(); }));
+      content.querySelectorAll('[data-action="vehicle-page-next"]').forEach(el => el.addEventListener('click', () => { state.vehiclePage = (Number(state.vehiclePage) || 1) + 1; render(); }));
+      content.querySelectorAll('[data-action="vehicle-page-last"]').forEach(el => el.addEventListener('click', () => { state.vehiclePage = 999999; render(); }));
+      content.querySelectorAll('[data-vehicle-page]').forEach(el => el.addEventListener('click', () => { const p = Number(el.dataset.vehiclePage); if (!isNaN(p)) { state.vehiclePage = p; render(); } }));
+      const vPageSize = document.getElementById('vehiclePageSizeSelect'); if (vPageSize) vPageSize.addEventListener('change', e => { state.vehiclePageSize = e.target.value; state.vehiclePage = 1; render(); });
+
+      // Driver pagination controls
+      content.querySelectorAll('[data-action="driver-page-first"]').forEach(el => el.addEventListener('click', () => { state.driverPage = 1; render(); }));
+      content.querySelectorAll('[data-action="driver-page-prev"]').forEach(el => el.addEventListener('click', () => { state.driverPage = Math.max(1, (Number(state.driverPage) || 1) - 1); render(); }));
+      content.querySelectorAll('[data-action="driver-page-next"]').forEach(el => el.addEventListener('click', () => { state.driverPage = (Number(state.driverPage) || 1) + 1; render(); }));
+      content.querySelectorAll('[data-action="driver-page-last"]').forEach(el => el.addEventListener('click', () => { state.driverPage = 999999; render(); }));
+      content.querySelectorAll('[data-driver-page]').forEach(el => el.addEventListener('click', () => { const p = Number(el.dataset.driverPage); if (!isNaN(p)) { state.driverPage = p; render(); } }));
+      const dPageSize = document.getElementById('driverPageSizeSelect'); if (dPageSize) dPageSize.addEventListener('change', e => { state.driverPageSize = e.target.value; state.driverPage = 1; render(); });
       const vehicleStatus = document.getElementById('vehicleStatus'); if (vehicleStatus) vehicleStatus.addEventListener('change', e => { state.vehicleStatus = e.target.value; render(); });
       const registryQuery = document.querySelector('[data-registry-query]'); if (registryQuery) registryQuery.addEventListener('input', e => { state.masterQuery = e.target.value; render(); requestAnimationFrame(() => { const next=document.querySelector('[data-registry-query]'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
       content.querySelectorAll('[data-registry-action]').forEach(el => el.addEventListener('click', async () => { try { await apiRequest(`/api/masters/registry/${encodeURIComponent(el.dataset.registryId)}/${el.dataset.registryAction}`,{method:'POST',body:JSON.stringify({})}); showToast('Master record updated',`Record ${el.dataset.registryAction === 'archive' ? 'archived' : 'restored'} with a new version.`); await hydrateOperationalData(); } catch(error) { showToast('Master update failed',error.message); } }));
@@ -5444,20 +5843,10 @@
           if (existing) {
             createdId = existing.id;
           } else {
-            const res = await apiRequest('/api/vehicles', {
-              method: 'POST',
-              body: JSON.stringify({
-                registration_number: reg,
-                vehicle_type: 'sedan',
-                vehicle_group: 'Sedan',
-                status: 'available'
-              })
-            });
-            const newVeh = res.item || res;
-            if (newVeh && newVeh.id) {
-              createdId = newVeh.id;
-              if (state.liveData?.vehicles?.items) state.liveData.vehicles.items.push(newVeh);
-            }
+            openVehicleModal({ registration_number: reg, vehicle_type: 'sedan', vehicle_group: 'Standard sedan' });
+            showToast('Manufacturer & Model Required', `Manufacturer and model are required to register vehicle ${reg}.`);
+            renderBookingsInPlace();
+            return;
           }
         } else if (type === 'driver') {
           const existing = (state.liveData?.drivers?.items || []).find(d => (d.full_name || '').toLowerCase() === val.toLowerCase());
@@ -5775,6 +6164,13 @@
       const defaultFuel = value('fuel_type') || 'petrol';
       const defaultSeats = value('seating_capacity') || '4';
       const defaultOwnership = value('ownership_type') || 'owned';
+      const supplierList = state.liveData?.suppliers?.items || [];
+      const driverList = state.liveData?.drivers?.items || [];
+      const currentSupplierId = value('supplier_id');
+      const currentSupplierName = value('supplier_name');
+      const currentOwnerName = value('owner_name');
+      const supplierOptions = supplierList.map(s => `<option value="${esc(s.id)}" ${(currentSupplierId === s.id || currentSupplierName === s.name) ? 'selected' : ''}>${esc(s.name || s.id)}</option>`).join('');
+      const driverOptions = driverList.map(d => `<option value="${esc(d.id)}" ${(v.driver_id === d.id || currentOwnerName === d.full_name) ? 'selected' : ''}>${esc(d.full_name || d.id)}${d.driver_type === 'dco' ? ' (DCO)' : ''}</option>`).join('');
       const rawMfr = v.manufacturer || compliance.manufacturer || getVehicleMfr(v);
       const currentMfr = rawMfr === '—' ? '' : rawMfr;
       const rawModel = v.model || compliance.model || getVehicleModel(v);
@@ -5791,23 +6187,47 @@
         ...(currentMfr ? [currentMfr] : [])
       ])).sort((a, b) => a.localeCompare(b));
       const mfrOptions = allMfrNames.map(name => `<option value="${esc(name)}" ${name.toLowerCase() === currentMfr.toLowerCase() ? 'selected' : ''}>${esc(name)}</option>`).join('');
-      const modal = modalShell(existing ? 'Edit vehicle' : 'Add vehicle', existing ? 'Keep the vehicle record current so allotment and compliance checks stay reliable.' : 'Create one complete vehicle record instead of collecting the same details during dispatch.', `<div class="form-grid"><div class="master-form-callout">${icon('shield')}<span>Only workspace staff can change master data. Registration numbers are unique per tenant and every save is audit logged.</span></div><div class="master-form-section">Identity</div><div class="form-group"><label>Registration number <span class="required">*</span></label><input class="form-input" data-vehicle-field="registration_number" value="${value('registration_number')}" placeholder="KA 01 AB 1234" required></div><div class="form-group"><label>Vehicle group <span class="required">*</span></label><select class="form-input" data-vehicle-field="vehicle_group"><option value="Standard sedan" ${defaultGroup === 'Standard sedan' ? 'selected' : ''}>Standard sedan</option><option value="Executive sedan" ${defaultGroup === 'Executive sedan' ? 'selected' : ''}>Executive sedan</option><option value="SUV" ${defaultGroup === 'SUV' ? 'selected' : ''}>SUV</option><option value="Tempo Traveller" ${defaultGroup === 'Tempo Traveller' ? 'selected' : ''}>Tempo Traveller</option></select></div><div class="form-group"><label>Manufacturer <span class="required">*</span></label><select class="form-input" data-vehicle-field="manufacturer" required><option value="">Select manufacturer…</option>${mfrOptions}</select></div><div class="form-group"><label>Model <span class="required">*</span></label><input class="form-input" data-vehicle-field="model" value="${esc(currentModel)}" placeholder="e.g. Dzire, Innova, Nexon" required></div><div class="form-group"><label>Vehicle type</label><select class="form-input" data-vehicle-field="vehicle_type"><option value="sedan" ${defaultType === 'sedan' ? 'selected' : ''}>Sedan</option><option value="suv" ${defaultType === 'suv' ? 'selected' : ''}>SUV</option><option value="hatchback" ${defaultType === 'hatchback' ? 'selected' : ''}>Hatchback</option><option value="tempo_traveller" ${defaultType === 'tempo_traveller' ? 'selected' : ''}>Tempo Traveller</option></select></div><div class="form-group"><label>Manufacture year</label><input class="form-input" data-vehicle-field="year" type="number" min="1980" max="2100" value="${value('year')}" placeholder="2024"></div><div class="form-group"><label>City</label><select class="form-input" data-vehicle-field="city">${renderCityOptions(value('city') || 'Bengaluru')}</select></div><div class="form-group"><label>Branch / dispatch centre</label><input class="form-input" data-vehicle-field="branch_name" value="${value('branch_name')}" placeholder="Bengaluru · Whitefield"></div><div class="master-form-section">Capacity and operations</div><div class="form-group"><label>Fuel type</label><select class="form-input" data-vehicle-field="fuel_type"><option value="petrol" ${defaultFuel === 'petrol' ? 'selected' : ''}>Petrol</option><option value="diesel" ${defaultFuel === 'diesel' ? 'selected' : ''}>Diesel</option><option value="CNG" ${defaultFuel === 'CNG' ? 'selected' : ''}>CNG</option><option value="EV" ${defaultFuel === 'EV' ? 'selected' : ''}>EV</option></select></div><div class="form-group"><label>Seating capacity</label><input class="form-input" data-vehicle-field="seating_capacity" type="number" min="1" max="60" value="${defaultSeats}" placeholder="Seats" required></div><div class="form-group"><label>Luggage capacity</label><input class="form-input" data-vehicle-field="luggage_capacity" type="number" min="0" max="30" value="${value('luggage_capacity')}" placeholder="Bags"></div><div class="form-group"><label>Ownership</label><select class="form-input" data-vehicle-field="ownership_type"><option value="owned" ${defaultOwnership === 'owned' ? 'selected' : ''}>Owned</option><option value="leased" ${defaultOwnership === 'leased' ? 'selected' : ''}>Leased</option><option value="supplier" ${defaultOwnership === 'supplier' ? 'selected' : ''}>Supplier</option></select></div><div class="form-group"><label>GPS / telematics provider</label><input class="form-input" data-vehicle-field="gps_provider" value="${value('gps_provider')}" placeholder="Optional provider"></div><div class="form-group"><label>Status</label><select class="form-input" data-vehicle-field="status"><option value="available" ${['available','active'].includes(v.status || 'available') ? 'selected' : ''}>Available</option><option value="on_duty" ${v.status === 'on_duty' ? 'selected' : ''}>On duty</option><option value="inactive" ${['inactive','archived'].includes(v.status) ? 'selected' : ''}>Inactive</option></select></div><div class="master-form-section">Compliance dates</div><div class="vehicle-doc-grid"><div class="form-group"><label>RC expiry</label><input class="form-input" data-vehicle-field="rc_expiry" type="date" value="${value('rc_expiry')}"></div><div class="form-group"><label>Insurance expiry</label><input class="form-input" data-vehicle-field="insurance_expiry" type="date" value="${value('insurance_expiry')}"></div><div class="form-group"><label>PUC expiry</label><input class="form-input" data-vehicle-field="puc_expiry" type="date" value="${value('puc_expiry')}"></div></div><div class="form-group full"><label>Internal notes</label><textarea class="form-input" data-vehicle-field="notes" placeholder="Access instructions, special equipment or operational notes…">${value('notes')}</textarea></div></div>`, `${button('Cancel','','data-close-modal')}${button(existing ? 'Save vehicle' : 'Create vehicle','primary','data-submit-vehicle')}`);
+      const modal = modalShell(existing ? 'Edit vehicle' : 'Add vehicle', existing ? 'Keep the vehicle record current so allotment and compliance checks stay reliable.' : 'Create one complete vehicle record instead of collecting the same details during dispatch.', `<div class="form-grid"><div class="master-form-callout">${icon('shield')}<span>Only workspace staff can change master data. Registration numbers are unique per tenant and every save is audit logged.</span></div><div class="master-form-section">Identity</div><div class="form-group"><label>Registration number <span class="required">*</span></label><input class="form-input" data-vehicle-field="registration_number" value="${value('registration_number')}" placeholder="KA 01 AB 1234" required></div><div class="form-group"><label>Vehicle group <span class="required">*</span></label><select class="form-input" data-vehicle-field="vehicle_group"><option value="Standard sedan" ${defaultGroup === 'Standard sedan' ? 'selected' : ''}>Standard sedan</option><option value="Executive sedan" ${defaultGroup === 'Executive sedan' ? 'selected' : ''}>Executive sedan</option><option value="SUV" ${defaultGroup === 'SUV' ? 'selected' : ''}>SUV</option><option value="Tempo Traveller" ${defaultGroup === 'Tempo Traveller' ? 'selected' : ''}>Tempo Traveller</option></select></div><div class="form-group"><label>Manufacturer <span class="required" style="color:var(--red,#ef4444);font-weight:700">* (Required)</span></label><select class="form-input" data-vehicle-field="manufacturer" required><option value="">Select manufacturer…</option>${mfrOptions}</select></div><div class="form-group"><label>Model <span class="required" style="color:var(--red,#ef4444);font-weight:700">* (Required)</span></label><input class="form-input" data-vehicle-field="model" value="${esc(currentModel)}" placeholder="e.g. Dzire, Innova Crysta, Etios, Aura" required></div><div class="form-group"><label>Vehicle type</label><select class="form-input" data-vehicle-field="vehicle_type"><option value="sedan" ${defaultType === 'sedan' ? 'selected' : ''}>Sedan</option><option value="suv" ${defaultType === 'suv' ? 'selected' : ''}>SUV</option><option value="hatchback" ${defaultType === 'hatchback' ? 'selected' : ''}>Hatchback</option><option value="tempo_traveller" ${defaultType === 'tempo_traveller' ? 'selected' : ''}>Tempo Traveller</option></select></div><div class="form-group"><label>Manufacture year</label><input class="form-input" data-vehicle-field="year" type="number" min="1980" max="2100" value="${value('year')}" placeholder="2024"></div><div class="form-group"><label>City</label><select class="form-input" data-vehicle-field="city">${renderCityOptions(value('city') || 'Bengaluru')}</select></div><div class="form-group"><label>Branch / dispatch centre</label><input class="form-input" data-vehicle-field="branch_name" value="${value('branch_name')}" placeholder="Bengaluru · Whitefield"></div><div class="master-form-section">Capacity and operations</div><div class="form-group"><label>Fuel type</label><select class="form-input" data-vehicle-field="fuel_type"><option value="petrol" ${defaultFuel === 'petrol' ? 'selected' : ''}>Petrol</option><option value="diesel" ${defaultFuel === 'diesel' ? 'selected' : ''}>Diesel</option><option value="CNG" ${defaultFuel === 'CNG' ? 'selected' : ''}>CNG</option><option value="EV" ${defaultFuel === 'EV' ? 'selected' : ''}>EV</option></select></div><div class="form-group"><label>Seating capacity</label><input class="form-input" data-vehicle-field="seating_capacity" type="number" min="1" max="60" value="${defaultSeats}" placeholder="Seats" required></div><div class="form-group"><label>Luggage capacity</label><input class="form-input" data-vehicle-field="luggage_capacity" type="number" min="0" max="30" value="${value('luggage_capacity')}" placeholder="Bags"></div><div class="form-group"><label>Ownership / Belongs to <span class="required">*</span></label><select class="form-input" data-vehicle-field="ownership_type" id="vehOwnershipSelect"><option value="owned" ${defaultOwnership === 'owned' ? 'selected' : ''}>Own (Company Fleet)</option><option value="dco" ${defaultOwnership === 'dco' ? 'selected' : ''}>DCO (Driver Cum Owner)</option><option value="supplier" ${['supplier','attached'].includes(defaultOwnership) ? 'selected' : ''}>Supplier / Attached</option><option value="leased" ${defaultOwnership === 'leased' ? 'selected' : ''}>Leased</option></select></div><div class="form-group" id="vehSupplierWrap" style="${['supplier','attached'].includes(defaultOwnership) ? '' : 'display:none'}"><label>Attached Supplier</label><select class="form-input" data-vehicle-field="supplier_id" id="vehSupplierId"><option value="">Select supplier partner…</option>${supplierOptions}</select><input class="form-input" style="margin-top:4px" data-vehicle-field="supplier_name" id="vehSupplierName" value="${esc(v.supplier_name || '')}" placeholder="Or enter custom supplier name…"></div><div class="form-group" id="vehDcoWrap" style="${defaultOwnership === 'dco' ? '' : 'display:none'}"><label>Driver Cum Owner (DCO)</label><select class="form-input" data-vehicle-field="driver_id" id="vehDriverId"><option value="">Select driver from roster…</option>${driverOptions}</select><input class="form-input" style="margin-top:4px" data-vehicle-field="owner_name" id="vehOwnerName" value="${esc(v.owner_name || '')}" placeholder="Or enter owner name…"></div><div class="form-group"><label>GPS / telematics provider</label><input class="form-input" data-vehicle-field="gps_provider" value="${value('gps_provider')}" placeholder="Optional provider"></div><div class="form-group"><label>Status</label><select class="form-input" data-vehicle-field="status"><option value="available" ${['available','active'].includes(v.status || 'available') ? 'selected' : ''}>Available</option><option value="on_duty" ${v.status === 'on_duty' ? 'selected' : ''}>On duty</option><option value="inactive" ${['inactive','archived'].includes(v.status) ? 'selected' : ''}>Inactive</option></select></div><div class="master-form-section">Compliance dates</div><div class="vehicle-doc-grid"><div class="form-group"><label>RC expiry</label><input class="form-input" data-vehicle-field="rc_expiry" type="date" value="${value('rc_expiry')}"></div><div class="form-group"><label>Insurance expiry</label><input class="form-input" data-vehicle-field="insurance_expiry" type="date" value="${value('insurance_expiry')}"></div><div class="form-group"><label>PUC expiry</label><input class="form-input" data-vehicle-field="puc_expiry" type="date" value="${value('puc_expiry')}"></div></div><div class="form-group full"><label>Internal notes</label><textarea class="form-input" data-vehicle-field="notes" placeholder="Access instructions, special equipment or operational notes…">${value('notes')}</textarea></div></div>`, `${button('Cancel','','data-close-modal')}${button(existing ? 'Save vehicle' : 'Create vehicle','primary','data-submit-vehicle')}`);
       modal.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', closeModal));
       modal.querySelector('[data-submit-vehicle]').addEventListener('click', async () => {
         const get = key => modal.querySelector(`[data-vehicle-field="${key}"]`)?.value.trim() || '';
         const reg = get('registration_number').toUpperCase();
-        if (!reg) return showToast('Registration number required', 'Add the vehicle registration number before saving.');
+        if (!reg) {
+          const regInput = modal.querySelector('[data-vehicle-field="registration_number"]');
+          if (regInput) { regInput.style.borderColor = 'var(--red, #ef4444)'; regInput.focus(); }
+          return showToast('Registration number required', 'Add the vehicle registration number before saving.');
+        }
         const manufacturer = get('manufacturer');
-        if (!manufacturer) return showToast('Manufacturer required', 'Select the vehicle manufacturer from masters before saving.');
+        if (!manufacturer) {
+          const mfrInput = modal.querySelector('[data-vehicle-field="manufacturer"]');
+          if (mfrInput) {
+            mfrInput.style.borderColor = 'var(--red, #ef4444)';
+            mfrInput.style.boxShadow = '0 0 0 2px rgba(239,68,68,0.2)';
+            mfrInput.focus();
+          }
+          return showToast('Manufacturer is required', 'Vehicle manufacturer is a mandatory field. Please select a manufacturer.');
+        }
         const model = get('model');
-        if (!model) return showToast('Model required', 'Add the vehicle model before saving.');
+        if (!model) {
+          const mdlInput = modal.querySelector('[data-vehicle-field="model"]');
+          if (mdlInput) {
+            mdlInput.style.borderColor = 'var(--red, #ef4444)';
+            mdlInput.style.boxShadow = '0 0 0 2px rgba(239,68,68,0.2)';
+            mdlInput.focus();
+          }
+          return showToast('Model is required', 'Vehicle model is a mandatory field. Please enter the model name.');
+        }
         const makeModel = `${manufacturer} ${model}`.trim();
         const vehicleGroup = get('vehicle_group') || 'Standard sedan';
         const vehicleType = get('vehicle_type') || 'sedan';
         const fuelType = get('fuel_type') || 'petrol';
         const seatingCapacity = get('seating_capacity') ? Number(get('seating_capacity')) : 4;
         const ownershipType = get('ownership_type') || 'owned';
-        const complianceBody = { manufacturer, model, fuel_type:fuelType, seating_capacity:seatingCapacity, luggage_capacity:get('luggage_capacity') ? Number(get('luggage_capacity')) : null, ownership_type:ownershipType, branch_name:get('branch_name'), gps_provider:get('gps_provider'), rc_expiry:get('rc_expiry'), insurance_expiry:get('insurance_expiry'), puc_expiry:get('puc_expiry'), notes:get('notes') };
+        const supplierId = modal.querySelector('#vehSupplierId')?.value || get('supplier_id');
+        const supplierName = modal.querySelector('#vehSupplierName')?.value.trim() || (supplierList.find(s => s.id === supplierId)?.name || get('supplier_name'));
+        const driverId = modal.querySelector('#vehDriverId')?.value || get('driver_id');
+        const ownerName = modal.querySelector('#vehOwnerName')?.value.trim() || (driverList.find(d => d.id === driverId)?.full_name || get('owner_name'));
+        const complianceBody = { manufacturer, model, fuel_type:fuelType, seating_capacity:seatingCapacity, luggage_capacity:get('luggage_capacity') ? Number(get('luggage_capacity')) : null, ownership_type:ownershipType, supplier_id:supplierId, supplier_name:supplierName, owner_name:ownerName, driver_id:driverId, branch_name:get('branch_name'), gps_provider:get('gps_provider'), rc_expiry:get('rc_expiry'), insurance_expiry:get('insurance_expiry'), puc_expiry:get('puc_expiry'), notes:get('notes') };
         const sharedBody = { registration_number:reg, manufacturer, model, vehicle_type:vehicleType, vehicle_group:vehicleGroup, make_model:makeModel, year:get('year') ? Number(get('year')) : null, city:get('city'), status:get('status') || 'available', compliance:complianceBody };
         const localBody = { ...sharedBody, ...complianceBody };
         const submit = modal.querySelector('[data-submit-vehicle]'); submit.disabled = true;
