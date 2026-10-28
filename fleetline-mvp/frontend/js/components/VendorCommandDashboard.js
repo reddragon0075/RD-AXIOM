@@ -526,6 +526,14 @@ export class VendorCommandDashboard {
               <div class="drawer-card-title">${isETS ? 'SLA Demotions' : 'Expired Badges'}</div>
               <div class="drawer-card-sub">Statutory compliance flags</div>
             </button>
+            <button class="drawer-card-btn btn-open-drawer" data-drawer-type="factoring_cashout">
+              <div class="drawer-card-top">
+                <span class="drawer-badge success" style="background:#dcfce7; color:#15803d;">T+0 CLEARING</span>
+                <span class="drawer-count">₹3,782</span>
+              </div>
+              <div class="drawer-card-title">Instant Factoring</div>
+              <div class="drawer-card-sub">1.75% fee immediate payout</div>
+            </button>
           </div>
         </div>
       </div>
@@ -689,7 +697,40 @@ export class VendorCommandDashboard {
         await this.handleSelfSettleDues();
         return;
       }
+
+      // 10. Autonomous: Instant T+0 Factoring Cashout
+      const cashoutBtn = target.closest("[data-action='instant-cashout']");
+      if (cashoutBtn) {
+        const dutyId = cashoutBtn.dataset.dutyId;
+        await this.handleInstantCashout(dutyId);
+        return;
+      }
     }, { signal });
+  }
+
+  async handleInstantCashout(dutyId) {
+    if (this.inFlightRequests.has(`cashout_${dutyId}`)) return;
+    this.inFlightRequests.add(`cashout_${dutyId}`);
+    try {
+      const res = await fetch("/api/v1/network/factoring/instant-cashout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ duty_id: dutyId }),
+        signal: this.abortController.signal,
+      });
+      const data = await res.json();
+      if (data.ok) {
+        alert(`Success! T+0 Factoring Disbursed: ₹${data.instant_net_disbursement_inr} credited to withdrawable wallet.`);
+        this.closeDrawer();
+      } else {
+        alert(`Cash-out failed: ${data.message || data.error || 'Server error'}`);
+      }
+    } catch (err) {
+      console.warn("Cashout error:", err);
+      alert("Network error processing instant factoring.");
+    } finally {
+      this.inFlightRequests.delete(`cashout_${dutyId}`);
+    }
   }
 
   async fetchSLARadar() {
@@ -876,6 +917,26 @@ export class VendorCommandDashboard {
           <div style="font-size:12px; color:var(--text-secondary); line-height:1.6; margin-bottom:10px;">
             Commercial Transport Badge expired on 24-Oct-2026.<br/>
             Cannot be allotted to airport or corporate duties.
+          </div>
+        </div>
+      `;
+    } else if (type === "factoring_cashout") {
+      title = "T+0 Instant Factoring Clearinghouse";
+      contentHtml = `
+        <div class="drawer-action-card">
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+            <strong>Duty #DT-8819 &bull; Verified Completed</strong>
+            <span class="margin-pill success" style="background:#dcfce7; color:#15803d; font-weight:800;">AUDIT PASSED</span>
+          </div>
+          <div style="font-size:12px; color:var(--text-secondary); line-height:1.6; margin-bottom:12px;">
+            Route: Infosys BPM -> Whitefield ITPL &bull; 48.0 km<br/>
+            <strong>Gross Payable:</strong> ₹3,850.00 &bull; <strong>Platform Factoring Fee (1.75%):</strong> -₹67.38<br/>
+            <strong style="color:#15803d; font-size:13px;">Net Instant Disbursement: ₹3,782.62</strong>
+          </div>
+          <div>
+            <button class="tab-btn" data-action="instant-cashout" data-duty-id="DT-8819" style="background:#16a34a; color:#fff; border:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:800; cursor:pointer; box-shadow:0 4px 12px rgba(22,163,74,0.3);">
+              ⚡ Instant Cash-Out to Wallet (T+0)
+            </button>
           </div>
         </div>
       `;

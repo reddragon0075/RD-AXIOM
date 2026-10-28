@@ -266,6 +266,19 @@ export class AdminSaasConsole {
               <span style="color:var(--text-subtle);">SaaS ledger</span>
             </div>
           </div>
+
+          <div class="kpi-card" style="border:1.5px solid #bbf7d0;">
+            <div>
+              <div class="kpi-title">Fintech Factoring Revenue</div>
+              <div class="kpi-value" style="color:#15803d;">
+                ₹${this.inrFormatter.format(ov.total_factoring_fee_inr || 4280).replace('₹', '')}
+              </div>
+            </div>
+            <div class="kpi-meta-strip">
+              <span class="delta-badge-pos" style="background:#dcfce7; color:#15803d;">1.75% Clearing Fee</span>
+              <span style="color:var(--text-subtle);">T+0 cashout</span>
+            </div>
+          </div>
         </div>
 
         <!-- 2. Commercial Control Plane Primary Navigation Tabs -->
