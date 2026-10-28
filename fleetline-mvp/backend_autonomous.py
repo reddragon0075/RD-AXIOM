@@ -343,12 +343,22 @@ def scan_sla_radar(conn: sqlite3.Connection, organization_id: str) -> Dict[str, 
         # Night Safety Guardian (20:00 - 06:00 POSH protection)
         night_safety_alert = False
         night_alert_reason = ""
+        # Check if current time OR duty scheduled pickup is in night window (20:00 - 06:00 IST)
+        duty_ist_hour = (now_dt + dt.timedelta(hours=5.5)).hour
+        if sched_str:
+            try:
+                t_sched = dt.datetime.fromisoformat(sched_str.replace("Z", "+00:00"))
+                duty_ist_hour = (t_sched + dt.timedelta(hours=5.5)).hour
+            except Exception:
+                pass
+        is_night_commute = (duty_ist_hour >= 20 or duty_ist_hour < 6)
+
         # Check passenger gender / protected flag
         passenger_name = d["passenger_name"] or ""
-        is_female_candidate = any(k in passenger_name.lower() for k in ["sharma", "ananya", "priya", "pooja", "neha", "ms.", "mrs."])
-        if is_night_window and is_female_candidate:
+        is_female_candidate = any(k in passenger_name.lower() for k in ["female", "sharma", "ananya", "priya", "pooja", "neha", "ms.", "mrs.", "sunita", "sen"])
+        if is_night_commute and is_female_candidate:
             night_safety_alert = True
-            night_alert_reason = f"Night commute ({now_dt.strftime('%H:%M')} IST): Protected passenger '{passenger_name}' requires active route geofence tracking."
+            night_alert_reason = f"Night commute ({duty_ist_hour:02d}:00 IST): Protected passenger '{passenger_name}' requires active route geofence tracking & escort verification."
             night_safety_alerts_count += 1
 
         radar_items.append({

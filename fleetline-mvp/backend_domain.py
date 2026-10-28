@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import math
 import re
+import sqlite3
 import uuid
 from datetime import datetime, timezone
 from urllib.parse import parse_qs, urlsplit
@@ -1067,6 +1068,12 @@ def _create_invoice(conn, user, payload, ip):
         if existing_duty_inv:
             return {"ok": True, "item": _invoice(conn, existing_duty_inv["id"], org), "duplicate": True}
     duty = _assert_owned(conn, "domain_duties", duty_id, org)
+    try:
+        audit = conn.execute("SELECT audit_status, trust_score FROM domain_duty_trust_audits WHERE duty_id = ? AND organization_id = ?", (duty_id, org)).fetchone()
+        if audit and audit["audit_status"] == "NEEDS_AUDIT":
+            raise DomainError(422, f"Duty {duty_id} has unresolved audit flags (Trust Score: {audit['trust_score']}). Resolve discrepancy before generating invoice.", "audit_resolution_required")
+    except sqlite3.OperationalError:
+        pass
     snapshot = _json(duty["calculation_snapshot_json"], {})
     if not snapshot or not snapshot.get("total_paise"):
         raise DomainError(422, "Calculate the duty before creating an invoice", "calculation_required")

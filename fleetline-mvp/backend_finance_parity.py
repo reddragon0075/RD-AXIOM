@@ -6,6 +6,7 @@ import csv
 import io
 import json
 import re
+import sqlite3
 from datetime import datetime, timezone
 from urllib.parse import parse_qs, urlsplit
 
@@ -177,6 +178,13 @@ def _create_invoice_for_duties(conn, user, org: str, duties, mode: str, payload:
         fuel_surcharge += int(fuel.get("amount_paise") or 0)
     subtotal += fuel_surcharge
     total = base_total + fuel_surcharge
+    try:
+        for duty in duties:
+            audit = conn.execute("SELECT audit_status, trust_score FROM domain_duty_trust_audits WHERE duty_id = ? AND organization_id = ?", (duty["id"], org)).fetchone()
+            if audit and audit["audit_status"] == "NEEDS_AUDIT":
+                raise DomainError(422, f"Duty {duty['id']} has unresolved audit flags (Trust Score: {audit['trust_score']}). Resolve discrepancy before generating invoice.", "audit_resolution_required")
+    except sqlite3.OperationalError:
+        pass
     invoice_id = new_id("inv")
     sequence = conn.execute("SELECT COUNT(*) + 1 AS n FROM domain_invoices WHERE organization_id = ?", (org,)).fetchone()["n"]
     invoice_number = _text(payload, "invoice_number") or f"INV-{datetime.now(timezone.utc):%Y}-{sequence:03d}"
