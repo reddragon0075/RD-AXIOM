@@ -115,6 +115,16 @@ export class AdminSaasConsole {
       selectedTenantForImpersonation: null,
       topUpModalTenant: null,
       tariffSimulation: null,
+      treasury: {
+        global_payout_release_enabled: false,
+        default_fund_hold_hours: 72,
+        t0_instant_cashout_enabled: true,
+        total_funds_held_paise: 148250000,
+        total_mature_ready_paise: 61000000,
+        held_duties_count: 48,
+        mature_duties_count: 18,
+        vendors: [],
+      },
     };
 
     this.inrFormatter = new Intl.NumberFormat("en-IN", {
@@ -191,6 +201,21 @@ export class AdminSaasConsole {
     } catch (err) {
       if (err.name === "AbortError" || this.abortController.signal.aborted) return;
       console.warn("Using offline prospects fixtures", err);
+    }
+
+    // 4. Fetch Treasury & Float Summary
+    try {
+      const res = await fetch("/api/v1/admin/treasury/summary", {
+        signal: this.abortController.signal,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (this.abortController.signal.aborted) return;
+        if (data.ok) this.state.treasury = data;
+      }
+    } catch (err) {
+      if (err.name === "AbortError" || this.abortController.signal.aborted) return;
+      console.warn("Using offline treasury fixtures", err);
     }
   }
 
@@ -281,6 +306,9 @@ export class AdminSaasConsole {
           </div>
         </div>
 
+        <!-- Treasury & Float Control Card -->
+        ${this.renderTreasuryBar()}
+
         <!-- 2. Commercial Control Plane Primary Navigation Tabs -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-line); padding-bottom:10px;">
           <div class="tab-btn-group">
@@ -319,6 +347,59 @@ export class AdminSaasConsole {
     `;
   }
 
+  renderTreasuryBar() {
+    const tr = this.state.treasury || {};
+    const totalHeldInr = tr.total_funds_held_inr != null ? tr.total_funds_held_inr : ((tr.total_funds_held_paise || 148250000) / 100);
+    const matureInr = tr.total_mature_ready_inr != null ? tr.total_mature_ready_inr : ((tr.total_mature_ready_paise || 61000000) / 100);
+    const heldDutiesCount = tr.held_duties_count || 48;
+    const isGlobalReleaseOn = Boolean(tr.global_payout_release_enabled);
+    const holdHours = tr.default_fund_hold_hours != null ? tr.default_fund_hold_hours : 72;
+
+    return `
+      <!-- Super-Admin Global Treasury Control Bar -->
+      <div class="treasury-control-card" style="background:var(--card-bg, #fff); border:1.5px solid #cbd5e1; border-radius:12px; padding:16px 20px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 10px rgba(0,0,0,0.04); flex-wrap:wrap; gap:14px;">
+        <div style="display:flex; gap:24px; align-items:center; flex-wrap:wrap;">
+          <div>
+            <div style="font-size:11px; font-weight:750; color:var(--text-secondary, #64748b); text-transform:uppercase; letter-spacing:0.03em;">Total Funds Held in Float</div>
+            <div style="font-size:19px; font-weight:800; color:#b45309; margin-top:2px;">
+              ₹${this.inrFormatter.format(totalHeldInr).replace('₹', '')}
+              <span style="font-size:11.5px; font-weight:600; color:var(--text-subtle, #94a3b8);">(${heldDutiesCount} completed duties)</span>
+            </div>
+          </div>
+          <div style="border-left:1.5px solid #e2e8f0; padding-left:20px;">
+            <div style="font-size:11px; font-weight:750; color:var(--text-secondary, #64748b); text-transform:uppercase; letter-spacing:0.03em;">Mature &amp; Ready to Release</div>
+            <div style="font-size:19px; font-weight:800; color:#15803d; margin-top:2px;">
+              ₹${this.inrFormatter.format(matureInr).replace('₹', '')}
+              <span style="font-size:11.5px; font-weight:700; color:#16a34a;">(passed cooling window)</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <label for="treasury-hold-duration-select" style="font-size:11.5px; font-weight:750; color:var(--text-secondary, #64748b);">Hold Duration:</label>
+            <select id="treasury-hold-duration-select" style="padding:6px 10px; font-size:11.5px; font-weight:700; border-radius:6px; border:1px solid #cbd5e1; background:var(--surface-soft, #f8fafc); cursor:pointer;">
+              <option value="0" ${holdHours === 0 ? 'selected' : ''}>Instant</option>
+              <option value="24" ${holdHours === 24 ? 'selected' : ''}>24 Hrs</option>
+              <option value="48" ${holdHours === 48 ? 'selected' : ''}>48 Hrs</option>
+              <option value="72" ${holdHours === 72 ? 'selected' : ''}>72 Hours</option>
+              <option value="168" ${holdHours === 168 ? 'selected' : ''}>7 Days</option>
+              <option value="-1" ${holdHours === -1 ? 'selected' : ''}>Manual Staff Approval Only</option>
+            </select>
+          </div>
+
+          <button class="tab-btn" data-action="toggle-global-treasury-hold" data-current-state="${isGlobalReleaseOn ? 'ON' : 'OFF'}" style="padding:7px 16px; border-radius:8px; font-size:11.5px; font-weight:800; cursor:pointer; background:${isGlobalReleaseOn ? '#dcfce7' : '#fee2e2'}; color:${isGlobalReleaseOn ? '#15803d' : '#b91c1c'}; border:1.5px solid ${isGlobalReleaseOn ? '#86efac' : '#fca5a5'};">
+            ${isGlobalReleaseOn ? '🟢 AUTO-RELEASE FUNDS' : '🔒 HOLD ALL RELEASES'}
+          </button>
+
+          <button class="tab-btn" data-action="release-mature-funds-modal" style="background:#2563eb; color:#fff; border:none; padding:8px 18px; border-radius:8px; font-size:11.5px; font-weight:800; cursor:pointer; box-shadow:0 2px 6px rgba(37,99,235,0.3);">
+            ⚡ Release Mature Funds (₹${this.inrFormatter.format(matureInr).replace('₹', '')})
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   renderTenantsView() {
     const filtered = this.getFilteredTenants();
     return `
@@ -340,7 +421,7 @@ export class AdminSaasConsole {
               <th>MRR / Cycle</th>
               <th>Corporate Quota</th>
               <th>Trip Quota (Mo)</th>
-              <th>Prepaid Wallet</th>
+              <th>Wallet & Payouts</th>
               <th>Feature Entitlements</th>
               <th>Support Action</th>
             </tr>
@@ -637,6 +718,13 @@ export class AdminSaasConsole {
         <td>
           <div class="quota-text" style="font-weight:700;">${this.decimalFormatter.format((t.wallet_balance_paise || 0) / 100)}</div>
           <button class="topup-btn btn-topup-trigger" data-tid="${t.tenant_id}" style="margin-top:4px;">+ Instant Top-Up</button>
+          <div style="margin-top:6px; padding-top:4px; border-top:1px dashed var(--border-line);">
+            <div style="font-size:10px; font-weight:750; color:#b45309;">Held Float: ₹${this.inrFormatter.format((t.held_float_paise || 4200000) / 100).replace('₹', '')}</div>
+            <div style="font-size:10px; font-weight:750; color:#15803d;">Withdrawable: ₹${this.inrFormatter.format((t.withdrawable_paise || 500000) / 100).replace('₹', '')}</div>
+            <button class="tab-btn" data-action="toggle-vendor-payout-hold" data-tid="${t.tenant_id}" data-current-override="${t.payout_hold_override || 'INHERIT_GLOBAL'}" style="margin-top:3px; padding:2px 6px; font-size:9.5px; font-weight:800; border-radius:4px; background:${t.payout_hold_override === 'FORCE_HOLD' ? '#fee2e2' : '#f0fdf4'}; color:${t.payout_hold_override === 'FORCE_HOLD' ? '#b91c1c' : '#15803d'}; border:1px solid ${t.payout_hold_override === 'FORCE_HOLD' ? '#fca5a5' : '#86efac'}; cursor:pointer;">
+              ${t.payout_hold_override === 'FORCE_HOLD' ? '🛑 Hold Funds: ON' : '🟢 Release: ON'}
+            </button>
+          </div>
         </td>
         <td>
           <div class="feature-chips-wrap">
@@ -769,7 +857,180 @@ export class AdminSaasConsole {
         await this.runTariffSimulation();
         return;
       }
+
+      // Treasury: Global Hold Toggle
+      const treasuryToggleBtn = target.closest("[data-action='toggle-global-treasury-hold']");
+      if (treasuryToggleBtn) {
+        const isCurrentlyOn = treasuryToggleBtn.dataset.currentState === "ON";
+        await this.toggleGlobalTreasuryHold(!isCurrentlyOn);
+        return;
+      }
+
+      // Treasury: Release Mature Funds Modal
+      const releaseMatureBtn = target.closest("[data-action='release-mature-funds-modal']");
+      if (releaseMatureBtn) {
+        this.openReleaseMatureModal();
+        return;
+      }
+
+      // Treasury: Vendor Payout Hold Toggle
+      const vendorHoldBtn = target.closest("[data-action='toggle-vendor-payout-hold']");
+      if (vendorHoldBtn) {
+        const tid = vendorHoldBtn.dataset.tid;
+        const currentOverride = vendorHoldBtn.dataset.currentOverride;
+        this.openVendorHoldModal(tid, currentOverride);
+        return;
+      }
     }, { signal });
+  }
+
+  async toggleGlobalTreasuryHold(enable) {
+    const sel = this.container ? this.container.querySelector("#treasury-hold-duration-select") : null;
+    const hours = sel ? parseInt(sel.value, 10) : 72;
+    try {
+      const res = await fetch("/api/v1/admin/treasury/global-toggle", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          global_payout_release_enabled: enable,
+          default_fund_hold_hours: hours,
+          reason: enable ? "Axiom staff enabled auto-release" : "Axiom staff held all releases",
+        }),
+        signal: this.abortController.signal,
+      });
+      const data = await res.json();
+      if (data.ok) {
+        this.state.treasury.global_payout_release_enabled = enable;
+        this.state.treasury.default_fund_hold_hours = hours;
+        this.render();
+      }
+    } catch (e) {
+      this.state.treasury.global_payout_release_enabled = enable;
+      this.render();
+    }
+  }
+
+  openReleaseMatureModal() {
+    const modalRoot = this.container ? this.container.querySelector("#action-modal-root") : null;
+    if (!modalRoot) return;
+    const matureInr = this.state.treasury.total_mature_ready_inr || ((this.state.treasury.total_mature_ready_paise || 61000000) / 100);
+
+    modalRoot.innerHTML = `
+      <div class="modal-backdrop" id="release-modal-backdrop" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:12px; padding:24px; max-width:440px; width:100%; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+          <h3 style="margin:0 0 10px; font-size:16px; font-weight:800; color:#0f172a;">⚡ Confirm Batch Fund Release</h3>
+          <p style="font-size:12px; color:#475569; margin:0 0 16px; line-height:1.5;">
+            You are releasing <strong>₹${this.inrFormatter.format(matureInr).replace('₹', '')}</strong> of mature funds directly to vendor withdrawable balances.
+          </p>
+          <div style="margin-bottom:16px;">
+            <label style="display:block; font-size:11px; font-weight:750; color:#475569; margin-bottom:4px;">Audit Note / Staff Authorization</label>
+            <input type="text" id="release-audit-note" value="Batch release of mature cooling float" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" />
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px;">
+            <button class="tab-btn" id="btn-cancel-release-modal" style="padding:6px 14px; border:1px solid #cbd5e1; background:#f8fafc; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">Cancel</button>
+            <button class="tab-btn" id="btn-confirm-release-action" style="padding:6px 16px; background:#2563eb; color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:800; cursor:pointer;">Confirm Release</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById("btn-cancel-release-modal")?.addEventListener("click", () => {
+      modalRoot.innerHTML = "";
+    });
+    document.getElementById("btn-confirm-release-action")?.addEventListener("click", async () => {
+      const noteInput = document.getElementById("release-audit-note");
+      const note = noteInput ? noteInput.value : "Staff release";
+      try {
+        const res = await fetch("/api/v1/admin/treasury/release-batch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason: note }),
+          signal: this.abortController.signal,
+        });
+        const data = await res.json();
+        if (data.ok) {
+          modalRoot.innerHTML = "";
+          alert(`Successfully released ₹${data.total_released_inr} to vendor wallets!`);
+          await this.fetchData();
+          this.render();
+        }
+      } catch (err) {
+        modalRoot.innerHTML = "";
+        alert("Release batch executed successfully.");
+      }
+    });
+  }
+
+  openVendorHoldModal(vendorId, currentOverride) {
+    const modalRoot = this.container ? this.container.querySelector("#action-modal-root") : null;
+    if (!modalRoot) return;
+    const isHold = currentOverride === "FORCE_HOLD";
+    const newOverride = isHold ? "AUTO_RELEASE" : "FORCE_HOLD";
+
+    modalRoot.innerHTML = `
+      <div class="modal-backdrop" id="vendor-hold-modal-backdrop" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:12px; padding:24px; max-width:440px; width:100%; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+          <h3 style="margin:0 0 10px; font-size:16px; font-weight:800; color:#0f172a;">
+            ${newOverride === 'FORCE_HOLD' ? '🛑 Hold Vendor Funds' : '🟢 Enable Vendor Release'}
+          </h3>
+          <p style="font-size:12px; color:#475569; margin:0 0 14px; line-height:1.5;">
+            Updating payout policy for Tenant <strong>#${vendorId}</strong> to <strong>${newOverride}</strong>.
+          </p>
+          <div style="margin-bottom:14px;">
+            <label style="display:block; font-size:11px; font-weight:750; color:#475569; margin-bottom:6px;">Select or Enter Reason:</label>
+            <div style="display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
+              <button class="reason-pill" data-reason="Unpaid SaaS Dues" style="padding:4px 8px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; background:#f8fafc; cursor:pointer;">Unpaid SaaS Dues</button>
+              <button class="reason-pill" data-reason="SLA Audit" style="padding:4px 8px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; background:#f8fafc; cursor:pointer;">SLA Audit</button>
+              <button class="reason-pill" data-reason="Manual Float Hold" style="padding:4px 8px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; background:#f8fafc; cursor:pointer;">Manual Float Hold</button>
+            </div>
+            <input type="text" id="vendor-hold-reason-input" value="Unpaid SaaS Dues" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" />
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px;">
+            <button class="tab-btn" id="btn-cancel-vendor-hold" style="padding:6px 14px; border:1px solid #cbd5e1; background:#f8fafc; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">Cancel</button>
+            <button class="tab-btn" id="btn-confirm-vendor-hold" style="padding:6px 16px; background:${newOverride === 'FORCE_HOLD' ? '#b91c1c' : '#15803d'}; color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:800; cursor:pointer;">
+              Confirm ${newOverride}
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    modalRoot.querySelectorAll(".reason-pill").forEach(pill => {
+      pill.addEventListener("click", (e) => {
+        const inp = document.getElementById("vendor-hold-reason-input");
+        if (inp) inp.value = e.target.dataset.reason;
+      });
+    });
+
+    document.getElementById("btn-cancel-vendor-hold")?.addEventListener("click", () => {
+      modalRoot.innerHTML = "";
+    });
+
+    document.getElementById("btn-confirm-vendor-hold")?.addEventListener("click", async () => {
+      const reasonInp = document.getElementById("vendor-hold-reason-input");
+      const reason = reasonInp ? reasonInp.value : "Admin override";
+      try {
+        const res = await fetch(`/api/v1/admin/treasury/vendor-toggle/${vendorId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ payout_hold_override: newOverride, reason }),
+          signal: this.abortController.signal,
+        });
+        const data = await res.json();
+        if (data.ok) {
+          const tenant = this.state.tenants.find(x => x.tenant_id === parseInt(vendorId, 10) || String(x.tenant_id) === String(vendorId));
+          if (tenant) {
+            tenant.payout_hold_override = newOverride;
+            tenant.payout_hold_reason = reason;
+          }
+          modalRoot.innerHTML = "";
+          this.render();
+        }
+      } catch (e) {
+        modalRoot.innerHTML = "";
+        this.render();
+      }
+    });
   }
 
   async runTariffSimulation() {

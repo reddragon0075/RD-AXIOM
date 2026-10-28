@@ -81,6 +81,15 @@ export class VendorCommandDashboard {
         sla_penalties_deducted_paise: 150000, // ₹1,500
       },
 
+      // Payout & Treasury Clearing Balance
+      payoutBalance: {
+        total_earned_paise: 36290000,
+        in_clearing_held_paise: 11290000,
+        released_withdrawable_paise: 25000000,
+        payout_hold_override: "INHERIT_GLOBAL",
+        payout_hold_reason: "",
+      },
+
       // Mock Corporate Profitability Table
       corporate_pnl: [
         { name: "Infosys BPM", duties: 24, client_billing: 24000000, vendor_cost: 17500000, margin_paise: 6500000, margin_pct: 27.1, proforma: "APPROVED" },
@@ -541,6 +550,7 @@ export class VendorCommandDashboard {
   }
 
   renderRevenueView(fin) {
+    const pb = this.state.payoutBalance || {};
     return `
       <div class="hero-stats-row">
         <div class="hero-stat-card">
@@ -562,6 +572,32 @@ export class VendorCommandDashboard {
           <div class="hero-title">Auto-Slab Optimizer Gain</div>
           <div class="hero-val text-info">${this.inrFormatter.format(fin.auto_slab_savings_paise / 100)}</div>
           <div class="hero-meta">${fin.auto_slab_upgraded_count} package upgrades</div>
+        </div>
+      </div>
+
+      <!-- Vendor Portal Transparency Banner: Payouts & Clearing Status -->
+      <div class="payout-transparency-card" style="background:var(--card-bg, #fff); border:1.5px solid var(--border-line, #e2e8f0); border-radius:12px; padding:18px 20px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 10px rgba(0,0,0,0.03); flex-wrap:wrap; gap:16px;">
+        <div>
+          <div style="font-size:11.5px; font-weight:800; color:var(--text-secondary, #64748b); text-transform:uppercase; letter-spacing:0.04em;">Dual-Ledger P&amp;L &amp; Payouts</div>
+          <div style="display:flex; gap:24px; margin-top:8px; align-items:baseline; flex-wrap:wrap;">
+            <div>
+              <span style="font-size:12px; color:var(--text-secondary, #64748b);">Total Earned (Payable):</span>
+              <strong style="font-size:17px; margin-left:6px; color:var(--text-primary, #0f172a);">${this.inrFormatter.format((pb.total_earned_paise || fin.supplier_payable_paise || 36290000) / 100)}</strong>
+            </div>
+            <div>
+              <span style="font-size:12px; color:#d97706;" title="Funds are held during the standard verification &amp; clearing cycle before release">⏳ In Clearing / Held by Axiom:</span>
+              <strong style="font-size:17px; margin-left:6px; color:#b45309;" title="Funds are held during the standard verification &amp; clearing cycle before release">${this.inrFormatter.format((pb.in_clearing_held_paise || 11290000) / 100)}</strong>
+            </div>
+            <div>
+              <span style="font-size:12px; color:#16a34a;">✅ Released &amp; Withdrawable:</span>
+              <strong style="font-size:17px; margin-left:6px; color:#15803d;">${this.inrFormatter.format((pb.released_withdrawable_paise || 25000000) / 100)}</strong>
+            </div>
+          </div>
+        </div>
+        <div>
+          <button class="tab-btn" data-action="withdraw-to-bank" style="background:#16a34a; color:#fff; border:none; padding:8px 18px; border-radius:8px; font-size:12px; font-weight:750; cursor:pointer; box-shadow:0 2px 8px rgba(22,163,74,0.3);">
+            Withdraw to Bank ↗
+          </button>
         </div>
       </div>
 
