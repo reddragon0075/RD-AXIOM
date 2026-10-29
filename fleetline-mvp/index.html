@@ -4345,7 +4345,7 @@
               </tr>
             </thead>
             <tbody>
-              ${rows.join('') || tenantTableEmpty('No driver payout records returned','Select a driver and settlement period to calculate duty earnings and submit for approval.',button(icon('plus')+'Calculate driver payout','small primary','data-action="open-driver-payout-modal"'))}
+              ${rows || tenantTableEmpty('No driver payout records returned','Select a driver and settlement period to calculate duty earnings and submit for approval.',button(icon('plus')+'Calculate driver payout','small primary','data-action="open-driver-payout-modal"'))}
             </tbody>
           </table>
         </div>
