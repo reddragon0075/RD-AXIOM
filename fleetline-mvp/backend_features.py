@@ -531,6 +531,8 @@ def _booking_action(conn, user, booking_id, action, payload, ip):
         driver_id = payload.get("driver_id") or None
         vehicle_id = payload.get("vehicle_id") or None
         supplier_id = payload.get("supplier_id") or None
+        if supplier_id in {"OWN", "own", "none", ""}:
+            supplier_id = None
         existing = conn.execute("SELECT id FROM domain_duties WHERE booking_id = ? AND organization_id = ? ORDER BY created_at DESC LIMIT 1", (booking_id, org)).fetchone()
         duty_status = "assigned" if (driver_id or vehicle_id or supplier_id) else "draft"
         duty_payload = {"driver_id": driver_id, "vehicle_id": vehicle_id, "supplier_id": supplier_id, "status": duty_status}
@@ -542,7 +544,7 @@ def _booking_action(conn, user, booking_id, action, payload, ip):
         else:
             duty_payload["booking_id"] = booking_id
             result = _create_duty(conn, user, duty_payload, ip)
-        booking_status = "assigned" if (driver_id and vehicle_id and supplier_id) else "confirmed" if (driver_id or vehicle_id or supplier_id) else "requested"
+        booking_status = "assigned" if (driver_id and vehicle_id) else "confirmed" if (driver_id or vehicle_id or supplier_id) else "requested"
         booking_cols = {row["name"] for row in conn.execute("PRAGMA table_info(domain_bookings)").fetchall()}
         booking_updates = ["status = ?", "updated_at = ?"]
         booking_params = [booking_status, now]
