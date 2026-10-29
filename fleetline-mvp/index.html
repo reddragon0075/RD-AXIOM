@@ -2643,13 +2643,17 @@
         <div class="nav-accordion-group" data-section="fleet">
           <button class="nav-section nav-section-header" type="button" aria-expanded="true" aria-controls="section-items-fleet">
             <span class="nav-section-label">Fleet control</span>
-            <span class="nav-section-count">3</span>
+            <span class="nav-section-count">4</span>
             <svg class="nav-accordion-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="nav-section-items" id="section-items-fleet">
             <div class="nav-section-items-inner">
               <button class="nav-item" data-page="vehicles" data-tooltip="Vehicles register"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 17h14l-1.5-6h-11L5 17Z"/><path d="m8 11 1-4h6l1 4M5 17v2h2M19 17v2h-2M8 14h.01M16 14h.01"/></svg><span>Vehicles</span></button>
               <button class="nav-item" data-page="drivers" data-tooltip="Drivers register"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span>Drivers</span></button>
+              <button class="nav-item nav-sub-item" data-page="driver-payouts" data-tooltip="Driver payouts &amp; settlements" style="padding-left:32px;font-size:11.5px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span>Driver payouts</span>
+              </button>
               <button class="nav-item" data-page="masters" data-tooltip="Masters &amp; setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/><path d="M7 4v4M17 10v4M11 16v4"/></svg><span>Masters</span></button>
             </div>
           </div>
@@ -2813,7 +2817,7 @@
     // All workspace records are tenant-scoped API data. The console deliberately
     // starts empty when a tenant has no records; no demo roster or invoice rows
     // are embedded in the product bundle.
-    const navTitles = { overview:'Operations overview', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & pricing', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls', 'axiom-hq':'Axiom Fleet HQ Command Center' };
+    const navTitles = { overview:'Operations overview', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', 'driver-payouts':'Driver payouts & settlements', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & pricing', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls', 'axiom-hq':'Axiom Fleet HQ Command Center' };
     const savedActivePage = (function() {
       try {
         const p = sessionStorage.getItem('axiomfleet_active_page');
@@ -2821,7 +2825,7 @@
       } catch (_) {}
       return 'overview';
     })();
-    const state = { page: savedActivePage, dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const state = { page: savedActivePage, dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
     const advancedPages = new Set(['customers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq']);
@@ -3359,7 +3363,7 @@
       topbarTitle.textContent = currentUser?.role === 'corporate' && state.page === 'overview' ? 'Corporate account workspace' : (navTitles[state.page] || 'Operations overview');
       document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.page === state.page));
       syncAdvancedNavigation();
-      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ };
+      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ };
       content.innerHTML = (pages[state.page] || renderOverview)();
       attachPageEvents();
       decorateResponsiveTables();
@@ -4111,7 +4115,7 @@
         const totalKm = item.total_km || 0;
         const dateFrom = item.trip_date_from || item.billing_period_from;
         const dateTo = item.trip_date_to || item.billing_period_to;
-        const periodStr = dateFrom && dateTo ? `${formatDate(dateFrom)} - ${formatDate(dateTo)}` : (item.issued_at ? formatDate(item.issued_at) : '—');
+        const periodStr = dateFrom && dateTo ? `${formatDate(dateFrom)} – ${formatDate(dateTo)}` : (item.issued_at ? formatDate(item.issued_at) : '—');
         const issueDate = item.issued_at || item.issue_date || item.created_at;
 
         return `<tr>
@@ -4161,20 +4165,72 @@
           <td>${item.raw_gps_crumb_km} km</td>
           <td>${item.snapped_route_km} km</td>
           <td>${discBadge}</td>
-          <td>${formatAmount((item.fastag_toll_deductions_paise || 0) / 100)}</td>
+          <td>${formatAmount(item.fastag_toll_deductions_paise / 100)}</td>
           <td>${statusBadge}</td>
         </tr>`;
       }).join('');
 
-      // Driver payouts data
+      let bodyTable = '';
+      if (filter === 'dual-ledger') {
+        bodyTable = `<div class="table-wrap"><table><thead><tr><th>Duty &amp; Client</th><th>Supplier &amp; Mode</th><th>Client Receivable</th><th>Supplier Payable</th><th>Gross Margin</th><th>Distance Audit</th><th>GST Regime</th><th>Actions</th></tr></thead><tbody>${dualLedgerRows}</tbody></table></div>`;
+      } else if (filter === 'distance-audit') {
+        bodyTable = `<div class="table-wrap"><table><thead><tr><th>Duty Reference</th><th>Odometer Delta</th><th>Raw GPS Breadcrumbs</th><th>Road-Snapped Route</th><th>Discrepancy</th><th>FASTag Deductions</th><th>Status</th></tr></thead><tbody>${distanceAuditRows}</tbody></table></div>`;
+      } else {
+        bodyTable = `<div class="table-wrap"><table><thead><tr><th>Invoice #</th><th>Customer</th><th>Billing Period</th><th style="text-align:center">Trips</th><th style="text-align:center">Total KM</th><th>Issued</th><th>Total</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead><tbody>${rowMarkup || tenantTableEmpty('No corporate invoice records returned','Build a source-linked consolidated invoice for completed client duties.',button(icon('plus')+'Build invoice','small soft','data-action="build-invoice"'))}</tbody></table></div>`;
+      }
+
+      const tabs = [
+        ['all','All invoices'],
+        ['draft','Drafts'],
+        ['sent','Sent'],
+        ['paid','Paid'],
+        ['overdue','Overdue'],
+        ['dual-ledger','Dual-Ledger Margin Queue'],
+        ['distance-audit','3-Way Distance Audit']
+      ];
+
+      const headButtons = `${button(icon('download')+'Export ledger','','data-action="export"')}${button(icon('download')+'Tally Prime XML','soft','data-action="tristack-tally"')}${button(icon('plus')+'Build invoice','primary','data-action="build-invoice"')}`;
+
+      const kpiMarkup = `
+        <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Invoice records</span><span class="kpi-icon">${icon('file')}</span></div><div class="kpi-value">${invoices.length}</div><div class="kpi-foot">Tenant corporate records</div></div>
+        <div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Corporate Receivables</span><span class="kpi-icon teal">${icon('wallet')}</span></div><div class="kpi-value">${totalPaise ? formatAmount(totalPaise / 100) : '—'}</div><div class="kpi-foot">Currency-aware invoice value</div></div>
+        <div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Dual-Ledger Queue</span><span class="kpi-icon purple">${icon('wallet')}</span></div><div class="kpi-value">${dualLedgerQueue.length}</div><div class="kpi-foot">Maker-checker margin review</div></div>
+        <div class="card kpi red"><div class="kpi-top"><span class="kpi-label">Distance Audit Holds</span><span class="kpi-icon red">${icon('warning')}</span></div><div class="kpi-value">${distanceAudits.filter(a=>a.is_fraud_flagged).length}</div><div class="kpi-foot">Fraud flag &gt; 10% discrepancy</div></div>
+      `;
+
+      return `${pageHead('Corporate finance · Tenant ledger', 'Billing &amp; receipts', 'Build explainable corporate client invoices, audit dual-ledger margins, and dispatch GST e-invoices with proof.', headButtons)}
+      <div class="grid kpis">${kpiMarkup}</div>
+      <section class="card section-card">
+        <div class="panel-toolbar">
+          <div class="tabs">${tabs.map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-invoice-filter="${key}">${label}</button>`).join('')}</div>
+          <div class="toolbar-spacer"></div>
+          <label class="global-search" style="height:32px;max-width:220px;flex:none"><span>${icon('search')}</span><input id="invoiceQuery" placeholder="Search invoices…" value="${esc(state.invoiceQuery || '')}"></label>
+        </div>
+        ${bodyTable}
+      </section>`;
+    }
+
+    function renderDriverPayouts() {
       const driverPayouts = state.followonData?.['/api/driver-payouts/requests']?.items || [];
+      const filter = state.driverPayoutFilter || 'all';
+      const query = String(state.driverPayoutQuery || '').trim().toLowerCase();
+
       const pendingPayouts = driverPayouts.filter(p => p.status === 'pending_approval');
       const approvedPayouts = driverPayouts.filter(p => p.status === 'approved');
       const disbursedPayouts = driverPayouts.filter(p => p.status === 'disbursed');
+      const rejectedPayouts = driverPayouts.filter(p => p.status === 'rejected');
+
       const pendingPaise = pendingPayouts.reduce((s, p) => s + Number(p.net_paise || 0), 0);
       const disbursedPaise = disbursedPayouts.reduce((s, p) => s + Number(p.net_paise || 0), 0);
 
-      const driverPayoutRows = driverPayouts.map(p => {
+      const filtered = driverPayouts.filter(p => {
+        const matchesFilter = filter === 'all' || p.status === filter;
+        const searchable = `${p.id || ''} ${p.driver_name || ''} ${p.driver_phone || ''} ${p.bank_reference || ''} ${p.status || ''}`.toLowerCase();
+        const matchesQuery = !query || searchable.includes(query);
+        return matchesFilter && matchesQuery;
+      });
+
+      const rows = filtered.map(p => {
         const periodStr = (p.period_start && p.period_end) ? `${formatDate(p.period_start)} – ${formatDate(p.period_end)}` : '—';
         const driverType = String(p.driver_type || 'own').toUpperCase();
         const typeTone = driverType === 'SUPPLIER' ? 'purple' : (driverType === 'DCO' ? 'teal' : 'blue');
@@ -4217,297 +4273,69 @@
         </tr>`;
       }).join('');
 
-      let bodyTable = '';
-      if (filter === 'driver-payouts') {
-        bodyTable = `<div class="table-wrap"><table><thead><tr><th>Payout Ref</th><th>Driver Details</th><th>Settlement Period</th><th style="text-align:center">Trips</th><th style="text-align:center">Total KM</th><th>Gross</th><th>Deductions</th><th>Net Payable</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead><tbody>${driverPayoutRows || tenantTableEmpty('No driver payout records returned','Calculate driver trip earnings and submit a payout batch.',button(icon('plus')+'Calculate driver payout','small soft','data-action="open-driver-payout-modal"'))}</tbody></table></div>`;
-      } else if (filter === 'dual-ledger') {
-        bodyTable = `<div class="table-wrap"><table><thead><tr><th>Duty &amp; Client</th><th>Supplier &amp; Mode</th><th>Client Receivable</th><th>Supplier Payable</th><th>Gross Margin</th><th>Distance Audit</th><th>GST Regime</th><th>Actions</th></tr></thead><tbody>${dualLedgerRows}</tbody></table></div>`;
-      } else if (filter === 'distance-audit') {
-        bodyTable = `<div class="table-wrap"><table><thead><tr><th>Duty Reference</th><th>Odometer Delta</th><th>Raw GPS Breadcrumbs</th><th>Road-Snapped Route</th><th>Discrepancy</th><th>FASTag Deductions</th><th>Status</th></tr></thead><tbody>${distanceAuditRows}</tbody></table></div>`;
-      } else {
-        bodyTable = `<div class="table-wrap"><table><thead><tr><th>Invoice #</th><th>Customer</th><th>Billing Period</th><th style="text-align:center">Trips</th><th style="text-align:center">Total KM</th><th>Issued</th><th>Total</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead><tbody>${rowMarkup || tenantTableEmpty('No invoice records returned','Create a source-linked invoice after duties and customer data are present.',button(icon('plus')+'Build invoice','small soft','data-action="build-invoice"'))}</tbody></table></div>`;
-      }
-
-      const tabs = [
-        ['all','All invoices'],
-        ['draft','Drafts'],
-        ['sent','Sent'],
-        ['paid','Paid'],
-        ['overdue','Overdue'],
-        ['driver-payouts','Driver Payouts & Settlements'],
-        ['dual-ledger','Dual-Ledger Margin Queue'],
-        ['distance-audit','3-Way Distance Audit']
-      ];
-
-      const isPayoutsTab = filter === 'driver-payouts';
-      const headButtons = isPayoutsTab ?
-        `${button(icon('download')+'Export payouts','','data-action="export-payouts"')}${button(icon('plus')+'Calculate driver payout','primary','data-action="open-driver-payout-modal"')}` :
-        `${button(icon('download')+'Export ledger','','data-action="export"')}${button(icon('download')+'Tally Prime XML','soft','data-action="tristack-tally"')}${button(icon('plus')+'Build invoice','primary','data-action="build-invoice"')}`;
-
-      const kpiMarkup = isPayoutsTab ? `
+      const kpiMarkup = `
         <div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Pending Approval</span><span class="kpi-icon amber">${icon('wallet')}</span></div><div class="kpi-value">${pendingPayouts.length}</div><div class="kpi-foot">${formatAmount(pendingPaise / 100)} pending review</div></div>
         <div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Approved for Disbursal</span><span class="kpi-icon teal">${icon('check')}</span></div><div class="kpi-value">${approvedPayouts.length}</div><div class="kpi-foot">Ready for bank release</div></div>
         <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Disbursed / Settled</span><span class="kpi-icon">${icon('check')}</span></div><div class="kpi-value">${disbursedPayouts.length}</div><div class="kpi-foot">${formatAmount(disbursedPaise / 100)} total paid</div></div>
         <div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Active Drivers</span><span class="kpi-icon purple">${icon('user')}</span></div><div class="kpi-value">${(state.liveData?.drivers?.items || []).length}</div><div class="kpi-foot">Eligible for payouts</div></div>
-      ` : `
-        <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Invoice records</span><span class="kpi-icon">${icon('file')}</span></div><div class="kpi-value">${invoices.length}</div><div class="kpi-foot">Tenant-scoped source records</div></div>
-        <div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Filtered value</span><span class="kpi-icon teal">${icon('wallet')}</span></div><div class="kpi-value">${totalPaise ? formatAmount(totalPaise / 100) : '—'}</div><div class="kpi-foot">Currency-aware invoice value</div></div>
-        <div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Dual-Ledger Queue</span><span class="kpi-icon purple">${icon('wallet')}</span></div><div class="kpi-value">${dualLedgerQueue.length}</div><div class="kpi-foot">Maker-checker margin review</div></div>
-        <div class="card kpi red"><div class="kpi-top"><span class="kpi-label">Distance Audit Holds</span><span class="kpi-icon red">${icon('warning')}</span></div><div class="kpi-value">${distanceAudits.filter(a=>a.is_fraud_flagged).length}</div><div class="kpi-foot">Fraud flag &gt; 10% discrepancy</div></div>
       `;
 
-      return `${pageHead('Finance · tenant ledger', isPayoutsTab ? 'Driver payouts &amp; settlements' : 'Billing &amp; receipts', isPayoutsTab ? 'Audit completed driver mileage, calculate per-trip allowances, process advances and disburse maker-checker payouts.' : 'Build explainable invoices, dispatch with proof and stay ahead of collections without showing values that the tenant did not return.', headButtons)}
+      const tabs = [
+        ['all', `All payouts (${driverPayouts.length})`],
+        ['pending_approval', `Pending approval (${pendingPayouts.length})`],
+        ['approved', `Approved (${approvedPayouts.length})`],
+        ['disbursed', `Disbursed (${disbursedPayouts.length})`]
+      ];
+
+      const submenu = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;border-bottom:1px solid var(--line,#e2e8f0);padding-bottom:10px">
+          <button class="btn small soft" data-page-link="drivers">${icon('users', 13)} Drivers roster</button>
+          <button class="btn small primary" style="cursor:default">${icon('wallet', 13)} Driver payouts &amp; settlements</button>
+        </div>
+      `;
+
+      const headButtons = `${button(icon('users')+'Drivers roster','soft','data-page-link="drivers"')}${button(icon('plus')+'Calculate driver payout','primary','data-action="open-driver-payout-modal"')}`;
+
+      return `${pageHead('Fleet workforce · Settlements', 'Driver payouts &amp; settlements', 'Audit completed driver mileage, calculate per-trip allowances, process advances and disburse maker-checker payouts.', headButtons)}
+      ${submenu}
       <div class="grid kpis">${kpiMarkup}</div>
       <section class="card section-card">
         <div class="panel-toolbar">
-          <div class="tabs">${tabs.map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-invoice-filter="${key}">${label}</button>`).join('')}</div>
+          <div class="tabs">${tabs.map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-driver-payout-filter="${key}">${label}</button>`).join('')}</div>
           <div class="toolbar-spacer"></div>
-          <label class="global-search" style="height:32px;max-width:220px;flex:none"><span>${icon('search')}</span><input id="invoiceQuery" placeholder="Search invoices…" value="${esc(state.invoiceQuery || '')}"></label>
+          <label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="driverPayoutQuery" placeholder="Search driver or payout ID…" value="${esc(state.driverPayoutQuery || '')}"></label>
         </div>
-        ${bodyTable}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Payout Ref</th>
+                <th>Driver Details</th>
+                <th>Settlement Period</th>
+                <th style="text-align:center">Trips</th>
+                <th style="text-align:center">Total KM</th>
+                <th>Gross</th>
+                <th>Deductions</th>
+                <th>Net Payable</th>
+                <th>Status</th>
+                <th style="text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows || tenantTableEmpty('No driver payout records returned','Select a driver and settlement period to calculate duty earnings and submit for approval.',button(icon('plus')+'Calculate driver payout','small primary','data-action="open-driver-payout-modal"'))}
+            </tbody>
+          </table>
+        </div>
       </section>`;
     }
 
-    function getVehicleMfr(v) {
-      if (!v) return '—';
-      if (v.manufacturer) return v.manufacturer;
-      if (v.compliance?.manufacturer) return v.compliance.manufacturer;
-      if (v.make_model) {
-        const str = v.make_model.trim();
-        const multiWord = ['maruti suzuki', 'tata motors', 'force motors', 'mercedes-benz', 'aston martin', 'land rover', 'rolls-royce', 'alfa romeo'];
-        for (const brand of multiWord) {
-          if (str.toLowerCase().startsWith(brand)) {
-            return str.slice(0, brand.length);
-          }
-        }
-        return str.split(/\s+/)[0] || '—';
-      }
-      return '—';
-    }
-
-    function getVehicleModel(v) {
-      if (!v) return '—';
-      if (v.model) return v.model;
-      if (v.compliance?.model) return v.compliance.model;
-      if (v.make_model) {
-        const str = v.make_model.trim();
-        const multiWord = ['maruti suzuki', 'tata motors', 'force motors', 'mercedes-benz', 'aston martin', 'land rover', 'rolls-royce', 'alfa romeo'];
-        for (const brand of multiWord) {
-          if (str.toLowerCase().startsWith(brand)) {
-            const remainder = str.slice(brand.length).trim();
-            return remainder || brand;
-          }
-        }
-        const parts = str.split(/\s+/);
-        return parts.slice(1).join(' ') || parts[0] || '—';
-      }
-      return '—';
-    }
-
-    function renderMasters() {
-      const branches = state.liveData?.branches?.items || [];
-      const customers = state.liveData?.customers?.items || [];
-      const suppliers = state.liveData?.suppliers?.items || [];
-      const manufacturers = state.liveData?.manufacturers?.items || [];
-      const activeSection = state.masterSection && state.masterSection !== 'home' ? state.masterSection : 'home';
-      const q = String(state.masterQuery || '').trim().toLowerCase();
-
-      const filteredBranches = branches.filter(b => !q || `${b.name || ''} ${b.code || ''} ${b.city || ''} ${b.status || ''}`.toLowerCase().includes(q));
-      const filteredCustomers = customers.filter(c => !q || `${c.name || ''} ${c.code || ''} ${c.city || ''} ${c.email || ''}`.toLowerCase().includes(q));
-      const filteredSuppliers = suppliers.filter(s => !q || `${s.name || ''} ${s.code || ''} ${s.city || ''} ${s.phone || ''} ${s.email || ''}`.toLowerCase().includes(q));
-      const filteredManufacturers = manufacturers.filter(m => !q || `${m.name || ''} ${m.code || ''} ${m.country || ''} ${m.status || ''}`.toLowerCase().includes(q));
-
-      const catalog = [
-        ['Branches', branches.length, 'add-branch', 'branches', 'Operating regions, branch control rooms and base facilities.', 'building'],
-        ['Customers', customers.length, 'add-customer', 'customers', 'Corporate client entities, pricing contracts and billing boundaries.', 'users'],
-        ['Suppliers', suppliers.length, 'add-supplier', 'suppliers', 'Vendor network partners, associate fleets and outsourced operators.', 'link'],
-        ['Manufacturers', manufacturers.length, 'add-manufacturer', 'manufacturers', 'Vehicle OEMs and automotive brands powering the vehicle register dropdown.', 'car']
-      ];
-
-      const headActions = activeSection === 'branches'
-        ? `${button(icon('arrow-left')+'All masters','','data-master-section="home"')}${button(icon('plus')+'Add branch','primary','data-action="add-branch"')}`
-        : activeSection === 'customers'
-          ? `${button(icon('arrow-left')+'All masters','','data-master-section="home"')}${button(icon('plus')+'Add customer','primary','data-action="add-customer"')}`
-          : activeSection === 'suppliers'
-            ? `${button(icon('arrow-left')+'All masters','','data-master-section="home"')}${button(icon('plus')+'Add supplier','primary','data-action="add-supplier"')}`
-            : activeSection === 'manufacturers'
-              ? `${button(icon('arrow-left')+'All masters','','data-master-section="home"')}${button(icon('plus')+'Add manufacturer','primary','data-action="add-manufacturer"')}`
-              : `${button(icon('plus')+'Add branch','','data-action="add-branch"')}${button(icon('plus')+'Add manufacturer','','data-action="add-manufacturer"')}${button(icon('plus')+'Add supplier','','data-action="add-supplier"')}${button(icon('plus')+'Add customer','primary','data-action="add-customer"')}`;
-
-      const label = activeSection === 'home'
-        ? 'Master data'
-        : `${activeSection[0].toUpperCase()}${activeSection.slice(1)} records`;
-
-      const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px"><div class="tabs"><button class="tab ${activeSection === 'home' ? 'active' : ''}" data-master-section="home">All masters</button><button class="tab ${activeSection === 'branches' ? 'active' : ''}" data-master-section="branches">Branches (${branches.length})</button><button class="tab ${activeSection === 'customers' ? 'active' : ''}" data-master-section="customers">Customers (${customers.length})</button><button class="tab ${activeSection === 'suppliers' ? 'active' : ''}" data-master-section="suppliers">Suppliers (${suppliers.length})</button><button class="tab ${activeSection === 'manufacturers' ? 'active' : ''}" data-master-section="manufacturers">Manufacturers (${manufacturers.length})</button></div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:220px;flex:none"><span>${icon('search')}</span><input id="masterQuery" placeholder="Search ${activeSection === 'home' ? 'masters' : activeSection}…" value="${esc(state.masterQuery || '')}"></label></div>`;
-
-      let bodyContent = '';
-      if (activeSection === 'home') {
-        const kpisMarkup = `<div class="grid four-col" style="margin-bottom:16px"><div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Branches master</span><span class="kpi-icon purple">${icon('building')}</span></div><div class="kpi-value">${branches.length}</div><div class="kpi-foot">Operating control rooms</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Customers master</span><span class="kpi-icon amber">${icon('users')}</span></div><div class="kpi-value">${customers.length}</div><div class="kpi-foot">Client billing entities</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Suppliers master</span><span class="kpi-icon teal">${icon('link')}</span></div><div class="kpi-value">${suppliers.length}</div><div class="kpi-foot">Network partners</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Manufacturers master</span><span class="kpi-icon">${icon('car')}</span></div><div class="kpi-value">${manufacturers.length}</div><div class="kpi-foot">Automotive OEMs</div></div></div>`;
-        const cardsMarkup = `<div class="grid two-col">${catalog.map(([name, count, action, key, descText, iconName]) => `<section class="card section-card"><div class="card-body"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><div class="eyebrow" style="margin:0">Tenant master</div><span class="badge" style="font-size:10px;font-weight:600">${count} record${count === 1 ? '' : 's'}</span></div><div style="display:flex;align-items:center;gap:8px;margin:3px 0 5px"><span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:var(--blue-soft);color:var(--blue)">${icon(iconName, 15)}</span><h3 style="margin:0;font-size:15px">${name}</h3></div><p style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:14px;min-height:30px">${descText}</p><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn small" data-master-section="${key}">${icon('eye', 13)}View records</button><button class="btn small soft" data-action="${action}">${icon('plus', 13)}Add first record</button></div></div></section>`).join('')}</div>`;
-        bodyContent = kpisMarkup + cardsMarkup;
-      } else if (activeSection === 'branches') {
-        bodyContent = `<section class="card section-card">${cardHead('Branches register','Branch control rooms and operating regions',button(icon('plus')+'Add branch','small primary','data-action="add-branch"'))}<div class="table-wrap"><table><thead><tr><th>Branch</th><th>Code</th><th>City</th><th>Status</th><th>Created</th></tr></thead><tbody>${filteredBranches.length ? filteredBranches.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span></td><td><span class="keycap">${esc(item.code || '—')}</span></td><td>${esc(item.city || '—')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td><td>${item.created_at ? esc(formatDateTime(item.created_at)) : '—'}</td></tr>`).join('') : tenantTableEmpty('No branches returned','Add the first operating branch for the workspace.',button(icon('plus')+'Add branch','small soft','data-action="add-branch"'))}</tbody></table></div></section>`;
-      } else if (activeSection === 'customers') {
-        bodyContent = `<section class="card section-card">${cardHead('Customers register','Corporate client accounts and billing structures',button(icon('plus')+'Add customer','small primary','data-action="add-customer"'))}<div class="table-wrap"><table><thead><tr><th>Customer</th><th>Code</th><th>City</th><th>Status</th><th>Created</th></tr></thead><tbody>${filteredCustomers.length ? filteredCustomers.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span><span class="secondary">${esc(item.email || 'Email not attached')}</span></td><td><span class="keycap">${esc(item.code || '—')}</span></td><td>${esc(item.city || '—')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td><td>${item.created_at ? esc(formatDateTime(item.created_at)) : '—'}</td></tr>`).join('') : tenantTableEmpty('No customers returned','Add the first customer account before booking duties.',button(icon('plus')+'Add customer','small soft','data-action="add-customer"'))}</tbody></table></div></section>`;
-      } else if (activeSection === 'suppliers') {
-        bodyContent = `<section class="card section-card">${cardHead('Suppliers register','Vendor network partners and associate fleet owners',button(icon('plus')+'Add supplier','small primary','data-action="add-supplier"'))}<div class="table-wrap"><table><thead><tr><th>Supplier</th><th>Contact</th><th>Coverage</th><th>Status</th><th>Created</th></tr></thead><tbody>${filteredSuppliers.length ? filteredSuppliers.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span><span class="secondary">${esc(item.code || 'Vendor partner')}</span></td><td>${esc(item.phone || item.email || '—')}</td><td>${esc(item.city || item.coverage || '—')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td><td>${item.created_at ? esc(formatDateTime(item.created_at)) : '—'}</td></tr>`).join('') : tenantTableEmpty('No suppliers returned','Add the first supplier account before outsourcing duties.',button(icon('plus')+'Add supplier','small soft','data-action="add-supplier"'))}</tbody></table></div></section>`;
-      } else if (activeSection === 'manufacturers') {
-        bodyContent = `<section class="card section-card">${cardHead('Manufacturers register','Vehicle OEMs and automotive brands available in vehicle registers',button(icon('plus')+'Add manufacturer','small primary','data-action="add-manufacturer"'))}<div class="table-wrap"><table><thead><tr><th>Manufacturer</th><th>Code</th><th>Country / Origin</th><th>Status</th><th>Created</th></tr></thead><tbody>${filteredManufacturers.length ? filteredManufacturers.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span></td><td><span class="keycap">${esc(item.code || '—')}</span></td><td>${esc(item.country || '—')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td><td>${item.created_at ? esc(formatDateTime(item.created_at)) : 'Standard master'}</td></tr>`).join('') : tenantTableEmpty('No manufacturers returned','Add the first vehicle manufacturer.',button(icon('plus')+'Add manufacturer','small soft','data-action="add-manufacturer"'))}</tbody></table></div></section>`;
-      }
-
-      return `${pageHead('Workspace setup · governed master data', label, 'Configure reference records behind branches, customers, suppliers, vehicle manufacturers and workspace operations. Drivers and vehicles are managed from the main menu.', headActions)}${tabsBar}${bodyContent}`;
-    }
-
-    function vehicleOwnershipBadge(item) {
-      const type = String(item.ownership_type || 'owned').toLowerCase();
-      if (type === 'supplier' || type === 'attached') {
-        const sup = item.supplier_name || (state.liveData?.suppliers?.items || []).find(s => s.id === item.supplier_id)?.name || 'Supplier Fleet';
-        return `<div><span class="status purple" style="font-weight:700">Supplier</span><div class="secondary" style="margin-top:2px;font-size:10.5px;font-weight:600;color:#6b21a8;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(sup)}">${esc(sup)}</div></div>`;
-      }
-      if (type === 'dco') {
-        const owner = item.owner_name || (state.liveData?.drivers?.items || []).find(d => d.id === item.driver_id || d.vehicle_registration === item.registration_number)?.full_name || 'Driver-cum-Owner';
-        return `<div><span class="status teal" style="font-weight:700">DCO</span><div class="secondary" style="margin-top:2px;font-size:10.5px;font-weight:600;color:#0f766e;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(owner)}">${esc(owner)}</div></div>`;
-      }
-      if (type === 'leased') {
-        const lessor = item.owner_name || 'Lease Partner';
-        return `<div><span class="status amber" style="font-weight:700">Leased</span><div class="secondary" style="margin-top:2px;font-size:10.5px;color:var(--muted)">${esc(lessor)}</div></div>`;
-      }
-      return `<div><span class="status blue" style="font-weight:700">Own</span><div class="secondary" style="margin-top:2px;font-size:10.5px;color:var(--muted)">Company Fleet</div></div>`;
-    }
-
-    function renderVehicles() {
-      const vehicles = state.liveData?.vehicles?.items || [];
-      const availableVehicles = vehicles.filter(item => !['inactive','archived','on_duty'].includes(item.status)).length;
-      const onDutyVehicles = vehicles.filter(item => item.status === 'on_duty').length;
-      const inactiveVehicles = vehicles.filter(item => ['inactive','archived'].includes(item.status)).length;
-      const filter = state.vehicleFilter || 'all';
-      const ownershipFilter = state.vehicleOwnershipFilter || 'all';
-      const q = String(state.vehicleQuery || '').trim().toLowerCase();
-
-      const ownedCount = vehicles.filter(v => String(v.ownership_type || 'owned').toLowerCase() === 'owned').length;
-      const dcoCount = vehicles.filter(v => String(v.ownership_type || '').toLowerCase() === 'dco').length;
-      const supplierCount = vehicles.filter(v => ['supplier', 'attached'].includes(String(v.ownership_type || '').toLowerCase())).length;
-      const leasedCount = vehicles.filter(v => String(v.ownership_type || '').toLowerCase() === 'leased').length;
-
-      const filteredVehicles = vehicles.filter(item => {
-        const oType = String(item.ownership_type || 'owned').toLowerCase();
-        const matchesQuery = !q || `${item.registration_number || ''} ${oType} ${item.supplier_name || ''} ${item.owner_name || ''} ${item.manufacturer || ''} ${item.model || ''} ${item.make_model || ''} ${item.vehicle_group || ''} ${item.vehicle_type || ''} ${item.fuel_type || ''} ${item.city || ''} ${item.status || ''}`.toLowerCase().includes(q);
-        const matchesFilter = filter === 'all'
-          ? true
-          : filter === 'available'
-            ? !['inactive','archived','on_duty'].includes(item.status)
-            : filter === 'on_duty'
-              ? item.status === 'on_duty'
-              : ['inactive','archived'].includes(item.status);
-        const matchesOwnership = ownershipFilter === 'all'
-          ? true
-          : ownershipFilter === 'owned'
-            ? oType === 'owned'
-            : ownershipFilter === 'dco'
-              ? oType === 'dco'
-              : ownershipFilter === 'supplier'
-                ? (oType === 'supplier' || oType === 'attached')
-                : oType === 'leased';
-        return matchesQuery && matchesFilter && matchesOwnership;
-      });
-
-      // Pagination calculation for vehicles
-      const totalVehicles = filteredVehicles.length;
-      const pageSizeRaw = state.vehiclePageSize || 10;
-      const pageSize = pageSizeRaw === 'all' ? (totalVehicles || 1) : Math.max(1, Number(pageSizeRaw) || 10);
-      const totalPages = Math.max(1, Math.ceil(totalVehicles / pageSize));
-      const currentPage = Math.min(Math.max(1, Number(state.vehiclePage) || 1), totalPages);
-      state.vehiclePage = currentPage;
-
-      const startIndex = totalVehicles === 0 ? 0 : (currentPage - 1) * pageSize;
-      const endIndex = Math.min(startIndex + pageSize, totalVehicles);
-      const paginatedVehicles = filteredVehicles.slice(startIndex, endIndex);
-
-      function generateVehiclePageButtons() {
-        if (totalPages <= 1) {
-          return `<button type="button" class="table-page-btn active" data-vehicle-page="1">1</button>`;
-        }
-        const pageNumbers = [];
-        const delta = 1;
-        const left = Math.max(2, currentPage - delta);
-        const right = Math.min(totalPages - 1, currentPage + delta);
-
-        pageNumbers.push(1);
-        if (left > 2) pageNumbers.push('...');
-        for (let i = left; i <= right; i++) pageNumbers.push(i);
-        if (right < totalPages - 1) pageNumbers.push('...');
-        if (totalPages > 1) pageNumbers.push(totalPages);
-
-        return pageNumbers.map(p => {
-          if (p === '...') return `<span class="table-page-ellipsis">…</span>`;
-          const isActive = p === currentPage;
-          return `<button type="button" class="table-page-btn ${isActive ? 'active' : ''}" data-vehicle-page="${p}">${p}</button>`;
-        }).join('');
-      }
-
-      const vehiclePaginationMarkup = `
-        <div class="table-pagination">
-          <div class="table-pagination-left">
-            <div class="table-pagination-summary">
-              Showing <strong>${totalVehicles === 0 ? 0 : startIndex + 1}–${endIndex}</strong> of <strong>${totalVehicles}</strong> vehicles
-            </div>
-            <div class="table-page-size-wrap">
-              <label for="vehiclePageSizeSelect">Rows per page:</label>
-              <select id="vehiclePageSizeSelect" class="table-page-size-select" data-action="vehicle-page-size">
-                <option value="10" ${pageSizeRaw == 10 ? 'selected' : ''}>10</option>
-                <option value="20" ${pageSizeRaw == 20 ? 'selected' : ''}>20</option>
-                <option value="50" ${pageSizeRaw == 50 ? 'selected' : ''}>50</option>
-                <option value="100" ${pageSizeRaw == 100 ? 'selected' : ''}>100</option>
-                <option value="all" ${pageSizeRaw === 'all' ? 'selected' : ''}>All (${totalVehicles})</option>
-              </select>
-            </div>
-          </div>
-          <div class="table-pagination-right">
-            <button type="button" class="table-page-btn" data-action="vehicle-page-first" title="First page" aria-label="First page" ${currentPage <= 1 ? 'disabled' : ''}>«</button>
-            <button type="button" class="table-page-btn" data-action="vehicle-page-prev" title="Previous page" aria-label="Previous page" ${currentPage <= 1 ? 'disabled' : ''}>‹</button>
-            ${generateVehiclePageButtons()}
-            <button type="button" class="table-page-btn" data-action="vehicle-page-next" title="Next page" aria-label="Next page" ${currentPage >= totalPages ? 'disabled' : ''}>›</button>
-            <button type="button" class="table-page-btn" data-action="vehicle-page-last" title="Last page" aria-label="Last page" ${currentPage >= totalPages ? 'disabled' : ''}>»</button>
-          </div>
+    function renderDrivers() {
+      const driverSubmenu = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;border-bottom:1px solid var(--line,#e2e8f0);padding-bottom:10px">
+          <button class="btn small primary" style="cursor:default">${icon('users', 13)} Drivers roster</button>
+          <button class="btn small soft" data-page-link="driver-payouts">${icon('wallet', 13)} Driver payouts &amp; settlements</button>
         </div>
       `;
-
-      const kpis = `<div class="grid four-col" style="margin-bottom:16px;grid-template-columns:repeat(4,1fr)">
-        <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Total fleet</span><span class="kpi-icon">${icon('car')}</span></div><div class="kpi-value">${vehicles.length}</div><div class="kpi-foot">${availableVehicles} ready · ${onDutyVehicles} on duty</div></div>
-        <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Company Owned</span><span class="kpi-icon blue">${icon('shield')}</span></div><div class="kpi-value">${ownedCount}</div><div class="kpi-foot">Self-owned assets</div></div>
-        <div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">DCO Network</span><span class="kpi-icon teal">${icon('users')}</span></div><div class="kpi-value">${dcoCount}</div><div class="kpi-foot">Driver-cum-owner fleet</div></div>
-        <div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Supplier Attached</span><span class="kpi-icon purple">${icon('link')}</span></div><div class="kpi-value">${supplierCount}</div><div class="kpi-foot">${leasedCount ? `${leasedCount} leased · ` : ''}Partner vendors</div></div>
-      </div>`;
-
-      const ownershipTabs = [
-        ['all', `All (${vehicles.length})`],
-        ['owned', `Own (${ownedCount})`],
-        ['dco', `DCO (${dcoCount})`],
-        ['supplier', `Supplier (${supplierCount})`],
-        ...(leasedCount ? [['leased', `Leased (${leasedCount})`]] : [])
-      ];
-
-      const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px;flex-wrap:wrap;gap:8px">
-        <div class="tabs">${[['all','All status'],['available',`Available (${availableVehicles})`],['on_duty',`On duty (${onDutyVehicles})`],['inactive',`Inactive (${inactiveVehicles})`]].map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-vehicle-filter="${key}">${label}</button>`).join('')}</div>
-        <div style="height:18px;width:1px;background:#cbd5e1;margin:0 4px"></div>
-        <div class="tabs">${ownershipTabs.map(([key,label]) => `<button class="tab ${ownershipFilter === key ? 'active' : ''}" data-vehicle-ownership="${key}">${label}</button>`).join('')}</div>
-        <div class="toolbar-spacer"></div>
-        <label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="vehicleQuery" placeholder="Search vehicles, owner, supplier…" value="${esc(state.vehicleQuery || '')}"></label>
-        <span class="booking-total-view" style="margin-left:8px">Page ${currentPage} of ${totalPages} · ${totalVehicles} total</span>
-      </div>`;
-
-      const vehiclesTable = `<section class="card section-card">${cardHead('Vehicles register','Registration number, ownership, manufacturer, model, capacity and compliance records',`${button(icon('upload')+'Import roster','small','data-action="import-master"')}${button(icon('plus')+'Add vehicle','small primary','data-action="add-vehicle"')}`)}<div class="table-wrap"><table><thead><tr><th>Vehicle</th><th>Ownership / Belongs to</th><th>Manufacturer</th><th>Model</th><th>Group / fuel</th><th>Capacity</th><th>Status</th><th></th></tr></thead><tbody>${paginatedVehicles.length ? paginatedVehicles.map(item => `<tr><td><span class="primary">${esc(item.registration_number || '—')}</span>${item.city ? `<span class="secondary">${esc(item.city)}</span>` : ''}</td><td>${vehicleOwnershipBadge(item)}</td><td>${(() => {
-                const m = getVehicleMfr(item);
-                return (!m || m === '—') ? '<span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5">Required</span>' : `<span class="primary" style="font-weight:600">${esc(m)}</span>`;
-              })()}</td><td>${(() => {
-                const mo = getVehicleModel(item);
-                return (!mo || mo === '—') ? '<span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5">Required</span>' : `<span style="font-weight:550;color:#1e293b">${esc(mo)}</span>`;
-              })()}</td><td>${esc(item.vehicle_group || item.vehicle_type || 'Standard')} · ${esc(item.fuel_type || 'Fuel not added')}</td><td>${item.seating_capacity ? `${item.seating_capacity} seats` : '—'}</td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="vehicle-edit" data-vehicle-id="${esc(item.id)}">${icon('edit', 13)}Edit</button></td></tr>`).join('') : tenantTableEmpty('No vehicles returned','Add the first vehicle or import a fleet roster via CSV.',button(icon('plus')+'Add vehicle','small soft','data-action="add-vehicle"'))}</tbody></table></div>${vehiclePaginationMarkup}</section>`;
-
-      return `${pageHead('Fleet · asset management','Vehicles register','Manage vehicle identity, registration records, seating capacity and dispatch readiness.',`${button(icon('upload')+'Import roster','','data-action="import-master"')}${button(icon('plus')+'Add vehicle','primary','data-action="add-vehicle"')}`)}${kpis}${tabsBar}${vehiclesTable}`;
-    }
-
-    function renderDrivers() {
       const drivers = state.liveData?.drivers?.items || [];
       const readyDrivers = drivers.filter(item => !['inactive','suspended','on_duty'].includes(item.status)).length;
       const onDutyDrivers = drivers.filter(item => item.status === 'on_duty').length;
@@ -5752,6 +5580,8 @@
       content.querySelectorAll('[data-setting-toggle]').forEach(el => el.addEventListener('click', () => { const on = el.classList.toggle('on'); el.setAttribute('aria-pressed', String(on)); }));
       content.querySelectorAll('[data-pagination]').forEach(el => el.addEventListener('click', () => showToast('Pagination', 'All records returned by the current tenant query are shown on this page.')));
       content.querySelectorAll('[data-invoice-filter]').forEach(el => el.addEventListener('click', () => { state.invoiceFilter = el.dataset.invoiceFilter; render(); }));
+      content.querySelectorAll('[data-driver-payout-filter]').forEach(el => el.addEventListener('click', () => { state.driverPayoutFilter = el.dataset.driverPayoutFilter; render(); }));
+      content.querySelector('#driverPayoutQuery')?.addEventListener('input', e => { state.driverPayoutQuery = e.target.value; render(); });
       content.querySelectorAll('[data-wh-filter]').forEach(el => el.addEventListener('click', () => { state.triStackWebhookFilter = el.dataset.whFilter; render(); }));
       content.querySelectorAll('[data-inspect-webhook]').forEach(el => el.addEventListener('click', () => openWebhookPayloadModal(el.dataset.inspectWebhook)));
       content.querySelectorAll('[data-replay-webhook]').forEach(el => el.addEventListener('click', () => replayWebhook(el.dataset.replayWebhook, el)));
@@ -6586,7 +6416,7 @@
                 'aging': () => { state.page = 'billing'; state.invoiceFilter = 'overdue'; render(); },
         'retry': () => showToast('No failed dispatches', 'Retry becomes available when a tenant delivery event fails.'),
         'add-driver': () => openDriverModal(),
-        'nav-driver-payouts': () => { state.page = 'billing'; state.invoiceFilter = 'driver-payouts'; render(); },
+        'nav-driver-payouts': () => { state.page = 'billing'; state.page = 'driver-payouts'; state.driverPayoutFilter = 'all'; render(); },
         'open-driver-payout-modal': () => openDriverPayoutModal(),
         'view-driver-payout-voucher': () => openDriverPayoutVoucherModal(el.dataset.payout),
         'approve-driver-payout': async () => {
@@ -9027,7 +8857,7 @@
           closeModal();
           showToast('Payout request created', `Payout batch created for ${currentCalcData.driver_name} (Net: ${formatAmount(res.item.net_paise / 100)}).`);
           await hydrateOperationalData();
-          state.invoiceFilter = 'driver-payouts';
+          state.page = 'driver-payouts'; state.driverPayoutFilter = 'all';
           render();
         } catch(err) {
           submitBtn.disabled = false;
