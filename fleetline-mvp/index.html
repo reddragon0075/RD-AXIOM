@@ -4224,6 +4224,36 @@
       </section>`;
     }
 
+
+    function renderVehicles() {
+      const vehicles = state.liveData?.vehicles?.items || [];
+      const availableVehicles = vehicles.filter(item => !['inactive','archived','on_duty'].includes(item.status)).length;
+      const onDutyVehicles = vehicles.filter(item => item.status === 'on_duty').length;
+      const inactiveVehicles = vehicles.filter(item => ['inactive','archived'].includes(item.status)).length;
+      const filter = state.vehicleFilter || 'all';
+      const q = String(state.vehicleQuery || '').trim().toLowerCase();
+
+      const filteredVehicles = vehicles.filter(item => {
+        const matchesQuery = !q || `${item.registration_number || ''} ${item.make_model || ''} ${item.vehicle_group || ''} ${item.vehicle_type || ''} ${item.fuel_type || ''} ${item.city || ''} ${item.status || ''}`.toLowerCase().includes(q);
+        const matchesFilter = filter === 'all'
+          ? true
+          : filter === 'available'
+            ? !['inactive','archived','on_duty'].includes(item.status)
+            : filter === 'on_duty'
+              ? item.status === 'on_duty'
+              : ['inactive','archived'].includes(item.status);
+        return matchesQuery && matchesFilter;
+      });
+
+      const kpis = `<div class="grid three-col" style="margin-bottom:16px"><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Total fleet</span><span class="kpi-icon">${icon('car')}</span></div><div class="kpi-value">${vehicles.length}</div><div class="kpi-foot">Registered vehicles</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Available for dispatch</span><span class="kpi-icon teal">${icon('check')}</span></div><div class="kpi-value">${availableVehicles}</div><div class="kpi-foot">Ready for allotment</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Active / on duty</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${onDutyVehicles}</div><div class="kpi-foot">${inactiveVehicles} inactive or maintenance</div></div></div>`;
+
+      const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px"><div class="tabs">${[['all','All vehicles'],['available',`Available (${availableVehicles})`],['on_duty',`On duty (${onDutyVehicles})`],['inactive',`Inactive (${inactiveVehicles})`]].map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-vehicle-filter="${key}">${label}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="vehicleQuery" placeholder="Search vehicles…" value="${esc(state.vehicleQuery || '')}"></label></div>`;
+
+      const vehiclesTable = `<section class="card section-card">${cardHead('Vehicles register','Registration number, make & model, capacity and compliance records',`${button(icon('upload')+'Import roster','small','data-action="import-master"')}${button(icon('plus')+'Add vehicle','small primary','data-action="add-vehicle"')}`)}<div class="table-wrap"><table><thead><tr><th>Vehicle</th><th>Make &amp; model</th><th>Group / fuel</th><th>Capacity</th><th>Status</th><th></th></tr></thead><tbody>${filteredVehicles.length ? filteredVehicles.map(item => `<tr><td><span class="primary">${esc(item.registration_number || item.id)}</span><span class="secondary">${esc(item.city || item.id)}</span></td><td>${esc(item.make_model || 'Model not specified')}</td><td>${esc(item.vehicle_group || item.vehicle_type || 'Standard')} · ${esc(item.fuel_type || 'Fuel not added')}</td><td>${item.seating_capacity ? `${item.seating_capacity} seats` : '—'}</td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="vehicle-edit" data-vehicle-id="${esc(item.id)}">${icon('edit', 13)}Edit</button></td></tr>`).join('') : tenantTableEmpty('No vehicles returned','Add the first vehicle or import a fleet roster via CSV.',button(icon('plus')+'Add vehicle','small soft','data-action="add-vehicle"'))}</tbody></table></div></section>`;
+
+      return `${pageHead('Fleet · asset management','Vehicles register','Manage vehicle identity, registration records, seating capacity and dispatch readiness.',`${button(icon('upload')+'Import roster','','data-action="import-master"')}${button(icon('plus')+'Add vehicle','primary','data-action="add-vehicle"')}`)}${kpis}${tabsBar}${vehiclesTable}`;
+    }
+
     function renderDriverPayouts() {
       const driverPayouts = state.followonData?.['/api/driver-payouts/requests']?.items || [];
       if (!state.followonData?.['/api/driver-payouts/requests'] && !state._fetchingPayouts) {
@@ -4446,6 +4476,53 @@
       const driversTable = `<section class="card section-card">${cardHead('Drivers register','Physical-device and duty readiness starts from this record',button(icon('plus')+'Add driver','small primary','data-action="add-driver"'))}<div class="table-wrap"><table><thead><tr><th>Driver</th><th>Type</th><th>Phone</th><th>City</th><th>License / ID</th><th>Status</th><th></th></tr></thead><tbody>${paginatedDrivers.length ? paginatedDrivers.map(item => `<tr><td><span class="primary">${esc(item.full_name || 'Driver')}</span>${item.city ? `<span class="secondary">${esc(item.city)}</span>` : ''}</td><td><span class="status ${driverTypeTone(item.driver_type)}">${driverTypeLabel(item.driver_type)}</span></td><td>${esc(item.phone || '—')}</td><td>${esc(item.city || '—')}</td><td><span class="keycap">${esc(item.license_number || '—')}</span></td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="driver-detail" data-driver="${esc(item.full_name || item.id)}" data-driver-id="${esc(item.id)}">${icon('eye', 13)}Open</button></td></tr>`).join('') : tenantTableEmpty('No drivers returned','Add the first driver record before assigning a duty.',button(icon('plus')+'Add driver','small soft','data-action="add-driver"'))}</tbody></table></div>${driverPaginationMarkup}</section>`;
 
       return `${pageHead('Fleet · workforce readiness','Drivers register','Manage driver workforce profiles, license verification and physical-device onboarding.',`${button(icon('wallet')+'Driver payouts','soft','data-page-link="driver-payouts"')}${button(icon('upload')+'Import roster','','data-action="import-master"')}${button(icon('plus')+'Add driver','primary','data-action="add-driver"')}`)}${driverSubmenu}${kpis}${tabsBar}${driversTable}`;
+    }
+
+    function renderMasters() {
+      const branches = state.liveData?.branches?.items || [];
+      const customers = state.liveData?.customers?.items || [];
+      const suppliers = state.liveData?.suppliers?.items || [];
+      const activeSection = state.masterSection && state.masterSection !== 'home' ? state.masterSection : 'home';
+      const q = String(state.masterQuery || '').trim().toLowerCase();
+
+      const filteredBranches = branches.filter(b => !q || `${b.name || ''} ${b.code || ''} ${b.city || ''} ${b.status || ''}`.toLowerCase().includes(q));
+      const filteredCustomers = customers.filter(c => !q || `${c.name || ''} ${c.code || ''} ${c.city || ''} ${c.email || ''}`.toLowerCase().includes(q));
+      const filteredSuppliers = suppliers.filter(s => !q || `${s.name || ''} ${s.code || ''} ${s.city || ''} ${s.phone || ''} ${s.email || ''}`.toLowerCase().includes(q));
+
+      const catalog = [
+        ['Branches', branches.length, 'add-branch', 'branches', 'Operating regions, branch control rooms and base facilities.', 'building'],
+        ['Customers', customers.length, 'add-customer', 'customers', 'Corporate client entities, pricing contracts and billing boundaries.', 'users'],
+        ['Suppliers', suppliers.length, 'add-supplier', 'suppliers', 'Vendor network partners, associate fleets and outsourced operators.', 'link']
+      ];
+
+      const headActions = activeSection === 'branches'
+        ? `${button(icon('arrow-left')+'All masters','','data-master-section="home"')}${button(icon('plus')+'Add branch','primary','data-action="add-branch"')}`
+        : activeSection === 'customers'
+          ? `${button(icon('arrow-left')+'All masters','','data-master-section="home"')}${button(icon('plus')+'Add customer','primary','data-action="add-customer"')}`
+          : activeSection === 'suppliers'
+            ? `${button(icon('arrow-left')+'All masters','','data-master-section="home"')}${button(icon('plus')+'Add supplier','primary','data-action="add-supplier"')}`
+            : `${button(icon('plus')+'Add branch','','data-action="add-branch"')}${button(icon('plus')+'Add supplier','','data-action="add-supplier"')}${button(icon('plus')+'Add customer','primary','data-action="add-customer"')}`;
+
+      const label = activeSection === 'home'
+        ? 'Master data'
+        : `${activeSection[0].toUpperCase()}${activeSection.slice(1)} records`;
+
+      const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px"><div class="tabs"><button class="tab ${activeSection === 'home' ? 'active' : ''}" data-master-section="home">All masters</button><button class="tab ${activeSection === 'branches' ? 'active' : ''}" data-master-section="branches">Branches (${branches.length})</button><button class="tab ${activeSection === 'customers' ? 'active' : ''}" data-master-section="customers">Customers (${customers.length})</button><button class="tab ${activeSection === 'suppliers' ? 'active' : ''}" data-master-section="suppliers">Suppliers (${suppliers.length})</button></div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:220px;flex:none"><span>${icon('search')}</span><input id="masterQuery" placeholder="Search ${activeSection === 'home' ? 'masters' : activeSection}…" value="${esc(state.masterQuery || '')}"></label></div>`;
+
+      let bodyContent = '';
+      if (activeSection === 'home') {
+        const kpisMarkup = `<div class="grid three-col" style="margin-bottom:16px"><div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Branches master</span><span class="kpi-icon purple">${icon('building')}</span></div><div class="kpi-value">${branches.length}</div><div class="kpi-foot">Operating control rooms</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Customers master</span><span class="kpi-icon amber">${icon('users')}</span></div><div class="kpi-value">${customers.length}</div><div class="kpi-foot">Client billing entities</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Suppliers master</span><span class="kpi-icon teal">${icon('link')}</span></div><div class="kpi-value">${suppliers.length}</div><div class="kpi-foot">Network partners</div></div></div>`;
+        const cardsMarkup = `<div class="grid three-col">${catalog.map(([name, count, action, key, descText, iconName]) => `<section class="card section-card"><div class="card-body"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><div class="eyebrow" style="margin:0">Tenant master</div><span class="badge" style="font-size:10px;font-weight:600">${count} record${count === 1 ? '' : 's'}</span></div><div style="display:flex;align-items:center;gap:8px;margin:3px 0 5px"><span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:var(--blue-soft);color:var(--blue)">${icon(iconName, 15)}</span><h3 style="margin:0;font-size:15px">${name}</h3></div><p style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:14px;min-height:30px">${descText}</p><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn small" data-master-section="${key}">${icon('eye', 13)}View records</button><button class="btn small soft" data-action="${action}">${icon('plus', 13)}Add first record</button></div></div></section>`).join('')}</div>`;
+        bodyContent = kpisMarkup + cardsMarkup;
+      } else if (activeSection === 'branches') {
+        bodyContent = `<section class="card section-card">${cardHead('Branches register','Branch control rooms and operating regions',button(icon('plus')+'Add branch','small primary','data-action="add-branch"'))}<div class="table-wrap"><table><thead><tr><th>Branch</th><th>Code</th><th>City</th><th>Status</th><th>Created</th></tr></thead><tbody>${filteredBranches.length ? filteredBranches.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span></td><td><span class="keycap">${esc(item.code || '—')}</span></td><td>${esc(item.city || '—')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td><td>${item.created_at ? esc(formatDateTime(item.created_at)) : '—'}</td></tr>`).join('') : tenantTableEmpty('No branches returned','Add the first operating branch for the workspace.',button(icon('plus')+'Add branch','small soft','data-action="add-branch"'))}</tbody></table></div></section>`;
+      } else if (activeSection === 'customers') {
+        bodyContent = `<section class="card section-card">${cardHead('Customers register','Corporate client accounts and billing structures',button(icon('plus')+'Add customer','small primary','data-action="add-customer"'))}<div class="table-wrap"><table><thead><tr><th>Customer</th><th>Code</th><th>City</th><th>Status</th><th>Created</th></tr></thead><tbody>${filteredCustomers.length ? filteredCustomers.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span><span class="secondary">${esc(item.email || 'Email not attached')}</span></td><td><span class="keycap">${esc(item.code || '—')}</span></td><td>${esc(item.city || '—')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td><td>${item.created_at ? esc(formatDateTime(item.created_at)) : '—'}</td></tr>`).join('') : tenantTableEmpty('No customers returned','Add the first customer account before booking duties.',button(icon('plus')+'Add customer','small soft','data-action="add-customer"'))}</tbody></table></div></section>`;
+      } else if (activeSection === 'suppliers') {
+        bodyContent = `<section class="card section-card">${cardHead('Suppliers register','Vendor network partners and associate fleet owners',button(icon('plus')+'Add supplier','small primary','data-action="add-supplier"'))}<div class="table-wrap"><table><thead><tr><th>Supplier</th><th>Contact</th><th>Coverage</th><th>Status</th><th>Created</th></tr></thead><tbody>${filteredSuppliers.length ? filteredSuppliers.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span><span class="secondary">${esc(item.code || 'Vendor partner')}</span></td><td>${esc(item.phone || item.email || '—')}</td><td>${esc(item.city || item.coverage || '—')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td><td>${item.created_at ? esc(formatDateTime(item.created_at)) : '—'}</td></tr>`).join('') : tenantTableEmpty('No suppliers returned','Add the first supplier account before outsourcing duties.',button(icon('plus')+'Add supplier','small soft','data-action="add-supplier"'))}</tbody></table></div></section>`;
+      }
+
+      return `${pageHead('Workspace setup · governed master data', label, 'Configure reference records behind branches, customers, suppliers and workspace operations. Drivers and vehicles are managed from the main menu.', headActions)}${tabsBar}${bodyContent}`;
     }
 
     function renderFleet() {
