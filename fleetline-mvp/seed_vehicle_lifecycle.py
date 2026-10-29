@@ -195,3 +195,4 @@ def seed_lifecycle_data():
 
 if __name__ == "__main__":
     seed_lifecycle_data()
+
