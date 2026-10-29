@@ -9957,16 +9957,212 @@ function openDriverModal(existing) {
     }
 
     function openPricingContractModal() {
-      const customers = state.liveData?.customers?.items || []; const suppliers = state.liveData?.suppliers?.items || [];
+      const customers = state.liveData?.customers?.items || [];
+      const suppliers = state.liveData?.suppliers?.items || [];
+      const branches = state.liveData?.branches?.items || [];
+      const cities = Array.from(new Set(branches.map(b => b.city).filter(Boolean)));
+      if (!cities.includes('Bengaluru')) cities.push('Bengaluru');
+      if (!cities.includes('Mumbai')) cities.push('Mumbai');
+      if (!cities.includes('Delhi')) cities.push('Delhi');
+
       const customerOptions = customers.map(item => `<option value="${esc(item.id)}">${esc(item.name || item.id)}</option>`).join('') || '<option value="">No customers returned</option>';
       const supplierOptions = suppliers.map(item => `<option value="${esc(item.id)}">${esc(item.name || item.id)}</option>`).join('') || '<option value="">No suppliers returned</option>';
-      const modal = modalShell('Version contract pricing', 'Create a customer or supplier contract, then attach package, extra-rate and fuel rules without overwriting an older version.', `<div class="form-grid"><div class="form-group"><label>Contract name <span class="required">*</span></label><input class="form-input" data-contract-field="name" placeholder="Airport sedan · FY 2030"></div><div class="form-group"><label>Scope</label><select class="form-input" data-contract-field="scope"><option value="customer">Customer pricing</option><option value="supplier">Supplier payout</option></select></div><div class="form-group"><label>Customer</label><select class="form-input" data-contract-field="customer"><option value="">Select customer</option>${customerOptions}</select></div><div class="form-group"><label>Supplier</label><select class="form-input" data-contract-field="supplier"><option value="">Select supplier</option>${supplierOptions}</select></div><div class="form-group"><label>Duty type</label><input class="form-input" data-contract-field="duty" value="local"></div><div class="form-group"><label>Package minutes</label><input class="form-input" data-contract-field="minutes" type="number" min="0" value="30"></div><div class="form-group"><label>Base (${regionalCurrencyCode()})</label><input class="form-input" data-contract-field="base" type="number" min="0" step="0.01" value="0"></div><div class="form-group"><label>Extra half-hour (${regionalCurrencyCode()})</label><input class="form-input" data-contract-field="half" type="number" min="0" step="0.01" value="0"></div><div class="form-group full"><label>Automatic switch JSON</label><textarea class="form-input" data-contract-field="switch" rows="2" placeholder='{"rules":[{"max_minutes":60,"duty_type":"airport"}]}'></textarea></div></div>`, `${button('Cancel','','data-close-modal')}${button('Save contract version','primary','data-submit-contract')}`);
-      modal.querySelectorAll('[data-close-modal]').forEach(button => button.addEventListener('click', closeModal));
+      const cityOptions = `<option value="">All Cities (Global Default)</option>` + cities.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+
+      const body = `
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Contract Name <span class="required">*</span></label>
+            <input class="form-input" data-contract-field="name" id="contractNameInput" placeholder="e.g. Infosys Bengaluru - Corporate Sedan &amp; SUV 2026">
+          </div>
+          <div class="form-group">
+            <label>Contract Scope <span class="required">*</span></label>
+            <select class="form-input" data-contract-field="scope" id="contractScope">
+              <option value="customer" selected>Customer Pricing (Corporate Client)</option>
+              <option value="supplier">Supplier Payout (Vendor Rate)</option>
+            </select>
+          </div>
+          <div class="form-group" id="contractCustomerGroup">
+            <label>Corporate Customer <span class="required">*</span></label>
+            <select class="form-input" data-contract-field="customer">
+              <option value="">Select corporate customer…</option>
+              ${customerOptions}
+            </select>
+          </div>
+          <div class="form-group" id="contractSupplierGroup" style="display:none">
+            <label>Supplier Partner</label>
+            <select class="form-input" data-contract-field="supplier">
+              <option value="">Select supplier partner…</option>
+              ${supplierOptions}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>City / Operating Hub</label>
+            <select class="form-input" data-contract-field="city">
+              ${cityOptions}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Vehicle Group <span class="required">*</span></label>
+            <select class="form-input" data-contract-field="vehicle_group">
+              <option value="sedan" selected>Standard Sedan (Dzire, Etios)</option>
+              <option value="executive_sedan">Executive Sedan (Ciaz, City)</option>
+              <option value="suv">SUV (Innova, Ertiga)</option>
+              <option value="premium_suv">Premium SUV (Innova Crysta)</option>
+              <option value="tempo">Tempo Traveller (12/17s)</option>
+              <option value="hatchback">Hatchback (WagonR, Swift)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Duty Package <span class="required">*</span></label>
+            <select class="form-input" data-contract-field="duty_preset" id="contractDutyPreset">
+              <option value="local_4_40" data-type="local" data-hours="4" data-km="40" data-base="1600" data-extra-km="16" data-extra-hr="150" selected>Local 4Hr / 40Km</option>
+              <option value="local_8_80" data-type="local" data-hours="8" data-km="80" data-base="2600" data-extra-km="16" data-extra-hr="150">Local 8Hr / 80Km</option>
+              <option value="local_12_120" data-type="local" data-hours="12" data-km="120" data-base="3800" data-extra-km="16" data-extra-hr="150">Local 12Hr / 120Km</option>
+              <option value="airport" data-type="airport" data-hours="3" data-km="50" data-base="1850" data-extra-km="18" data-extra-hr="150">Airport Transfer (Point-to-Point)</option>
+              <option value="outstation" data-type="outstation" data-hours="24" data-km="250" data-base="3500" data-extra-km="15" data-extra-hr="0">Outstation (Daily Min 250Km)</option>
+              <option value="custom" data-type="local" data-hours="4" data-km="40" data-base="1500" data-extra-km="15" data-extra-hr="150">Custom Package</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Included Hours</label>
+            <input class="form-input" data-contract-field="hours" id="contractHours" type="number" min="1" step="0.5" value="4">
+          </div>
+          <div class="form-group">
+            <label>Included Distance (KM)</label>
+            <input class="form-input" data-contract-field="included_km" id="contractKm" type="number" min="0" step="1" value="40">
+          </div>
+
+          <div class="form-group">
+            <label>Base Package Fare (₹) <span class="required">*</span></label>
+            <input class="form-input" data-contract-field="base" id="contractBase" type="number" min="0" step="1" value="1600" placeholder="e.g. 1600">
+          </div>
+          <div class="form-group">
+            <label>Extra Rate per KM (₹/km)</label>
+            <input class="form-input" data-contract-field="extra_km" id="contractExtraKm" type="number" min="0" step="0.5" value="16" placeholder="e.g. 16">
+          </div>
+          <div class="form-group">
+            <label>Extra Rate per Hour (₹/hr)</label>
+            <input class="form-input" data-contract-field="extra_hr" id="contractExtraHr" type="number" min="0" step="10" value="150" placeholder="e.g. 150">
+          </div>
+
+          <div class="form-group">
+            <label>Driver Day Batta / Allowance (₹)</label>
+            <input class="form-input" data-contract-field="allowance" id="contractAllowance" type="number" min="0" step="50" value="400" placeholder="e.g. 400">
+          </div>
+
+          <div class="form-group full" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-top:6px">
+            <div style="font-weight:600;font-size:12px;color:var(--ink);margin-bottom:6px">Optimization &amp; Grace Period</div>
+            <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+              <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;cursor:pointer">
+                <input type="checkbox" id="contractAutoSwitch" checked>
+                Enable Auto-Slab Upgrade (converts 4h/40k to 8h/80k if overtime exceeds package)
+              </label>
+              <div style="display:flex;align-items:center;gap:6px;font-size:11.5px">
+                <span>Grace Period:</span>
+                <input id="contractGrace" class="form-input" style="width:75px;height:28px;padding:2px 8px;font-size:11px" type="number" min="0" max="60" value="15">
+                <span>mins</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const modal = modalShell('Corporate Contract & Rate Card', 'Configure corporate client tariff, packages, extra km/hr rates and driver allowances.', body, `${button('Cancel','','data-close-modal')}${button(icon('check')+'Save Rate Card','primary','data-submit-contract')}`);
+      modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+
+      // Scope change toggle
+      const scopeSelect = modal.querySelector('#contractScope');
+      const custGroup = modal.querySelector('#contractCustomerGroup');
+      const supGroup = modal.querySelector('#contractSupplierGroup');
+      if (scopeSelect) {
+        scopeSelect.addEventListener('change', () => {
+          const isCust = scopeSelect.value === 'customer';
+          if (custGroup) custGroup.style.display = isCust ? 'block' : 'none';
+          if (supGroup) supGroup.style.display = isCust ? 'none' : 'block';
+        });
+      }
+
+      // Preset change auto-fills
+      const presetSelect = modal.querySelector('#contractDutyPreset');
+      if (presetSelect) {
+        presetSelect.addEventListener('change', () => {
+          const opt = presetSelect.selectedOptions[0];
+          if (!opt) return;
+          if (opt.dataset.hours) modal.querySelector('#contractHours').value = opt.dataset.hours;
+          if (opt.dataset.km) modal.querySelector('#contractKm').value = opt.dataset.km;
+          if (opt.dataset.base) modal.querySelector('#contractBase').value = opt.dataset.base;
+          if (opt.dataset.extraKm) modal.querySelector('#contractExtraKm').value = opt.dataset.extraKm;
+          if (opt.dataset.extraHr) modal.querySelector('#contractExtraHr').value = opt.dataset.extraHr;
+        });
+      }
+
       modal.querySelector('[data-submit-contract]').addEventListener('click', async () => {
-        const read = key => modal.querySelector(`[data-contract-field="${key}"]`)?.value.trim() || ''; if (!read('name')) return showToast('Contract name required','Add a stable name before saving the version.');
-        let autoSwitch = {}; if (read('switch')) { try { autoSwitch = JSON.parse(read('switch')); } catch (_) { return showToast('Invalid switch JSON','Enter a JSON object containing rules.'); } }
-        const scope = read('scope'); const contract = {name:read('name'), contract_type:scope, customer_id:scope === 'customer' ? read('customer') || null : null, supplier_id:scope === 'supplier' ? read('supplier') || null : null, version:1, status:'active'}; const submit = modal.querySelector('[data-submit-contract]'); submit.disabled = true;
-        try { const saved = await apiRequest('/api/pricing/contracts',{method:'POST',body:JSON.stringify(contract)}); await apiRequest(`/api/pricing/contracts/${encodeURIComponent(saved.item.id)}/rules`,{method:'POST',body:JSON.stringify({duty_type:read('duty'),package_minutes:Number(read('minutes')||0),base_paise:Math.round(Number(read('base')||0)*100),extra_half_hour_paise:Math.round(Number(read('half')||0)*100),auto_switch:autoSwitch})}); closeModal(); showToast('Pricing contract version saved','Customer or supplier pricing is now available to booking quotes.'); } catch(error) { submit.disabled = false; showToast('Pricing contract failed',error.message); }
+        const read = key => modal.querySelector(`[data-contract-field="${key}"]` )?.value.trim() || '';
+        const name = read('name');
+        if (!name) return showToast('Contract name required', 'Please add a name for this rate card contract.');
+
+        const scope = read('scope');
+        const customerId = scope === 'customer' ? (read('customer') || null) : null;
+        const supplierId = scope === 'supplier' ? (read('supplier') || null) : null;
+        if (scope === 'customer' && !customerId) return showToast('Customer required', 'Please select a corporate customer entity.');
+
+        const presetOpt = modal.querySelector('#contractDutyPreset')?.selectedOptions[0];
+        const dutyType = presetOpt?.dataset.type || 'local';
+        const hours = Number(read('hours') || 4);
+        const packageMinutes = Math.round(hours * 60);
+        const includedKm = Number(read('included_km') || 40);
+        const base = Number(read('base') || 0);
+        const extraKm = Number(read('extra_km') || 0);
+        const extraHr = Number(read('extra_hr') || 0);
+        const allowance = Number(read('allowance') || 0);
+        const city = read('city');
+        const vehicleGroup = read('vehicle_group');
+        const autoSwitch = Boolean(modal.querySelector('#contractAutoSwitch')?.checked);
+        const graceMinutes = Number(modal.querySelector('#contractGrace')?.value || 15);
+
+        const contract = {
+          name,
+          contract_type: scope,
+          customer_id: customerId,
+          supplier_id: supplierId,
+          version: 1,
+          status: 'active'
+        };
+
+        const rulePayload = {
+          city: city.toLowerCase(),
+          vehicle_group: vehicleGroup.toLowerCase(),
+          duty_type: dutyType.toLowerCase(),
+          package_minutes: packageMinutes,
+          included_km: includedKm,
+          base_paise: Math.round(base * 100),
+          extra_km_paise: Math.round(extraKm * 100),
+          extra_hour_paise: Math.round(extraHr * 100),
+          extra_half_hour_paise: Math.round((extraHr / 2) * 100),
+          allowance_paise: Math.round(allowance * 100),
+          auto_switch: {
+            enabled: autoSwitch,
+            grace_period_minutes: graceMinutes
+          }
+        };
+
+        const submitBtn = modal.querySelector('[data-submit-contract]');
+        if (submitBtn) submitBtn.disabled = true;
+
+        try {
+          const savedContract = await apiRequest('/api/pricing/contracts', { method: 'POST', body: JSON.stringify(contract) });
+          const contractId = savedContract.item?.id || savedContract.id;
+          await apiRequest(`/api/pricing/contracts/${encodeURIComponent(contractId)}/rules`, { method: 'POST', body: JSON.stringify(rulePayload) });
+          closeModal();
+          showToast('Corporate Rate Card Saved', `Contract "${name}" with ${dutyType.toUpperCase()} ${vehicleGroup.toUpperCase()} tariff created successfully.`);
+          await hydrateOperationalData();
+        } catch(error) {
+          if (submitBtn) submitBtn.disabled = false;
+          showToast('Rate Card Error', error.message);
+        }
       });
     }
 
