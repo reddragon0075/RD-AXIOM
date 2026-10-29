@@ -2649,11 +2649,25 @@
           <div class="nav-section-items" id="section-items-fleet">
             <div class="nav-section-items-inner">
               <button class="nav-item" data-page="vehicles" data-tooltip="Vehicles register"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 17h14l-1.5-6h-11L5 17Z"/><path d="m8 11 1-4h6l1 4M5 17v2h2M19 17v2h-2M8 14h.01M16 14h.01"/></svg><span>Vehicles</span></button>
-              <button class="nav-item" data-page="drivers" data-tooltip="Drivers register"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span>Drivers</span></button>
-              <button class="nav-item nav-sub-item" data-page="driver-payouts" data-tooltip="Driver payouts &amp; settlements" style="padding-left:32px;font-size:11.5px">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                <span>Driver payouts</span>
-              </button>
+              
+              <!-- Drivers Menu with Submenu Items -->
+              <div class="nav-parent-item-group" style="margin-bottom:2px">
+                <button class="nav-item" data-page="drivers" id="navItemDrivers" data-tooltip="Drivers workforce" style="font-weight:650">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+                  <span>Drivers</span>
+                </button>
+                <div class="nav-sub-items-container" style="padding-left:14px;margin-left:16px;border-left:2px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;gap:1px;margin-top:2px;margin-bottom:4px">
+                  <button class="nav-item nav-sub-child" data-page="drivers" data-tooltip="Drivers roster" style="padding:6px 10px;font-size:11.5px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    <span>Drivers roster</span>
+                  </button>
+                  <button class="nav-item nav-sub-child" data-page="driver-payouts" data-tooltip="Driver payouts &amp; settlements" style="padding:6px 10px;font-size:11.5px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <span>Driver payouts</span>
+                  </button>
+                </div>
+              </div>
+
               <button class="nav-item" data-page="masters" data-tooltip="Masters &amp; setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/><path d="M7 4v4M17 10v4M11 16v4"/></svg><span>Masters</span></button>
             </div>
           </div>
@@ -4212,6 +4226,15 @@
 
     function renderDriverPayouts() {
       const driverPayouts = state.followonData?.['/api/driver-payouts/requests']?.items || [];
+      if (!state.followonData?.['/api/driver-payouts/requests'] && !state._fetchingPayouts) {
+        state._fetchingPayouts = true;
+        apiRequest('/api/driver-payouts/requests').then(res => {
+          if (!state.followonData) state.followonData = {};
+          state.followonData['/api/driver-payouts/requests'] = res;
+          state._fetchingPayouts = false;
+          render();
+        }).catch(() => { state._fetchingPayouts = false; });
+      }
       const filter = state.driverPayoutFilter || 'all';
       const query = String(state.driverPayoutQuery || '').trim().toLowerCase();
 
@@ -4322,7 +4345,7 @@
               </tr>
             </thead>
             <tbody>
-              ${rows || tenantTableEmpty('No driver payout records returned','Select a driver and settlement period to calculate duty earnings and submit for approval.',button(icon('plus')+'Calculate driver payout','small primary','data-action="open-driver-payout-modal"'))}
+              ${rows.join('') || tenantTableEmpty('No driver payout records returned','Select a driver and settlement period to calculate duty earnings and submit for approval.',button(icon('plus')+'Calculate driver payout','small primary','data-action="open-driver-payout-modal"'))}
             </tbody>
           </table>
         </div>
@@ -4422,7 +4445,7 @@
 
       const driversTable = `<section class="card section-card">${cardHead('Drivers register','Physical-device and duty readiness starts from this record',button(icon('plus')+'Add driver','small primary','data-action="add-driver"'))}<div class="table-wrap"><table><thead><tr><th>Driver</th><th>Type</th><th>Phone</th><th>City</th><th>License / ID</th><th>Status</th><th></th></tr></thead><tbody>${paginatedDrivers.length ? paginatedDrivers.map(item => `<tr><td><span class="primary">${esc(item.full_name || 'Driver')}</span>${item.city ? `<span class="secondary">${esc(item.city)}</span>` : ''}</td><td><span class="status ${driverTypeTone(item.driver_type)}">${driverTypeLabel(item.driver_type)}</span></td><td>${esc(item.phone || '—')}</td><td>${esc(item.city || '—')}</td><td><span class="keycap">${esc(item.license_number || '—')}</span></td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="driver-detail" data-driver="${esc(item.full_name || item.id)}" data-driver-id="${esc(item.id)}">${icon('eye', 13)}Open</button></td></tr>`).join('') : tenantTableEmpty('No drivers returned','Add the first driver record before assigning a duty.',button(icon('plus')+'Add driver','small soft','data-action="add-driver"'))}</tbody></table></div>${driverPaginationMarkup}</section>`;
 
-      return `${pageHead('Fleet · workforce readiness','Drivers register','Manage driver workforce profiles, license verification and physical-device onboarding.',`${button(icon('upload')+'Import roster','','data-action="import-master"')}${button(icon('plus')+'Add driver','primary','data-action="add-driver"')}`)}${kpis}${tabsBar}${driversTable}`;
+      return `${pageHead('Fleet · workforce readiness','Drivers register','Manage driver workforce profiles, license verification and physical-device onboarding.',`${button(icon('wallet')+'Driver payouts','soft','data-page-link="driver-payouts"')}${button(icon('upload')+'Import roster','','data-action="import-master"')}${button(icon('plus')+'Add driver','primary','data-action="add-driver"')}`)}${driverSubmenu}${kpis}${tabsBar}${driversTable}`;
     }
 
     function renderFleet() {
@@ -5555,7 +5578,7 @@
     }
 
     function attachPageEvents() {
-      content.querySelectorAll('[data-page-link]').forEach(el => el.addEventListener('click', () => { state.page = el.dataset.pageLink; render(); }));
+      content.querySelectorAll('[data-page-link]').forEach(el => el.addEventListener('click', () => { state.page = el.dataset.pageLink; try{window.location.hash='#'+state.page;}catch(_){}render(); }));
       content.querySelectorAll('[data-master-section]').forEach(el => el.addEventListener('click', () => {
         const key = el.dataset.masterSection;
         if (key === 'drivers') {
@@ -9991,7 +10014,7 @@ function openDriverModal(existing) {
       authScreen.setAttribute('aria-hidden', 'true');
       appShell.classList.add('is-visible');
       
-      const targetHash = isStaff && state.page === 'axiom-hq' ? '#axiom-hq' : '#app';
+      const targetHash = isStaff && state.page === 'axiom-hq' ? '#axiom-hq' : (state.page && state.page !== 'overview' ? '#' + state.page : '#app');
       if (updateHash && location.hash !== targetHash) history.replaceState(null, '', targetHash);
       state.hydration = { status: 'loading', error: '' };
       render();
@@ -10153,6 +10176,16 @@ function openDriverModal(existing) {
       if (feedbackToken) await showFeedbackPublic(feedbackToken, false);
       else if (passengerToken) await showPassengerPortal(passengerToken, false);
       else if (route === 'app') await showApp(false);
+      else if (navTitles[route] || route === 'axiom-hq') {
+        const hasSession = await restoreSession();
+        if (hasSession) {
+          state.page = route;
+          await showApp(false);
+        } else {
+          try { sessionStorage.setItem('axiomfleet_active_page', route); } catch (_) {}
+          showLogin(false);
+        }
+      }
       else if (publicPageTemplates[route]) showPublicPage(route, false);
       else {
         const hasSession = await restoreSession();
@@ -10287,7 +10320,7 @@ function openDriverModal(existing) {
       window.location.href = `mailto:hello@axiomfleet.com?subject=${subject}&body=${body}`;
     });
 
-    document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click',()=>{state.page=item.dataset.page;document.getElementById('sidebar').classList.remove('open');render();}));
+    document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click',()=>{if(!item.dataset.page)return;state.page=item.dataset.page;try{window.location.hash='#'+state.page;}catch(_){}document.getElementById('sidebar').classList.remove('open');render();}));
     document.getElementById('advancedNavToggle')?.addEventListener('click', (e) => {
       e?.preventDefault();
       e?.stopPropagation();
