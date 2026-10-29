@@ -53,15 +53,22 @@ def _generate_trip_id(conn, org: str, corp_code: str) -> str:
     if not corp_code:
         corp_code = "TRIP"
     prefix = corp_code
-    rows = conn.execute(
-        "SELECT id FROM domain_duties WHERE organization_id = ? AND id LIKE ?",
-        (org, f"{prefix}%")
+    rows_duties = conn.execute(
+        "SELECT id FROM domain_duties WHERE id LIKE ?",
+        (f"{prefix}%",)
     ).fetchall()
+    cols_bookings = {r["name"] for r in conn.execute("PRAGMA table_info(domain_bookings)").fetchall()}
+    rows_bookings = []
+    if "trip_id" in cols_bookings:
+        rows_bookings = conn.execute(
+            "SELECT trip_id as id FROM domain_bookings WHERE trip_id LIKE ?",
+            (f"{prefix}%",)
+        ).fetchall()
     max_seq = 0
     pattern = re.compile(rf"^{re.escape(prefix)}(\d+)$")
-    for r in rows:
-        duty_id = str(r["id"] or "")
-        match = pattern.match(duty_id)
+    for r in list(rows_duties) + list(rows_bookings):
+        item_id = str(r["id"] or "")
+        match = pattern.match(item_id)
         if match:
             try:
                 seq = int(match.group(1))
@@ -505,7 +512,45 @@ def _duty(conn, duty_id, org):
 def _invoice(conn, invoice_id, org):
     row = _assert_owned(conn, "domain_invoices", invoice_id, org)
     data = _serialize(row, ("immutable_snapshot_json",))
+    data["trip_id"] = row["duty_id"]
     data["lines"] = [_serialize(x) for x in conn.execute("SELECT * FROM domain_invoice_lines WHERE invoice_id = ? ORDER BY created_at", (invoice_id,)).fetchall()]
+    if row["customer_id"]:
+        cust = conn.execute("SELECT name, code, gstin, email, phone FROM domain_customers WHERE id = ?", (row["customer_id"],)).fetchone()
+        if cust:
+            data["customer_name"] = cust["name"]
+            data["customer_code"] = cust["code"]
+            data["customer_gstin"] = cust["gstin"]
+            data["customer_email"] = cust["email"]
+            data["customer_phone"] = cust["phone"]
+    duty_id = row["duty_id"]
+    if duty_id:
+        duty = conn.execute("SELECT * FROM domain_duties WHERE id = ? AND organization_id = ?", (duty_id, org)).fetchone()
+        if duty:
+            booking = conn.execute("SELECT * FROM domain_bookings WHERE id = ? AND organization_id = ?", (duty["booking_id"], org)).fetchone()
+            veh = conn.execute("SELECT registration_number, manufacturer, model FROM domain_vehicles WHERE id = ?", (duty["vehicle_id"],)).fetchone() if duty["vehicle_id"] else None
+            drv = conn.execute("SELECT full_name, phone FROM domain_drivers WHERE id = ?", (duty["driver_id"],)).fetchone() if duty["driver_id"] else None
+            p_json = _json(booking["pickup_json"], {}) if booking and booking["pickup_json"] else {}
+            d_json = _json(booking["dropoff_json"], {}) if booking and booking["dropoff_json"] else {}
+            data["trip_details"] = {
+                "trip_id": duty["id"],
+                "booking_reference": booking["booking_reference"] if booking else "",
+                "duty_type": booking["duty_type"] if booking else "",
+                "passenger_name": booking["passenger_name"] if booking else "",
+                "passenger_phone": booking["passenger_phone"] if booking else "",
+                "pickup_address": p_json.get("address") or p_json.get("label") or "",
+                "dropoff_address": d_json.get("address") or d_json.get("label") or "",
+                "vehicle_reg": veh["registration_number"] if veh else "",
+                "vehicle_model": f"{veh['manufacturer']} {veh['model']}".strip() if veh else "",
+                "driver_name": drv["full_name"] if drv else "",
+                "driver_phone": drv["phone"] if drv else "",
+                "start_odometer": duty["start_odometer"],
+                "end_odometer": duty["end_odometer"],
+                "distance_km": (duty["end_odometer"] - duty["start_odometer"]) if duty["end_odometer"] and duty["start_odometer"] else None,
+                "started_at": duty["started_at"],
+                "completed_at": duty["completed_at"],
+                "reporting_at": duty["reporting_at"],
+                "calculation": _json(duty["calculation_snapshot_json"], {}) if duty["calculation_snapshot_json"] else {}
+            }
     return data
 
 
@@ -658,17 +703,38 @@ def _create_booking(conn, user, payload, ip):
         customer_id = None
     elif customer_id:
         _assert_owned(conn, "domain_customers", customer_id, org)
+    corp_code = _text(payload, "corp_code") or _text(payload, "customer_code")
+    if not corp_code and customer_id:
+        customer = conn.execute("SELECT * FROM domain_customers WHERE id = ? AND organization_id = ?", (customer_id, org)).fetchone()
+        if customer:
+            if "code" in customer.keys() and customer["code"]:
+                corp_code = customer["code"]
+            elif customer["name"]:
+                corp_code = _derive_corp_code(customer["name"])
+    if not corp_code:
+        corp_code = "TRIP"
+    trip_id = _text(payload, "trip_id") or _generate_trip_id(conn, org, corp_code)
     pickup = payload.get("pickup") if isinstance(payload.get("pickup"), dict) else {"label": _text(payload, "pickup")}
     dropoff = payload.get("dropoff") if isinstance(payload.get("dropoff"), dict) else {"label": _text(payload, "dropoff")}
     booking_id = new_id("book")
-    conn.execute(
-        """
-        INSERT INTO domain_bookings(id, organization_id, customer_id, booking_reference, status, passenger_name, passenger_phone, passenger_email, pickup_json, dropoff_json, scheduled_at, duty_type, notes, created_by, created_at, updated_at)
-        VALUES (?, ?, ?, ?, 'requested', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (booking_id, org, customer_id, reference, _text(payload, "passenger_name"), _text(payload, "passenger_phone"), _text(payload, "passenger_email", maximum=254).lower(), json.dumps(pickup), json.dumps(dropoff), _text(payload, "scheduled_at") or None, _text(payload, "duty_type", "local"), _text(payload, "notes"), user["id"], now, now),
-    )
-    _audit(conn, user, "booking.created", "booking", booking_id, ip, {"reference": reference})
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(domain_bookings)").fetchall()}
+    if "trip_id" in cols:
+        conn.execute(
+            """
+            INSERT INTO domain_bookings(id, organization_id, customer_id, booking_reference, trip_id, status, passenger_name, passenger_phone, passenger_email, pickup_json, dropoff_json, scheduled_at, duty_type, notes, created_by, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, 'requested', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (booking_id, org, customer_id, reference, trip_id, _text(payload, "passenger_name"), _text(payload, "passenger_phone"), _text(payload, "passenger_email", maximum=254).lower(), json.dumps(pickup), json.dumps(dropoff), _text(payload, "scheduled_at") or None, _text(payload, "duty_type", "local"), _text(payload, "notes"), user["id"], now, now),
+        )
+    else:
+        conn.execute(
+            """
+            INSERT INTO domain_bookings(id, organization_id, customer_id, booking_reference, status, passenger_name, passenger_phone, passenger_email, pickup_json, dropoff_json, scheduled_at, duty_type, notes, created_by, created_at, updated_at)
+            VALUES (?, ?, ?, ?, 'requested', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (booking_id, org, customer_id, reference, _text(payload, "passenger_name"), _text(payload, "passenger_phone"), _text(payload, "passenger_email", maximum=254).lower(), json.dumps(pickup), json.dumps(dropoff), _text(payload, "scheduled_at") or None, _text(payload, "duty_type", "local"), _text(payload, "notes"), user["id"], now, now),
+        )
+    _audit(conn, user, "booking.created", "booking", booking_id, ip, {"reference": reference, "trip_id": trip_id})
     return {"ok": True, "item": _booking(conn, booking_id, org)}
 
 
@@ -756,6 +822,8 @@ def _create_duty(conn, user, payload, ip):
         _assert_owned(conn, "domain_suppliers", supplier_id, org)
     status = "assigned" if driver_id or vehicle_id or supplier_id else "draft"
     duty_id = _text(payload, "id") or _text(payload, "duty_id") or _text(payload, "trip_id")
+    if not duty_id and "trip_id" in booking.keys() and booking["trip_id"]:
+        duty_id = booking["trip_id"]
     if not duty_id:
         corp_code = _text(payload, "corp_code") or _text(payload, "customer_code")
         customer_id = booking["customer_id"] if "customer_id" in booking.keys() else None
@@ -781,7 +849,11 @@ def _create_duty(conn, user, payload, ip):
         conn.execute("INSERT INTO domain_duties(id, organization_id, booking_id, driver_id, vehicle_id, supplier_id, status, reporting_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (duty_id, org, booking_id, driver_id, vehicle_id, supplier_id, status, _text(payload, "reporting_at") or None, now, now))
     else:
         conn.execute("INSERT INTO domain_duties(id, organization_id, booking_id, driver_id, vehicle_id, status, reporting_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (duty_id, org, booking_id, driver_id, vehicle_id, status, _text(payload, "reporting_at") or None, now, now))
-    conn.execute("UPDATE domain_bookings SET status = ?, updated_at = ? WHERE id = ?", ("assigned" if status == "assigned" else "confirmed", now, booking_id))
+    cols_b = {r["name"] for r in conn.execute("PRAGMA table_info(domain_bookings)").fetchall()}
+    if "trip_id" in cols_b:
+        conn.execute("UPDATE domain_bookings SET status = ?, trip_id = ?, updated_at = ? WHERE id = ?", ("assigned" if status == "assigned" else "confirmed", duty_id, now, booking_id))
+    else:
+        conn.execute("UPDATE domain_bookings SET status = ?, updated_at = ? WHERE id = ?", ("assigned" if status == "assigned" else "confirmed", now, booking_id))
     if driver_id:
         driver_user = conn.execute("SELECT user_id FROM domain_drivers WHERE id = ? AND organization_id = ?", (driver_id, org)).fetchone()
         if driver_user and driver_user["user_id"]:
@@ -1177,6 +1249,47 @@ def handle_domain(conn, user, method: str, raw_route: str, payload: dict, ip: st
         if table == "domain_duties":
             for item in items:
                 item["calculation_snapshot"] = _json(item.pop("calculation_snapshot_json", "{}"), {})
+        if table == "domain_invoices":
+            for item in items:
+                duty_id = item.get("duty_id")
+                item["trip_id"] = duty_id
+                item["lines"] = [_serialize(x) for x in conn.execute("SELECT * FROM domain_invoice_lines WHERE invoice_id = ? ORDER BY created_at", (item["id"],)).fetchall()]
+                if item.get("customer_id"):
+                    cust = conn.execute("SELECT name, code, gstin, email, phone FROM domain_customers WHERE id = ?", (item["customer_id"],)).fetchone()
+                    if cust:
+                        item["customer_name"] = cust["name"]
+                        item["customer_code"] = cust["code"]
+                        item["customer_gstin"] = cust["gstin"]
+                        item["customer_email"] = cust["email"]
+                        item["customer_phone"] = cust["phone"]
+                if duty_id:
+                    duty = conn.execute("SELECT * FROM domain_duties WHERE id = ? AND organization_id = ?", (duty_id, org)).fetchone()
+                    if duty:
+                        booking = conn.execute("SELECT * FROM domain_bookings WHERE id = ? AND organization_id = ?", (duty["booking_id"], org)).fetchone()
+                        veh = conn.execute("SELECT registration_number, manufacturer, model FROM domain_vehicles WHERE id = ?", (duty["vehicle_id"],)).fetchone() if duty["vehicle_id"] else None
+                        drv = conn.execute("SELECT full_name, phone FROM domain_drivers WHERE id = ?", (duty["driver_id"],)).fetchone() if duty["driver_id"] else None
+                        p_json = _json(booking["pickup_json"], {}) if booking and booking["pickup_json"] else {}
+                        d_json = _json(booking["dropoff_json"], {}) if booking and booking["dropoff_json"] else {}
+                        item["trip_details"] = {
+                            "trip_id": duty["id"],
+                            "booking_reference": booking["booking_reference"] if booking else "",
+                            "duty_type": booking["duty_type"] if booking else "",
+                            "passenger_name": booking["passenger_name"] if booking else "",
+                            "passenger_phone": booking["passenger_phone"] if booking else "",
+                            "pickup_address": p_json.get("address") or p_json.get("label") or "",
+                            "dropoff_address": d_json.get("address") or d_json.get("label") or "",
+                            "vehicle_reg": veh["registration_number"] if veh else "",
+                            "vehicle_model": f"{veh['manufacturer']} {veh['model']}".strip() if veh else "",
+                            "driver_name": drv["full_name"] if drv else "",
+                            "driver_phone": drv["phone"] if drv else "",
+                            "start_odometer": duty["start_odometer"],
+                            "end_odometer": duty["end_odometer"],
+                            "distance_km": (duty["end_odometer"] - duty["start_odometer"]) if duty["end_odometer"] and duty["start_odometer"] else None,
+                            "started_at": duty["started_at"],
+                            "completed_at": duty["completed_at"],
+                            "reporting_at": duty["reporting_at"],
+                            "calculation": _json(duty["calculation_snapshot_json"], {}) if duty["calculation_snapshot_json"] else {}
+                        }
         return {"ok": True, "items": items, "count": len(items)}
     if route == "/api/customers" and method == "POST": return _create_customer(conn, user, payload, ip)
     if route == "/api/drivers" and method == "POST": return _create_driver(conn, user, payload, ip)
