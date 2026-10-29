@@ -4631,7 +4631,14 @@
           <button class="btn primary" data-action="log-vehicle-cost" data-vehicle-id="${esc(v.id)}" data-reg="${esc(v.registration_number)}">${icon('plus')} Log vehicle expense</button>
         `;
 
-        modalShell(`${v.registration_number} · Lifecycle &amp; P&amp;L 360°`, 'Unit economics, monthly cash flow trajectory and total cost of ownership.', modalBody, modalActions);
+        const modal = modalShell(`${v.registration_number} · Lifecycle &amp; P&amp;L 360°`, 'Unit economics, monthly cash flow trajectory and total cost of ownership.', modalBody, modalActions);
+        modal.querySelectorAll('[data-action="log-vehicle-cost"]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeModal();
+            openLogVehicleCostModal(btn.dataset.vehicleId || v.id, btn.dataset.reg || v.registration_number);
+          });
+        });
         attachPageEvents();
       } catch(err) {
         showToast('Lifecycle unavailable', err.message);
@@ -4639,8 +4646,12 @@
     }
 
     function openLogVehicleCostModal(preselectedVehicleId, preselectedReg) {
-      const vehicles = state.liveData?.vehicles?.items || [];
-      const options = vehicles.map(v => `<option value="${esc(v.id)}" ${v.id === preselectedVehicleId ? 'selected' : ''}>${esc(v.registration_number)} (${esc(v.make_model || 'Vehicle')})</option>`).join('');
+      const vehicles = state.liveData?.vehicles?.items?.length ? state.liveData.vehicles.items : (state.vehiclePnlData?.items || []);
+      const options = vehicles.map(v => {
+        const isSelected = (preselectedVehicleId && (v.id === preselectedVehicleId || v.registration_number === preselectedVehicleId)) ||
+                           (preselectedReg && (v.registration_number === preselectedReg || v.id === preselectedReg));
+        return `<option value="${esc(v.id)}" ${isSelected ? 'selected' : ''}>${esc(v.registration_number)} (${esc(v.make_model || 'Vehicle')})</option>`;
+      }).join('');
 
       const todayStr = new Date().toISOString().slice(0, 10);
 
@@ -7028,6 +7039,11 @@
             render();
           } catch(err) { showToast('Rejection failed', err.message); }
         },
+        'view-vehicle-lifecycle': () => openVehicleLifecycleDrawer(el.dataset.vehicle, el.dataset.reg),
+        'log-vehicle-cost': () => {
+          closeModal();
+          openLogVehicleCostModal(el.dataset.vehicleId, el.dataset.reg);
+        },
         'driver-detail': () => { const driver = (state.liveData?.drivers?.items || []).find(item => item.id === el.dataset.driverId || item.full_name === el.dataset.driver); if (driver) openDriverModal(driver); else showToast('Driver profile opened', `${el.dataset.driver} · compliance and duty history ready.`); },
         'add-vehicle': () => openVehicleModal(),
         'vehicle-edit': () => { const vehicle = (state.liveData?.vehicles?.items || []).find(item => item.id === el.dataset.vehicleId); if (vehicle) openVehicleModal(vehicle); },
@@ -7451,7 +7467,7 @@
     function openDrawer() { const drawer=document.getElementById('drawer'); drawer.setAttribute('role','dialog'); drawer.setAttribute('aria-modal','true'); drawer.setAttribute('aria-label','Record detail'); drawer.setAttribute('aria-hidden','false'); drawer.classList.add('open'); document.getElementById('drawerBackdrop').classList.add('open'); drawer.querySelector('[data-close-drawer]')?.focus(); }
     function closeDrawer() { const drawer=document.getElementById('drawer'); drawer.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); document.getElementById('drawerBackdrop').classList.remove('open'); }
 
-    function modalShell(title, subtitle, body, footer) { const modal = document.getElementById('modal'); modal.innerHTML = `<div class="modal-head"><div><h2 id="activeModalTitle">${title}</h2><p>${subtitle}</p></div><button class="drawer-close" type="button" data-close-modal aria-label="Close dialog">${icon('x')}</button></div><div class="modal-body" aria-live="polite">${body}</div><div class="modal-footer">${footer}</div>`; modal.setAttribute('role','dialog'); modal.setAttribute('aria-modal','true'); modal.setAttribute('aria-labelledby','activeModalTitle'); document.getElementById('modalBackdrop').classList.add('open'); modal.querySelector('[data-close-modal]').addEventListener('click', closeModal); bindInlineValidation(modal); modal.addEventListener('click', event => { const submit=event.target.closest('[data-submit-]'); if (submit && !validateRequiredGroups(modal)) { event.preventDefault(); event.stopImmediatePropagation(); } }, true); requestAnimationFrame(() => modal.querySelector('.form-input, input, select, textarea, button:not([data-close-modal])')?.focus()); return modal; }
+    function modalShell(title, subtitle, body, footer) { const modal = document.getElementById('modal'); modal.innerHTML = `<div class="modal-head"><div><h2 id="activeModalTitle">${title}</h2><p>${subtitle}</p></div><button class="drawer-close" type="button" data-close-modal aria-label="Close dialog">${icon('x')}</button></div><div class="modal-body" aria-live="polite">${body}</div><div class="modal-footer">${footer}</div>`; modal.setAttribute('role','dialog'); modal.setAttribute('aria-modal','true'); modal.setAttribute('aria-labelledby','activeModalTitle'); document.getElementById('modalBackdrop').classList.add('open'); modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal)); bindInlineValidation(modal); modal.addEventListener('click', event => { const submit=event.target.closest('[data-submit-]'); if (submit && !validateRequiredGroups(modal)) { event.preventDefault(); event.stopImmediatePropagation(); } }, true); requestAnimationFrame(() => modal.querySelector('.form-input, input, select, textarea, button:not([data-close-modal])')?.focus()); return modal; }
     function closeModal() { document.getElementById('modalBackdrop').classList.remove('open'); const modal = document.getElementById('modal'); if (modal) { modal.style.maxWidth = ''; modal.style.width = ''; } }
     function clearFieldErrors(root) { root?.querySelectorAll('.inline-error').forEach(node => node.remove()); root?.querySelectorAll('.has-error').forEach(node => node.classList.remove('has-error')); root?.querySelectorAll('[aria-invalid="true"]').forEach(node => node.removeAttribute('aria-invalid')); }
     function markFieldError(field, message) { const container=field.closest('.form-group, label') || field.parentElement; container?.classList.add('has-error'); field.setAttribute('aria-invalid','true'); const error=document.createElement('span'); error.className='inline-error'; error.textContent=message; error.id=`field-error-${Math.random().toString(16).slice(2)}`; field.setAttribute('aria-describedby',error.id); container?.appendChild(error); return field; }
@@ -10769,6 +10785,19 @@ function openDriverModal(existing) {
     document.querySelectorAll('[data-public-home]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); showPublic(); }));
     document.querySelectorAll('#public-pages .site-links a:not([data-public-page])').forEach(el => el.addEventListener('click', e => { e.preventDefault(); const target = el.getAttribute('href'); showPublic(); setTimeout(() => document.querySelector(target)?.scrollIntoView({ behavior: 'smooth' }), 30); }));
     document.addEventListener('click', e => {
+      const logCostBtn = e.target.closest('[data-action="log-vehicle-cost"]');
+      if (logCostBtn) {
+        e.preventDefault();
+        closeModal();
+        openLogVehicleCostModal(logCostBtn.dataset.vehicleId, logCostBtn.dataset.reg);
+        return;
+      }
+      const viewLifecycleBtn = e.target.closest('[data-action="view-vehicle-lifecycle"]');
+      if (viewLifecycleBtn) {
+        e.preventDefault();
+        openVehicleLifecycleDrawer(viewLifecycleBtn.dataset.vehicle, viewLifecycleBtn.dataset.reg);
+        return;
+      }
       const tallyBtn = e.target.closest('[data-action="export-tally"]');
       if (tallyBtn) {
         e.preventDefault();
