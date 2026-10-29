@@ -19,7 +19,7 @@ import secrets
 import sqlite3
 import uuid
 from datetime import datetime, timedelta, timezone
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, urlsplit, unquote
 
 from backend_domain import (
     DEFAULT_PROVIDERS,
@@ -839,9 +839,201 @@ def _billing_and_costs(conn, user, route, method, payload, ip):
         return {"ok": True, "tax": {"taxable_paise": taxable, "rate_bps": rate_bps, "supply_type": "intra_state" if intra else "inter_state", "cgst_paise": tax // 2 if intra else 0, "sgst_paise": tax - tax // 2 if intra else 0, "igst_paise": 0 if intra else tax, "total_paise": taxable + tax}}
     if route == "/api/reports/vehicle-pnl" and method == "GET":
         _staff(user)
-        rows = conn.execute("SELECT v.id, v.registration_number, COALESCE((SELECT SUM(i.total_paise) FROM domain_invoices i JOIN domain_duties d ON d.id=i.duty_id WHERE d.vehicle_id=v.id AND i.organization_id=?),0) AS revenue_paise, COALESCE((SELECT SUM(c.amount_paise) FROM domain_cost_entries c WHERE c.vehicle_id=v.id AND c.organization_id=?),0) AS cost_paise FROM domain_vehicles v WHERE v.organization_id=?", (org, org, org)).fetchall()
-        items = [{**dict(row), "profit_paise": row["revenue_paise"] - row["cost_paise"]} for row in rows]
-        return {"ok": True, "items": items, "count": len(items)}
+        vehicles = conn.execute("""
+            SELECT id, registration_number, make_model, vehicle_group, vehicle_type, fuel_type,
+                   ownership_type, year, city, status, current_odometer_km,
+                   COALESCE(purchase_price_paise, 0) as purchase_price_paise,
+                   COALESCE(purchase_date, '') as purchase_date,
+                   COALESCE(down_payment_paise, 0) as down_payment_paise,
+                   COALESCE(emi_monthly_paise, 0) as emi_monthly_paise,
+                   COALESCE(emi_tenure_months, 0) as emi_tenure_months,
+                   COALESCE(emi_paid_months, 0) as emi_paid_months,
+                   COALESCE(insurance_annual_paise, 0) as insurance_annual_paise,
+                   COALESCE(fitness_expiry, '') as fitness_expiry,
+                   COALESCE(permit_expiry, '') as permit_expiry
+            FROM domain_vehicles
+            WHERE organization_id = ?
+            ORDER BY registration_number ASC
+        """, (org,)).fetchall()
+
+        duty_stats = {r["vehicle_id"]: r for r in conn.execute("""
+            SELECT d.vehicle_id,
+                   COUNT(d.id) as duty_count,
+                   SUM(CASE WHEN d.end_odometer > d.start_odometer THEN d.end_odometer - d.start_odometer ELSE 0 END) as total_km,
+                   SUM(COALESCE(i.total_paise, 0)) as revenue_paise
+            FROM domain_duties d
+            LEFT JOIN domain_invoices i ON i.duty_id = d.id AND i.organization_id = ?
+            WHERE d.organization_id = ?
+            GROUP BY d.vehicle_id
+        """, (org, org)).fetchall()}
+
+        cost_rows = conn.execute("""
+            SELECT vehicle_id, category, SUM(amount_paise) as total_amount
+            FROM domain_cost_entries
+            WHERE organization_id = ? AND vehicle_id IS NOT NULL
+            GROUP BY vehicle_id, category
+        """, (org,)).fetchall()
+
+        cost_map = {}
+        for cr in cost_rows:
+            vid = cr["vehicle_id"]
+            if vid not in cost_map:
+                cost_map[vid] = {}
+            cost_map[vid][cr["category"]] = cr["total_amount"]
+
+        items = []
+        fleet_totals = {"revenue_paise": 0, "cost_paise": 0, "profit_paise": 0, "total_km": 0, "duty_count": 0}
+
+        for v in vehicles:
+            v_dict = dict(v)
+            vid = v["id"]
+            d_stat = duty_stats.get(vid, {"duty_count": 0, "total_km": 0, "revenue_paise": 0})
+            c_breakdown = cost_map.get(vid, {})
+
+            rev = d_stat["revenue_paise"] or 0
+            cost = sum(c_breakdown.values())
+            km = d_stat["total_km"] or (v_dict["current_odometer_km"] or 0)
+            profit = rev - cost
+            margin = round((profit / rev) * 100, 1) if rev > 0 else 0
+            rev_per_km = round(rev / km) if km > 0 else 0
+            cost_per_km = round(cost / km) if km > 0 else 0
+            breakeven_reached = profit >= 0
+            payback_pct = min(100.0, round((rev / cost) * 100, 1)) if cost > 0 else 100.0
+
+            item = {
+                **v_dict,
+                "duty_count": d_stat["duty_count"],
+                "total_km": km,
+                "revenue_paise": rev,
+                "cost_paise": cost,
+                "cost_breakdown": c_breakdown,
+                "profit_paise": profit,
+                "profit_margin_pct": margin,
+                "revenue_per_km_paise": rev_per_km,
+                "cost_per_km_paise": cost_per_km,
+                "breakeven_reached": breakeven_reached,
+                "payback_pct": payback_pct
+            }
+            items.append(item)
+            fleet_totals["revenue_paise"] += rev
+            fleet_totals["cost_paise"] += cost
+            fleet_totals["profit_paise"] += profit
+            fleet_totals["total_km"] += km
+            fleet_totals["duty_count"] += d_stat["duty_count"]
+
+        fleet_totals["profit_margin_pct"] = round((fleet_totals["profit_paise"] / fleet_totals["revenue_paise"]) * 100, 1) if fleet_totals["revenue_paise"] > 0 else 0
+        fleet_totals["rev_per_km_paise"] = round(fleet_totals["revenue_paise"] / fleet_totals["total_km"]) if fleet_totals["total_km"] > 0 else 0
+        fleet_totals["cost_per_km_paise"] = round(fleet_totals["cost_paise"] / fleet_totals["total_km"]) if fleet_totals["total_km"] > 0 else 0
+
+        return {"ok": True, "items": items, "fleet_summary": fleet_totals, "count": len(items)}
+
+    lifecycle_match = re.match(r"^/api/vehicles/([^/]+)/lifecycle$", route)
+    if lifecycle_match and method == "GET":
+        _staff(user)
+        vid = unquote(lifecycle_match.group(1))
+        v = conn.execute("SELECT * FROM domain_vehicles WHERE (id = ? OR registration_number = ?) AND organization_id = ?", (vid, vid, org)).fetchone()
+        if not v:
+            raise DomainError(404, "Vehicle not found", "not_found")
+        v_id = v["id"]
+        v_dict = dict(v)
+
+        costs = conn.execute("""
+            SELECT id, category, amount_paise, status, notes,
+                   COALESCE(NULLIF(expense_date, ''), SUBSTR(created_at, 1, 10)) as expense_date,
+                   created_at
+            FROM domain_cost_entries
+            WHERE vehicle_id = ? AND organization_id = ?
+            ORDER BY COALESCE(NULLIF(expense_date, ''), SUBSTR(created_at, 1, 10)) ASC
+        """, (v_id, org)).fetchall()
+
+        duties = conn.execute("""
+            SELECT d.id, d.booking_id, d.reporting_at, d.started_at, d.completed_at,
+                   d.start_odometer, d.end_odometer,
+                   COALESCE(d.end_odometer - d.start_odometer, 0) as trip_km,
+                   COALESCE(i.id, '') as invoice_id,
+                   COALESCE(i.total_paise, 0) as invoice_paise,
+                   COALESCE(i.status, '') as invoice_status,
+                   COALESCE(b.customer_id, '') as customer_id,
+                   COALESCE(c.name, 'Direct Client') as customer_name
+            FROM domain_duties d
+            LEFT JOIN domain_invoices i ON i.duty_id = d.id AND i.organization_id = ?
+            LEFT JOIN domain_bookings b ON b.id = d.booking_id
+            LEFT JOIN domain_customers c ON c.id = b.customer_id
+            WHERE d.vehicle_id = ? AND d.organization_id = ?
+            ORDER BY d.reporting_at ASC
+        """, (org, v_id, org)).fetchall()
+
+        months = {}
+        for c in costs:
+            m = (c["expense_date"] or c["created_at"])[:7]
+            if not m or len(m) < 7: continue
+            if m not in months: months[m] = {"revenue_paise": 0, "cost_paise": 0}
+            months[m]["cost_paise"] += c["amount_paise"]
+
+        for d in duties:
+            m = (d["reporting_at"] or "")[:7]
+            if not m or len(m) < 7: continue
+            if m not in months: months[m] = {"revenue_paise": 0, "cost_paise": 0}
+            months[m]["revenue_paise"] += d["invoice_paise"]
+
+        timeline = []
+        cumulative_rev = 0
+        cumulative_cost = 0
+        breakeven_month = None
+
+        for m in sorted(months.keys()):
+            r_paise = months[m]["revenue_paise"]
+            c_paise = months[m]["cost_paise"]
+            net_paise = r_paise - c_paise
+            cumulative_rev += r_paise
+            cumulative_cost += c_paise
+            cum_net = cumulative_rev - cumulative_cost
+
+            if cum_net >= 0 and breakeven_month is None:
+                breakeven_month = m
+
+            timeline.append({
+                "month": m,
+                "revenue_paise": r_paise,
+                "cost_paise": c_paise,
+                "net_paise": net_paise,
+                "cumulative_revenue_paise": cumulative_rev,
+                "cumulative_cost_paise": cumulative_cost,
+                "cumulative_net_paise": cum_net
+            })
+
+        total_rev = sum(d["invoice_paise"] for d in duties)
+        total_cost = sum(c["amount_paise"] for c in costs)
+        profit = total_rev - total_cost
+        margin = round((profit / total_rev) * 100, 1) if total_rev > 0 else 0
+        total_km = sum(d["trip_km"] for d in duties) or v_dict.get("current_odometer_km") or 0
+
+        cost_breakdown = {}
+        for c in costs:
+            cat = c["category"]
+            cost_breakdown[cat] = cost_breakdown.get(cat, 0) + c["amount_paise"]
+
+        return {
+            "ok": True,
+            "vehicle": v_dict,
+            "summary": {
+                "total_revenue_paise": total_rev,
+                "total_cost_paise": total_cost,
+                "profit_paise": profit,
+                "profit_margin_pct": margin,
+                "total_km": total_km,
+                "duty_count": len(duties),
+                "cost_per_km_paise": round(total_cost / total_km) if total_km > 0 else 0,
+                "revenue_per_km_paise": round(total_rev / total_km) if total_km > 0 else 0,
+                "breakeven_reached": profit >= 0,
+                "breakeven_month": breakeven_month,
+                "payback_pct": min(100.0, round((total_rev / total_cost) * 100, 1)) if total_cost > 0 else 100.0
+            },
+            "cost_breakdown": cost_breakdown,
+            "monthly_cashflow": timeline,
+            "recent_expenses": [dict(c) for c in costs[-25:]],
+            "recent_duties": [dict(d) for d in duties[-20:]]
+        }
     cancel = re.match(r"^/api/invoices/([^/]+)/e-invoice/cancel$", route)
     if cancel and method == "POST":
         _staff(user); row = conn.execute("SELECT * FROM domain_einvoice_records WHERE organization_id = ? AND invoice_id = ?", (org, cancel.group(1))).fetchone();
@@ -856,7 +1048,7 @@ def _billing_and_costs(conn, user, route, method, payload, ip):
     if route == "/api/supplier-bills" and method == "POST":
         _staff(user); bill_id = new_id("bill"); now = now_iso(); subtotal = int(payload.get("subtotal_paise") or 0); tax = int(payload.get("tax_paise") or 0); total = int(payload.get("total_paise") or subtotal + tax); validation = {"valid": bool(payload.get("bill_number")), "checks": ["bill_number", "amounts", "supplier_reference"]}; conn.execute("INSERT INTO domain_supplier_bills(id, organization_id, supplier_id, bill_number, subtotal_paise, tax_paise, total_paise, status, due_at, duty_id, attachment_json, validation_json, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (bill_id, org, payload.get("supplier_id"), _text(payload, "bill_number", maximum=80) or f"BILL-{bill_id[-6:]}", subtotal, tax, total, _text(payload, "status", "captured", 30), payload.get("due_at"), payload.get("duty_id"), json.dumps(_json_body(payload, "attachment", {})), json.dumps(validation), user["id"], now, now)); return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_supplier_bills WHERE id = ?", (bill_id,)).fetchone(), ("attachment_json", "validation_json")), "validation": validation}
     if route in {"/api/costs", "/api/vehicle-costs"} and method == "POST":
-        _staff(user); cost_id = new_id("cost"); now = now_iso(); cost_type = _text(payload, "cost_type", "vehicle" if route.endswith("vehicle-costs") else "operational", 30); amount = int(payload.get("amount_paise") or 0); conn.execute("INSERT INTO domain_cost_entries(id, organization_id, cost_type, category, amount_paise, vehicle_id, duty_id, supplier_bill_id, status, attachment_json, notes, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (cost_id, org, cost_type, _text(payload, "category", "other", 60), amount, payload.get("vehicle_id"), payload.get("duty_id"), payload.get("supplier_bill_id"), _text(payload, "status", "submitted", 30), json.dumps(_json_body(payload, "attachment", {})), _text(payload, "notes", maximum=500), user["id"], now)); return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_cost_entries WHERE id = ?", (cost_id,)).fetchone(), ("attachment_json",))}
+        _staff(user); cost_id = new_id("cost"); now = now_iso(); cost_type = _text(payload, "cost_type", "vehicle" if route.endswith("vehicle-costs") else "operational", 30); amount = int(payload.get("amount_paise") or 0); exp_date = _text(payload, "expense_date", maximum=30) or now[:10]; conn.execute("INSERT INTO domain_cost_entries(id, organization_id, cost_type, category, amount_paise, vehicle_id, duty_id, supplier_bill_id, status, attachment_json, notes, created_by, created_at, expense_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (cost_id, org, cost_type, _text(payload, "category", "other", 60), amount, payload.get("vehicle_id"), payload.get("duty_id"), payload.get("supplier_bill_id"), _text(payload, "status", "paid" if payload.get("status") == "paid" else "submitted", 30), json.dumps(_json_body(payload, "attachment", {})), _text(payload, "notes", maximum=500), user["id"], now, exp_date)); return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_cost_entries WHERE id = ?", (cost_id,)).fetchone(), ("attachment_json",))}
     if route in {"/api/supplier-payouts", "/api/driver-payouts"} and method in {"GET", "POST"}:
         if method == "GET": return {"ok": True, "items": _list(conn, "domain_payouts", org, "created_at DESC", _limit(parse_qs(urlsplit(route).query)))}
         _staff(user); payout_id = new_id("payout"); now = now_iso(); conn.execute("INSERT INTO domain_payouts(id, organization_id, recipient_type, recipient_id, period_start, period_end, amount_paise, status, metadata_json, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (payout_id, org, _text(payload, "recipient_type", "supplier" if route.endswith("supplier-payouts") else "driver", 30), payload.get("recipient_id"), payload.get("period_start"), payload.get("period_end"), int(payload.get("amount_paise") or 0), "pending_approval", json.dumps(_json_body(payload, "metadata", {})), user["id"], now, now)); return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_payouts WHERE id = ?", (payout_id,)).fetchone(), ("metadata_json",))}
@@ -1309,7 +1501,7 @@ def handle_extended(conn, user, method: str, raw_route: str, payload: dict, ip: 
         return _price_book_versions(conn, user, route, method, payload, ip)
     if route.startswith("/api/duties/") and re.search(r"/(reassign|no-show|force-close|navigation|call|sos|trip-share|reconcile)$", route):
         return _duty_exception(conn, user, route, method, payload, ip)
-    if (route in {"/api/receipts/allocate", "/api/supplier-bills", "/api/costs", "/api/vehicle-costs", "/api/supplier-payouts", "/api/driver-payouts", "/api/financial-actions", "/api/reconciliations", "/api/tax/calculate", "/api/reports/vehicle-pnl"}
+    if (route in {"/api/receipts/allocate", "/api/supplier-bills", "/api/costs", "/api/vehicle-costs", "/api/supplier-payouts", "/api/driver-payouts", "/api/financial-actions", "/api/reconciliations", "/api/tax/calculate", "/api/reports/vehicle-pnl"} or re.match(r"^/api/vehicles/[^/]+/lifecycle$", route)
             or route.startswith("/api/invoices/") and route.endswith("/e-invoice/cancel")
             or route.startswith("/api/financial-actions/")):
         return _billing_and_costs(conn, user, route, method, payload, ip)

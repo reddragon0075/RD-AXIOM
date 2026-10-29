@@ -2648,7 +2648,23 @@
           </button>
           <div class="nav-section-items" id="section-items-fleet">
             <div class="nav-section-items-inner">
-              <button class="nav-item" data-page="vehicles" data-tooltip="Vehicles register"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 17h14l-1.5-6h-11L5 17Z"/><path d="m8 11 1-4h6l1 4M5 17v2h2M19 17v2h-2M8 14h.01M16 14h.01"/></svg><span>Vehicles</span></button>
+              <!-- Vehicles Menu with Submenu Items -->
+              <div class="nav-parent-item-group" style="margin-bottom:2px">
+                <button class="nav-item" data-page="vehicles" id="navItemVehicles" data-tooltip="Vehicles fleet" style="font-weight:650">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 17h14l-1.5-6h-11L5 17Z"/><path d="m8 11 1-4h6l1 4M5 17v2h2M19 17v2h-2M8 14h.01M16 14h.01"/></svg>
+                  <span>Vehicles</span>
+                </button>
+                <div class="nav-sub-items-container" style="padding-left:14px;margin-left:16px;border-left:2px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;gap:1px;margin-top:2px;margin-bottom:4px">
+                  <button class="nav-item nav-sub-child" data-page="vehicles" data-tooltip="Vehicles register" style="padding:6px 10px;font-size:11.5px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><path d="M5 17h14l-1.5-6h-11L5 17Z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>
+                    <span>Vehicles register</span>
+                  </button>
+                  <button class="nav-item nav-sub-child" data-page="vehicle-pnl" data-tooltip="Vehicle lifecycle &amp; P&amp;L" style="padding:6px 10px;font-size:11.5px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <span>Lifecycle &amp; P&amp;L</span>
+                  </button>
+                </div>
+              </div>
               
               <!-- Drivers Menu with Submenu Items -->
               <div class="nav-parent-item-group" style="margin-bottom:2px">
@@ -2831,7 +2847,7 @@
     // All workspace records are tenant-scoped API data. The console deliberately
     // starts empty when a tenant has no records; no demo roster or invoice rows
     // are embedded in the product bundle.
-    const navTitles = { overview:'Operations overview', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', 'driver-payouts':'Driver payouts & settlements', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & pricing', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls', 'axiom-hq':'Axiom Fleet HQ Command Center' };
+    const navTitles = { overview:'Operations overview', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', 'driver-payouts':'Driver payouts & settlements', 'vehicle-pnl':'Vehicle lifecycle & P&L analytics', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & pricing', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls', 'axiom-hq':'Axiom Fleet HQ Command Center' };
     const savedActivePage = (function() {
       try {
         const p = sessionStorage.getItem('axiomfleet_active_page');
@@ -3377,7 +3393,7 @@
       topbarTitle.textContent = currentUser?.role === 'corporate' && state.page === 'overview' ? 'Corporate account workspace' : (navTitles[state.page] || 'Operations overview');
       document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.page === state.page));
       syncAdvancedNavigation();
-      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ };
+      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ };
       content.innerHTML = (pages[state.page] || renderOverview)();
       attachPageEvents();
       decorateResponsiveTables();
@@ -4251,7 +4267,472 @@
 
       const vehiclesTable = `<section class="card section-card">${cardHead('Vehicles register','Registration number, make & model, capacity and compliance records',`${button(icon('upload')+'Import roster','small','data-action="import-master"')}${button(icon('plus')+'Add vehicle','small primary','data-action="add-vehicle"')}`)}<div class="table-wrap"><table><thead><tr><th>Vehicle</th><th>Make &amp; model</th><th>Group / fuel</th><th>Capacity</th><th>Status</th><th></th></tr></thead><tbody>${filteredVehicles.length ? filteredVehicles.map(item => `<tr><td><span class="primary">${esc(item.registration_number || item.id)}</span><span class="secondary">${esc(item.city || item.id)}</span></td><td>${esc(item.make_model || 'Model not specified')}</td><td>${esc(item.vehicle_group || item.vehicle_type || 'Standard')} · ${esc(item.fuel_type || 'Fuel not added')}</td><td>${item.seating_capacity ? `${item.seating_capacity} seats` : '—'}</td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="vehicle-edit" data-vehicle-id="${esc(item.id)}">${icon('edit', 13)}Edit</button></td></tr>`).join('') : tenantTableEmpty('No vehicles returned','Add the first vehicle or import a fleet roster via CSV.',button(icon('plus')+'Add vehicle','small soft','data-action="add-vehicle"'))}</tbody></table></div></section>`;
 
-      return `${pageHead('Fleet · asset management','Vehicles register','Manage vehicle identity, registration records, seating capacity and dispatch readiness.',`${button(icon('upload')+'Import roster','','data-action="import-master"')}${button(icon('plus')+'Add vehicle','primary','data-action="add-vehicle"')}`)}${kpis}${tabsBar}${vehiclesTable}`;
+      const vehicleSubmenu = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;border-bottom:1px solid var(--line,#e2e8f0);padding-bottom:10px">
+          <button class="btn small primary" style="cursor:default">${icon('car', 13)} Vehicles register</button>
+          <button class="btn small soft" data-page-link="vehicle-pnl">${icon('wallet', 13)} Vehicle lifecycle &amp; P&amp;L</button>
+        </div>
+      `;
+      return `${pageHead('Fleet · asset management','Vehicles register','Manage vehicle identity, registration records, seating capacity and dispatch readiness.',`${button(icon('wallet')+'Lifecycle &amp; P&amp;L','soft','data-page-link="vehicle-pnl"')}${button(icon('upload')+'Import roster','','data-action="import-master"')}${button(icon('plus')+'Add vehicle','primary','data-action="add-vehicle"')}`)}${vehicleSubmenu}${kpis}${tabsBar}${vehiclesTable}`;
+    }
+
+
+    function renderVehiclePnL() {
+      const pnlData = state.vehiclePnlData;
+      if (!pnlData && !state._fetchingVehiclePnl) {
+        state._fetchingVehiclePnl = true;
+        apiRequest('/api/reports/vehicle-pnl').then(res => {
+          state.vehiclePnlData = res;
+          state._fetchingVehiclePnl = false;
+          render();
+        }).catch(() => { state._fetchingVehiclePnl = false; });
+      }
+
+      const vehicleSubmenu = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;border-bottom:1px solid var(--line,#e2e8f0);padding-bottom:10px">
+          <button class="btn small soft" data-page-link="vehicles">${icon('car', 13)} Vehicles register</button>
+          <button class="btn small primary" style="cursor:default">${icon('wallet', 13)} Vehicle lifecycle &amp; P&amp;L</button>
+        </div>
+      `;
+
+      const items = pnlData?.items || [];
+      const summary = pnlData?.fleet_summary || { revenue_paise:0, cost_paise:0, profit_paise:0, total_km:0, duty_count:0, rev_per_km_paise:0, cost_per_km_paise:0 };
+
+      const filter = state.vehiclePnlFilter || 'all';
+      const q = String(state.vehiclePnlQuery || '').trim().toLowerCase();
+
+      const filtered = items.filter(v => {
+        const matchesQuery = !q || `${v.registration_number || ''} ${v.make_model || ''} ${v.vehicle_group || ''} ${v.ownership_type || ''} ${v.city || ''}`.toLowerCase().includes(q);
+        const matchesFilter = filter === 'all'
+          ? true
+          : filter === 'owned'
+            ? v.ownership_type === 'owned'
+            : filter === 'dco'
+              ? v.ownership_type === 'dco'
+              : filter === 'supplier'
+                ? ['supplier', 'attached'].includes(v.ownership_type)
+                : filter === 'profitable'
+                  ? v.profit_paise >= 0
+                  : v.profit_paise < 0;
+        return matchesQuery && matchesFilter;
+      });
+
+      // KPI cards
+      const revFormatted = formatAmount(summary.revenue_paise / 100);
+      const costFormatted = formatAmount(summary.cost_paise / 100);
+      const netProfit = summary.profit_paise / 100;
+      const profitFormatted = (netProfit >= 0 ? '+ ' : '- ') + formatAmount(Math.abs(netProfit));
+      const profitTone = netProfit >= 0 ? 'green' : 'amber';
+      const revPerKm = summary.rev_per_km_paise ? `₹${(summary.rev_per_km_paise / 100).toFixed(2)}/km` : '—';
+      const costPerKm = summary.cost_per_km_paise ? `₹${(summary.cost_per_km_paise / 100).toFixed(2)}/km` : '—';
+
+      const kpis = `
+        <div class="card kpi teal">
+          <div class="kpi-top"><span class="kpi-label">Fleet Billed Revenue</span><span class="kpi-icon teal">${icon('wallet')}</span></div>
+          <div class="kpi-value">${revFormatted}</div>
+          <div class="kpi-foot">${summary.duty_count || 0} completed duties billed</div>
+        </div>
+        <div class="card kpi purple">
+          <div class="kpi-top"><span class="kpi-label">Total Fleet Expenses (TCO)</span><span class="kpi-icon purple">${icon('car')}</span></div>
+          <div class="kpi-value">${costFormatted}</div>
+          <div class="kpi-foot">EMI, Fuel, Service, Insurance, Driver</div>
+        </div>
+        <div class="card kpi ${profitTone}">
+          <div class="kpi-top"><span class="kpi-label">Fleet Net Profit &amp; Margin</span><span class="kpi-icon ${profitTone}">${icon(netProfit >= 0 ? 'check' : 'alert')}</span></div>
+          <div class="kpi-value" style="color:${netProfit >= 0 ? '#16a34a' : '#d97706'}">${profitFormatted}</div>
+          <div class="kpi-foot">${summary.profit_margin_pct ? `${summary.profit_margin_pct}% net margin` : 'Asset amortization phase'}</div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-top"><span class="kpi-label">Unit Economics</span><span class="kpi-icon">${icon('route')}</span></div>
+          <div class="kpi-value" style="font-size:20px">${revPerKm} <span style="font-size:12px;color:var(--muted)">rev</span></div>
+          <div class="kpi-foot">vs ${costPerKm} cost per km</div>
+        </div>
+      `;
+
+      const tabs = [
+        ['all', `All vehicles (${items.length})`],
+        ['owned', `Owned (${items.filter(i=>i.ownership_type==='owned').length})`],
+        ['dco', `DCO / Driver (${items.filter(i=>i.ownership_type==='dco').length})`],
+        ['supplier', `Supplier (${items.filter(i=>['supplier','attached'].includes(i.ownership_type)).length})`],
+        ['profitable', `Breakeven reached (${items.filter(i=>i.profit_paise>=0).length})`],
+        ['amortizing', `Amortizing (${items.filter(i=>i.profit_paise<0).length})`]
+      ];
+
+      const tabsBar = `
+        <div class="panel-toolbar" style="margin-bottom:16px">
+          <div class="tabs">${tabs.map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-vehicle-pnl-filter="${key}">${label}</button>`).join('')}</div>
+          <div class="toolbar-spacer"></div>
+          <label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="vehiclePnlQuery" placeholder="Search vehicle or model…" value="${esc(state.vehiclePnlQuery || '')}"></label>
+        </div>
+      `;
+
+      const rows = filtered.map(v => {
+        const rev = v.revenue_paise / 100;
+        const cost = v.cost_paise / 100;
+        const profit = v.profit_paise / 100;
+        const isProfitable = v.breakeven_reached;
+        const payback = v.payback_pct || 0;
+        const odo = v.total_km ? `${Number(v.total_km).toLocaleString()} km` : '—';
+        const ownershipTone = v.ownership_type === 'owned' ? 'teal' : (v.ownership_type === 'dco' ? 'blue' : 'purple');
+
+        const cb = v.cost_breakdown || {};
+        const breakdownList = [];
+        if (cb.emi) breakdownList.push(`EMI: ${formatAmount(cb.emi/100)}`);
+        if (cb.maintenance) breakdownList.push(`Service: ${formatAmount(cb.maintenance/100)}`);
+        if (cb.fuel) breakdownList.push(`Fuel: ${formatAmount(cb.fuel/100)}`);
+        if (cb.insurance) breakdownList.push(`Ins: ${formatAmount(cb.insurance/100)}`);
+        if (cb.driver_cost) breakdownList.push(`Driver: ${formatAmount(cb.driver_cost/100)}`);
+
+        const breakevenBadge = isProfitable
+          ? `<span class="status green" style="font-weight:700">✅ Breakeven Reached</span>`
+          : `<span class="status amber" style="font-weight:600">⏳ ${payback.toFixed(1)}% Repaid</span>`;
+
+        return `<tr>
+          <td>
+            <strong style="color:var(--blue);font-family:ui-monospace,monospace;font-size:13px">${esc(v.registration_number)}</strong>
+            <div style="font-size:11px;color:var(--ink-2);margin-top:2px">${esc(v.make_model || 'Model unspecified')}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+              <span class="status ${ownershipTone}" style="font-size:9.5px;padding:1px 6px">${esc(v.ownership_type || 'owned').toUpperCase()}</span>
+              <span style="font-size:10px;color:var(--muted)">${v.year || ''} · ${esc(v.fuel_type || 'petrol')}</span>
+            </div>
+          </td>
+          <td>
+            <div style="font-size:11.5px;font-weight:600">${v.purchase_price_paise ? formatAmount(v.purchase_price_paise/100) : '—'}</div>
+            <div style="font-size:10px;color:var(--muted)">${v.emi_monthly_paise ? `EMI: ${formatAmount(v.emi_monthly_paise/100)}/mo` : 'No active loan'}</div>
+          </td>
+          <td style="text-align:center">
+            <span style="font-family:ui-monospace,monospace;font-size:12px;font-weight:700;color:var(--ink)">${odo}</span>
+            <div style="font-size:10px;color:var(--muted)">${v.duty_count || 0} duties</div>
+          </td>
+          <td style="text-align:right">
+            <strong style="color:#0284c7;font-size:13px">${formatAmount(rev)}</strong>
+            <div style="font-size:10px;color:var(--muted)">${v.revenue_per_km_paise ? `₹${(v.revenue_per_km_paise/100).toFixed(2)}/km` : ''}</div>
+          </td>
+          <td style="text-align:right">
+            <strong style="color:#dc2626;font-size:13px">${formatAmount(cost)}</strong>
+            <div style="font-size:9.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px">${breakdownList.join(' · ') || 'No logged costs'}</div>
+          </td>
+          <td style="text-align:right">
+            <strong style="color:${isProfitable ? '#16a34a' : '#d97706'};font-size:13.5px">${(profit >= 0 ? '+ ' : '- ') + formatAmount(Math.abs(profit))}</strong>
+            <div style="font-size:10px;color:var(--muted)">${v.profit_margin_pct ? `${v.profit_margin_pct}% margin` : ''}</div>
+          </td>
+          <td>
+            ${breakevenBadge}
+            <div style="background:#e2e8f0;border-radius:4px;height:4px;width:100%;margin-top:5px;overflow:hidden">
+              <div style="background:${isProfitable ? '#16a34a' : '#f59e0b'};height:100%;width:${Math.min(100, Math.max(5, payback))}%"></div>
+            </div>
+          </td>
+          <td style="text-align:right">
+            <div style="display:inline-flex;gap:4px;align-items:center">
+              <button class="btn small soft" data-action="view-vehicle-lifecycle" data-vehicle="${esc(v.id || v.registration_number)}" data-reg="${esc(v.registration_number)}">${icon('route', 12)} Lifecycle 360°</button>
+              <button class="btn small primary" data-action="log-vehicle-cost" data-vehicle-id="${esc(v.id)}" data-reg="${esc(v.registration_number)}" title="Log expense for this vehicle">${icon('plus', 12)} Log cost</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+
+      const tableSection = `
+        <section class="card section-card">
+          ${cardHead('Vehicle Unit Economics &amp; P&amp;L', 'Track total cost of ownership (TCO), loan amortization, lifetime duty earnings and breakeven milestones.', `${button(icon('plus')+'Log vehicle expense','primary','data-action="log-vehicle-cost"')}`)}
+          ${tabsBar}
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Vehicle</th>
+                  <th>CapEx &amp; Loan</th>
+                  <th style="text-align:center">Distance &amp; Duties</th>
+                  <th style="text-align:right">Invoiced Revenue</th>
+                  <th style="text-align:right">Total Expenses (TCO)</th>
+                  <th style="text-align:right">Net Profit / Loss</th>
+                  <th>Breakeven Status</th>
+                  <th style="text-align:right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows || tenantTableEmpty('No vehicle economics data', 'Add vehicles and log their acquisition, insurance and maintenance expenses to start tracking unit profitability.', button(icon('plus')+'Log vehicle cost', 'primary small', 'data-action="log-vehicle-cost"'))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+
+      return `${pageHead('Fleet control · Asset economics', 'Vehicle lifecycle &amp; P&amp;L', 'Monitor capital amortization, operational expenses (EMI, insurance, maintenance, fuel, driver costs) and profit breakeven.', `${button(icon('car')+'Vehicles roster','soft','data-page-link="vehicles"')}${button(icon('plus')+'Log vehicle expense','primary','data-action="log-vehicle-cost"')}`)}
+        ${vehicleSubmenu}
+        <div class="grid kpis">${kpis}</div>
+        ${tableSection}
+      `;
+    }
+
+    async function openVehicleLifecycleDrawer(vehKey, regNumber) {
+      showToast('Loading lifecycle data', `Fetching 360° financials for ${regNumber || vehKey}…`);
+      try {
+        const res = await apiRequest(`/api/vehicles/${encodeURIComponent(vehKey)}/lifecycle`);
+        const v = res.vehicle || {};
+        const sum = res.summary || {};
+        const breakdown = res.cost_breakdown || {};
+        const cashflow = res.monthly_cashflow || [];
+        const expenses = res.recent_expenses || [];
+        const duties = res.recent_duties || [];
+
+        const rev = sum.total_revenue_paise / 100;
+        const cost = sum.total_cost_paise / 100;
+        const profit = sum.profit_paise / 100;
+        const isProfitable = sum.breakeven_reached;
+
+        // Cashflow timeline SVG / Bar visualizer
+        let timelineBars = '';
+        if (cashflow.length > 0) {
+          const maxVal = Math.max(...cashflow.map(c => Math.max(c.revenue_paise, c.cost_paise, Math.abs(c.cumulative_net_paise)))) / 100 || 1;
+          timelineBars = `
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin:16px 0">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                <strong style="font-size:13px;color:var(--ink)">Monthly Cash Flow &amp; Breakeven Trajectory</strong>
+                <div style="display:flex;gap:12px;font-size:11px">
+                  <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#0284c7;border-radius:2px"></span> Revenue</span>
+                  <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#ef4444;border-radius:2px"></span> Expenses</span>
+                  <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:3px;background:#10b981;border-radius:1px"></span> Cumulative Net</span>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;align-items:flex-end;height:140px;border-bottom:2px solid #cbd5e1">
+                ${cashflow.map(pt => {
+                  const rH = Math.max(4, Math.round(((pt.revenue_paise / 100) / maxVal) * 110));
+                  const cH = Math.max(4, Math.round(((pt.cost_paise / 100) / maxVal) * 110));
+                  const cumNet = pt.cumulative_net_paise / 100;
+                  const isNetPos = cumNet >= 0;
+                  return `
+                    <div style="flex:1;min-width:38px;display:flex;flex-direction:column;align-items:center;gap:2px" title="${pt.month}: Rev ₹${(pt.revenue_paise/100).toLocaleString()}, Cost ₹${(pt.cost_paise/100).toLocaleString()}, Cum Net ₹${cumNet.toLocaleString()}">
+                      <div style="display:flex;gap:3px;align-items:flex-end;height:110px">
+                        <div style="width:13px;height:${rH}px;background:#0284c7;border-radius:3px 3px 0 0"></div>
+                        <div style="width:13px;height:${cH}px;background:#ef4444;border-radius:3px 3px 0 0"></div>
+                      </div>
+                      <div style="font-size:9.5px;color:var(--muted);white-space:nowrap;margin-top:4px">${pt.month.slice(2)}</div>
+                      <span style="font-size:8.5px;font-weight:700;color:${isNetPos ? '#16a34a' : '#d97706'}">${isNetPos ? '✓' : ''}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }
+
+        // Cost breakdown category chips
+        const catLabels = {
+          down_payment: 'Down Payment (CapEx)',
+          emi: 'Loan EMI (Financing)',
+          insurance: 'Insurance Premiums',
+          maintenance: 'Service & Maintenance',
+          fuel: 'Fuel / EV Charging',
+          tire_battery: 'Tires & Spare Parts',
+          permit_tax: 'Permits & Road Tax',
+          driver_cost: 'Driver Duty Costs',
+          challan_toll: 'Tolls & Challans',
+          other: 'Other Costs'
+        };
+
+        const breakdownMarkup = Object.entries(breakdown).map(([cat, amt]) => {
+          const pct = cost > 0 ? ((amt / 100 / cost) * 100).toFixed(1) : 0;
+          return `
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px;display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <strong style="font-size:12px;color:var(--ink)">${catLabels[cat] || cat}</strong>
+                <div style="font-size:10.5px;color:var(--muted)">${pct}% of vehicle lifetime expenses</div>
+              </div>
+              <strong style="font-size:13.5px;color:#dc2626">${formatAmount(amt/100)}</strong>
+            </div>
+          `;
+        }).join('');
+
+        // Recent expenses table
+        const expensesRows = expenses.map(e => `
+          <tr>
+            <td><strong style="font-size:11.5px">${esc(e.expense_date || (e.created_at || '').slice(0, 10))}</strong></td>
+            <td><span class="status blue" style="font-size:9.5px">${catLabels[e.category] || e.category}</span></td>
+            <td><span style="font-size:11.5px;color:var(--ink-2)">${esc(e.notes || '—')}</span></td>
+            <td style="text-align:right"><strong style="color:#dc2626;font-size:12.5px">${formatAmount(e.amount_paise / 100)}</strong></td>
+          </tr>
+        `).reverse().join('');
+
+        const modalBody = `
+          <div style="padding:4px 0">
+            <!-- Header Spec Banner -->
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:16px">
+              <div>
+                <span class="status teal" style="font-size:10px;font-weight:700">${esc(v.ownership_type || 'owned').toUpperCase()}</span>
+                <h2 style="font-size:22px;margin:6px 0 2px;color:var(--blue);font-family:ui-monospace,monospace">${esc(v.registration_number)}</h2>
+                <div style="font-size:12px;color:var(--ink-2)">${esc(v.make_model || '')} · ${v.year || ''} · ${esc(v.fuel_type || '')}</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:11px;color:var(--muted)">Current Odometer</div>
+                <div style="font-size:18px;font-weight:800;color:var(--ink);font-family:ui-monospace,monospace">${Number(v.current_odometer_km || 0).toLocaleString()} km</div>
+                <div style="font-size:10px;color:var(--muted);margin-top:2px">${sum.duty_count || 0} completed duties</div>
+              </div>
+            </div>
+
+            <!-- Financial Scorecard -->
+            <div class="grid three-col" style="margin-bottom:16px">
+              <div class="card kpi teal" style="padding:12px">
+                <div class="kpi-label">Gross Revenue</div>
+                <div class="kpi-value" style="font-size:20px;color:#0284c7">${formatAmount(rev)}</div>
+                <div class="kpi-foot">${sum.revenue_per_km_paise ? `₹${(sum.revenue_per_km_paise/100).toFixed(2)}/km` : ''}</div>
+              </div>
+              <div class="card kpi purple" style="padding:12px">
+                <div class="kpi-label">Total Expenses (TCO)</div>
+                <div class="kpi-value" style="font-size:20px;color:#dc2626">${formatAmount(cost)}</div>
+                <div class="kpi-foot">${sum.cost_per_km_paise ? `₹${(sum.cost_per_km_paise/100).toFixed(2)}/km` : ''}</div>
+              </div>
+              <div class="card kpi ${isProfitable ? 'green' : 'amber'}" style="padding:12px">
+                <div class="kpi-label">Net Vehicle P&amp;L</div>
+                <div class="kpi-value" style="font-size:20px;color:${isProfitable ? '#16a34a' : '#d97706'}">${(profit >= 0 ? '+ ' : '- ') + formatAmount(Math.abs(profit))}</div>
+                <div class="kpi-foot">${sum.profit_margin_pct ? `${sum.profit_margin_pct}% net margin` : 'Amortizing'}</div>
+              </div>
+            </div>
+
+            <!-- Breakeven Callout -->
+            <div style="padding:12px 16px;border-radius:10px;background:${isProfitable ? '#f0fdf4;border:1px solid #bbf7d0' : '#fffbeb;border:1px solid #fde68a'};margin-bottom:16px;display:flex;align-items:center;gap:12px">
+              <div style="font-size:24px">${isProfitable ? '🎉' : '⏳'}</div>
+              <div style="flex:1">
+                <strong style="color:${isProfitable ? '#166534' : '#92400e'};font-size:13px">${isProfitable ? `Breakeven Achieved in ${sum.breakeven_month || 'Operation'}` : `Vehicle Loan &amp; CapEx Amortizing (${sum.payback_pct?.toFixed(1)}% repaid)`}</strong>
+                <p style="margin:2px 0 0;font-size:11px;color:${isProfitable ? '#15803d' : '#b45309'}">${isProfitable ? 'This vehicle has completely recovered its initial acquisition, financing, and lifetime operational expenses. All subsequent trip earnings contribute pure net operating margin.' : `Total capital and operating expenses of ${formatAmount(cost)} have been offset by ${formatAmount(rev)} in customer trip invoices. The remaining amortizing balance is ${formatAmount(Math.abs(profit))}.`}</p>
+              </div>
+            </div>
+
+            ${timelineBars}
+
+            <h4 style="font-size:13px;margin:18px 0 10px;color:var(--ink)">Lifetime Cost Breakdown (TCO)</h4>
+            <div class="grid two-col" style="gap:8px;margin-bottom:18px">
+              ${breakdownMarkup}
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px">
+              <h4 style="font-size:13px;margin:0;color:var(--ink)">Logged Expense Ledger</h4>
+              <button class="btn small primary" data-action="log-vehicle-cost" data-vehicle-id="${esc(v.id)}" data-reg="${esc(v.registration_number)}">${icon('plus', 12)} Log new expense</button>
+            </div>
+            <div class="table-wrap" style="max-height:220px;overflow-y:auto">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description / Details</th>
+                    <th style="text-align:right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${expensesRows || '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:14px">No expense entries logged for this vehicle.</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+
+        const modalActions = `
+          <button class="btn soft" data-close-modal>Close</button>
+          <button class="btn primary" data-action="log-vehicle-cost" data-vehicle-id="${esc(v.id)}" data-reg="${esc(v.registration_number)}">${icon('plus')} Log vehicle expense</button>
+        `;
+
+        modalShell(`${v.registration_number} · Lifecycle &amp; P&amp;L 360°`, 'Unit economics, monthly cash flow trajectory and total cost of ownership.', modalBody, modalActions);
+        attachPageEvents();
+      } catch(err) {
+        showToast('Lifecycle unavailable', err.message);
+      }
+    }
+
+    function openLogVehicleCostModal(preselectedVehicleId, preselectedReg) {
+      const vehicles = state.liveData?.vehicles?.items || [];
+      const options = vehicles.map(v => `<option value="${esc(v.id)}" ${v.id === preselectedVehicleId ? 'selected' : ''}>${esc(v.registration_number)} (${esc(v.make_model || 'Vehicle')})</option>`).join('');
+
+      const todayStr = new Date().toISOString().slice(0, 10);
+
+      const body = `
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Vehicle <span style="color:#ef4444">*</span></label>
+            <select id="costVehicleId" class="form-input" required>
+              <option value="">Select vehicle…</option>
+              ${options}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cost Category <span style="color:#ef4444">*</span></label>
+            <select id="costCategory" class="form-input" required>
+              <option value="emi">Loan EMI (Financing)</option>
+              <option value="maintenance">Service &amp; Maintenance (Workshop)</option>
+              <option value="insurance">Insurance Premium &amp; Renewal</option>
+              <option value="fuel">Fuel / EV Charging</option>
+              <option value="tire_battery">Tires, Battery &amp; Spares</option>
+              <option value="permit_tax">Road Tax, Permits &amp; Fitness</option>
+              <option value="challan_toll">Tolls, Parking &amp; Challans</option>
+              <option value="other">Other Operational Expense</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Amount (₹) <span style="color:#ef4444">*</span></label>
+            <input id="costAmount" type="number" step="1" min="1" class="form-input" placeholder="e.g. 16800" required>
+          </div>
+          <div class="form-group">
+            <label>Expense Date <span style="color:#ef4444">*</span></label>
+            <input id="costDate" type="date" class="form-input" value="${todayStr}" required>
+          </div>
+          <div class="form-group">
+            <label>Invoice / Workshop Reference</label>
+            <input id="costRef" type="text" class="form-input" placeholder="e.g. BOSCH-2026-8891">
+          </div>
+          <div class="form-group full">
+            <label>Description &amp; Workshop Notes</label>
+            <textarea id="costNotes" class="form-input" rows="2" placeholder="e.g. 20,000 km general service, engine oil synthetic replacement, brake pads inspection."></textarea>
+          </div>
+        </div>
+      `;
+
+      const actions = `
+        <button class="btn soft" data-close-modal>Cancel</button>
+        <button class="btn primary" id="btnSubmitVehicleCost">${icon('check')} Record Expense</button>
+      `;
+
+      modalShell('Log Vehicle Expense', 'Record financing EMI, service workshop bills, insurance, or maintenance to track unit P&amp;L.', body, actions);
+
+      document.getElementById('btnSubmitVehicleCost')?.addEventListener('click', async () => {
+        const vehicleId = document.getElementById('costVehicleId')?.value;
+        const category = document.getElementById('costCategory')?.value;
+        const amount = Number(document.getElementById('costAmount')?.value || 0);
+        const expenseDate = document.getElementById('costDate')?.value || todayStr;
+        const ref = document.getElementById('costRef')?.value || '';
+        const notes = document.getElementById('costNotes')?.value || '';
+
+        if (!vehicleId) { showToast('Missing vehicle', 'Please select a vehicle.'); return; }
+        if (!amount || amount <= 0) { showToast('Invalid amount', 'Please enter a positive expense amount.'); return; }
+
+        const submitBtn = document.getElementById('btnSubmitVehicleCost');
+        if (submitBtn) submitBtn.disabled = true;
+
+        try {
+          const payload = {
+            vehicle_id: vehicleId,
+            cost_type: 'vehicle',
+            category: category,
+            amount_paise: Math.round(amount * 100),
+            expense_date: expenseDate,
+            status: 'paid',
+            notes: (ref ? `[Ref: ${ref}] ` : '') + notes
+          };
+
+          await apiRequest('/api/vehicle-costs', { method: 'POST', body: JSON.stringify(payload) });
+          closeModal();
+          showToast('Expense recorded', `₹${amount.toLocaleString()} logged under ${category}. Vehicle P&L updated.`);
+
+          // Invalidate and refresh P&L cache
+          state.vehiclePnlData = null;
+          await hydrateOperationalData();
+          if (state.page !== 'vehicle-pnl') {
+            state.page = 'vehicle-pnl';
+          }
+          render();
+        } catch(err) {
+          if (submitBtn) submitBtn.disabled = false;
+          showToast('Failed to record expense', err.message);
+        }
+      });
     }
 
     function renderDriverPayouts() {
@@ -5681,6 +6162,10 @@
       content.querySelectorAll('[data-pagination]').forEach(el => el.addEventListener('click', () => showToast('Pagination', 'All records returned by the current tenant query are shown on this page.')));
       content.querySelectorAll('[data-invoice-filter]').forEach(el => el.addEventListener('click', () => { state.invoiceFilter = el.dataset.invoiceFilter; render(); }));
       content.querySelectorAll('[data-driver-payout-filter]').forEach(el => el.addEventListener('click', () => { state.driverPayoutFilter = el.dataset.driverPayoutFilter; render(); }));
+      content.querySelectorAll('[data-vehicle-pnl-filter]').forEach(el => el.addEventListener('click', () => { state.vehiclePnlFilter = el.dataset.vehiclePnlFilter; render(); }));
+      content.querySelector('#vehiclePnlQuery')?.addEventListener('input', e => { state.vehiclePnlQuery = e.target.value; render(); });
+      content.querySelectorAll('[data-action="view-vehicle-lifecycle"]').forEach(el => el.addEventListener('click', () => openVehicleLifecycleDrawer(el.dataset.vehicle, el.dataset.reg)));
+      content.querySelectorAll('[data-action="log-vehicle-cost"]').forEach(el => el.addEventListener('click', () => openLogVehicleCostModal(el.dataset.vehicleId, el.dataset.reg)));
       content.querySelector('#driverPayoutQuery')?.addEventListener('input', e => { state.driverPayoutQuery = e.target.value; render(); });
       content.querySelectorAll('[data-wh-filter]').forEach(el => el.addEventListener('click', () => { state.triStackWebhookFilter = el.dataset.whFilter; render(); }));
       content.querySelectorAll('[data-inspect-webhook]').forEach(el => el.addEventListener('click', () => openWebhookPayloadModal(el.dataset.inspectWebhook)));
