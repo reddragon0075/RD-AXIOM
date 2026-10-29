@@ -4166,8 +4166,61 @@
         </tr>`;
       }).join('');
 
+      // Driver payouts data
+      const driverPayouts = state.followonData?.['/api/driver-payouts/requests']?.items || [];
+      const pendingPayouts = driverPayouts.filter(p => p.status === 'pending_approval');
+      const approvedPayouts = driverPayouts.filter(p => p.status === 'approved');
+      const disbursedPayouts = driverPayouts.filter(p => p.status === 'disbursed');
+      const pendingPaise = pendingPayouts.reduce((s, p) => s + Number(p.net_paise || 0), 0);
+      const disbursedPaise = disbursedPayouts.reduce((s, p) => s + Number(p.net_paise || 0), 0);
+
+      const driverPayoutRows = driverPayouts.map(p => {
+        const periodStr = (p.period_start && p.period_end) ? `${formatDate(p.period_start)} – ${formatDate(p.period_end)}` : '—';
+        const driverType = String(p.driver_type || 'own').toUpperCase();
+        const typeTone = driverType === 'SUPPLIER' ? 'purple' : (driverType === 'DCO' ? 'teal' : 'blue');
+        const tripsCount = p.trips_count || 0;
+        const totalKm = p.total_km || 0;
+        const gross = formatAmount(Number(p.gross_paise || 0) / 100);
+        const deductions = formatAmount(Number(p.deductions_paise || 0) / 100);
+        const net = formatAmount(Number(p.net_paise || 0) / 100);
+
+        let actionBtns = '';
+        if (p.status === 'pending_approval') {
+          actionBtns = `
+            <button class="btn small" data-action="approve-driver-payout" data-payout="${esc(p.id)}" title="Approve this payout request">${icon('check', 12)} Approve</button>
+            <button class="btn small soft" data-action="reject-driver-payout" data-payout="${esc(p.id)}" title="Reject this payout">Reject</button>
+          `;
+        } else if (p.status === 'approved') {
+          actionBtns = `
+            <button class="btn small primary" data-action="disburse-driver-payout" data-payout="${esc(p.id)}" title="Disburse funds to driver">${icon('wallet', 12)} Disburse</button>
+          `;
+        }
+        actionBtns += ` <button class="btn small soft" data-action="view-driver-payout-voucher" data-payout="${esc(p.id)}" title="View and print settlement voucher">${icon('file-text', 12)} Voucher</button>`;
+
+        return `<tr>
+          <td><strong style="color:var(--ink);font-family:ui-monospace,monospace">${esc(p.id)}</strong><br><small style="color:var(--muted)">${p.bank_reference ? `Ref: ${esc(p.bank_reference)}` : (p.status === 'disbursed' ? 'Bank transfer' : 'Pending transfer')}</small></td>
+          <td>
+            <div style="font-weight:600;color:var(--ink)">${esc(p.driver_name || p.driver_id)}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+              <span class="status ${typeTone}" style="font-size:10px;padding:1px 6px">${driverType}</span>
+              <span style="font-size:11px;color:var(--muted)">${esc(p.driver_phone || '')}</span>
+            </div>
+          </td>
+          <td><span style="font-size:12px;color:var(--muted)">${esc(periodStr)}</span></td>
+          <td style="text-align:center"><span style="display:inline-flex;align-items:center;gap:4px;font-family:ui-monospace,monospace;font-size:12px;font-weight:750;color:#0284c7;background:#f0f9ff;border:1px solid #bae6fd;padding:2px 8px;border-radius:12px">${tripsCount} trip${tripsCount !== 1 ? 's' : ''}</span></td>
+          <td style="text-align:center;font-family:ui-monospace,monospace;color:#0369a1">${totalKm ? totalKm.toLocaleString() + ' km' : '—'}</td>
+          <td><span style="color:var(--muted)">${gross}</span></td>
+          <td><span style="color:#dc2626">${p.deductions_paise ? `- ${deductions}` : '₹0'}</span></td>
+          <td><strong style="color:#1e40af;font-size:13.5px">${net}</strong></td>
+          <td>${status(p.status || 'pending_approval', p.status === 'disbursed' ? 'green' : (p.status === 'approved' ? 'teal' : (p.status === 'rejected' ? 'red' : 'amber')))}</td>
+          <td style="text-align:right"><div style="display:inline-flex;gap:4px;align-items:center">${actionBtns}</div></td>
+        </tr>`;
+      }).join('');
+
       let bodyTable = '';
-      if (filter === 'dual-ledger') {
+      if (filter === 'driver-payouts') {
+        bodyTable = `<div class="table-wrap"><table><thead><tr><th>Payout Ref</th><th>Driver Details</th><th>Settlement Period</th><th style="text-align:center">Trips</th><th style="text-align:center">Total KM</th><th>Gross</th><th>Deductions</th><th>Net Payable</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead><tbody>${driverPayoutRows || tenantTableEmpty('No driver payout records returned','Calculate driver trip earnings and submit a payout batch.',button(icon('plus')+'Calculate driver payout','small soft','data-action="open-driver-payout-modal"'))}</tbody></table></div>`;
+      } else if (filter === 'dual-ledger') {
         bodyTable = `<div class="table-wrap"><table><thead><tr><th>Duty &amp; Client</th><th>Supplier &amp; Mode</th><th>Client Receivable</th><th>Supplier Payable</th><th>Gross Margin</th><th>Distance Audit</th><th>GST Regime</th><th>Actions</th></tr></thead><tbody>${dualLedgerRows}</tbody></table></div>`;
       } else if (filter === 'distance-audit') {
         bodyTable = `<div class="table-wrap"><table><thead><tr><th>Duty Reference</th><th>Odometer Delta</th><th>Raw GPS Breadcrumbs</th><th>Road-Snapped Route</th><th>Discrepancy</th><th>FASTag Deductions</th><th>Status</th></tr></thead><tbody>${distanceAuditRows}</tbody></table></div>`;
@@ -4181,17 +4234,30 @@
         ['sent','Sent'],
         ['paid','Paid'],
         ['overdue','Overdue'],
+        ['driver-payouts','Driver Payouts & Settlements'],
         ['dual-ledger','Dual-Ledger Margin Queue'],
         ['distance-audit','3-Way Distance Audit']
       ];
 
-      return `${pageHead('Finance · tenant ledger','Billing &amp; receipts','Build explainable invoices, dispatch with proof and stay ahead of collections without showing values that the tenant did not return.',`${button(icon('download')+'Export ledger','','data-action="export"')}${button(icon('download')+'Tally Prime XML','soft','data-action="tristack-tally"')}${button(icon('plus')+'Build invoice','primary','data-action="build-invoice"')}`)}
-      <div class="grid kpis">
+      const isPayoutsTab = filter === 'driver-payouts';
+      const headButtons = isPayoutsTab ?
+        `${button(icon('download')+'Export payouts','','data-action="export-payouts"')}${button(icon('plus')+'Calculate driver payout','primary','data-action="open-driver-payout-modal"')}` :
+        `${button(icon('download')+'Export ledger','','data-action="export"')}${button(icon('download')+'Tally Prime XML','soft','data-action="tristack-tally"')}${button(icon('plus')+'Build invoice','primary','data-action="build-invoice"')}`;
+
+      const kpiMarkup = isPayoutsTab ? `
+        <div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Pending Approval</span><span class="kpi-icon amber">${icon('wallet')}</span></div><div class="kpi-value">${pendingPayouts.length}</div><div class="kpi-foot">${formatAmount(pendingPaise / 100)} pending review</div></div>
+        <div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Approved for Disbursal</span><span class="kpi-icon teal">${icon('check')}</span></div><div class="kpi-value">${approvedPayouts.length}</div><div class="kpi-foot">Ready for bank release</div></div>
+        <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Disbursed / Settled</span><span class="kpi-icon">${icon('check')}</span></div><div class="kpi-value">${disbursedPayouts.length}</div><div class="kpi-foot">${formatAmount(disbursedPaise / 100)} total paid</div></div>
+        <div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Active Drivers</span><span class="kpi-icon purple">${icon('user')}</span></div><div class="kpi-value">${(state.liveData?.drivers?.items || []).length}</div><div class="kpi-foot">Eligible for payouts</div></div>
+      ` : `
         <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Invoice records</span><span class="kpi-icon">${icon('file')}</span></div><div class="kpi-value">${invoices.length}</div><div class="kpi-foot">Tenant-scoped source records</div></div>
         <div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Filtered value</span><span class="kpi-icon teal">${icon('wallet')}</span></div><div class="kpi-value">${totalPaise ? formatAmount(totalPaise / 100) : '—'}</div><div class="kpi-foot">Currency-aware invoice value</div></div>
         <div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Dual-Ledger Queue</span><span class="kpi-icon purple">${icon('wallet')}</span></div><div class="kpi-value">${dualLedgerQueue.length}</div><div class="kpi-foot">Maker-checker margin review</div></div>
         <div class="card kpi red"><div class="kpi-top"><span class="kpi-label">Distance Audit Holds</span><span class="kpi-icon red">${icon('warning')}</span></div><div class="kpi-value">${distanceAudits.filter(a=>a.is_fraud_flagged).length}</div><div class="kpi-foot">Fraud flag &gt; 10% discrepancy</div></div>
-      </div>
+      `;
+
+      return `${pageHead('Finance · tenant ledger', isPayoutsTab ? 'Driver payouts &amp; settlements' : 'Billing &amp; receipts', isPayoutsTab ? 'Audit completed driver mileage, calculate per-trip allowances, process advances and disburse maker-checker payouts.' : 'Build explainable invoices, dispatch with proof and stay ahead of collections without showing values that the tenant did not return.', headButtons)}
+      <div class="grid kpis">${kpiMarkup}</div>
       <section class="card section-card">
         <div class="panel-toolbar">
           <div class="tabs">${tabs.map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-invoice-filter="${key}">${label}</button>`).join('')}</div>
@@ -6520,6 +6586,33 @@
                 'aging': () => { state.page = 'billing'; state.invoiceFilter = 'overdue'; render(); },
         'retry': () => showToast('No failed dispatches', 'Retry becomes available when a tenant delivery event fails.'),
         'add-driver': () => openDriverModal(),
+        'nav-driver-payouts': () => { state.page = 'billing'; state.invoiceFilter = 'driver-payouts'; render(); },
+        'open-driver-payout-modal': () => openDriverPayoutModal(),
+        'view-driver-payout-voucher': () => openDriverPayoutVoucherModal(el.dataset.payout),
+        'approve-driver-payout': async () => {
+          try {
+            await apiRequest(`/api/driver-payouts/${encodeURIComponent(el.dataset.payout)}/approve`, { method: 'POST', body: '{}' });
+            showToast('Payout approved', 'Driver payout request has been approved for disbursement.');
+            await hydrateOperationalData();
+            render();
+          } catch(err) { showToast('Approval failed', err.message); }
+        },
+        'disburse-driver-payout': async () => {
+          try {
+            const res = await apiRequest(`/api/driver-payouts/${encodeURIComponent(el.dataset.payout)}/disburse`, { method: 'POST', body: '{}' });
+            showToast('Payout disbursed', `Funds disbursed. Bank Ref: ${res.bank_reference || res.item?.bank_reference}`);
+            await hydrateOperationalData();
+            render();
+          } catch(err) { showToast('Disbursement failed', err.message); }
+        },
+        'reject-driver-payout': async () => {
+          try {
+            await apiRequest(`/api/driver-payouts/${encodeURIComponent(el.dataset.payout)}/reject`, { method: 'POST', body: '{}' });
+            showToast('Payout rejected', 'Driver payout request was rejected.');
+            await hydrateOperationalData();
+            render();
+          } catch(err) { showToast('Rejection failed', err.message); }
+        },
         'driver-detail': () => { const driver = (state.liveData?.drivers?.items || []).find(item => item.id === el.dataset.driverId || item.full_name === el.dataset.driver); if (driver) openDriverModal(driver); else showToast('Driver profile opened', `${el.dataset.driver} · compliance and duty history ready.`); },
         'add-vehicle': () => openVehicleModal(),
         'vehicle-edit': () => { const vehicle = (state.liveData?.vehicles?.items || []).find(item => item.id === el.dataset.vehicleId); if (vehicle) openVehicleModal(vehicle); },
@@ -8755,7 +8848,317 @@
       return 'blue';
     }
 
-    function openDriverModal(existing) {
+        function openDriverPayoutModal() {
+      const drivers = state.liveData?.drivers?.items || [];
+      const driverOptions = drivers.map(d => `<option value="${esc(d.id)}">${esc(d.full_name)} (${(d.driver_type || 'own').toUpperCase()} · ${esc(d.phone || 'no phone')})</option>`).join('');
+
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const defaultFrom = `${year}-${month}-01`;
+      const defaultTo = `${year}-${month}-${day}`;
+
+      const body = `
+        <div class="form-grid" style="margin-bottom:14px">
+          <div class="form-group full">
+            <label>Select Driver <span class="required">*</span></label>
+            <select class="form-input" id="payoutDriverSelect">
+              <option value="">-- Choose a driver --</option>
+              ${driverOptions}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Settlement Period From</label>
+            <input class="form-input" type="date" id="payoutPeriodFrom" value="${defaultFrom}">
+          </div>
+          <div class="form-group">
+            <label>Settlement Period To</label>
+            <input class="form-input" type="date" id="payoutPeriodTo" value="${defaultTo}">
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+          <button class="btn small" type="button" id="btnRunPayoutCalculation">${icon('refresh', 13)} Fetch Completed Trips &amp; Calculate</button>
+        </div>
+        <div id="payoutCalculationResults" style="min-height:160px">
+          <div style="background:#f8fafc;border:1px dashed #cbd5e1;border-radius:8px;padding:30px;text-align:center;color:var(--muted)">
+            Select a driver and date range above, then click <strong>Fetch Completed Trips</strong> to audit completed duties and calculate net earnings.
+          </div>
+        </div>
+      `;
+
+      const footer = `
+        <button class="btn primary" id="btnSubmitDriverPayoutRequest" disabled>${icon('check')} Submit Payout Request</button>
+        <button class="btn" data-close-modal>Cancel</button>
+      `;
+
+      const modal = modalShell('Calculate Driver Payout &amp; Settlement', 'Aggregate completed trip mileage, compute duty allowances, adjust advances and submit payout batch.', body, footer);
+
+      let currentCalcData = null;
+
+      document.getElementById('btnRunPayoutCalculation')?.addEventListener('click', async () => {
+        const driverId = document.getElementById('payoutDriverSelect')?.value;
+        const fromDate = document.getElementById('payoutPeriodFrom')?.value;
+        const toDate = document.getElementById('payoutPeriodTo')?.value;
+        const container = document.getElementById('payoutCalculationResults');
+        const submitBtn = document.getElementById('btnSubmitDriverPayoutRequest');
+
+        if (!driverId) { showToast('Driver required', 'Please select a driver first.'); return; }
+
+        container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Auditing trip telemetry and calculating duty earnings...</div>';
+
+        try {
+          const q = `/api/driver-payouts/calculate?driver_id=${encodeURIComponent(driverId)}&from=${encodeURIComponent(fromDate)}&to=${encodeURIComponent(toDate)}`;
+          const data = await apiRequest(q);
+          currentCalcData = data;
+
+          if (!data.trips || data.trips.length === 0) {
+            container.innerHTML = `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:24px;text-align:center;color:#991b1b">
+              No completed duties found for <strong>${esc(data.driver_name)}</strong> in the period ${esc(fromDate)} to ${esc(toDate)}.
+            </div>`;
+            if (submitBtn) submitBtn.disabled = true;
+            return;
+          }
+
+          const tripRows = data.trips.map((t, idx) => `
+            <tr style="border-bottom:1px solid #f1f5f9;font-size:12px">
+              <td style="padding:6px 8px;text-align:center;color:var(--muted)">${idx + 1}</td>
+              <td style="padding:6px 8px"><span style="font-family:ui-monospace,monospace;font-weight:700;color:#1e40af;background:#eff6ff;padding:2px 6px;border-radius:4px">${esc(t.duty_id)}</span></td>
+              <td style="padding:6px 8px;white-space:nowrap">${t.date ? esc(formatDate(t.date)) : '—'}</td>
+              <td style="padding:6px 8px"><div style="font-weight:600">${esc(t.passenger_name)}</div><div style="font-size:10.5px;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.pickup_address)} → ${esc(t.dropoff_address)}</div></td>
+              <td style="padding:6px 8px;white-space:nowrap">${esc(t.vehicle_reg)}</td>
+              <td style="padding:6px 8px;text-align:center;font-family:ui-monospace,monospace;color:#0284c7">${t.distance_km} km</td>
+              <td style="padding:6px 8px;text-align:right;font-weight:600">${formatAmount(t.payout_paise / 100)}</td>
+            </tr>
+          `).join('');
+
+          container.innerHTML = `
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">
+              <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:8px 12px;text-align:center">
+                <div style="font-size:10px;text-transform:uppercase;color:#0369a1;font-weight:700">Completed Duties</div>
+                <div style="font-size:18px;font-weight:800;color:#0369a1">${data.total_duties} trips</div>
+              </div>
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:8px 12px;text-align:center">
+                <div style="font-size:10px;text-transform:uppercase;color:#15803d;font-weight:700">Total KM Traversed</div>
+                <div style="font-size:18px;font-weight:800;color:#15803d">${data.total_km.toLocaleString()} km</div>
+              </div>
+              <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:8px 12px;text-align:center">
+                <div style="font-size:10px;text-transform:uppercase;color:#1e40af;font-weight:700">Gross Earnings</div>
+                <div style="font-size:18px;font-weight:800;color:#1e40af">${formatAmount(data.gross_paise / 100)}</div>
+              </div>
+            </div>
+
+            <div style="border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;margin-bottom:12px;max-height:220px;overflow-y:auto">
+              <table style="width:100%;border-collapse:collapse;font-size:11.5px">
+                <thead>
+                  <tr style="background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:10.5px;text-transform:uppercase;color:var(--muted)">
+                    <th style="padding:6px 8px;text-align:center;width:25px">#</th>
+                    <th style="padding:6px 8px">Trip ID</th>
+                    <th style="padding:6px 8px">Date</th>
+                    <th style="padding:6px 8px">Passenger &amp; Route</th>
+                    <th style="padding:6px 8px">Vehicle</th>
+                    <th style="padding:6px 8px;text-align:center">KM</th>
+                    <th style="padding:6px 8px;text-align:right">Earnings</th>
+                  </tr>
+                </thead>
+                <tbody>${tripRows}</tbody>
+              </table>
+            </div>
+
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:12px;display:grid;grid-template-columns:1.5fr 1fr;gap:16px;align-items:center">
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:4px">Deductions / Advance Recovery</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="number" id="payoutDeductionsInput" value="0" min="0" step="50" style="width:110px;height:32px;padding:0 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:13px;font-weight:600">
+                  <input type="text" id="payoutDeductionsNote" placeholder="Note: Fuel advance, damage, loan..." style="flex:1;height:32px;padding:0 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px">
+                </div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600">Net Payable Amount</div>
+                <div id="payoutNetDisplay" style="font-size:22px;font-weight:800;color:#1e40af">${formatAmount(data.net_paise / 100)}</div>
+              </div>
+            </div>
+          `;
+
+          if (submitBtn) submitBtn.disabled = false;
+
+          const dedInput = document.getElementById('payoutDeductionsInput');
+          const netDisplay = document.getElementById('payoutNetDisplay');
+          dedInput?.addEventListener('input', () => {
+            const ded = Math.max(0, parseFloat(dedInput.value) || 0);
+            const gross = data.gross_paise / 100;
+            const net = Math.max(0, gross - ded);
+            if (netDisplay) netDisplay.textContent = formatAmount(net);
+          });
+
+        } catch(err) {
+          container.innerHTML = `<div style="padding:20px;text-align:center;color:#dc2626">Error calculating payout: ${esc(err.message)}</div>`;
+          if (submitBtn) submitBtn.disabled = true;
+        }
+      });
+
+      document.getElementById('btnSubmitDriverPayoutRequest')?.addEventListener('click', async () => {
+        if (!currentCalcData) return;
+        const submitBtn = document.getElementById('btnSubmitDriverPayoutRequest');
+        submitBtn.disabled = true;
+
+        const dedVal = Math.max(0, parseFloat(document.getElementById('payoutDeductionsInput')?.value) || 0);
+        const dedPaise = Math.round(dedVal * 100);
+        const dedNote = document.getElementById('payoutDeductionsNote')?.value || '';
+        const fromDate = document.getElementById('payoutPeriodFrom')?.value;
+        const toDate = document.getElementById('payoutPeriodTo')?.value;
+
+        const payload = {
+          driver_id: currentCalcData.driver_id,
+          period_start: fromDate,
+          period_end: toDate,
+          gross_paise: currentCalcData.gross_paise,
+          deductions_paise: dedPaise,
+          metadata: {
+            total_duties: currentCalcData.total_duties,
+            total_km: currentCalcData.total_km,
+            deduction_notes: dedNote,
+            trips: currentCalcData.trips
+          }
+        };
+
+        try {
+          const res = await apiRequest('/api/driver-payouts/requests', { method: 'POST', body: JSON.stringify(payload) });
+          closeModal();
+          showToast('Payout request created', `Payout batch created for ${currentCalcData.driver_name} (Net: ${formatAmount(res.item.net_paise / 100)}).`);
+          await hydrateOperationalData();
+          state.invoiceFilter = 'driver-payouts';
+          render();
+        } catch(err) {
+          submitBtn.disabled = false;
+          showToast('Submission failed', err.message);
+        }
+      });
+    }
+
+    function openDriverPayoutVoucherModal(id) {
+      const driverPayouts = state.followonData?.['/api/driver-payouts/requests']?.items || [];
+      const p = driverPayouts.find(item => item.id === id);
+      if (!p) { showToast('Voucher unavailable', 'Payout details not found.'); return; }
+
+      const meta = typeof p.metadata_json === 'string' ? JSON.parse(p.metadata_json || '{}') : (p.metadata_json || {});
+      const trips = p.trips || meta.trips || [];
+      const tripsCount = p.trips_count || meta.total_duties || trips.length || 0;
+      const totalKm = p.total_km || meta.total_km || 0;
+      const gross = formatAmount(Number(p.gross_paise || 0) / 100);
+      const deductions = formatAmount(Number(p.deductions_paise || 0) / 100);
+      const net = formatAmount(Number(p.net_paise || 0) / 100);
+      const periodStr = `${formatDate(p.period_start)} – ${formatDate(p.period_end)}`;
+      const driverType = String(p.driver_type || 'own').toUpperCase();
+
+      const tripRows = trips.map((t, idx) => `
+        <tr>
+          <td style="border:1px solid #cbd5e1;padding:6px;text-align:center;font-size:11px">${idx + 1}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px;font-family:monospace;font-weight:700;font-size:11px;color:#1e40af">${esc(t.duty_id)}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px;font-size:11px">${t.date ? esc(formatDate(t.date)) : '—'}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px;font-size:11px">${esc(t.passenger_name)}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px;font-size:10.5px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.pickup_address)} → ${esc(t.dropoff_address)}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px;font-size:11px">${esc(t.vehicle_reg)}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px;text-align:center;font-family:monospace;font-size:11px">${t.distance_km} km</td>
+          <td style="border:1px solid #cbd5e1;padding:6px;text-align:right;font-weight:600;font-size:11px">${formatAmount(t.payout_paise / 100)}</td>
+        </tr>
+      `).join('');
+
+      const voucherHtml = `
+        <div id="driverVoucherPrintableSheet" style="background:#ffffff;color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;padding:24px;border:1px solid #cbd5e1;border-radius:8px;max-width:850px;margin:0 auto">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0284c7;padding-bottom:14px;margin-bottom:14px">
+            <div>
+              <div style="font-size:20px;font-weight:800;color:#0284c7;letter-spacing:-0.5px">AXIOM FLEET LOGISTICS PVT LTD</div>
+              <div style="font-size:11px;color:#475569;margin-top:2px">
+                Whitefield Operations Hub, Bengaluru, KA - 560066<br>
+                <strong>GSTIN:</strong> 29AAACA1234F1ZP | <strong>PAN:</strong> AAACA1234F<br>
+                Fleet Driver Settlements &amp; Remittance Division
+              </div>
+            </div>
+            <div style="text-align:right">
+              <span style="display:inline-block;background:#0284c7;color:#ffffff;font-size:12px;font-weight:750;padding:3px 12px;border-radius:4px;letter-spacing:1px;text-transform:uppercase">DRIVER PAYOUT VOUCHER</span>
+              <div style="font-size:10.5px;color:#64748b;margin-top:3px">Status: <strong style="text-transform:uppercase;color:#0369a1">${esc(p.status)}</strong></div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;border:1px solid #e2e8f0;border-radius:6px;padding:12px;background:#f8fafc;margin-bottom:14px;font-size:11.5px">
+            <div>
+              <div style="font-size:10px;font-weight:750;text-transform:uppercase;color:#64748b;margin-bottom:3px">Driver Information</div>
+              <div style="font-size:13px;font-weight:700;color:#0f172a">${esc(p.driver_name)}</div>
+              <div><strong>Phone:</strong> ${esc(p.driver_phone || '—')}</div>
+              <div><strong>Category:</strong> <span style="background:#e0f2fe;color:#0369a1;padding:1px 6px;border-radius:3px;font-weight:700;font-size:10px">${driverType} DRIVER</span></div>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:750;text-transform:uppercase;color:#64748b;margin-bottom:3px">Settlement Information</div>
+              <div><strong>Voucher Ref:</strong> <span style="font-family:monospace;color:#0284c7">${esc(p.id)}</span></div>
+              <div><strong>Settlement Cycle:</strong> ${esc(periodStr)}</div>
+              <div><strong>Duties Settled:</strong> ${tripsCount} trips · <strong>Total KM:</strong> ${totalKm.toLocaleString()} km</div>
+              ${p.bank_reference ? `<div><strong>Bank Transfer Ref:</strong> <span style="font-family:monospace;font-weight:700;color:#15803d">${esc(p.bank_reference)}</span></div>` : ''}
+            </div>
+          </div>
+
+          <div style="margin-bottom:12px">
+            <div style="font-size:11.5px;font-weight:750;color:#334155;margin-bottom:4px">Itemized Duties Covered in this Settlement</div>
+            <table style="width:100%;border-collapse:collapse;font-size:11px">
+              <thead>
+                <tr style="background:#f1f5f9;color:#334155;font-size:10px;text-transform:uppercase">
+                  <th style="border:1px solid #cbd5e1;padding:6px;text-align:center;width:25px">#</th>
+                  <th style="border:1px solid #cbd5e1;padding:6px">Trip ID</th>
+                  <th style="border:1px solid #cbd5e1;padding:6px">Date</th>
+                  <th style="border:1px solid #cbd5e1;padding:6px">Passenger</th>
+                  <th style="border:1px solid #cbd5e1;padding:6px">Route</th>
+                  <th style="border:1px solid #cbd5e1;padding:6px">Vehicle</th>
+                  <th style="border:1px solid #cbd5e1;padding:6px;text-align:center">KM</th>
+                  <th style="border:1px solid #cbd5e1;padding:6px;text-align:right;width:75px">Payout</th>
+                </tr>
+              </thead>
+              <tbody>${tripRows || '<tr><td colspan="8" style="padding:12px;text-align:center;color:#64748b">Trip telemetry recorded in master audit</td></tr>'}</tbody>
+            </table>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin:14px 0;font-size:11.5px">
+            <div style="border:1px solid #e2e8f0;border-radius:6px;padding:10px;background:#f8fafc">
+              <div style="font-weight:700;color:#0f172a;margin-bottom:3px">Adjustment &amp; Deduction Remarks</div>
+              <div>${esc(meta.deduction_notes || 'Standard trip base and mileage allowance calculated. No statutory penalties.')}</div>
+              <div style="margin-top:6px;font-size:10.5px;color:#64748b">Payment mode: Direct Account Credit / NEFT</div>
+            </div>
+            <div>
+              <table style="width:100%;border-collapse:collapse;font-size:12px">
+                <tr><td style="padding:4px 8px;color:#475569">Gross Trip Earnings:</td><td style="padding:4px 8px;text-align:right;font-weight:600">${gross}</td></tr>
+                <tr><td style="padding:4px 8px;color:#dc2626">Less Deductions / Advances:</td><td style="padding:4px 8px;text-align:right;color:#dc2626">${p.deductions_paise ? `- ${deductions}` : '₹0.00'}</td></tr>
+                <tr style="border-top:2px solid #cbd5e1;background:#f0f9ff"><td style="padding:6px 8px;font-weight:800;font-size:13px;color:#0369a1">Net Disbursed Amount:</td><td style="padding:6px 8px;text-align:right;font-weight:800;color:#0284c7;font-size:15px">${net}</td></tr>
+              </table>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid #e2e8f0;padding-top:24px;margin-top:20px;font-size:11px;color:#64748b">
+            <div style="text-align:center;width:200px">
+              <div style="border-top:1px dashed #94a3b8;padding-top:4px">Driver Signature &amp; Date</div>
+            </div>
+            <div style="text-align:center;width:200px">
+              <div style="border-top:1px dashed #94a3b8;padding-top:4px">Fleet Manager / Approver</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const footer = `
+        <button class="btn primary" id="btnPrintDriverVoucherSheet">${icon('printer')} Print / Save PDF</button>
+        <button class="btn" data-close-modal>Close</button>
+      `;
+
+      modalShell(`Driver Payout Voucher · ${esc(p.driver_name)}`, `Settlement Ref: ${esc(p.id)} · Net: ${net}`, voucherHtml, footer);
+
+      document.getElementById('btnPrintDriverVoucherSheet')?.addEventListener('click', () => {
+        const printWin = window.open('', '_blank', 'width=900,height=800');
+        if (printWin) {
+          printWin.document.write('<!DOCTYPE html><html><head><title>Driver Settlement Voucher ' + esc(p.id) + '</title><style>@page{size:A4;margin:12mm}body{margin:0;padding:10px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}@media print{body{padding:0}}</style></head><body>' + (document.getElementById('driverVoucherPrintableSheet')?.outerHTML || '') + '<scr' + 'ipt>window.onload=function(){window.focus();window.print()}</scr' + 'ipt></body></html>');
+          printWin.document.close();
+        } else { window.print(); }
+      });
+    }
+
+function openDriverModal(existing) {
       const d = existing || {};
       const compliance = (d && typeof d.compliance === 'object' && d.compliance) ? d.compliance : {};
       const value = key => esc(d[key] ?? compliance[key] ?? '');

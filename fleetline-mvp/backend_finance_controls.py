@@ -238,7 +238,19 @@ def _finance_collection(conn, user, method, route, payload, ip):
     org = _org(user); _staff(user)
     table, fields = collection[route]
     if method == "GET":
-        return {"ok": True, "items": _list(conn, table, org, fields), "count": len(_list(conn, table, org, fields))}
+        items = _list(conn, table, org, fields)
+        if table == "finance_driver_payouts":
+            for item in items:
+                drv = conn.execute("SELECT full_name, phone, driver_type FROM domain_drivers WHERE id = ?", (item.get("driver_id"),)).fetchone()
+                if drv:
+                    item["driver_name"] = drv["full_name"]
+                    item["driver_phone"] = drv["phone"]
+                    item["driver_type"] = drv["driver_type"]
+                meta = _json(item.get("metadata_json", "{}"), {}) if "_json" in globals() else (json.loads(item.get("metadata_json") or "{}") if isinstance(item.get("metadata_json"), str) else (item.get("metadata_json") or {}))
+                item["trips_count"] = meta.get("total_duties") or meta.get("trips_count") or len(meta.get("trips") or []) or 0
+                item["total_km"] = meta.get("total_km") or 0
+                item["trips"] = meta.get("trips") or []
+        return {"ok": True, "items": items, "count": len(items)}
     item_id = new_id(table.replace("finance_", "").replace("report_", "").replace("feedback_", ""))
     now = now_iso()
     if table == "finance_supplier_payment_requests":
@@ -557,8 +569,104 @@ def _feedback_links(conn,user,method,route,payload,ip):
     conn.execute("INSERT INTO feedback_public_links(id,organization_id,form_id,duty_id,booking_id,customer_id,token_hash,label,expires_at,allow_anonymous,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",(link_id,org,form_id,duty_id,booking_id,customer_id,hashlib.sha256(raw.encode()).hexdigest(),_text(payload,"label","Passenger feedback",160),expires,int(bool(payload.get("allow_anonymous",True))),user["id"],now)); notification_id=new_id("feedback_notification"); conn.execute("INSERT INTO feedback_notifications(id,organization_id,feedback_link_id,channel,recipient,status,attempts,next_attempt_at,policy_id,attempt_limit,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",(notification_id,org,link_id,channel,_text(payload,"recipient",maximum=254),"queued",0,now,policy["id"] if policy else None,attempt_limit,now,now)); return {"ok":True,"item":_serialize(conn.execute("SELECT * FROM feedback_public_links WHERE id=?",(link_id,)).fetchone()),"feedback_token":raw,"feedback_path":f"/api/feedback/v1/{raw}","feedback_url":f"/?feedback_token={raw}","delivery_policy_id":policy["id"] if policy else None}
 
 
+def _calculate_driver_payout(conn, user, raw_route):
+    org = _org(user)
+    _staff(user)
+    query = parse_qs(urlsplit(raw_route).query)
+    driver_id = query.get("driver_id", [None])[0]
+    if not driver_id:
+        raise DomainError(400, "driver_id query parameter is required", "validation_error")
+
+    driver = _assert_owned(conn, "domain_drivers", driver_id, org)
+    period_start = query.get("from", [None])[0] or query.get("period_start", [None])[0]
+    period_end = query.get("to", [None])[0] or query.get("period_end", [None])[0]
+
+    # Query completed duties for this driver
+    sql = """
+        SELECT d.*, b.booking_reference, b.passenger_name, b.passenger_phone,
+               b.pickup_json, b.dropoff_json, b.duty_type,
+               v.registration_number, v.manufacturer, v.model
+        FROM domain_duties d
+        JOIN domain_bookings b ON b.id = d.booking_id
+        LEFT JOIN domain_vehicles v ON v.id = d.vehicle_id
+        WHERE d.organization_id = ? AND d.driver_id = ?
+    """
+    params = [org, driver_id]
+    if period_start:
+        sql += " AND (d.reporting_at >= ? OR d.completed_at >= ? OR d.created_at >= ?)"
+        params.extend([period_start, period_start, period_start])
+    if period_end:
+        sql += " AND (d.reporting_at <= ? OR d.completed_at <= ? OR d.created_at <= ?)"
+        params.extend([period_end + "T23:59:59", period_end + "T23:59:59", period_end + "T23:59:59"])
+
+    sql += " ORDER BY COALESCE(d.reporting_at, d.created_at) ASC"
+    duties = conn.execute(sql, tuple(params)).fetchall()
+
+    trip_items = []
+    total_km = 0
+    total_gross_paise = 0
+
+    for d in duties:
+        dist_km = (d["end_odometer"] - d["start_odometer"]) if d["end_odometer"] and d["start_odometer"] and d["end_odometer"] > d["start_odometer"] else 40
+        total_km += dist_km
+        dtype = (d["duty_type"] or "local").lower()
+        if "airport" in dtype:
+            base_paise = 60000
+            km_rate_paise = 500
+        elif "outstation" in dtype:
+            base_paise = 100000
+            km_rate_paise = 700
+        else:
+            base_paise = 45000
+            km_rate_paise = 500
+
+        payout_paise = base_paise + (dist_km * km_rate_paise)
+        total_gross_paise += payout_paise
+
+        p_json = json.loads(d["pickup_json"]) if d["pickup_json"] and isinstance(d["pickup_json"], str) else (d["pickup_json"] or {})
+        d_json = json.loads(d["dropoff_json"]) if d["dropoff_json"] and isinstance(d["dropoff_json"], str) else (d["dropoff_json"] or {})
+
+        trip_items.append({
+            "duty_id": d["id"],
+            "date": d["reporting_at"] or d["completed_at"] or d["created_at"],
+            "duty_type": d["duty_type"] or "local",
+            "booking_reference": d["booking_reference"] or "—",
+            "passenger_name": d["passenger_name"] or "—",
+            "pickup_address": p_json.get("address") or p_json.get("label") or "Pickup location",
+            "dropoff_address": d_json.get("address") or d_json.get("label") or "Dropoff location",
+            "vehicle_reg": d["registration_number"] or "—",
+            "vehicle_model": f"{d['manufacturer'] or ''} {d['model'] or ''}".strip() or "—",
+            "start_odometer": d["start_odometer"],
+            "end_odometer": d["end_odometer"],
+            "distance_km": dist_km,
+            "base_paise": base_paise,
+            "payout_paise": payout_paise
+        })
+
+    driver_cols = {r["name"] for r in conn.execute("PRAGMA table_info(domain_drivers)").fetchall()}
+    dtype = driver["driver_type"] if "driver_type" in driver_cols else "own"
+
+    return {
+        "ok": True,
+        "driver_id": driver["id"],
+        "driver_name": driver["full_name"],
+        "driver_phone": driver["phone"],
+        "driver_type": dtype,
+        "period_start": period_start,
+        "period_end": period_end,
+        "total_duties": len(trip_items),
+        "total_km": total_km,
+        "gross_paise": total_gross_paise,
+        "deductions_paise": 0,
+        "net_paise": total_gross_paise,
+        "trips": trip_items
+    }
+
+
 def handle_finance_controls(conn,user,method,raw_route,payload,ip):
     route=urlsplit(raw_route).path.rstrip("/") or "/"
+    if route == "/api/driver-payouts/calculate" and method == "GET":
+        return _calculate_driver_payout(conn, user, raw_route)
     result=_finance_collection(conn,user,method,route,payload,ip)
     if result is not None: return result
     result=_approve_or_execute(conn,user,route,method,payload,ip)
