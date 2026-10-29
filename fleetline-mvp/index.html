@@ -10017,12 +10017,12 @@ function openDriverModal(existing) {
           <div class="form-group">
             <label>Duty Package <span class="required">*</span></label>
             <select class="form-input" data-contract-field="duty_preset" id="contractDutyPreset">
-              <option value="local_4_40" data-type="local" data-hours="4" data-km="40" data-base="1600" data-extra-km="16" data-extra-hr="150" selected>Local 4Hr / 40Km</option>
-              <option value="local_8_80" data-type="local" data-hours="8" data-km="80" data-base="2600" data-extra-km="16" data-extra-hr="150">Local 8Hr / 80Km</option>
-              <option value="local_12_120" data-type="local" data-hours="12" data-km="120" data-base="3800" data-extra-km="16" data-extra-hr="150">Local 12Hr / 120Km</option>
-              <option value="airport" data-type="airport" data-hours="3" data-km="50" data-base="1850" data-extra-km="18" data-extra-hr="150">Airport Transfer (Point-to-Point)</option>
-              <option value="outstation" data-type="outstation" data-hours="24" data-km="250" data-base="3500" data-extra-km="15" data-extra-hr="0">Outstation (Daily Min 250Km)</option>
-              <option value="custom" data-type="local" data-hours="4" data-km="40" data-base="1500" data-extra-km="15" data-extra-hr="150">Custom Package</option>
+              <option value="local_4_40" data-type="local" data-hours="4" data-km="40" data-base="1600" data-extra-km="16" data-extra-hr="150" data-day-batta="0" data-night-batta="250" selected>Local 4Hr / 40Km</option>
+              <option value="local_8_80" data-type="local" data-hours="8" data-km="80" data-base="2600" data-extra-km="16" data-extra-hr="150" data-day-batta="0" data-night-batta="300">Local 8Hr / 80Km</option>
+              <option value="local_12_120" data-type="local" data-hours="12" data-km="120" data-base="3800" data-extra-km="16" data-extra-hr="150" data-day-batta="0" data-night-batta="300">Local 12Hr / 120Km</option>
+              <option value="airport" data-type="airport" data-hours="3" data-km="50" data-base="1850" data-extra-km="18" data-extra-hr="150" data-day-batta="0" data-night-batta="250">Airport Transfer (Point-to-Point)</option>
+              <option value="outstation" data-type="outstation" data-hours="24" data-km="250" data-base="3500" data-extra-km="15" data-extra-hr="0" data-day-batta="400" data-night-batta="400">Outstation (Daily Min 250Km)</option>
+              <option value="custom" data-type="local" data-hours="4" data-km="40" data-base="1500" data-extra-km="15" data-extra-hr="150" data-day-batta="0" data-night-batta="300">Custom Package</option>
             </select>
           </div>
 
@@ -10049,8 +10049,12 @@ function openDriverModal(existing) {
           </div>
 
           <div class="form-group">
-            <label>Driver Day Batta / Allowance (₹)</label>
-            <input class="form-input" data-contract-field="allowance" id="contractAllowance" type="number" min="0" step="50" value="400" placeholder="e.g. 400">
+            <label>Driver Day Batta (₹)</label>
+            <input class="form-input" data-contract-field="allowance" id="contractAllowance" type="number" min="0" step="50" value="0" placeholder="e.g. 400">
+          </div>
+          <div class="form-group">
+            <label>Driver Night Batta (₹) <span style="font-size:11px;color:var(--muted)">(22:00 – 06:00)</span></label>
+            <input class="form-input" data-contract-field="night_allowance" id="contractNightAllowance" type="number" min="0" step="50" value="250" placeholder="e.g. 250">
           </div>
 
           <div class="form-group full" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-top:6px">
@@ -10096,6 +10100,8 @@ function openDriverModal(existing) {
           if (opt.dataset.base) modal.querySelector('#contractBase').value = opt.dataset.base;
           if (opt.dataset.extraKm) modal.querySelector('#contractExtraKm').value = opt.dataset.extraKm;
           if (opt.dataset.extraHr) modal.querySelector('#contractExtraHr').value = opt.dataset.extraHr;
+          if (opt.dataset.dayBatta !== undefined) modal.querySelector('#contractAllowance').value = opt.dataset.dayBatta;
+          if (opt.dataset.nightBatta !== undefined) modal.querySelector('#contractNightAllowance').value = opt.dataset.nightBatta;
         });
       }
 
@@ -10118,6 +10124,7 @@ function openDriverModal(existing) {
         const extraKm = Number(read('extra_km') || 0);
         const extraHr = Number(read('extra_hr') || 0);
         const allowance = Number(read('allowance') || 0);
+        const nightAllowance = Number(read('night_allowance') || 0);
         const city = read('city');
         const vehicleGroup = read('vehicle_group');
         const autoSwitch = Boolean(modal.querySelector('#contractAutoSwitch')?.checked);
@@ -10143,6 +10150,11 @@ function openDriverModal(existing) {
           extra_hour_paise: Math.round(extraHr * 100),
           extra_half_hour_paise: Math.round((extraHr / 2) * 100),
           allowance_paise: Math.round(allowance * 100),
+          night_allowance_paise: Math.round(nightAllowance * 100),
+          extras: {
+            night_allowance_paise: Math.round(nightAllowance * 100),
+            night_window: '22:00-06:00'
+          },
           auto_switch: {
             enabled: autoSwitch,
             grace_period_minutes: graceMinutes

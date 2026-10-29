@@ -523,7 +523,10 @@ def calculate_pricing(conn, org: str, payload: dict, *, booking=None):
     extra_half_rate = int(source.get("extra_half_hour_paise") or (rule["extra_half_hour_paise"] if rule else 0) or 0)
     extra_hour_rate = int(source.get("extra_hour_paise") or (rule["extra_hour_paise"] if rule else 0) or 0)
     waiting = int(source.get("waiting_paise") or (rule["waiting_paise"] if rule else 0) or 0)
-    allowance = int(source.get("allowance_paise") or (rule["allowance_paise"] if rule else 0) or 0)
+    allowance = int(source.get("allowance_paise") or (rule["allowance_paise"] if rule and "allowance_paise" in rule.keys() else 0) or 0)
+    night_allowance_rate = int(source.get("night_allowance_paise") or (rule["night_allowance_paise"] if rule and "night_allowance_paise" in rule.keys() else 0) or ((_json(rule["extras_json"], {}) if rule else {}).get("night_allowance_paise") or 0))
+    night_blocks = int(source.get("night_hours_count") or source.get("night_count") or source.get("night_blocks") or (1 if source.get("is_night") or source.get("night_duty") else 0))
+    total_night_allowance = night_blocks * night_allowance_rate if night_blocks > 0 else 0
     extra_km = max(0.0, distance - included_km)
     extra_minutes = max(0, duration - package)
     extra_half_blocks = (extra_minutes + 29) // 30 if extra_half_rate else 0
@@ -532,7 +535,7 @@ def calculate_pricing(conn, org: str, payload: dict, *, booking=None):
     time_total = extra_half_blocks * extra_half_rate + extra_hours * extra_hour_rate
     surcharge = calculate_fuel_surcharge(conn, org, source.get("customer_id"), source.get("vehicle_group") or source.get("vehicle_group_code"), source)
     flat = int(source.get("flat_rate_paise") or source.get("flat_rate") or 0)
-    transport_total = flat if flat > 0 else base + km_total + time_total + waiting + allowance
+    transport_total = flat if flat > 0 else base + km_total + time_total + waiting + allowance + total_night_allowance
     total = transport_total + surcharge["amount_paise"]
     return {
         "contract_id": contract["id"] if contract else None,
@@ -553,6 +556,9 @@ def calculate_pricing(conn, org: str, payload: dict, *, booking=None):
             "extra_time_paise": time_total,
             "waiting_paise": waiting,
             "allowance_paise": allowance,
+            "night_allowance_paise": total_night_allowance,
+            "night_allowance_rate_paise": night_allowance_rate,
+            "night_blocks": night_blocks,
             "fuel_surcharge": surcharge,
             "automatic_duty_type_switch": duty_type != str(source.get("duty_type") or "local").lower(),
         },
@@ -803,7 +809,8 @@ def _pricing_routes(conn, user, method, route, payload, ip):
             return {"ok": True, "items": [_serialize(row, ("auto_switch_json", "extras_json")) for row in rows]}
         if method == "POST":
             rule_id = str(payload.get("id") or "").strip() or new_id("pricing_rule"); now = now_iso()
-            conn.execute("INSERT INTO domain_booking_pricing_rules(id,organization_id,contract_id,city,vehicle_group,duty_type,package_minutes,included_km,base_paise,extra_km_paise,extra_hour_paise,extra_half_hour_paise,waiting_paise,allowance_paise,auto_switch_json,extras_json,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET city=excluded.city, vehicle_group=excluded.vehicle_group, duty_type=excluded.duty_type, package_minutes=excluded.package_minutes, included_km=excluded.included_km, base_paise=excluded.base_paise, extra_km_paise=excluded.extra_km_paise, extra_hour_paise=excluded.extra_hour_paise, extra_half_hour_paise=excluded.extra_half_hour_paise, waiting_paise=excluded.waiting_paise, allowance_paise=excluded.allowance_paise, auto_switch_json=excluded.auto_switch_json, extras_json=excluded.extras_json, updated_at=excluded.updated_at", (rule_id, org, contract_id, str(payload.get("city") or "").lower(), str(payload.get("vehicle_group") or "").lower(), str(payload.get("duty_type") or "").lower(), int(payload.get("package_minutes") or 0), _number(payload.get("included_km")), int(payload.get("base_paise") or 0), int(payload.get("extra_km_paise") or 0), int(payload.get("extra_hour_paise") or 0), int(payload.get("extra_half_hour_paise") or 0), int(payload.get("waiting_paise") or 0), int(payload.get("allowance_paise") or 0), json.dumps(payload.get("auto_switch") if isinstance(payload.get("auto_switch"), dict) else {}), json.dumps(payload.get("extras") if isinstance(payload.get("extras"), dict) else {}), now, now))
+            night_paise = int(payload.get("night_allowance_paise") or (payload.get("extras") or {}).get("night_allowance_paise") or 0)
+            conn.execute("INSERT INTO domain_booking_pricing_rules(id,organization_id,contract_id,city,vehicle_group,duty_type,package_minutes,included_km,base_paise,extra_km_paise,extra_hour_paise,extra_half_hour_paise,waiting_paise,allowance_paise,night_allowance_paise,auto_switch_json,extras_json,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET city=excluded.city, vehicle_group=excluded.vehicle_group, duty_type=excluded.duty_type, package_minutes=excluded.package_minutes, included_km=excluded.included_km, base_paise=excluded.base_paise, extra_km_paise=excluded.extra_km_paise, extra_hour_paise=excluded.extra_hour_paise, extra_half_hour_paise=excluded.extra_half_hour_paise, waiting_paise=excluded.waiting_paise, allowance_paise=excluded.allowance_paise, night_allowance_paise=excluded.night_allowance_paise, auto_switch_json=excluded.auto_switch_json, extras_json=excluded.extras_json, updated_at=excluded.updated_at", (rule_id, org, contract_id, str(payload.get("city") or "").lower(), str(payload.get("vehicle_group") or "").lower(), str(payload.get("duty_type") or "").lower(), int(payload.get("package_minutes") or 0), _number(payload.get("included_km")), int(payload.get("base_paise") or 0), int(payload.get("extra_km_paise") or 0), int(payload.get("extra_hour_paise") or 0), int(payload.get("extra_half_hour_paise") or 0), int(payload.get("waiting_paise") or 0), int(payload.get("allowance_paise") or 0), night_paise, json.dumps(payload.get("auto_switch") if isinstance(payload.get("auto_switch"), dict) else {}), json.dumps(payload.get("extras") if isinstance(payload.get("extras"), dict) else {}), now, now))
             return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_booking_pricing_rules WHERE id = ?", (rule_id,)).fetchone(), ("auto_switch_json", "extras_json"))}
     if route == "/api/pricing/quote" and method == "POST":
         booking = None

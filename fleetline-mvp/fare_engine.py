@@ -318,8 +318,8 @@ def calculate_outstation_fare(
     """
     min_daily_km = _to_float(rule.get("min_km_per_day") or rule.get("daily_min_km") or 250.0, "min_km_per_day")
     rate_per_km = _to_int(rule.get("rate_per_km_paise") or rule.get("extra_km_paise") or 1500, "rate_per_km_paise")
-    driver_day_batta = _to_int(rule.get("driver_day_allowance_paise") or rule.get("driver_batta_paise") or 40000, "driver_day_allowance_paise")
-    driver_night_allowance = _to_int(rule.get("driver_night_allowance_paise") or rule.get("night_charge_paise") or 30000, "driver_night_allowance_paise")
+    driver_day_batta = _to_int(rule.get("allowance_paise") or rule.get("driver_day_allowance_paise") or rule.get("driver_batta_paise") or 40000, "driver_day_allowance_paise")
+    driver_night_allowance = _to_int(rule.get("night_allowance_paise") or rule.get("driver_night_allowance_paise") or rule.get("night_charge_paise") or 30000, "driver_night_allowance_paise")
 
     effective_km = telemetry.effective_km(rule.get("max_shed_km"))
     total_days = max(1, telemetry.calendar_days)
@@ -484,6 +484,31 @@ def calculate_fare(
             "selected_slab": win["slab_name"],
             "selected_rule_id": win["rule"].get("id"),
         }
+        # Check driver day and night allowances for local duty if applicable
+        day_allowance = _to_int(rate_rule.get("allowance_paise") or rate_rule.get("driver_day_allowance_paise") or 0, "allowance_paise")
+        if day_allowance > 0 and telemetry.calendar_days > 0:
+            tot_day = telemetry.calendar_days * day_allowance
+            lines.append({
+                "code": "DRIVER_DAY_BATTA",
+                "label": f"Driver Day Allowance ({telemetry.calendar_days} day{'s' if telemetry.calendar_days > 1 else ''})",
+                "quantity": telemetry.calendar_days,
+                "unit_paise": day_allowance,
+                "amount_paise": tot_day,
+                "category": "allowance",
+            })
+            transport_subtotal_paise += tot_day
+        night_allowance = _to_int(rate_rule.get("night_allowance_paise") or rate_rule.get("driver_night_allowance_paise") or (rate_rule.get("extras") or {}).get("night_allowance_paise") or 0, "night_allowance_paise")
+        if night_allowance > 0 and telemetry.night_hours_count > 0:
+            tot_night = telemetry.night_hours_count * night_allowance
+            lines.append({
+                "code": "NIGHT_ALLOWANCE",
+                "label": f"Driver Night Allowance ({telemetry.night_hours_count} block{'s' if telemetry.night_hours_count > 1 else ''})",
+                "quantity": telemetry.night_hours_count,
+                "unit_paise": night_allowance,
+                "amount_paise": tot_night,
+                "category": "allowance",
+            })
+            transport_subtotal_paise += tot_night
 
     elif duty_mode == "outstation":
         out_calc = calculate_outstation_fare(telemetry, rate_rule)
