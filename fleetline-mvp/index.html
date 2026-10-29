@@ -4107,27 +4107,24 @@
       const totalPaise = rows.reduce((sum,item) => sum + Number(item.total_paise || 0), 0);
 
       const rowMarkup = rows.map(item => {
-        const tripId = item.trip_id || item.duty_id || '—';
-        const td = item.trip_details || {};
-        const pName = td.passenger_name || '—';
-        const pRoute = td.pickup_address && td.dropoff_address ? `${td.pickup_address} → ${td.dropoff_address}` : (td.pickup_address || td.dropoff_address || '—');
-        const vInfo = td.vehicle_reg ? `${td.vehicle_reg}${td.vehicle_model ? ` (${td.vehicle_model})` : ''}` : '—';
-        const dInfo = td.driver_name || '—';
+        const tripCount = item.trip_count || 1;
+        const totalKm = item.total_km || 0;
+        const dateFrom = item.trip_date_from || item.billing_period_from;
+        const dateTo = item.trip_date_to || item.billing_period_to;
+        const periodStr = dateFrom && dateTo ? `${formatDate(dateFrom)} - ${formatDate(dateTo)}` : (item.issued_at ? formatDate(item.issued_at) : '—');
         const issueDate = item.issued_at || item.issue_date || item.created_at;
+
         return `<tr>
           <td><span class="primary" style="font-weight:700">${esc(item.invoice_number || item.id)}</span><span class="secondary" style="font-size:11px;color:var(--muted)">${esc(item.invoice_type || 'Tax Invoice')}</span></td>
-          <td><span class="booking-trip-id" style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11.5px;font-weight:750;letter-spacing:0.5px;color:#1e40af;background:#eff6ff;border:1px solid #bfdbfe;padding:3px 8px;border-radius:5px;white-space:nowrap;user-select:all;display:inline-block" title="Trip ID (Must): ${esc(tripId)}">${esc(tripId)}</span></td>
-          <td><div style="font-weight:600;color:var(--ink)">${esc(item.customer_name || 'Customer not attached')}</div>${item.customer_gstin ? `<div style="font-size:11px;color:var(--muted);font-family:ui-monospace,monospace">GSTIN: ${esc(item.customer_gstin)}</div>` : ''}</td>
-          <td><div style="font-weight:600;color:var(--ink)">${esc(pName)}</div><div style="font-size:11px;color:var(--muted);max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(pRoute)}">${esc(pRoute)}</div></td>
-          <td><div style="font-weight:550;color:var(--ink)">${esc(vInfo)}</div><div style="font-size:11px;color:var(--muted)">Driver: ${esc(dInfo)}</div></td>
+          <td><div style="font-weight:600;color:var(--ink)">${esc(item.customer_name || 'Customer not attached')}</div>${item.customer_gstin ? `<div style="font-size:11px;color:var(--muted);font-family:ui-monospace,monospace">${esc(item.customer_gstin)}</div>` : ''}</td>
+          <td style="white-space:nowrap"><span style="font-size:12px;color:var(--muted)">${esc(periodStr)}</span></td>
+          <td style="text-align:center"><span style="display:inline-flex;align-items:center;gap:4px;font-family:ui-monospace,monospace;font-size:12px;font-weight:750;color:#7c3aed;background:#f5f3ff;border:1px solid #ddd6fe;padding:3px 10px;border-radius:14px;white-space:nowrap">${tripCount} trip${tripCount !== 1 ? 's' : ''}</span></td>
+          <td style="text-align:center;white-space:nowrap"><span style="font-family:ui-monospace,monospace;font-size:12px;color:#0369a1">${totalKm ? totalKm.toLocaleString() + ' km' : '—'}</span></td>
           <td><span style="white-space:nowrap">${issueDate ? esc(formatDate(issueDate)) : '—'}</span></td>
           <td><strong style="color:var(--ink);font-size:13.5px">${formatAmount(Number(item.total_paise || 0) / 100)}</strong></td>
           <td>${status(item.status || 'draft', item.status === 'paid' ? 'green' : item.status === 'overdue' ? 'red' : 'amber')}</td>
           <td style="text-align:right">
-            <div style="display:inline-flex;gap:6px;align-items:center">
-              <button class="btn small" data-action="invoice-detail" data-invoice="${esc(item.id)}" title="View complete trip billing breakdown">${icon('file-text', 13)} Trip details</button>
-              <button class="btn small soft" data-action="print-invoice" data-invoice="${esc(item.id)}" title="Print or download official GST Tax Invoice">${icon('printer', 13)} Tax Invoice</button>
-            </div>
+            <button class="btn small" data-action="invoice-detail" data-invoice="${esc(item.id)}" title="View trips and billing breakdown">${icon('eye', 13)} View</button>
           </td>
         </tr>`;
       }).join('');
@@ -4175,7 +4172,7 @@
       } else if (filter === 'distance-audit') {
         bodyTable = `<div class="table-wrap"><table><thead><tr><th>Duty Reference</th><th>Odometer Delta</th><th>Raw GPS Breadcrumbs</th><th>Road-Snapped Route</th><th>Discrepancy</th><th>FASTag Deductions</th><th>Status</th></tr></thead><tbody>${distanceAuditRows}</tbody></table></div>`;
       } else {
-        bodyTable = `<div class="table-wrap"><table><thead><tr><th>Invoice #</th><th style="min-width:110px">Trip ID (Must)</th><th>Customer</th><th>Trip Route &amp; Passenger</th><th>Vehicle &amp; Driver</th><th>Issued</th><th>Total</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead><tbody>${rowMarkup || tenantTableEmpty('No invoice records returned','Create a source-linked invoice after duties and customer data are present.',button(icon('plus')+'Build invoice','small soft','data-action="build-invoice"'))}</tbody></table></div>`;
+        bodyTable = `<div class="table-wrap"><table><thead><tr><th>Invoice #</th><th>Customer</th><th>Billing Period</th><th style="text-align:center">Trips</th><th style="text-align:center">Total KM</th><th>Issued</th><th>Total</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead><tbody>${rowMarkup || tenantTableEmpty('No invoice records returned','Create a source-linked invoice after duties and customer data are present.',button(icon('plus')+'Build invoice','small soft','data-action="build-invoice"'))}</tbody></table></div>`;
       }
 
       const tabs = [
@@ -6520,8 +6517,7 @@
         'clear-selection': () => { state.selectedDuties.clear(); render(); },
         'build-invoice': () => openInvoiceModal(),
         'invoice-detail': () => openInvoiceDrawer(el.dataset.invoice),
-        'print-invoice': () => openPrintableInvoiceModal(el.dataset.invoice),
-        'aging': () => { state.page = 'billing'; state.invoiceFilter = 'overdue'; render(); },
+                'aging': () => { state.page = 'billing'; state.invoiceFilter = 'overdue'; render(); },
         'retry': () => showToast('No failed dispatches', 'Retry becomes available when a tenant delivery event fails.'),
         'add-driver': () => openDriverModal(),
         'driver-detail': () => { const driver = (state.liveData?.drivers?.items || []).find(item => item.id === el.dataset.driverId || item.full_name === el.dataset.driver); if (driver) openDriverModal(driver); else showToast('Driver profile opened', `${el.dataset.driver} · compliance and duty history ready.`); },
@@ -6621,240 +6617,87 @@
       drawer.querySelector('[data-action="drawer-edit"]')?.addEventListener('click', () => { closeDrawer(); openBookingModal(d); });
     }
 
-    function getInvoiceBillingData(raw) {
-      const tripId = raw.trip_id || raw.duty_id || '—';
-      const td = raw.trip_details || {};
-      const subtotalPaise = Number(raw.subtotal_paise || (raw.total_paise ? Math.round(Number(raw.total_paise) / 1.18) : 0));
-      const totalPaise = Number(raw.total_paise || 0);
-      const taxPaise = Number(raw.tax_paise || (totalPaise > subtotalPaise ? totalPaise - subtotalPaise : Math.round(subtotalPaise * 0.18)));
-
-      let lines = [];
-      if (Array.isArray(raw.lines) && raw.lines.length > 0) {
-        lines = raw.lines;
-      } else if (td.calculation && Array.isArray(td.calculation.lines) && td.calculation.lines.length > 0) {
-        lines = td.calculation.lines;
-      } else if (raw.immutable_snapshot_json) {
-        try {
-          const snap = typeof raw.immutable_snapshot_json === 'string' ? JSON.parse(raw.immutable_snapshot_json) : raw.immutable_snapshot_json;
-          if (Array.isArray(snap.lines) && snap.lines.length > 0) lines = snap.lines;
-        } catch (e) {}
-      }
-
-      if (!lines.length) {
-        lines = [
-          { code: 'BASE_FARE', label: `${td.duty_type ? td.duty_type.toUpperCase() : 'Standard'} trip package fare`, quantity: 1, unit_paise: subtotalPaise, amount_paise: subtotalPaise }
-        ];
-      }
-
-      const bookingRef = td.booking_reference || '—';
-      const passengerName = td.passenger_name || '—';
-      const passengerPhone = td.passenger_phone || '';
-      const dutyType = td.duty_type ? td.duty_type.toUpperCase() : 'TRIP DUTY';
-      const pickup = td.pickup_address || 'Pickup location not specified';
-      const dropoff = td.dropoff_address || 'Dropoff location not specified';
-      const vehicle = td.vehicle_reg ? `${td.vehicle_reg}${td.vehicle_model ? ` (${td.vehicle_model})` : ''}` : 'Vehicle unassigned';
-      const driver = td.driver_name ? `${td.driver_name}${td.driver_phone ? ` (${td.driver_phone})` : ''}` : 'Driver unassigned';
-      const startOdo = td.start_odometer;
-      const endOdo = td.end_odometer;
-      const distanceKm = td.distance_km != null ? td.distance_km : (endOdo && startOdo ? endOdo - startOdo : null);
-
-      return {
-        tripId,
-        invoiceNumber: raw.invoice_number || raw.id,
-        invoiceId: raw.id,
-        status: raw.status || 'draft',
-        customerName: raw.customer_name || 'Corporate Customer',
-        customerGstin: raw.customer_gstin || '29AAACI9876Q1Z9',
-        customerEmail: raw.customer_email || 'billing@customer.example.com',
-        customerPhone: raw.customer_phone || '+91 80 4123 9900',
-        issuedAt: raw.issued_at || raw.issue_date || raw.created_at,
-        dueAt: raw.due_at,
-        subtotalPaise,
-        taxPaise,
-        totalPaise,
-        lines,
-        bookingRef,
-        passengerName,
-        passengerPhone,
-        dutyType,
-        pickup,
-        dropoff,
-        vehicle,
-        driver,
-        startOdo,
-        endOdo,
-        distanceKm,
-        reportingAt: td.reporting_at,
-        startedAt: td.started_at,
-        completedAt: td.completed_at
-      };
-    }
-
     function openInvoiceDrawer(id) {
       const raw = (state.liveData?.invoices?.items || []).find(item => String(item.invoice_number || item.id) === String(id) || String(item.id) === String(id));
       if (!raw) { showToast('Invoice unavailable', 'This invoice is no longer present in the current tenant data.'); return; }
-      
-      const inv = getInvoiceBillingData(raw);
+
       const drawer = document.getElementById('drawer');
+      const tripCount = raw.trip_count || 1;
+      const totalKm = raw.total_km || 0;
+      const totalAmount = Number(raw.total_paise || 0) / 100;
+      const subtotalAmount = Number(raw.subtotal_paise || Math.round(Number(raw.total_paise || 0) / 1.18)) / 100;
+      const taxAmount = Number(raw.tax_paise || (totalAmount - subtotalAmount) * 100) / 100;
 
-      const linesMarkup = inv.lines.map((l, idx) => {
-        const amt = Number(l.amount_paise || (Number(l.unit_paise || 0) * Number(l.quantity || 1))) / 100;
-        const rate = l.unit_paise ? Number(l.unit_paise) / 100 : null;
-        return `<tr>
-          <td style="padding:8px 10px;font-size:12px;color:var(--muted)">${idx + 1}</td>
-          <td style="padding:8px 10px">
-            <strong style="color:var(--ink);font-size:12.5px">${esc(l.label || l.code || 'Tariff line')}</strong>
-            ${l.code ? `<br><small style="color:var(--muted);font-family:ui-monospace,monospace;font-size:11px">${esc(l.code)}</small>` : ''}
-          </td>
-          <td style="padding:8px 10px;text-align:center;font-size:12px;color:var(--ink)">${l.quantity || 1}</td>
-          <td style="padding:8px 10px;text-align:right;font-size:12px;color:var(--muted)">${rate != null ? formatAmount(rate) : '—'}</td>
-          <td style="padding:8px 10px;text-align:right;font-weight:600;color:var(--ink);font-size:12.5px">${formatAmount(amt)}</td>
-        </tr>`;
-      }).join('');
-
+      // Initial drawer with loading state for trips
       drawer.innerHTML = `
         <div class="drawer-head">
           <div>
-            <div class="eyebrow" style="margin-bottom:3px">Billing Record · ${esc(inv.status.toUpperCase())}</div>
-            <h2 style="margin:0 0 6px 0">${esc(inv.invoiceNumber)}</h2>
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-              <span class="booking-trip-id" style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;font-weight:800;letter-spacing:0.5px;color:#1e40af;background:#eff6ff;border:1.5px solid #93c5fd;padding:3px 10px;border-radius:6px;white-space:nowrap;user-select:all" title="Mandatory Trip ID">
-                TRIP ID: ${esc(inv.tripId)}
-              </span>
-              <span style="font-size:12px;color:var(--muted)">Duty: <strong>${esc(inv.dutyType)}</strong></span>
+            <div class="eyebrow" style="margin-bottom:3px">Invoice Detail</div>
+            <h2 style="margin:0 0 4px 0">${esc(raw.invoice_number || raw.id)}</h2>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <span style="font-size:13px;font-weight:600;color:var(--ink)">${esc(raw.customer_name || 'Customer')}</span>
+              ${raw.customer_gstin ? `<span style="font-size:11px;color:var(--muted);font-family:ui-monospace,monospace">GSTIN: ${esc(raw.customer_gstin)}</span>` : ''}
             </div>
           </div>
-          <button class="drawer-close" type="button" aria-label="Close detail" data-close-drawer>${icon('x')}</button>
+          <button class="drawer-close" type="button" aria-label="Close" data-close-drawer>${icon('x')}</button>
         </div>
 
         <div class="drawer-content">
-          <div class="detail-status" style="background:#f8fafc;border:1px solid #e2e8f0;padding:12px 16px;border-radius:8px;margin-bottom:18px">
+          <!-- Summary KPIs -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;text-align:center">
+              <div style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:600">Trips</div>
+              <div style="font-size:20px;font-weight:800;color:#7c3aed">${tripCount}</div>
+            </div>
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;text-align:center">
+              <div style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:600">Total KM</div>
+              <div style="font-size:20px;font-weight:800;color:#0369a1">${totalKm.toLocaleString()}</div>
+            </div>
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;text-align:center">
+              <div style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:600">Subtotal</div>
+              <div style="font-size:16px;font-weight:700;color:var(--ink)">${formatAmount(subtotalAmount)}</div>
+            </div>
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 12px;text-align:center">
+              <div style="font-size:10px;text-transform:uppercase;color:#1e40af;font-weight:600">Net Total</div>
+              <div style="font-size:18px;font-weight:800;color:#1e40af">${formatAmount(totalAmount)}</div>
+            </div>
+          </div>
+
+          <!-- Status & Tax -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px">
             <div>
-              <span class="detail-label" style="font-size:11px;text-transform:uppercase;color:var(--muted)">Invoice Status</span>
-              <strong>${status(inv.status, inv.status === 'paid' ? 'green' : inv.status === 'overdue' ? 'red' : 'amber')}</strong>
+              <span style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600">Status: </span>
+              ${status(raw.status || 'draft', raw.status === 'paid' ? 'green' : raw.status === 'overdue' ? 'red' : 'amber')}
             </div>
-            <div style="text-align:right">
-              <span class="detail-label" style="font-size:11px;text-transform:uppercase;color:var(--muted)">Invoice Net Total</span>
-              <strong style="font-size:18px;color:#1e40af">${formatAmount(inv.totalPaise / 100)}</strong>
-            </div>
-          </div>
-
-          <!-- Trip & Duty Billing Overview -->
-          <div class="detail-section" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:14px;margin-bottom:16px">
-            <h4 style="margin:0 0 10px 0;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding-bottom:8px">
-              <span>${icon('map-pin', 14)} Trip &amp; Execution Details</span>
-              <span style="font-family:ui-monospace,monospace;font-size:11px;font-weight:700;color:#2563eb;background:#dbeafe;padding:2px 8px;border-radius:4px">TRIP ID: ${esc(inv.tripId)}</span>
-            </h4>
-            <div class="detail-grid" style="grid-template-columns:1fr 1fr;gap:12px">
-              <div class="detail-field">
-                <label style="font-size:11px;color:var(--muted);text-transform:uppercase">Passenger Name</label>
-                <strong style="color:var(--ink)">${esc(inv.passengerName)}</strong>
-                ${inv.passengerPhone ? `<div style="font-size:11px;color:var(--muted)">${esc(inv.passengerPhone)}</div>` : ''}
-              </div>
-              <div class="detail-field">
-                <label style="font-size:11px;color:var(--muted);text-transform:uppercase">Booking Reference</label>
-                <strong style="color:var(--ink);font-family:ui-monospace,monospace">${esc(inv.bookingRef)}</strong>
-              </div>
-              <div class="detail-field" style="grid-column:1 / -1">
-                <label style="font-size:11px;color:var(--muted);text-transform:uppercase">Trip Route (Pickup → Dropoff)</label>
-                <div style="font-size:12.5px;color:var(--ink);font-weight:550;line-height:1.4">
-                  <span style="color:#059669">●</span> ${esc(inv.pickup)}<br>
-                  <span style="color:#dc2626">▼</span> ${esc(inv.dropoff)}
-                </div>
-              </div>
-              <div class="detail-field">
-                <label style="font-size:11px;color:var(--muted);text-transform:uppercase">Vehicle Assigned</label>
-                <strong style="color:var(--ink)">${esc(inv.vehicle)}</strong>
-              </div>
-              <div class="detail-field">
-                <label style="font-size:11px;color:var(--muted);text-transform:uppercase">Driver Assigned</label>
-                <strong style="color:var(--ink)">${esc(inv.driver)}</strong>
-              </div>
-              <div class="detail-field">
-                <label style="font-size:11px;color:var(--muted);text-transform:uppercase">Start / End Odometer</label>
-                <strong style="color:var(--ink);font-family:ui-monospace,monospace">${inv.startOdo ? inv.startOdo + ' km' : '—'} → ${inv.endOdo ? inv.endOdo + ' km' : '—'}</strong>
-              </div>
-              <div class="detail-field">
-                <label style="font-size:11px;color:var(--muted);text-transform:uppercase">Distance Traversed</label>
-                <strong style="color:#0284c7;font-size:14px">${inv.distanceKm != null ? `${inv.distanceKm} km` : '—'}</strong>
-              </div>
+            <div style="font-size:12px;color:var(--muted)">
+              GST @ 18% (CGST 9% + SGST 9%) = <strong>${formatAmount(taxAmount)}</strong> · SAC 996601
             </div>
           </div>
 
-          <!-- Itemized Trip Billing Lines -->
-          <div class="detail-section" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:14px;margin-bottom:16px">
-            <h4 style="margin:0 0 10px 0;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding-bottom:8px">
-              <span>${icon('file-text', 14)} Itemized Trip Billing Breakdown</span>
-              <span style="font-size:11px;color:var(--muted)">SAC: 996601</span>
-            </h4>
-            <div class="table-wrap" style="margin-bottom:12px;border:1px solid #f1f5f9;border-radius:6px;overflow:hidden">
-              <table style="width:100%;border-collapse:collapse">
-                <thead>
-                  <tr style="background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:11px;text-transform:uppercase;color:var(--muted)">
-                    <th style="padding:8px 10px;text-align:left;width:30px">#</th>
-                    <th style="padding:8px 10px;text-align:left">Tariff Description</th>
-                    <th style="padding:8px 10px;text-align:center;width:60px">Qty</th>
-                    <th style="padding:8px 10px;text-align:right;width:90px">Rate (₹)</th>
-                    <th style="padding:8px 10px;text-align:right;width:100px">Total (₹)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${linesMarkup}
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Totals & GST Summary -->
-            <div class="breakdown" style="background:#f8fafc;padding:12px;border-radius:6px;font-size:12.5px">
-              <div class="breakdown-row" style="display:flex;justify-content:space-between;margin-bottom:6px">
-                <span style="color:var(--muted)">Trip Subtotal (Taxable Value)</span>
-                <strong>${formatAmount(inv.subtotalPaise / 100)}</strong>
-              </div>
-              <div class="breakdown-row" style="display:flex;justify-content:space-between;margin-bottom:6px">
-                <span style="color:var(--muted)">CGST @ 9%</span>
-                <span>${formatAmount((inv.taxPaise / 2) / 100)}</span>
-              </div>
-              <div class="breakdown-row" style="display:flex;justify-content:space-between;margin-bottom:6px">
-                <span style="color:var(--muted)">SGST @ 9%</span>
-                <span>${formatAmount((inv.taxPaise / 2) / 100)}</span>
-              </div>
-              <div class="breakdown-row" style="display:flex;justify-content:space-between;margin-bottom:8px;padding-bottom:6px;border-bottom:1px dashed #cbd5e1">
-                <span style="color:var(--muted)">Total GST (18%)</span>
-                <span>${formatAmount(inv.taxPaise / 100)}</span>
-              </div>
-              <div class="breakdown-row total" style="display:flex;justify-content:space-between;font-size:15px;color:var(--ink)">
-                <span style="font-weight:700">Grand Total Payable</span>
-                <strong style="color:#1e40af;font-size:16px">${formatAmount(inv.totalPaise / 100)}</strong>
+          <!-- Trip list section with search and pagination -->
+          <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#f8fafc;border-bottom:1px solid #e2e8f0">
+              <h4 style="margin:0;font-size:13px;font-weight:700;color:var(--ink)">${icon('list', 14)} Trip Details (${tripCount} trip${tripCount !== 1 ? 's' : ''})</h4>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="text" id="invoiceTripSearch" placeholder="Search trips..." style="height:28px;padding:0 8px;font-size:12px;border:1px solid #e2e8f0;border-radius:4px;width:160px;outline:none">
+                <select id="invoiceTripPageSize" style="height:28px;padding:0 4px;font-size:11px;border:1px solid #e2e8f0;border-radius:4px">
+                  <option value="10">10 / page</option>
+                  <option value="25" selected>25 / page</option>
+                  <option value="50">50 / page</option>
+                  <option value="100">100 / page</option>
+                </select>
               </div>
             </div>
-          </div>
-
-          <!-- Customer Details -->
-          <div class="detail-section" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:14px">
-            <h4 style="margin:0 0 10px 0;border-bottom:1px solid #f1f5f9;padding-bottom:8px">${icon('user', 14)} Corporate Customer (Bill To)</h4>
-            <div class="detail-grid" style="grid-template-columns:1fr 1fr;gap:10px">
-              <div class="detail-field">
-                <label style="font-size:11px;color:var(--muted);text-transform:uppercase">Customer Name</label>
-                <strong>${esc(inv.customerName)}</strong>
-              </div>
-              <div class="detail-field">
-                <label style="font-size:11px;color:var(--muted);text-transform:uppercase">GSTIN</label>
-                <strong style="font-family:ui-monospace,monospace;color:#1e40af">${esc(inv.customerGstin)}</strong>
-              </div>
-              <div class="detail-field">
-                <label style="font-size:11px;color:var(--muted);text-transform:uppercase">Email &amp; Contact</label>
-                <div style="font-size:12px;color:var(--muted)">${esc(inv.customerEmail)}<br>${esc(inv.customerPhone)}</div>
-              </div>
-              <div class="detail-field">
-                <label style="font-size:11px;color:var(--muted);text-transform:uppercase">Issued Date</label>
-                <div style="font-size:12px">${inv.issuedAt ? esc(formatDate(inv.issuedAt)) : '—'}</div>
-              </div>
+            <div id="invoiceTripTableContainer" style="padding:0;max-height:400px;overflow-y:auto">
+              <div style="padding:30px;text-align:center;color:var(--muted)">Loading trip details...</div>
+            </div>
+            <div id="invoiceTripPagination" style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:12px;color:var(--muted)">
             </div>
           </div>
         </div>
 
         <div class="drawer-footer" style="display:flex;gap:8px;justify-content:flex-end">
-          <button class="btn primary" data-action="drawer-print-tax-invoice" data-invoice="${esc(inv.invoiceId)}">${icon('printer')} Print GST Tax Invoice</button>
+          <button class="btn primary" data-action="drawer-print-tax-invoice" data-invoice="${esc(raw.id)}">${icon('printer')} Print Tax Invoice</button>
           <button class="btn soft" data-close-drawer>Close</button>
         </div>
       `;
@@ -6862,206 +6705,239 @@
       openDrawer();
       drawer.querySelector('[data-close-drawer]')?.addEventListener('click', closeDrawer);
       drawer.querySelector('[data-action="drawer-print-tax-invoice"]')?.addEventListener('click', () => {
-        openPrintableInvoiceModal(inv.invoiceId);
+        openPrintableInvoiceModal(raw.id);
       });
+
+      // Load trips via API with pagination
+      let currentTripPage = 1;
+      let currentTripSearch = '';
+      let currentTripLimit = 25;
+
+      function loadTrips() {
+        const container = document.getElementById('invoiceTripTableContainer');
+        const pagination = document.getElementById('invoiceTripPagination');
+        if (!container) return;
+
+        container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">Loading...</div>';
+
+        const searchParam = currentTripSearch ? '&q=' + encodeURIComponent(currentTripSearch) : '';
+        fetch('/api/invoices/' + encodeURIComponent(raw.id) + '/trips?page=' + currentTripPage + '&limit=' + currentTripLimit + searchParam)
+          .then(r => r.json())
+          .then(data => {
+            if (!data.ok || !data.trips || data.trips.length === 0) {
+              container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">No trips found' + (currentTripSearch ? ' matching "' + esc(currentTripSearch) + '"' : '') + '</div>';
+              if (pagination) pagination.innerHTML = '';
+              return;
+            }
+
+            const rows = data.trips.map((t, idx) => {
+              const rowNum = (data.page - 1) * data.per_page + idx + 1;
+              const km = t.distance_km != null ? t.distance_km + ' km' : '—';
+              const amt = formatAmount((t.amount_paise || 0) / 100);
+              const tripDate = t.reporting_at || t.completed_at;
+              return '<tr style="border-bottom:1px solid #f1f5f9">' +
+                '<td style="padding:7px 10px;font-size:11px;color:var(--muted);text-align:center">' + rowNum + '</td>' +
+                '<td style="padding:7px 10px"><span style="font-family:ui-monospace,monospace;font-size:11.5px;font-weight:750;color:#1e40af;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 7px;border-radius:4px;white-space:nowrap">' + esc(t.trip_id) + '</span></td>' +
+                '<td style="padding:7px 10px;font-size:12px;white-space:nowrap">' + (tripDate ? esc(formatDate(tripDate)) : '—') + '</td>' +
+                '<td style="padding:7px 10px"><div style="font-weight:600;font-size:12px;color:var(--ink)">' + esc(t.passenger_name || '—') + '</div></td>' +
+                '<td style="padding:7px 10px;font-size:11.5px;color:var(--muted)"><div style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(t.pickup_address + ' → ' + t.dropoff_address) + '">' + esc(t.pickup_address || '—') + ' → ' + esc(t.dropoff_address || '—') + '</div></td>' +
+                '<td style="padding:7px 10px;font-size:12px;white-space:nowrap">' + esc(t.vehicle_reg || '—') + '</td>' +
+                '<td style="padding:7px 10px;font-size:12px">' + esc(t.driver_name || '—') + '</td>' +
+                '<td style="padding:7px 10px;font-size:12px;text-align:center;font-family:ui-monospace,monospace;color:#0369a1">' + km + '</td>' +
+                '<td style="padding:7px 10px;text-align:right;font-weight:600;font-size:12px;color:var(--ink)">' + amt + '</td>' +
+              '</tr>';
+            }).join('');
+
+            container.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+              '<thead><tr style="background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:10.5px;text-transform:uppercase;color:var(--muted)">' +
+              '<th style="padding:7px 10px;text-align:center;width:30px">#</th>' +
+              '<th style="padding:7px 10px">Trip ID</th>' +
+              '<th style="padding:7px 10px">Date</th>' +
+              '<th style="padding:7px 10px">Passenger</th>' +
+              '<th style="padding:7px 10px">Route</th>' +
+              '<th style="padding:7px 10px">Vehicle</th>' +
+              '<th style="padding:7px 10px">Driver</th>' +
+              '<th style="padding:7px 10px;text-align:center">KM</th>' +
+              '<th style="padding:7px 10px;text-align:right">Amount</th>' +
+              '</tr></thead><tbody>' + rows + '</tbody></table>';
+
+            // Pagination controls
+            if (pagination) {
+              const totalPages = data.total_pages || 1;
+              const summary = data.summary || {};
+              pagination.innerHTML =
+                '<span>Showing ' + ((data.page - 1) * data.per_page + 1) + '-' + Math.min(data.page * data.per_page, data.total) + ' of ' + data.total + ' trips · ' + (summary.total_km || 0).toLocaleString() + ' km total</span>' +
+                '<div style="display:flex;gap:4px;align-items:center">' +
+                  (data.page > 1 ? '<button class="btn small icon" id="tripPagePrev" title="Previous page">‹</button>' : '') +
+                  '<span style="font-weight:600">Page ' + data.page + ' / ' + totalPages + '</span>' +
+                  (data.page < totalPages ? '<button class="btn small icon" id="tripPageNext" title="Next page">›</button>' : '') +
+                '</div>';
+
+              document.getElementById('tripPagePrev')?.addEventListener('click', () => { currentTripPage--; loadTrips(); });
+              document.getElementById('tripPageNext')?.addEventListener('click', () => { currentTripPage++; loadTrips(); });
+            }
+          })
+          .catch(err => {
+            container.innerHTML = '<div style="padding:20px;text-align:center;color:#dc2626">Failed to load trips: ' + esc(String(err)) + '</div>';
+          });
+      }
+
+      // Search and page size change handlers
+      let searchTimeout;
+      document.getElementById('invoiceTripSearch')?.addEventListener('input', e => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          currentTripSearch = e.target.value.trim();
+          currentTripPage = 1;
+          loadTrips();
+        }, 300);
+      });
+      document.getElementById('invoiceTripPageSize')?.addEventListener('change', e => {
+        currentTripLimit = parseInt(e.target.value);
+        currentTripPage = 1;
+        loadTrips();
+      });
+
+      loadTrips();
     }
 
     function openPrintableInvoiceModal(id) {
       const raw = (state.liveData?.invoices?.items || []).find(item => String(item.invoice_number || item.id) === String(id) || String(item.id) === String(id));
       if (!raw) { showToast('Invoice unavailable', 'Invoice details could not be found.'); return; }
 
-      const inv = getInvoiceBillingData(raw);
+      const tripCount = raw.trip_count || 1;
+      const totalAmount = (Number(raw.total_paise || 0) / 100).toFixed(2);
+      const subtotalPaise = Number(raw.subtotal_paise || Math.round(Number(raw.total_paise || 0) / 1.18));
+      const taxPaise = Number(raw.tax_paise || (Number(raw.total_paise || 0) - subtotalPaise));
+      const cgstVal = ((taxPaise / 2) / 100).toFixed(2);
+      const sgstVal = ((taxPaise / 2) / 100).toFixed(2);
+      const taxableVal = (subtotalPaise / 100).toFixed(2);
 
-      const linesRows = inv.lines.map((l, idx) => {
-        const amt = Number(l.amount_paise || (Number(l.unit_paise || 0) * Number(l.quantity || 1))) / 100;
-        const rate = l.unit_paise ? Number(l.unit_paise) / 100 : amt;
-        return `<tr>
-          <td style="border:1px solid #cbd5e1;padding:8px;text-align:center">${idx + 1}</td>
-          <td style="border:1px solid #cbd5e1;padding:8px">
-            <strong>${esc(l.label || l.code || 'Passenger Transport Charge')}</strong>
-            <div style="font-size:11px;color:#64748b">SAC Code: 996601 · Rental services of transport vehicles with operator</div>
-          </td>
-          <td style="border:1px solid #cbd5e1;padding:8px;text-align:center">${l.quantity || 1}</td>
-          <td style="border:1px solid #cbd5e1;padding:8px;text-align:right">₹${rate.toFixed(2)}</td>
-          <td style="border:1px solid #cbd5e1;padding:8px;text-align:right;font-weight:600">₹${amt.toFixed(2)}</td>
-        </tr>`;
-      }).join('');
+      // Fetch all trips (up to 100 for print) then render
+      fetch('/api/invoices/' + encodeURIComponent(raw.id) + '/trips?page=1&limit=100')
+        .then(r => r.json())
+        .then(data => {
+          const trips = data.trips || [];
+          const summary = data.summary || {};
 
-      const taxableVal = (inv.subtotalPaise / 100).toFixed(2);
-      const cgstVal = ((inv.taxPaise / 2) / 100).toFixed(2);
-      const sgstVal = ((inv.taxPaise / 2) / 100).toFixed(2);
-      const totalVal = (inv.totalPaise / 100).toFixed(2);
+          const tripRows = trips.map((t, idx) => {
+            const km = t.distance_km != null ? t.distance_km : '—';
+            const amt = ((t.amount_paise || 0) / 100).toFixed(2);
+            const tripDate = t.reporting_at || t.completed_at;
+            return '<tr>' +
+              '<td style="border:1px solid #cbd5e1;padding:5px 8px;text-align:center;font-size:11px">' + (idx + 1) + '</td>' +
+              '<td style="border:1px solid #cbd5e1;padding:5px 8px;font-family:monospace;font-weight:700;font-size:11px;color:#1e40af">' + esc(t.trip_id) + '</td>' +
+              '<td style="border:1px solid #cbd5e1;padding:5px 8px;font-size:11px">' + (tripDate ? esc(formatDate(tripDate)) : '—') + '</td>' +
+              '<td style="border:1px solid #cbd5e1;padding:5px 8px;font-size:11px">' + esc(t.passenger_name || '—') + '</td>' +
+              '<td style="border:1px solid #cbd5e1;padding:5px 8px;font-size:10.5px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc((t.pickup_address || '') + ' → ' + (t.dropoff_address || '')) + '</td>' +
+              '<td style="border:1px solid #cbd5e1;padding:5px 8px;font-size:11px">' + esc(t.vehicle_reg || '—') + '</td>' +
+              '<td style="border:1px solid #cbd5e1;padding:5px 8px;font-size:11px">' + esc(t.driver_name || '—') + '</td>' +
+              '<td style="border:1px solid #cbd5e1;padding:5px 8px;text-align:right;font-family:monospace;font-size:11px">' + km + '</td>' +
+              '<td style="border:1px solid #cbd5e1;padding:5px 8px;text-align:right;font-weight:600;font-size:11px">₹' + amt + '</td>' +
+            '</tr>';
+          }).join('');
 
-      const invoiceHtml = `
-        <div id="taxInvoicePrintableSheet" style="background:#ffffff;color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12.5px;line-height:1.5;padding:24px;border:1px solid #cbd5e1;border-radius:8px;max-width:850px;margin:0 auto">
-          <!-- Letterhead Header -->
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1e40af;padding-bottom:16px;margin-bottom:16px">
-            <div>
-              <div style="font-size:22px;font-weight:800;color:#1e40af;letter-spacing:-0.5px">AXIOM FLEET LOGISTICS PVT LTD</div>
-              <div style="font-size:11.5px;color:#475569;margin-top:3px">
-                4th Floor, Whitefield Tech Boulevard, ITPL Main Road, Bengaluru, KA - 560066<br>
-                <strong>GSTIN:</strong> 29AAACA1234F1ZP | <strong>PAN:</strong> AAACA1234F | <strong>State:</strong> 29 - Karnataka<br>
-                Email: billing@axiomfleet.com | Phone: +91 80 4900 1200
-              </div>
-            </div>
-            <div style="text-align:right">
-              <span style="display:inline-block;background:#1e40af;color:#ffffff;font-size:13px;font-weight:750;padding:4px 14px;border-radius:4px;letter-spacing:1px;text-transform:uppercase">TAX INVOICE</span>
-              <div style="font-size:11px;color:#64748b;margin-top:4px">(Original for Recipient)</div>
-            </div>
-          </div>
+          const moreNote = data.total > 100 ? '<div style="text-align:center;padding:8px;font-size:11px;color:#64748b;font-style:italic">... and ' + (data.total - 100) + ' more trips. See full statement for complete list.</div>' : '';
 
-          <!-- Metadata & Bill To Grid -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;border:1px solid #e2e8f0;border-radius:6px;padding:14px;background:#f8fafc;margin-bottom:16px">
-            <div>
-              <div style="font-size:10.5px;font-weight:750;text-transform:uppercase;color:#64748b;margin-bottom:4px">Invoice &amp; Duty Information</div>
-              <div style="font-size:13px"><strong>Invoice No:</strong> <span style="font-family:ui-monospace,monospace;color:#1e40af">${esc(inv.invoiceNumber)}</span></div>
-              <div style="font-size:12px"><strong>Date of Issue:</strong> ${inv.issuedAt ? esc(formatDate(inv.issuedAt)) : '—'}</div>
-              <div style="font-size:12px"><strong>Due Date:</strong> ${inv.dueAt ? esc(formatDate(inv.dueAt)) : 'Immediate / 15 Days'}</div>
-              <div style="font-size:12px"><strong>Place of Supply:</strong> 29 - Karnataka</div>
-            </div>
-            <div>
-              <div style="font-size:10.5px;font-weight:750;text-transform:uppercase;color:#64748b;margin-bottom:4px">Billed To (Client Corporate)</div>
-              <div style="font-size:13px;font-weight:700;color:#0f172a">${esc(inv.customerName)}</div>
-              <div style="font-size:12px"><strong>GSTIN:</strong> <span style="font-family:ui-monospace,monospace;color:#1e40af">${esc(inv.customerGstin)}</span></div>
-              <div style="font-size:11.5px;color:#475569">Email: ${esc(inv.customerEmail)} | Phone: ${esc(inv.customerPhone)}</div>
-              <div style="font-size:11.5px;color:#475569">State: 29 - Karnataka (Domestic corporate hire)</div>
-            </div>
-          </div>
-
-          <!-- Trip Details Highlight Card (Trip ID MUST) -->
-          <div style="border:1.5px solid #3b82f6;border-radius:6px;padding:12px 14px;background:#eff6ff;margin-bottom:16px">
-            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #bfdbfe;padding-bottom:8px;margin-bottom:10px">
-              <div style="display:flex;align-items:center;gap:8px">
-                <span style="background:#2563eb;color:#ffffff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:0.5px">TRIP ID (MUST)</span>
-                <span style="font-family:ui-monospace,monospace;font-size:14px;font-weight:800;color:#1e40af">${esc(inv.tripId)}</span>
-              </div>
-              <div style="font-size:12px;color:#1e40af">
-                Booking Reference: <strong style="font-family:ui-monospace,monospace">${esc(inv.bookingRef)}</strong> · Duty: <strong>${esc(inv.dutyType)}</strong>
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:12px;font-size:12px">
-              <div>
-                <div><strong>Passenger:</strong> ${esc(inv.passengerName)} ${inv.passengerPhone ? `(${esc(inv.passengerPhone)})` : ''}</div>
-                <div style="margin-top:4px">
-                  <strong>Route:</strong><br>
-                  <span style="color:#059669">From:</span> ${esc(inv.pickup)}<br>
-                  <span style="color:#dc2626">To:</span> ${esc(inv.dropoff)}
+          const invoiceHtml = `
+            <div id="taxInvoicePrintableSheet" style="background:#ffffff;color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;padding:24px;border:1px solid #cbd5e1;border-radius:8px;max-width:900px;margin:0 auto">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1e40af;padding-bottom:14px;margin-bottom:14px">
+                <div>
+                  <div style="font-size:20px;font-weight:800;color:#1e40af;letter-spacing:-0.5px">AXIOM FLEET LOGISTICS PVT LTD</div>
+                  <div style="font-size:11px;color:#475569;margin-top:2px">
+                    4th Floor, Whitefield Tech Boulevard, ITPL Main Road, Bengaluru, KA - 560066<br>
+                    <strong>GSTIN:</strong> 29AAACA1234F1ZP | <strong>PAN:</strong> AAACA1234F | <strong>State:</strong> 29 - Karnataka<br>
+                    Email: billing@axiomfleet.com | Phone: +91 80 4900 1200
+                  </div>
+                </div>
+                <div style="text-align:right">
+                  <span style="display:inline-block;background:#1e40af;color:#ffffff;font-size:12px;font-weight:750;padding:3px 12px;border-radius:4px;letter-spacing:1px;text-transform:uppercase">TAX INVOICE</span>
+                  <div style="font-size:10px;color:#64748b;margin-top:3px">(Original for Recipient)</div>
                 </div>
               </div>
-              <div>
-                <div><strong>Vehicle:</strong> ${esc(inv.vehicle)}</div>
-                <div style="margin-top:2px"><strong>Driver:</strong> ${esc(inv.driver)}</div>
-                <div style="margin-top:2px">
-                  <strong>Odometer:</strong> ${inv.startOdo ? inv.startOdo + ' km' : '—'} → ${inv.endOdo ? inv.endOdo + ' km' : '—'}
-                  ${inv.distanceKm != null ? ` (<strong>${inv.distanceKm} km traversed</strong>)` : ''}
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;border:1px solid #e2e8f0;border-radius:6px;padding:12px;background:#f8fafc;margin-bottom:14px;font-size:11.5px">
+                <div>
+                  <div style="font-size:10px;font-weight:750;text-transform:uppercase;color:#64748b;margin-bottom:3px">Invoice Details</div>
+                  <div><strong>Invoice No:</strong> <span style="font-family:monospace;color:#1e40af">${esc(raw.invoice_number || raw.id)}</span></div>
+                  <div><strong>Date of Issue:</strong> ${raw.issued_at ? esc(formatDate(raw.issued_at)) : '—'}</div>
+                  <div><strong>Place of Supply:</strong> 29 - Karnataka</div>
+                  <div><strong>Total Trips:</strong> ${data.total} | <strong>Total KM:</strong> ${(summary.total_km || 0).toLocaleString()} km</div>
+                </div>
+                <div>
+                  <div style="font-size:10px;font-weight:750;text-transform:uppercase;color:#64748b;margin-bottom:3px">Billed To</div>
+                  <div style="font-size:12px;font-weight:700;color:#0f172a">${esc(raw.customer_name || 'Corporate Customer')}</div>
+                  <div><strong>GSTIN:</strong> <span style="font-family:monospace;color:#1e40af">${esc(raw.customer_gstin || '—')}</span></div>
+                  <div>State: 29 - Karnataka</div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- Itemized Lines Table -->
-          <table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12px">
-            <thead>
-              <tr style="background:#f1f5f9;color:#334155;font-size:11px;text-transform:uppercase">
-                <th style="border:1px solid #cbd5e1;padding:8px;text-align:center;width:35px">#</th>
-                <th style="border:1px solid #cbd5e1;padding:8px;text-align:left">Description &amp; SAC Code</th>
-                <th style="border:1px solid #cbd5e1;padding:8px;text-align:center;width:60px">Qty</th>
-                <th style="border:1px solid #cbd5e1;padding:8px;text-align:right;width:100px">Unit Rate (₹)</th>
-                <th style="border:1px solid #cbd5e1;padding:8px;text-align:right;width:110px">Amount (₹)</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${linesRows}
-            </tbody>
-          </table>
-
-          <!-- Financial Calculation Breakdown -->
-          <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:20px;margin-bottom:16px">
-            <div style="border:1px solid #e2e8f0;border-radius:6px;padding:12px;background:#f8fafc;font-size:11.5px">
-              <div style="font-weight:700;color:#0f172a;margin-bottom:4px">Bank Remittance &amp; Payment Details</div>
-              <div><strong>Account Name:</strong> Axiom Fleet Logistics Pvt Ltd</div>
-              <div><strong>Bank Name:</strong> HDFC Bank Ltd, Indiranagar Branch</div>
-              <div><strong>Account Number:</strong> 50200088991122</div>
-              <div><strong>IFSC Code:</strong> HDFC0000281</div>
-              <div style="margin-top:6px;color:#64748b;font-size:11px">SAC 996601: Passenger transport services in chauffeur-driven motor vehicles.</div>
-            </div>
-            <div>
-              <table style="width:100%;border-collapse:collapse;font-size:12px">
-                <tr>
-                  <td style="padding:4px 8px;color:#475569">Taxable Subtotal:</td>
-                  <td style="padding:4px 8px;text-align:right;font-weight:600">₹${taxableVal}</td>
-                </tr>
-                <tr>
-                  <td style="padding:4px 8px;color:#475569">CGST @ 9%:</td>
-                  <td style="padding:4px 8px;text-align:right">₹${cgstVal}</td>
-                </tr>
-                <tr>
-                  <td style="padding:4px 8px;color:#475569">SGST @ 9%:</td>
-                  <td style="padding:4px 8px;text-align:right">₹${sgstVal}</td>
-                </tr>
-                <tr style="border-top:2px solid #cbd5e1;border-bottom:2px solid #cbd5e1;background:#f8fafc">
-                  <td style="padding:8px 8px;font-weight:800;color:#0f172a;font-size:13.5px">Total Net Amount:</td>
-                  <td style="padding:8px 8px;text-align:right;font-weight:800;color:#1e40af;font-size:14.5px">₹${totalVal}</td>
-                </tr>
+              <table style="width:100%;border-collapse:collapse;margin-bottom:4px;font-size:11px">
+                <thead>
+                  <tr style="background:#f1f5f9;color:#334155;font-size:10px;text-transform:uppercase">
+                    <th style="border:1px solid #cbd5e1;padding:6px;text-align:center;width:28px">#</th>
+                    <th style="border:1px solid #cbd5e1;padding:6px">Trip ID</th>
+                    <th style="border:1px solid #cbd5e1;padding:6px">Date</th>
+                    <th style="border:1px solid #cbd5e1;padding:6px">Passenger</th>
+                    <th style="border:1px solid #cbd5e1;padding:6px">Route</th>
+                    <th style="border:1px solid #cbd5e1;padding:6px">Vehicle</th>
+                    <th style="border:1px solid #cbd5e1;padding:6px">Driver</th>
+                    <th style="border:1px solid #cbd5e1;padding:6px;text-align:right;width:55px">KM</th>
+                    <th style="border:1px solid #cbd5e1;padding:6px;text-align:right;width:80px">Amount (₹)</th>
+                  </tr>
+                </thead>
+                <tbody>${tripRows}</tbody>
               </table>
+              ${moreNote}
+
+              <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin:14px 0;font-size:11.5px">
+                <div style="border:1px solid #e2e8f0;border-radius:6px;padding:10px;background:#f8fafc">
+                  <div style="font-weight:700;color:#0f172a;margin-bottom:3px">Bank Remittance Details</div>
+                  <div><strong>Account:</strong> Axiom Fleet Logistics Pvt Ltd</div>
+                  <div><strong>Bank:</strong> HDFC Bank Ltd, Indiranagar Branch</div>
+                  <div><strong>A/C No:</strong> 50200088991122 | <strong>IFSC:</strong> HDFC0000281</div>
+                  <div style="margin-top:4px;color:#64748b;font-size:10.5px">SAC 996601: Passenger transport in chauffeur-driven motor vehicles.</div>
+                </div>
+                <div>
+                  <table style="width:100%;border-collapse:collapse;font-size:12px">
+                    <tr><td style="padding:3px 8px;color:#475569">Taxable Subtotal:</td><td style="padding:3px 8px;text-align:right;font-weight:600">₹${taxableVal}</td></tr>
+                    <tr><td style="padding:3px 8px;color:#475569">CGST @ 9%:</td><td style="padding:3px 8px;text-align:right">₹${cgstVal}</td></tr>
+                    <tr><td style="padding:3px 8px;color:#475569">SGST @ 9%:</td><td style="padding:3px 8px;text-align:right">₹${sgstVal}</td></tr>
+                    <tr style="border-top:2px solid #cbd5e1;background:#f8fafc"><td style="padding:6px 8px;font-weight:800;font-size:13px">Net Amount:</td><td style="padding:6px 8px;text-align:right;font-weight:800;color:#1e40af;font-size:14px">₹${totalAmount}</td></tr>
+                  </table>
+                </div>
+              </div>
+
+              <div style="display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid #e2e8f0;padding-top:12px;font-size:10.5px;color:#64748b">
+                <div>
+                  <strong>Declaration:</strong><br>
+                  We declare that this invoice shows the actual price of services provided<br>
+                  and that all particulars described herein are true and correct.
+                </div>
+                <div style="text-align:center">
+                  <div style="font-weight:700;color:#0f172a">For Axiom Fleet Logistics Pvt Ltd</div>
+                  <div style="height:35px"></div>
+                  <div style="border-top:1px dashed #94a3b8;padding-top:2px;font-size:10px">Authorized Signatory</div>
+                </div>
+              </div>
             </div>
-          </div>
+          `;
 
-          <!-- Signoff & Footer -->
-          <div style="display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid #e2e8f0;padding-top:14px;font-size:11px;color:#64748b">
-            <div>
-              <strong>Declaration:</strong><br>
-              We declare that this invoice shows the actual price of services provided<br>
-              and that all particulars described herein are true and correct.
-            </div>
-            <div style="text-align:center">
-              <div style="font-weight:700;color:#0f172a">For Axiom Fleet Logistics Pvt Ltd</div>
-              <div style="height:40px"></div>
-              <div style="border-top:1px dashed #94a3b8;padding-top:2px;font-size:10.5px">Authorized Signatory</div>
-            </div>
-          </div>
-        </div>
-      `;
+          const footer = '<button class="btn primary" id="btnExecutePrintDoc">' + icon('printer') + ' Print / Save PDF</button><button class="btn" data-close-modal>Close</button>';
 
-      const footer = `
-        <button class="btn primary" id="btnExecutePrintDoc">${icon('printer')} Print / Save PDF</button>
-        <button class="btn" data-close-modal>Close</button>
-      `;
+          modalShell('Tax Invoice · ' + esc(raw.invoice_number || raw.id), tripCount + ' trip' + (tripCount !== 1 ? 's' : '') + ' · ' + (summary.total_km || 0).toLocaleString() + ' km · ₹' + totalAmount, invoiceHtml, footer);
 
-      modalShell(`GST Tax Invoice · ${esc(inv.invoiceNumber)}`, `Official B2B Tax Invoice with mandatory Trip ID [${esc(inv.tripId)}] and itemized trip billing breakdown.`, invoiceHtml, footer);
-
-      document.getElementById('btnExecutePrintDoc')?.addEventListener('click', () => {
-        const printWindow = window.open('', '_blank', 'width=900,height=800');
-        if (printWindow) {
-          printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <title>Tax Invoice ${esc(inv.invoiceNumber)} - ${esc(inv.tripId)}</title>
-              <style>
-                @page { size: A4; margin: 15mm; }
-                body { margin: 0; padding: 10px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-                @media print {
-                  body { padding: 0; }
-                }
-              </style>
-            </head>
-            <body>
-              ${document.getElementById('taxInvoicePrintableSheet')?.outerHTML || ''}
-              <script>
-                window.onload = function() {
-                  window.focus();
-                  window.print();
-                };
-              <` + `/script>
-            </body>
-            </html>
-          `);
-          printWindow.document.close();
-        } else {
-          window.print();
-        }
-      });
+          document.getElementById('btnExecutePrintDoc')?.addEventListener('click', () => {
+            const printWin = window.open('', '_blank', 'width=950,height=850');
+            if (printWin) {
+              printWin.document.write('<!DOCTYPE html><html><head><title>Tax Invoice ' + esc(raw.invoice_number || raw.id) + '</title><style>@page{size:A4;margin:12mm}body{margin:0;padding:10px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}@media print{body{padding:0}}</style></head><body>' + (document.getElementById('taxInvoicePrintableSheet')?.outerHTML || '') + '<scr' + 'ipt>window.onload=function(){window.focus();window.print()}</scr' + 'ipt></body></html>');
+              printWin.document.close();
+            } else { window.print(); }
+          });
+        })
+        .catch(err => {
+          showToast('Error', 'Failed to load invoice data for printing: ' + String(err));
+        });
     }
 
     function openDrawer() { const drawer=document.getElementById('drawer'); drawer.setAttribute('role','dialog'); drawer.setAttribute('aria-modal','true'); drawer.setAttribute('aria-label','Record detail'); drawer.setAttribute('aria-hidden','false'); drawer.classList.add('open'); document.getElementById('drawerBackdrop').classList.add('open'); drawer.querySelector('[data-close-drawer]')?.focus(); }
@@ -8830,14 +8706,38 @@
       modal.querySelector('[data-review-invoice-selection]')?.addEventListener('click', () => showToast('Invoice selection', `${completedDuties.length} calculated completed duty${completedDuties.length === 1 ? '' : 'ies'} are eligible in the current tenant.`));
       modal.querySelector('[data-submit-invoice]').addEventListener('click', async () => {
         const customerId = modal.querySelector('[data-invoice-field="customer"]')?.value || '';
-        const duty = completedDuties.find(item => !item.invoice_id) || completedDuties[0];
+        const invType = modal.querySelector('[data-invoice-field="type"]')?.value || 'consolidated';
+        const fromDate = modal.querySelector('[data-invoice-field="from"]')?.value || '';
+        const toDate = modal.querySelector('[data-invoice-field="to"]')?.value || '';
+
         if (!customerId) { showToast('Customer required', 'Select a tenant customer before building an invoice.'); return; }
-        if (!duty) { showToast('No calculated duty', 'Complete and calculate at least one tenant duty before building an invoice.'); return; }
+
+        // Find eligible duties for this customer
+        let eligible = completedDuties.filter(item => {
+          if (item.customer_id && item.customer_id !== customerId) return false;
+          if (fromDate && item.reporting_at && item.reporting_at < fromDate) return false;
+          if (toDate && item.reporting_at && item.reporting_at > toDate + 'T23:59:59') return false;
+          return true;
+        });
+
+        if (!eligible.length) eligible = completedDuties.slice(0, 10);
+        if (!eligible.length) { showToast('No calculated duties', 'Complete and calculate at least one duty before building an invoice.'); return; }
+
         const submit = modal.querySelector('[data-submit-invoice]'); submit.disabled = true;
         try {
-          const created = await apiRequest('/api/invoices', {method:'POST', body:JSON.stringify({duty_id:duty.id, customer_id:customerId, invoice_type:modal.querySelector('[data-invoice-field="type"]')?.value || 'single'})});
+          const dutyIds = invType === 'single' ? [eligible[0].id] : eligible.map(d => d.id);
+          const payload = {
+            duty_ids: dutyIds,
+            customer_id: customerId,
+            invoice_type: invType,
+            billing_period_from: fromDate || undefined,
+            billing_period_to: toDate || undefined
+          };
+          const created = await apiRequest('/api/invoices', {method:'POST', body:JSON.stringify(payload)});
           await apiRequest(`/api/invoices/${encodeURIComponent(created.item.id)}/issue`, {method:'POST', body:JSON.stringify({})});
-          closeModal(); showToast('Invoice issued', `${created.item.invoice_number || created.item.id} is now recorded in the tenant ledger.`); await hydrateOperationalData();
+          closeModal();
+          showToast('Invoice issued', `${created.item.invoice_number || created.item.id} covering ${dutyIds.length} trip(s) recorded in ledger.`);
+          await hydrateOperationalData();
         } catch (error) { submit.disabled = false; showToast('Invoice build failed', error.message); }
       });
     }
