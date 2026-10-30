@@ -2694,7 +2694,23 @@
           <div class="nav-accordion-group" data-section="commercial">
             <div class="nav-section-items" id="section-items-commercial">
               <div class="nav-section-items-inner">
-                <button class="nav-item" data-page="customers" data-tooltip="Customers &amp; pricing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM16 3.2a4 4 0 0 1 0 7.7M17 15h1a4 4 0 0 1 4 4v2"/></svg><span>Customers &amp; pricing</span></button>
+                <!-- Customers & Pricing Menu with Submenu Items -->
+                <div class="nav-parent-item-group" style="margin-bottom:2px">
+                  <button class="nav-item" data-page="customers" id="navItemCommercial" data-tooltip="Customers &amp; pricing" style="font-weight:650">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM16 3.2a4 4 0 0 1 0 7.7M17 15h1a4 4 0 0 1 4 4v2"/></svg>
+                    <span>Customers &amp; pricing</span>
+                  </button>
+                  <div class="nav-sub-items-container" style="padding-left:14px;margin-left:16px;border-left:2px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;gap:1px;margin-top:2px;margin-bottom:4px">
+                    <button class="nav-item nav-sub-child" data-page="customers" data-tooltip="Customer entities &amp; pricing" style="padding:6px 10px;font-size:11.5px">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg>
+                      <span>Customers</span>
+                    </button>
+                    <button class="nav-item nav-sub-child" data-page="suppliers" data-tooltip="Supplier partners &amp; payouts" style="padding:6px 10px;font-size:11.5px">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="m8.5 10.5 7-3M8.5 13.5l7 3"/></svg>
+                      <span>Suppliers</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -2847,7 +2863,7 @@
     // All workspace records are tenant-scoped API data. The console deliberately
     // starts empty when a tenant has no records; no demo roster or invoice rows
     // are embedded in the product bundle.
-    const navTitles = { overview:'Operations overview', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', 'driver-payouts':'Driver payouts & settlements', 'vehicle-pnl':'Vehicle lifecycle & P&L analytics', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & pricing', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls', 'axiom-hq':'Axiom Fleet HQ Command Center' };
+    const navTitles = { overview:'Operations overview', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', 'driver-payouts':'Driver payouts & settlements', 'vehicle-pnl':'Vehicle lifecycle & P&L analytics', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & corporate pricing', suppliers:'Suppliers & partner rates', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls', 'axiom-hq':'Axiom Fleet HQ Command Center' };
     const savedActivePage = (function() {
       try {
         const p = sessionStorage.getItem('axiomfleet_active_page');
@@ -2858,7 +2874,7 @@
     const state = { page: savedActivePage, dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
-    const advancedPages = new Set(['customers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq']);
+    const advancedPages = new Set(['customers','suppliers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq']);
     let advancedNavOpen = false;
 
     const esc = (value='') => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -3140,7 +3156,8 @@
             if (item.dataset.page === 'overview') span.textContent = 'Overview';
             else if (item.dataset.page === 'bookings') span.textContent = 'Bookings';
             else if (item.dataset.page === 'duties') span.textContent = 'Duties board';
-            else if (item.dataset.page === 'customers') span.textContent = 'Customers & pricing';
+            else if (item.dataset.page === 'customers') span.textContent = item.classList.contains('nav-sub-child') ? 'Customers' : 'Customers & pricing';
+            else if (item.dataset.page === 'suppliers') span.textContent = 'Suppliers';
             else if (item.dataset.page === 'billing') span.textContent = 'Billing & receipts';
             else if (item.dataset.page === 'settings') span.textContent = 'Settings';
             else if (item.dataset.page === 'passenger') span.textContent = 'Passenger view';
@@ -3386,8 +3403,14 @@
       if (state.hydration.status === 'error' && !state.liveData) { content.innerHTML = renderErrorState(); attachPageEvents(); return; }
       topbarTitle.textContent = currentUser?.role === 'corporate' && state.page === 'overview' ? 'Corporate account workspace' : (navTitles[state.page] || 'Operations overview');
       document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.page === state.page));
+      const commercialParent = document.getElementById('navItemCommercial');
+      if (commercialParent) commercialParent.classList.toggle('active', state.page === 'customers' || state.page === 'suppliers');
+      const vehiclesParent = document.getElementById('navItemVehicles');
+      if (vehiclesParent) vehiclesParent.classList.toggle('active', state.page === 'vehicles' || state.page === 'vehicle-pnl');
+      const driversParent = document.getElementById('navItemDrivers');
+      if (driversParent) driversParent.classList.toggle('active', state.page === 'drivers' || state.page === 'driver-payouts');
       syncAdvancedNavigation();
-      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ };
+      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, suppliers: renderSuppliers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ };
       content.innerHTML = (pages[state.page] || renderOverview)();
       attachPageEvents();
       decorateResponsiveTables();
@@ -5017,9 +5040,134 @@
 
     function renderCustomers() {
       const customers = state.liveData?.customers?.items || [];
-      const suppliers = state.liveData?.suppliers?.items || [];
       const employees = state.liveData?.employees?.items || [];
-      return `${pageHead('Workspace setup · people & accounts','Customers and people','Connected customer entities, suppliers and the tenant people directory that powers corporate account scope.',`${button(icon('plus')+'Add customer','primary','data-action="add-customer"')}${button(icon('file')+'Contract pricing','','data-action="pricing-contract"')}${button(icon('copy')+'Copy Pricing','','data-action="copy-pricing"')}${button(icon('building')+'My Companies','','data-action="my-companies"')}${button(icon('users')+'People & access','','data-action="corporate-people"')}`)}<div class="grid three-col"><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Customer entities</span><span class="kpi-icon">${icon('building')}</span></div><div class="kpi-value">${customers.length}</div><div class="kpi-foot">Visibility scope source</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Supplier accounts</span><span class="kpi-icon teal">${icon('link')}</span></div><div class="kpi-value">${suppliers.length}</div><div class="kpi-foot">Connected supplier records</div></div><div class="card kpi purple"><div class="kpi-top"><span class="kpi-label">Employee records</span><span class="kpi-icon purple">${icon('users')}</span></div><div class="kpi-value">${employees.length}</div><div class="kpi-foot">Invite and role setup source</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead('Customer entities','Corporate visibility can be limited by customer entity.')}<div class="table-wrap"><table><thead><tr><th>Customer</th><th>City</th><th>Status</th></tr></thead><tbody>${customers.length ? customers.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span><span class="secondary">${esc(item.code || item.email || item.id)}</span></td><td>${esc(item.city || 'City not added')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td></tr>`).join('') : tenantTableEmpty('No customer entities returned','Add the first customer entity before restricting visibility by account.',button(icon('plus')+'Add customer','small soft','data-action="add-customer"'))}</tbody></table></div></section><section class="card section-card">${cardHead('Supplier accounts','Supplier selection and auto-allotment depend on tenant scope.')}<div class="table-wrap"><table><thead><tr><th>Supplier</th><th>Coverage</th><th>Status</th></tr></thead><tbody>${suppliers.length ? suppliers.map(item => `<tr><td><span class="primary">${esc(item.name || item.id)}</span><span class="secondary">${esc(item.code || item.id)}</span></td><td>${esc(item.city || item.coverage || 'Coverage not added')}</td><td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td></tr>`).join('') : tenantTableEmpty('No suppliers returned','Add the first supplier account before offering supplier selection.',button(icon('plus')+'Add supplier','small soft','data-action="add-supplier"'))}</tbody></table></div></section></div>`;
+      const contracts = state.followonData?.['/api/pricing/contracts']?.items || [];
+      const customerContracts = contracts.filter(c => c.contract_type === 'customer' || !c.contract_type);
+
+      return `${pageHead('Commercial · Corporate accounts & pricing','Customers and corporate pricing','Connected corporate client accounts, contract rate cards, duty packages and passenger permissions.',`${button(icon('plus')+'Add customer','primary','data-action="add-customer"')}${button(icon('file')+'Contract pricing','','data-action="pricing-contract"')}${button(icon('copy')+'Copy Pricing','','data-action="copy-pricing"')}${button(icon('building')+'My Companies','','data-action="my-companies"')}${button(icon('users')+'People & access','','data-action="corporate-people"')}`)}
+        <div class="grid three-col">
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Customer entities</span><span class="kpi-icon">${icon('building')}</span></div>
+            <div class="kpi-value">${customers.length}</div>
+            <div class="kpi-foot">Active corporate client accounts</div>
+          </div>
+          <div class="card kpi teal">
+            <div class="kpi-top"><span class="kpi-label">Corporate employees</span><span class="kpi-icon teal">${icon('users')}</span></div>
+            <div class="kpi-value">${employees.length}</div>
+            <div class="kpi-foot">Connected roster &amp; corporate bookers</div>
+          </div>
+          <div class="card kpi purple">
+            <div class="kpi-top"><span class="kpi-label">Rate card agreements</span><span class="kpi-icon purple">${icon('file')}</span></div>
+            <div class="kpi-value">${customerContracts.length || customers.length}</div>
+            <div class="kpi-foot">Active corporate pricing tariffs</div>
+          </div>
+        </div>
+
+        <section class="card section-card" style="margin-top:16px">
+          ${cardHead('Corporate customer entities & rate cards', 'Corporate visibility, rate agreements, billing packages, and client-specific SLAs.', button(icon('plus')+'Add customer', 'small soft', 'data-action="add-customer"'))}
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Customer Entity</th>
+                  <th>Operating City / Hub</th>
+                  <th>Contract Tariff</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${customers.length ? customers.map(item => `
+                  <tr>
+                    <td>
+                      <span class="primary">${esc(item.name || item.id)}</span>
+                      <span class="secondary">${esc(item.code || item.email || item.id)}</span>
+                    </td>
+                    <td>${esc(item.city || 'All Operating Cities')}</td>
+                    <td>
+                      <span class="pill primary" style="font-size:11px;padding:2px 8px;font-weight:600">Standard Corporate Tariff</span>
+                    </td>
+                    <td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td>
+                    <td>
+                      <button class="btn small soft" data-action="pricing-contract" data-customer-id="${esc(item.id)}" title="Configure tariff">${icon('file')} Rate card</button>
+                    </td>
+                  </tr>
+                `).join('') : tenantTableEmpty('No customer entities returned', 'Add the first customer entity before restricting visibility by account.', button(icon('plus')+'Add customer', 'small soft', 'data-action="add-customer"'))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderSuppliers() {
+      const suppliers = state.liveData?.suppliers?.items || [];
+      const vehicles = state.liveData?.vehicles?.items || [];
+      const supplierVehicles = vehicles.filter(v => (v.ownership || '').toLowerCase() === 'supplier' || v.supplier_id);
+      const contracts = state.followonData?.['/api/pricing/contracts']?.items || [];
+      const supplierContracts = contracts.filter(c => c.contract_type === 'supplier');
+
+      return `${pageHead('Commercial · Supplier fleet & payouts','Suppliers and partner fleet','Supplier selection, partner rate cards, vehicle payouts and outsourced fleet operators.',`${button(icon('plus')+'Add supplier','primary','data-action="add-supplier"')}${button(icon('file')+'Supplier payout card','','data-action="supplier-pricing-contract"')}${button(icon('copy')+'Copy Pricing','','data-action="copy-pricing"')}${button(icon('car')+'Supplier vehicles','','data-action="view-supplier-vehicles"')}`)}
+        <div class="grid three-col">
+          <div class="card kpi teal">
+            <div class="kpi-top"><span class="kpi-label">Supplier partners</span><span class="kpi-icon teal">${icon('link')}</span></div>
+            <div class="kpi-value">${suppliers.length}</div>
+            <div class="kpi-foot">Connected fleet supplier records</div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Supplier fleet</span><span class="kpi-icon">${icon('car')}</span></div>
+            <div class="kpi-value">${supplierVehicles.length}</div>
+            <div class="kpi-foot">Active partner-attached vehicles</div>
+          </div>
+          <div class="card kpi purple">
+            <div class="kpi-top"><span class="kpi-label">Vendor payout agreements</span><span class="kpi-icon purple">${icon('wallet')}</span></div>
+            <div class="kpi-value">${supplierContracts.length || suppliers.length}</div>
+            <div class="kpi-foot">Agreed vendor tariff &amp; slab payouts</div>
+          </div>
+        </div>
+
+        <section class="card section-card" style="margin-top:16px">
+          ${cardHead('Supplier fleet partners & accounts', 'Supplier selection, duty auto-allotment, and vendor rate card settlements depend on supplier partner agreements.', button(icon('plus')+'Add supplier', 'small soft', 'data-action="add-supplier"'))}
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Supplier Partner</th>
+                  <th>Coverage / City</th>
+                  <th>Attached Fleet</th>
+                  <th>Payout Agreement</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${suppliers.length ? suppliers.map(item => {
+                  const attachedCount = vehicles.filter(v => v.supplier_id === item.id || (v.ownership === 'supplier' && v.supplier_name === item.name)).length;
+                  return `
+                    <tr>
+                      <td>
+                        <span class="primary">${esc(item.name || item.id)}</span>
+                        <span class="secondary">${esc(item.code || item.id)}</span>
+                      </td>
+                      <td>${esc(item.city || item.coverage || 'All Operating Cities')}</td>
+                      <td>
+                        <button class="btn small soft" data-action="view-supplier-vehicles" style="padding:2px 8px;font-size:11px">${icon('car')} ${attachedCount} vehicle${attachedCount === 1 ? '' : 's'}</button>
+                      </td>
+                      <td>
+                        <span class="pill amber" style="font-size:11px;padding:2px 8px;font-weight:600">Standard Vendor Payout</span>
+                      </td>
+                      <td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td>
+                      <td>
+                        <button class="btn small soft" data-action="supplier-pricing-contract" data-supplier-id="${esc(item.id)}" title="Configure vendor payout">${icon('file')} Payout card</button>
+                      </td>
+                    </tr>
+                  `;
+                }).join('') : tenantTableEmpty('No suppliers returned', 'Add the first supplier account before offering supplier selection and vendor dispatch.', button(icon('plus')+'Add supplier', 'small soft', 'data-action="add-supplier"'))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
     }
 
     function renderReports() {
@@ -7002,7 +7150,14 @@
         'add-branch': () => openBranchModal(),
         'masters-help': () => showToast('Masters are the operating foundation','Set up each reference record once, then reuse it across bookings, duties, billing and Network workflows.'),
         'add-customer': () => openCustomerModal(),
-        'pricing-contract': () => openPricingContractModal(),
+        'pricing-contract': () => openPricingContractModal('customer', el?.dataset?.customerId),
+        'supplier-pricing-contract': () => openPricingContractModal('supplier', el?.dataset?.supplierId),
+        'view-supplier-vehicles': () => {
+          state.page = 'vehicles';
+          state.vehicleOwnershipFilter = 'supplier';
+          try { window.location.hash = '#vehicles'; } catch (_) {}
+          render();
+        },
         'copy-pricing': () => openCopyPricingModal(),
         'my-companies': () => openLegalEntitiesModal(),
         'new-price-book': () => openPriceBookModal(),
@@ -9956,7 +10111,7 @@ function openDriverModal(existing) {
       });
     }
 
-    function openPricingContractModal() {
+    function openPricingContractModal(defaultScope = 'customer', defaultEntityId = null) {
       const customers = state.liveData?.customers?.items || [];
       const suppliers = state.liveData?.suppliers?.items || [];
       const branches = state.liveData?.branches?.items || [];
@@ -9965,32 +10120,33 @@ function openDriverModal(existing) {
       if (!cities.includes('Mumbai')) cities.push('Mumbai');
       if (!cities.includes('Delhi')) cities.push('Delhi');
 
-      const customerOptions = customers.map(item => `<option value="${esc(item.id)}">${esc(item.name || item.id)}</option>`).join('') || '<option value="">No customers returned</option>';
-      const supplierOptions = suppliers.map(item => `<option value="${esc(item.id)}">${esc(item.name || item.id)}</option>`).join('') || '<option value="">No suppliers returned</option>';
+      const isSupplier = defaultScope === 'supplier';
+      const customerOptions = customers.map(item => `<option value="${esc(item.id)}" ${(!isSupplier && defaultEntityId === item.id) ? 'selected' : ''}>${esc(item.name || item.id)}</option>`).join('') || '<option value="">No customers returned</option>';
+      const supplierOptions = suppliers.map(item => `<option value="${esc(item.id)}" ${(isSupplier && defaultEntityId === item.id) ? 'selected' : ''}>${esc(item.name || item.id)}</option>`).join('') || '<option value="">No suppliers returned</option>';
       const cityOptions = `<option value="">All Cities (Global Default)</option>` + cities.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
 
       const body = `
         <div class="form-grid">
           <div class="form-group full">
             <label>Contract Name <span class="required">*</span></label>
-            <input class="form-input" data-contract-field="name" id="contractNameInput" placeholder="e.g. Infosys Bengaluru - Corporate Sedan &amp; SUV 2026">
+            <input class="form-input" data-contract-field="name" id="contractNameInput" placeholder="${isSupplier ? 'e.g. Apex Mobility - Supplier Sedan &amp; SUV Payout 2026' : 'e.g. Infosys Bengaluru - Corporate Sedan &amp; SUV 2026'}">
           </div>
           <div class="form-group">
             <label>Contract Scope <span class="required">*</span></label>
             <select class="form-input" data-contract-field="scope" id="contractScope">
-              <option value="customer" selected>Customer Pricing (Corporate Client)</option>
-              <option value="supplier">Supplier Payout (Vendor Rate)</option>
+              <option value="customer" ${!isSupplier ? 'selected' : ''}>Customer Pricing (Corporate Client)</option>
+              <option value="supplier" ${isSupplier ? 'selected' : ''}>Supplier Payout (Vendor Rate)</option>
             </select>
           </div>
-          <div class="form-group" id="contractCustomerGroup">
+          <div class="form-group" id="contractCustomerGroup" style="${isSupplier ? 'display:none' : ''}">
             <label>Corporate Customer <span class="required">*</span></label>
             <select class="form-input" data-contract-field="customer">
               <option value="">Select corporate customer…</option>
               ${customerOptions}
             </select>
           </div>
-          <div class="form-group" id="contractSupplierGroup" style="display:none">
-            <label>Supplier Partner</label>
+          <div class="form-group" id="contractSupplierGroup" style="${!isSupplier ? 'display:none' : ''}">
+            <label>Supplier Partner <span class="required">*</span></label>
             <select class="form-input" data-contract-field="supplier">
               <option value="">Select supplier partner…</option>
               ${supplierOptions}
@@ -10114,6 +10270,7 @@ function openDriverModal(existing) {
         const customerId = scope === 'customer' ? (read('customer') || null) : null;
         const supplierId = scope === 'supplier' ? (read('supplier') || null) : null;
         if (scope === 'customer' && !customerId) return showToast('Customer required', 'Please select a corporate customer entity.');
+        if (scope === 'supplier' && !supplierId) return showToast('Supplier required', 'Please select a supplier partner entity.');
 
         const presetOpt = modal.querySelector('#contractDutyPreset')?.selectedOptions[0];
         const dutyType = presetOpt?.dataset.type || 'local';
