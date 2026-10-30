@@ -1006,12 +1006,12 @@ def get_customer_360(conn, org: str, customer_id: str):
         })
         
     d_rows = conn.execute("""
-        SELECT d.id, d.status, d.reporting_at, d.start_odometer, d.end_odometer, d.calculation_snapshot_json, d.supplier_id, d.driver_id,
+        SELECT d.id, d.status, COALESCE(d.reporting_at, b.scheduled_at, d.created_at, b.created_at) AS reporting_at, d.start_odometer, d.end_odometer, d.calculation_snapshot_json, d.supplier_id, d.driver_id,
                b.duty_type, b.passenger_name
         FROM domain_duties d
         JOIN domain_bookings b ON b.id = d.booking_id
         WHERE b.organization_id = ? AND b.customer_id = ?
-        ORDER BY d.reporting_at DESC
+        ORDER BY reporting_at DESC
     """, (org, customer_id)).fetchall()
     
     duty_rev = 0
@@ -1019,6 +1019,7 @@ def get_customer_360(conn, org: str, customer_id: str):
     supplier_cost = 0
     running_cost = 0
     completed_count = 0
+    duties_breakdown = []
     
     for d in d_rows:
         snap = {}
@@ -1037,8 +1038,10 @@ def get_customer_360(conn, org: str, customer_id: str):
         d_batta = int(snap.get("total_day_batta_paise") or bd.get("allowance_paise") or 0)
         n_batta = int(snap.get("total_night_allowance_paise") or bd.get("night_allowance_paise") or 0)
         d_pay = int(bd.get("driver_payout_paise") or 0)
-        driver_cost += (d_batta + n_batta + d_pay)
+        d_cost = d_batta + n_batta + d_pay
+        driver_cost += d_cost
         
+        s_pay = 0
         if d["supplier_id"]:
             s_pay = int(bd.get("supplier_payout_paise") or bd.get("supplier_cost_paise") or (rev * 0.75))
             supplier_cost += s_pay
@@ -1048,7 +1051,25 @@ def get_customer_360(conn, org: str, customer_id: str):
             km = d["end_odometer"] - d["start_odometer"]
         else:
             km = float(snap.get("effective_km") or snap.get("chargeable_km") or 35.0)
-        running_cost += int(km * 800)
+        r_cost = int(km * 800)
+        running_cost += r_cost
+        
+        tot_d_cost = d_cost + s_pay + r_cost
+        net_d_profit = rev - tot_d_cost
+
+        duties_breakdown.append({
+            "id": d["id"],
+            "reporting_at": d["reporting_at"],
+            "duty_type": d["duty_type"],
+            "status": d["status"],
+            "passenger_name": d["passenger_name"],
+            "revenue_paise": rev,
+            "driver_cost_paise": d_cost,
+            "supplier_cost_paise": s_pay,
+            "running_cost_paise": r_cost,
+            "total_cost_paise": tot_d_cost,
+            "net_profit_paise": net_d_profit
+        })
         
     total_operating_cost = driver_cost + supplier_cost + running_cost
     effective_revenue = duty_rev if duty_rev > 0 else tot_invoiced
@@ -1101,6 +1122,7 @@ def get_customer_360(conn, org: str, customer_id: str):
             "outstanding_balance_paise": tot_outstanding,
             "invoice_count": len(invoices)
         },
+        "duties": duties_breakdown,
         "invoices": invoices,
         "contracts": contracts,
         "employees": employees

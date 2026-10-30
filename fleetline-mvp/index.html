@@ -2867,7 +2867,7 @@
       } catch (_) {}
       return 'overview';
     })();
-    const state = { page: savedActivePage, selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const state = { page: savedActivePage, selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
     const advancedPages = new Set(['customers','customer-detail','suppliers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq']);
@@ -5162,18 +5162,122 @@
       const c = res?.customer || (state.liveData?.customers?.items || []).find(item => item.id === customerId) || { id: customerId, name: 'Corporate Customer' };
       const pnl = res?.pnl_summary || { revenue_paise: 0, operating_cost_paise: 0, driver_cost_paise: 0, supplier_cost_paise: 0, running_cost_paise: 0, net_profit_paise: 0, margin_pct: 0, completed_duties_count: 0, total_bookings_count: 0 };
       const ledger = res?.ledger_summary || { total_invoiced_paise: 0, paid_paise: 0, outstanding_balance_paise: 0, invoice_count: 0 };
-      const invoices = res?.invoices || (state.liveData?.invoices?.items || []).filter(inv => inv.customer_id === customerId);
+      const allInvoices = res?.invoices || (state.liveData?.invoices?.items || []).filter(inv => inv.customer_id === customerId);
       const contracts = res?.contracts || (state.followonData?.['/api/pricing/contracts']?.items || []).filter(cnt => cnt.customer_id === customerId);
+      const rawDuties = res?.duties || [];
       const settings = c.settings || {};
       const activeTab = state.customerDetailTab || 'pnl';
 
-      const revRs = (pnl.revenue_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-      const costRs = (pnl.operating_cost_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-      const profitRs = (pnl.net_profit_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-      const invRs = (ledger.total_invoiced_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-      const paidRs = (ledger.paid_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-      const dueRs = (ledger.outstanding_balance_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-      const isProfitable = pnl.net_profit_paise >= 0;
+      // --- Filter Computation ---
+      const periodFilter = state.customerPeriodFilter || 'all';
+      const dutyTypeFilter = state.customerDutyTypeFilter || 'all';
+      const dutyStatusFilter = state.customerDutyStatusFilter || 'all';
+      const customFrom = state.customerDateFrom || '';
+      const customTo = state.customerDateTo || '';
+
+      let filterStart = '';
+      let filterEnd = '';
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+
+      if (periodFilter === 'this_month') {
+        const s = new Date(year, month, 1);
+        const e = new Date(year, month + 1, 0);
+        filterStart = `${s.getFullYear()}-${String(s.getMonth()+1).padStart(2, '0')}-01`;
+        filterEnd = `${e.getFullYear()}-${String(e.getMonth()+1).padStart(2, '0')}-${String(e.getDate()).padStart(2, '0')}`;
+      } else if (periodFilter === 'last_month') {
+        const s = new Date(year, month - 1, 1);
+        const e = new Date(year, month, 0);
+        filterStart = `${s.getFullYear()}-${String(s.getMonth()+1).padStart(2, '0')}-01`;
+        filterEnd = `${e.getFullYear()}-${String(e.getMonth()+1).padStart(2, '0')}-${String(e.getDate()).padStart(2, '0')}`;
+      } else if (periodFilter === 'last_30') {
+        const s = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+        filterStart = `${s.getFullYear()}-${String(s.getMonth()+1).padStart(2, '0')}-${String(s.getDate()).padStart(2, '0')}`;
+        filterEnd = `${year}-${String(month+1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      } else if (periodFilter === 'fy') {
+        const fyStart = month >= 3 ? year : year - 1;
+        filterStart = `${fyStart}-04-01`;
+        filterEnd = `${fyStart + 1}-03-31`;
+      } else if (periodFilter === 'custom') {
+        filterStart = customFrom;
+        filterEnd = customTo;
+      }
+
+      const isFiltered = periodFilter !== 'all' || dutyTypeFilter !== 'all' || dutyStatusFilter !== 'all' || Boolean(customFrom || customTo);
+
+      let effectiveDuties = rawDuties;
+      if (isFiltered && rawDuties.length > 0) {
+        effectiveDuties = rawDuties.filter(d => {
+          if (filterStart || filterEnd) {
+            const dDate = (d.reporting_at || '').slice(0, 10);
+            if (filterStart && dDate && dDate < filterStart) return false;
+            if (filterEnd && dDate && dDate > filterEnd) return false;
+          }
+          if (dutyTypeFilter !== 'all') {
+            const t = (d.duty_type || '').toLowerCase();
+            if (dutyTypeFilter === 'local' && !t.includes('local')) return false;
+            if (dutyTypeFilter === 'airport' && !t.includes('airport')) return false;
+            if (dutyTypeFilter === 'outstation' && !t.includes('outstation')) return false;
+          }
+          if (dutyStatusFilter !== 'all') {
+            const st = (d.status || '').toLowerCase();
+            if (dutyStatusFilter === 'completed' && st !== 'completed') return false;
+            if (dutyStatusFilter === 'active' && (st === 'completed' || st === 'cancelled')) return false;
+            if (dutyStatusFilter === 'cancelled' && st !== 'cancelled') return false;
+          }
+          return true;
+        });
+      }
+
+      let effectiveInvoices = allInvoices;
+      if (filterStart || filterEnd) {
+        effectiveInvoices = allInvoices.filter(inv => {
+          const invDate = (inv.issued_at || '').slice(0, 10);
+          if (filterStart && invDate && invDate < filterStart) return false;
+          if (filterEnd && invDate && invDate > filterEnd) return false;
+          return true;
+        });
+      }
+
+      let calcRevPaise = pnl.revenue_paise;
+      let calcCostPaise = pnl.operating_cost_paise;
+      let calcDriverCostPaise = pnl.driver_cost_paise;
+      let calcSupplierCostPaise = pnl.supplier_cost_paise;
+      let calcRunningCostPaise = pnl.running_cost_paise;
+      let calcNetProfitPaise = pnl.net_profit_paise;
+      let calcMarginPct = pnl.margin_pct;
+      let calcCompletedCount = pnl.completed_duties_count;
+      let calcTotalBookings = pnl.total_bookings_count;
+
+      let calcInvoicedPaise = ledger.total_invoiced_paise;
+      let calcPaidPaise = ledger.paid_paise;
+      let calcDuePaise = ledger.outstanding_balance_paise;
+
+      if (isFiltered) {
+        calcRevPaise = effectiveDuties.reduce((s, d) => s + (d.revenue_paise || 0), 0);
+        calcDriverCostPaise = effectiveDuties.reduce((s, d) => s + (d.driver_cost_paise || 0), 0);
+        calcSupplierCostPaise = effectiveDuties.reduce((s, d) => s + (d.supplier_cost_paise || 0), 0);
+        calcRunningCostPaise = effectiveDuties.reduce((s, d) => s + (d.running_cost_paise || 0), 0);
+        calcCostPaise = calcDriverCostPaise + calcSupplierCostPaise + calcRunningCostPaise;
+        calcNetProfitPaise = calcRevPaise - calcCostPaise;
+        calcMarginPct = calcRevPaise > 0 ? Number(((calcNetProfitPaise / calcRevPaise) * 100).toFixed(1)) : 0.0;
+        calcCompletedCount = effectiveDuties.filter(d => d.status === 'completed').length;
+        calcTotalBookings = effectiveDuties.length;
+
+        calcInvoicedPaise = effectiveInvoices.reduce((s, inv) => s + (inv.total_paise || 0), 0);
+        calcPaidPaise = effectiveInvoices.filter(inv => inv.status === 'paid').reduce((s, inv) => s + (inv.total_paise || 0), 0);
+        calcDuePaise = effectiveInvoices.filter(inv => inv.status !== 'paid').reduce((s, inv) => s + (inv.total_paise || 0), 0);
+      }
+
+      const revRs = (calcRevPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const costRs = (calcCostPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const profitRs = (calcNetProfitPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const invRs = (calcInvoicedPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const paidRs = (calcPaidPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const dueRs = (calcDuePaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const isProfitable = calcNetProfitPaise >= 0;
+      const invoices = effectiveInvoices;
 
       const initials = (c.name || 'CC').split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
 
@@ -5225,12 +5329,72 @@
         </div>
       `;
 
+      const filterRibbon = `
+        <div class="card" style="padding:10px 16px;margin-bottom:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--ink)">
+              ${icon('filter')} <span>Filter:</span>
+            </div>
+
+            <!-- Period Preset Select -->
+            <div style="display:inline-flex;align-items:center;gap:6px">
+              <label for="custPeriodSelect" style="font-size:11px;font-weight:600;color:var(--muted)">Period</label>
+              <select id="custPeriodSelect" class="table-page-size-select" style="height:30px;padding:2px 8px;font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)">
+                <option value="all" ${periodFilter === 'all' ? 'selected' : ''}>All Time</option>
+                <option value="this_month" ${periodFilter === 'this_month' ? 'selected' : ''}>This Month (Oct 2026)</option>
+                <option value="last_month" ${periodFilter === 'last_month' ? 'selected' : ''}>Last Month (Sep 2026)</option>
+                <option value="last_30" ${periodFilter === 'last_30' ? 'selected' : ''}>Last 30 Days</option>
+                <option value="fy" ${periodFilter === 'fy' ? 'selected' : ''}>FY 2026-27 (Apr–Mar)</option>
+                <option value="custom" ${periodFilter === 'custom' ? 'selected' : ''}>Custom Date Range</option>
+              </select>
+            </div>
+
+            <!-- Custom Date Inputs -->
+            <div id="custCustomDatesWrap" style="display:${periodFilter === 'custom' ? 'inline-flex' : 'none'};align-items:center;gap:6px">
+              <input type="date" id="custDateFrom" value="${esc(customFrom)}" style="height:30px;padding:2px 6px;font-size:11.5px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)" title="Start date">
+              <span style="color:var(--muted);font-size:11px">to</span>
+              <input type="date" id="custDateTo" value="${esc(customTo)}" style="height:30px;padding:2px 6px;font-size:11.5px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)" title="End date">
+              <button class="btn small soft" id="custApplyDatesBtn" style="height:30px;padding:0 8px;font-size:11px">Apply</button>
+            </div>
+
+            <!-- Duty Type Select -->
+            <div style="display:inline-flex;align-items:center;gap:6px">
+              <label for="custDutyTypeSelect" style="font-size:11px;font-weight:600;color:var(--muted)">Duty Type</label>
+              <select id="custDutyTypeSelect" class="table-page-size-select" style="height:30px;padding:2px 8px;font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)">
+                <option value="all" ${dutyTypeFilter === 'all' ? 'selected' : ''}>All Duty Types</option>
+                <option value="local" ${dutyTypeFilter === 'local' ? 'selected' : ''}>Local &amp; Packages</option>
+                <option value="airport" ${dutyTypeFilter === 'airport' ? 'selected' : ''}>Airport Transfers</option>
+                <option value="outstation" ${dutyTypeFilter === 'outstation' ? 'selected' : ''}>Outstation</option>
+              </select>
+            </div>
+
+            <!-- Duty Status Select -->
+            <div style="display:inline-flex;align-items:center;gap:6px">
+              <label for="custDutyStatusSelect" style="font-size:11px;font-weight:600;color:var(--muted)">Status</label>
+              <select id="custDutyStatusSelect" class="table-page-size-select" style="height:30px;padding:2px 8px;font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)">
+                <option value="all" ${dutyStatusFilter === 'all' ? 'selected' : ''}>All Statuses</option>
+                <option value="completed" ${dutyStatusFilter === 'completed' ? 'selected' : ''}>Completed Only</option>
+                <option value="active" ${dutyStatusFilter === 'active' ? 'selected' : ''}>Active / In Progress</option>
+                <option value="cancelled" ${dutyStatusFilter === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="pill ${isFiltered ? 'primary' : 'soft'}" style="font-size:11px;padding:3px 8px;font-weight:650">
+              ${isFiltered ? `Filtered: ${effectiveDuties.length} Duties · ₹${revRs}` : `${effectiveDuties.length} Total Duties`}
+            </span>
+            ${isFiltered ? `<button class="btn small soft" id="custResetFilterBtn" style="height:28px;padding:0 8px;font-size:11px;color:#dc2626">${icon('x')} Reset Filters</button>` : ''}
+          </div>
+        </div>
+      `;
+
       const kpis = `
         <div class="grid kpis" style="margin-bottom:18px">
           <div class="card kpi">
             <div class="kpi-top"><span class="kpi-label">Billed Revenue</span><span class="kpi-icon">${icon('wallet')}</span></div>
             <div class="kpi-value">₹${revRs}</div>
-            <div class="kpi-foot"><span class="trend neutral">${pnl.total_bookings_count} duties &amp; trips</span></div>
+            <div class="kpi-foot"><span class="trend neutral">${calcTotalBookings} duties &amp; trips</span></div>
           </div>
           <div class="card kpi red">
             <div class="kpi-top"><span class="kpi-label">Duty Operating Cost</span><span class="kpi-icon red">${icon('trending-down')}</span></div>
@@ -5240,7 +5404,7 @@
           <div class="card kpi ${isProfitable ? 'teal' : 'red'}">
             <div class="kpi-top"><span class="kpi-label">Company Net P&amp;L</span><span class="kpi-icon ${isProfitable ? 'teal' : 'red'}">${icon(isProfitable ? 'check' : 'warning')}</span></div>
             <div class="kpi-value" style="color:${isProfitable ? '#059669' : '#dc2626'}">${isProfitable ? '+' : ''}₹${profitRs}</div>
-            <div class="kpi-foot"><span class="trend ${isProfitable ? 'up' : 'down'}" style="font-weight:750;color:${isProfitable ? '#059669' : '#dc2626'}">${pnl.margin_pct}% net operating margin</span></div>
+            <div class="kpi-foot"><span class="trend ${isProfitable ? 'up' : 'down'}" style="font-weight:750;color:${isProfitable ? '#059669' : '#dc2626'}">${calcMarginPct}% net operating margin</span></div>
           </div>
           <div class="card kpi purple">
             <div class="kpi-top"><span class="kpi-label">Outstanding Balance</span><span class="kpi-icon purple">${icon('file')}</span></div>
@@ -5250,10 +5414,10 @@
         </div>
       `;
 
-      const costPct = pnl.revenue_paise > 0 ? ((pnl.operating_cost_paise / pnl.revenue_paise) * 100).toFixed(1) : '0.0';
-      const supplierPct = pnl.revenue_paise > 0 ? ((pnl.supplier_cost_paise / pnl.revenue_paise) * 100).toFixed(1) : '0.0';
-      const runningPct = pnl.revenue_paise > 0 ? ((pnl.running_cost_paise / pnl.revenue_paise) * 100).toFixed(1) : '0.0';
-      const driverPct = pnl.revenue_paise > 0 ? ((pnl.driver_cost_paise / pnl.revenue_paise) * 100).toFixed(1) : '0.0';
+      const costPct = calcRevPaise > 0 ? ((calcCostPaise / calcRevPaise) * 100).toFixed(1) : '0.0';
+      const supplierPct = calcRevPaise > 0 ? ((calcSupplierCostPaise / calcRevPaise) * 100).toFixed(1) : '0.0';
+      const runningPct = calcRevPaise > 0 ? ((calcRunningCostPaise / calcRevPaise) * 100).toFixed(1) : '0.0';
+      const driverPct = calcRevPaise > 0 ? ((calcDriverCostPaise / calcRevPaise) * 100).toFixed(1) : '0.0';
 
       let tabBody = '';
 
@@ -5290,19 +5454,19 @@
                     <tr>
                       <td style="padding-left:22px;color:var(--ink-2)">↳ Driver Allowances (Day Batta &amp; Night Batta)</td>
                       <td><span style="font-size:10.5px;color:var(--muted)">Driver Cost</span></td>
-                      <td style="text-align:right;color:#dc2626">₹${(pnl.driver_cost_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                      <td style="text-align:right;color:#dc2626">₹${(calcDriverCostPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
                       <td style="text-align:right;color:var(--muted)">${driverPct}%</td>
                     </tr>
                     <tr>
                       <td style="padding-left:22px;color:var(--ink-2)">↳ Outsourced Supplier Payouts (Partner Vehicle Duties)</td>
                       <td><span style="font-size:10.5px;color:var(--muted)">Vendor Settlement</span></td>
-                      <td style="text-align:right;color:#dc2626">₹${(pnl.supplier_cost_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                      <td style="text-align:right;color:#dc2626">₹${(calcSupplierCostPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
                       <td style="text-align:right;color:var(--muted)">${supplierPct}%</td>
                     </tr>
                     <tr>
                       <td style="padding-left:22px;color:var(--ink-2)">↳ Fleet Running Cost (Fuel, Maintenance &amp; Tires @ ₹8/Km)</td>
                       <td><span style="font-size:10.5px;color:var(--muted)">Fleet Amortization</span></td>
-                      <td style="text-align:right;color:#dc2626">₹${(pnl.running_cost_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                      <td style="text-align:right;color:#dc2626">₹${(calcRunningCostPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
                       <td style="text-align:right;color:var(--muted)">${runningPct}%</td>
                     </tr>
                     <tr style="background:#fef2f2">
@@ -5315,7 +5479,7 @@
                       <td><strong style="font-size:13.5px;color:${isProfitable ? '#065f46' : '#991b1b'}">Company Net Operating Profit</strong></td>
                       <td><span class="status ${isProfitable ? 'green' : 'red'}" style="font-size:10px">${isProfitable ? 'PROFITABLE' : 'UNPROFITABLE'}</span></td>
                       <td style="text-align:right;font-size:15px;color:${isProfitable ? '#059669' : '#dc2626'}"><strong>${isProfitable ? '+' : ''}₹${profitRs}</strong></td>
-                      <td style="text-align:right;font-size:13.5px;color:${isProfitable ? '#059669' : '#dc2626'}"><strong>${pnl.margin_pct}%</strong></td>
+                      <td style="text-align:right;font-size:13.5px;color:${isProfitable ? '#059669' : '#dc2626'}"><strong>${calcMarginPct}%</strong></td>
                     </tr>
                   </tbody>
                 </table>
@@ -5329,23 +5493,23 @@
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
                 <div class="mini-stat">
                   <span style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Fulfilled Duties</span>
-                  <span style="display:block;font-size:18px;font-weight:750;color:var(--ink);margin:4px 0 2px">${pnl.completed_duties_count}</span>
+                  <span style="display:block;font-size:18px;font-weight:750;color:var(--ink);margin:4px 0 2px">${calcCompletedCount}</span>
                   <span style="font-size:10.5px;color:var(--muted-2)">Completed runs</span>
                 </div>
                 <div class="mini-stat">
                   <span style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Avg Revenue / Duty</span>
-                  <span style="display:block;font-size:18px;font-weight:750;color:var(--ink);margin:4px 0 2px">₹${Math.round((pnl.revenue_paise / (pnl.total_bookings_count || 1)) / 100).toLocaleString('en-IN')}</span>
+                  <span style="display:block;font-size:18px;font-weight:750;color:var(--ink);margin:4px 0 2px">₹${calcTotalBookings > 0 ? Math.round((calcRevPaise / calcTotalBookings) / 100).toLocaleString('en-IN') : 0}</span>
                   <span style="font-size:10.5px;color:var(--muted-2)">Average yield</span>
                 </div>
                 <div class="mini-stat">
                   <span style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Avg Cost / Duty</span>
-                  <span style="display:block;font-size:18px;font-weight:750;color:#dc2626;margin:4px 0 2px">₹${Math.round((pnl.operating_cost_paise / (pnl.total_bookings_count || 1)) / 100).toLocaleString('en-IN')}</span>
+                  <span style="display:block;font-size:18px;font-weight:750;color:#dc2626;margin:4px 0 2px">₹${calcTotalBookings > 0 ? Math.round((calcCostPaise / calcTotalBookings) / 100).toLocaleString('en-IN') : 0}</span>
                   <span style="font-size:10.5px;color:var(--muted-2)">Direct fulfillment</span>
                 </div>
                 <div class="mini-stat">
                   <span style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Avg Net Profit</span>
-                  <span style="display:block;font-size:18px;font-weight:750;color:${isProfitable ? '#059669' : '#dc2626'};margin:4px 0 2px">${isProfitable ? '+' : ''}₹${Math.round((pnl.net_profit_paise / (pnl.total_bookings_count || 1)) / 100).toLocaleString('en-IN')}</span>
-                  <span style="font-size:10.5px;color:${isProfitable ? '#059669' : '#dc2626'}">${pnl.margin_pct}% margin</span>
+                  <span style="display:block;font-size:18px;font-weight:750;color:${isProfitable ? '#059669' : '#dc2626'};margin:4px 0 2px">${isProfitable ? '+' : ''}₹${calcTotalBookings > 0 ? Math.round((calcNetProfitPaise / calcTotalBookings) / 100).toLocaleString('en-IN') : 0}</span>
+                  <span style="font-size:10.5px;color:${isProfitable ? '#059669' : '#dc2626'}">${calcMarginPct}% margin</span>
                 </div>
               </div>
 
@@ -5353,18 +5517,18 @@
               <div style="background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px">
                 <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--ink);margin-bottom:8px">
                   <span>Revenue Cost Distribution</span>
-                  <span style="color:#059669">${pnl.margin_pct}% Retained Margin</span>
+                  <span style="color:#059669">${calcMarginPct}% Retained Margin</span>
                 </div>
                 <div style="height:10px;border-radius:5px;overflow:hidden;background:#e2e8f0;display:flex">
                   <div style="width:${supplierPct}%;background:#0284c7" title="Supplier Payouts: ${supplierPct}%"></div>
                   <div style="width:${runningPct}%;background:#f59e0b" title="Fleet Running: ${runningPct}%"></div>
                   <div style="width:${driverPct}%;background:#8b5cf6" title="Driver Batta: ${driverPct}%"></div>
-                  <div style="width:${Math.max(0, pnl.margin_pct)}%;background:#10b981" title="Net Margin: ${pnl.margin_pct}%"></div>
+                  <div style="width:${Math.max(0, calcMarginPct)}%;background:#10b981" title="Net Margin: ${calcMarginPct}%"></div>
                 </div>
                 <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:10px;color:var(--muted);margin-top:8px">
                   <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:7px;height:7px;background:#0284c7;border-radius:50%"></span> Suppliers (${supplierPct}%)</span>
                   <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:7px;height:7px;background:#f59e0b;border-radius:50%"></span> Fleet Km (${runningPct}%)</span>
-                  <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:7px;height:7px;background:#10b981;border-radius:50%"></span> Net Profit (${pnl.margin_pct}%)</span>
+                  <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:7px;height:7px;background:#10b981;border-radius:50%"></span> Net Profit (${calcMarginPct}%)</span>
                 </div>
               </div>
 
@@ -5758,6 +5922,7 @@
       return `
         ${pageHead('Commercial · Corporate Account 360', titleMarkup, 'Executive overview of client profitability, fulfillment costs, invoices ledger and booking governance.', headActions)}
         ${metaStrip}
+        ${filterRibbon}
         ${kpis}
         ${tabsContainer}
       `;
@@ -7099,6 +7264,46 @@
       const invPageSize = document.getElementById('custInvPageSizeSelect'); if (invPageSize) invPageSize.addEventListener('change', e => { state.customerInvoicePageSize = e.target.value; state.customerInvoicePage = 1; render(); });
       const invSearchInput = document.getElementById('custInvoiceSearch'); if (invSearchInput) invSearchInput.addEventListener('input', e => { state.customerInvoiceQuery = e.target.value; state.customerInvoicePage = 1; render(); });
       content.querySelectorAll('[data-cust-inv-filter]').forEach(el => el.addEventListener('click', () => { state.customerInvoiceFilter = el.dataset.custInvFilter; state.customerInvoicePage = 1; render(); }));
+
+      // Customer 360 Filter Controls
+      const custPeriodSel = document.getElementById('custPeriodSelect');
+      if (custPeriodSel) custPeriodSel.addEventListener('change', e => {
+        state.customerPeriodFilter = e.target.value;
+        state.customerInvoicePage = 1;
+        render();
+      });
+      const custDateFrom = document.getElementById('custDateFrom');
+      if (custDateFrom) custDateFrom.addEventListener('change', e => { state.customerDateFrom = e.target.value; });
+      const custDateTo = document.getElementById('custDateTo');
+      if (custDateTo) custDateTo.addEventListener('change', e => { state.customerDateTo = e.target.value; });
+      const custApplyDatesBtn = document.getElementById('custApplyDatesBtn');
+      if (custApplyDatesBtn) custApplyDatesBtn.addEventListener('click', () => {
+        state.customerPeriodFilter = 'custom';
+        state.customerInvoicePage = 1;
+        render();
+      });
+      const custDutyTypeSel = document.getElementById('custDutyTypeSelect');
+      if (custDutyTypeSel) custDutyTypeSel.addEventListener('change', e => {
+        state.customerDutyTypeFilter = e.target.value;
+        state.customerInvoicePage = 1;
+        render();
+      });
+      const custDutyStatusSel = document.getElementById('custDutyStatusSelect');
+      if (custDutyStatusSel) custDutyStatusSel.addEventListener('change', e => {
+        state.customerDutyStatusFilter = e.target.value;
+        state.customerInvoicePage = 1;
+        render();
+      });
+      const custResetFilterBtn = document.getElementById('custResetFilterBtn');
+      if (custResetFilterBtn) custResetFilterBtn.addEventListener('click', () => {
+        state.customerPeriodFilter = 'all';
+        state.customerDateFrom = '';
+        state.customerDateTo = '';
+        state.customerDutyTypeFilter = 'all';
+        state.customerDutyStatusFilter = 'all';
+        state.customerInvoicePage = 1;
+        render();
+      });
 
       content.querySelectorAll('[data-action="driver-page-first"]').forEach(el => el.addEventListener('click', () => { state.driverPage = 1; render(); }));
       content.querySelectorAll('[data-action="driver-page-prev"]').forEach(el => el.addEventListener('click', () => { state.driverPage = Math.max(1, (Number(state.driverPage) || 1) - 1); render(); }));
