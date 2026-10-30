@@ -5175,6 +5175,8 @@
       const dueRs = (ledger.outstanding_balance_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
       const isProfitable = pnl.net_profit_paise >= 0;
 
+      const initials = (c.name || 'CC').split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+
       const headActions = `
         ${button(icon('arrow-left') + ' Back to Customers', 'soft', 'data-action="back-to-customers"')}
         ${button(icon('file') + ' Rate Card', '', `data-action="pricing-contract" data-customer-id="${esc(customerId)}"`)}
@@ -5182,154 +5184,233 @@
         ${button(icon('plus') + ' Book Duty', 'primary', 'data-action="new-booking"')}
       `;
 
-      const profileStrip = `
-        <section class="card section-card" style="margin-bottom:16px;background:var(--surface,#fff);border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:18px 20px">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px">
-            <div style="flex:1;min-width:280px">
-              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                <h2 style="margin:0;font-size:22px;font-weight:700;color:var(--ink)">${esc(c.name)}</h2>
-                <span class="status ${c.status === 'inactive' ? 'gray' : 'green'}" style="font-size:11px;padding:3px 9px;font-weight:600">${esc(c.status || 'active').toUpperCase()}</span>
-                ${c.code ? `<span class="badge" style="font-size:11px;font-weight:600;padding:3px 9px;background:var(--slate-100,#f1f5f9)">${esc(c.code)}</span>` : ''}
-                <span class="pill primary" style="font-size:11px;padding:2px 8px;font-weight:600">${esc(c.city || 'National Operations')}</span>
-              </div>
-              <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-top:14px;font-size:12.5px;color:var(--muted)">
-                <div><strong style="color:var(--ink)">GSTIN:</strong> <span>${esc(c.gstin || 'Not provided')}</span></div>
-                <div><strong style="color:var(--ink)">PAN:</strong> <span>${esc(settings.pan || 'Not provided')}</span></div>
-                <div><strong style="color:var(--ink)">Billing Email:</strong> <span>${esc(c.email || 'accounts@corporate.com')}</span></div>
-                <div><strong style="color:var(--ink)">Phone:</strong> <span>${esc(c.phone || '+91 —')}</span></div>
-                <div><strong style="color:var(--ink)">Payment Terms:</strong> <span>${esc(settings.payment_terms ? settings.payment_terms + ' Days' : 'Net 30 Days')}</span></div>
-                <div><strong style="color:var(--ink)">Credit Limit:</strong> <span>₹${settings.credit_limit ? Number(settings.credit_limit).toLocaleString('en-IN') : '5,00,000'}</span></div>
-              </div>
+      const titleMarkup = `
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span style="width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,#1e293b,#0f172a);color:#fff;display:inline-grid;place-items:center;font-weight:750;font-size:14px;letter-spacing:0.5px;box-shadow:0 2px 5px rgba(0,0,0,0.12)">${esc(initials)}</span>
+          <span style="font-size:22px;font-weight:750;letter-spacing:-0.02em;color:var(--ink)">${esc(c.name)}</span>
+          <span class="status ${c.status === 'inactive' ? 'gray' : 'green'}" style="font-size:10.5px">${esc(c.status || 'active').toUpperCase()}</span>
+          ${c.code ? `<span class="badge" style="font-size:10.5px;font-weight:650;padding:2px 7px;background:#f1f5f9;border:1px solid #e2e8f0;color:#334155">${esc(c.code)}</span>` : ''}
+          <span class="pill primary" style="font-size:10.5px;padding:2px 8px;font-weight:600">${esc(c.city || 'National Operations')}</span>
+        </div>
+      `;
+
+      const metaStrip = `
+        <div class="card" style="padding:12px 18px;margin-bottom:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:14px;align-items:center">
+            <div>
+              <span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:700;margin-bottom:2px">GSTIN / TAX ID</span>
+              <span style="font-size:12px;font-weight:650;color:var(--ink);font-family:monospace">${esc(c.gstin || 'Not provided')}</span>
+            </div>
+            <div>
+              <span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:700;margin-bottom:2px">PAN NUMBER</span>
+              <span style="font-size:12px;font-weight:650;color:var(--ink);font-family:monospace">${esc(settings.pan || 'Not provided')}</span>
+            </div>
+            <div>
+              <span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:700;margin-bottom:2px">BILLING EMAIL</span>
+              <span style="font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block" title="${esc(c.email || '')}">${esc(c.email || '—')}</span>
+            </div>
+            <div>
+              <span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:700;margin-bottom:2px">OPERATIONS PHONE</span>
+              <span style="font-size:12px;font-weight:600;color:var(--ink)">${esc(c.phone || '—')}</span>
+            </div>
+            <div>
+              <span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:700;margin-bottom:2px">PAYMENT TERMS</span>
+              <span style="font-size:12px;font-weight:650;color:var(--ink)"><span class="pill primary" style="font-size:10.5px;padding:2px 7px">${esc(settings.payment_terms ? settings.payment_terms + ' Days' : 'Net 30 Days')}</span></span>
+            </div>
+            <div>
+              <span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:700;margin-bottom:2px">CREDIT LIMIT</span>
+              <span style="font-size:12px;font-weight:750;color:var(--ink)">₹${settings.credit_limit ? Number(settings.credit_limit).toLocaleString('en-IN') : '2,50,000'}</span>
             </div>
           </div>
-        </section>
+        </div>
       `;
 
       const kpis = `
-        <div class="grid four-col" style="margin-bottom:20px">
+        <div class="grid kpis" style="margin-bottom:18px">
           <div class="card kpi">
             <div class="kpi-top"><span class="kpi-label">Billed Revenue</span><span class="kpi-icon">${icon('wallet')}</span></div>
             <div class="kpi-value">₹${revRs}</div>
-            <div class="kpi-foot">${pnl.total_bookings_count} duties &amp; corporate bookings</div>
+            <div class="kpi-foot"><span class="trend neutral">${pnl.total_bookings_count} duties &amp; trips</span></div>
           </div>
           <div class="card kpi red">
             <div class="kpi-top"><span class="kpi-label">Duty Operating Cost</span><span class="kpi-icon red">${icon('trending-down')}</span></div>
             <div class="kpi-value" style="color:#dc2626">₹${costRs}</div>
-            <div class="kpi-foot">Driver batta, vehicle km &amp; supplier payouts</div>
+            <div class="kpi-foot"><span class="trend down">Driver batta, km &amp; supplier payouts</span></div>
           </div>
           <div class="card kpi ${isProfitable ? 'teal' : 'red'}">
             <div class="kpi-top"><span class="kpi-label">Company Net P&amp;L</span><span class="kpi-icon ${isProfitable ? 'teal' : 'red'}">${icon(isProfitable ? 'check' : 'warning')}</span></div>
             <div class="kpi-value" style="color:${isProfitable ? '#059669' : '#dc2626'}">${isProfitable ? '+' : ''}₹${profitRs}</div>
-            <div class="kpi-foot" style="font-weight:600;color:${isProfitable ? '#059669' : '#dc2626'}">${pnl.margin_pct}% net operating margin</div>
+            <div class="kpi-foot"><span class="trend ${isProfitable ? 'up' : 'down'}" style="font-weight:750;color:${isProfitable ? '#059669' : '#dc2626'}">${pnl.margin_pct}% net operating margin</span></div>
           </div>
           <div class="card kpi purple">
             <div class="kpi-top"><span class="kpi-label">Outstanding Balance</span><span class="kpi-icon purple">${icon('file')}</span></div>
             <div class="kpi-value">₹${dueRs}</div>
-            <div class="kpi-foot">₹${paidRs} paid of ₹${invRs} invoiced</div>
+            <div class="kpi-foot"><span class="trend neutral">₹${paidRs} paid of ₹${invRs} invoiced</span></div>
           </div>
         </div>
       `;
 
-      const tabsBar = `
-        <div class="panel-toolbar" style="margin-bottom:16px">
-          <div class="tabs">
-            <button class="tab ${activeTab === 'pnl' ? 'active' : ''}" data-cust-page-tab="pnl">${icon('chart')} Company P&amp;L Statement</button>
-            <button class="tab ${activeTab === 'ledger' ? 'active' : ''}" data-cust-page-tab="ledger">${icon('file')} Invoices &amp; Ledger (${invoices.length})</button>
-            <button class="tab ${activeTab === 'pricing' ? 'active' : ''}" data-cust-page-tab="pricing">${icon('copy')} Rate Cards &amp; Tariffs (${contracts.length})</button>
-            <button class="tab ${activeTab === 'settings' ? 'active' : ''}" data-cust-page-tab="settings">${icon('settings')} Profile &amp; Governance Settings</button>
-          </div>
-        </div>
-      `;
+      const costPct = pnl.revenue_paise > 0 ? ((pnl.operating_cost_paise / pnl.revenue_paise) * 100).toFixed(1) : '0.0';
+      const supplierPct = pnl.revenue_paise > 0 ? ((pnl.supplier_cost_paise / pnl.revenue_paise) * 100).toFixed(1) : '0.0';
+      const runningPct = pnl.revenue_paise > 0 ? ((pnl.running_cost_paise / pnl.revenue_paise) * 100).toFixed(1) : '0.0';
+      const driverPct = pnl.revenue_paise > 0 ? ((pnl.driver_cost_paise / pnl.revenue_paise) * 100).toFixed(1) : '0.0';
 
       let tabBody = '';
 
       if (activeTab === 'pnl') {
         tabBody = `
-          <section class="card section-card">
-            ${cardHead('Corporate Customer Profitability Statement', 'Direct revenue vs. operational duty fulfillment expenses incurred by the company.')}
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr style="background:var(--slate-50,#f8fafc)">
-                    <th>Cost / Revenue Line Item</th>
-                    <th>Category</th>
-                    <th style="text-align:right">Amount (₹)</th>
-                    <th style="text-align:right">% of Revenue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style="background:#f0fdf4;font-weight:600">
-                    <td><strong>Gross Operating Revenue (Billed Duties &amp; Invoices)</strong></td>
-                    <td><span class="pill primary" style="font-size:11px">Operating Revenue</span></td>
-                    <td style="text-align:right;color:#059669;font-size:14px"><strong>₹${revRs}</strong></td>
-                    <td style="text-align:right;color:#059669">100.0%</td>
-                  </tr>
-                  <tr>
-                    <td style="padding-left:24px">↳ Driver Allowances (Day Batta &amp; Night Batta)</td>
-                    <td><span style="font-size:11px;color:var(--muted)">Driver Cost</span></td>
-                    <td style="text-align:right;color:#dc2626">₹${(pnl.driver_cost_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
-                    <td style="text-align:right;color:var(--muted)">${pnl.revenue_paise > 0 ? ((pnl.driver_cost_paise / pnl.revenue_paise) * 100).toFixed(1) : '0.0'}%</td>
-                  </tr>
-                  <tr>
-                    <td style="padding-left:24px">↳ Outsourced Supplier Payouts (Partner Vehicle Duties)</td>
-                    <td><span style="font-size:11px;color:var(--muted)">Vendor Settlement</span></td>
-                    <td style="text-align:right;color:#dc2626">₹${(pnl.supplier_cost_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
-                    <td style="text-align:right;color:var(--muted)">${pnl.revenue_paise > 0 ? ((pnl.supplier_cost_paise / pnl.revenue_paise) * 100).toFixed(1) : '0.0'}%</td>
-                  </tr>
-                  <tr>
-                    <td style="padding-left:24px">↳ Owned Fleet Running Cost (Fuel, Maintenance &amp; Tires @ ₹8/Km)</td>
-                    <td><span style="font-size:11px;color:var(--muted)">Vehicle Amortization</span></td>
-                    <td style="text-align:right;color:#dc2626">₹${(pnl.running_cost_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
-                    <td style="text-align:right;color:var(--muted)">${pnl.revenue_paise > 0 ? ((pnl.running_cost_paise / pnl.revenue_paise) * 100).toFixed(1) : '0.0'}%</td>
-                  </tr>
-                  <tr style="background:#fef2f2;font-weight:600">
-                    <td><strong>Total Duty Operating Cost</strong></td>
-                    <td><span class="pill red" style="font-size:11px">Total Expenses</span></td>
-                    <td style="text-align:right;color:#dc2626;font-size:14px"><strong>₹${costRs}</strong></td>
-                    <td style="text-align:right;color:#dc2626">${pnl.revenue_paise > 0 ? ((pnl.operating_cost_paise / pnl.revenue_paise) * 100).toFixed(1) : '0.0'}%</td>
-                  </tr>
-                  <tr style="background:${isProfitable ? '#f0fdf4' : '#fef2f2'};font-weight:700;border-top:2px solid var(--border,#e2e8f0)">
-                    <td><strong style="font-size:14px">Company Net Operating Profit</strong></td>
-                    <td><span class="status ${isProfitable ? 'green' : 'red'}" style="font-size:11px">${isProfitable ? 'PROFITABLE' : 'UNPROFITABLE'}</span></td>
-                    <td style="text-align:right;font-size:16px;color:${isProfitable ? '#059669' : '#dc2626'}"><strong>${isProfitable ? '+' : ''}₹${profitRs}</strong></td>
-                    <td style="text-align:right;font-size:14px;color:${isProfitable ? '#059669' : '#dc2626'}"><strong>${pnl.margin_pct}%</strong></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
+          <div class="grid two-col" style="align-items:start;gap:20px">
+            <!-- Left Column: The Financial Statement -->
+            <div>
+              <div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <h3 style="margin:0;font-size:15px;font-weight:700;color:var(--ink)">Corporate Customer Profitability Statement</h3>
+                  <p style="margin:2px 0 0;font-size:11.5px;color:var(--muted)">Direct revenue vs. operational duty fulfillment expenses incurred by the company.</p>
+                </div>
+                <span class="badge" style="font-size:10.5px;font-weight:650;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534">Audited Live</span>
+              </div>
 
-          <div class="grid four-col" style="margin-top:16px">
-            <div class="card section-card" style="padding:16px">
-              <div class="eyebrow" style="margin:0 0 4px">Fulfilled Duties</div>
-              <div style="font-size:22px;font-weight:700;color:var(--ink)">${pnl.completed_duties_count}</div>
-              <div style="font-size:11px;color:var(--muted);margin-top:2px">Completed trips on roster</div>
+              <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+                <table>
+                  <thead>
+                    <tr style="background:#f8fafc">
+                      <th style="font-size:11px;font-weight:700">Cost / Revenue Line Item</th>
+                      <th style="font-size:11px;font-weight:700">Category</th>
+                      <th style="text-align:right;font-size:11px;font-weight:700">Amount (₹)</th>
+                      <th style="text-align:right;font-size:11px;font-weight:700">% of Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style="background:#f0fdf4">
+                      <td><strong style="color:#065f46">Gross Operating Revenue (Billed Duties &amp; Invoices)</strong></td>
+                      <td><span class="pill primary" style="font-size:10px">Operating Revenue</span></td>
+                      <td style="text-align:right;color:#065f46;font-size:13.5px"><strong>₹${revRs}</strong></td>
+                      <td style="text-align:right;color:#065f46;font-weight:650">100.0%</td>
+                    </tr>
+                    <tr>
+                      <td style="padding-left:22px;color:var(--ink-2)">↳ Driver Allowances (Day Batta &amp; Night Batta)</td>
+                      <td><span style="font-size:10.5px;color:var(--muted)">Driver Cost</span></td>
+                      <td style="text-align:right;color:#dc2626">₹${(pnl.driver_cost_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                      <td style="text-align:right;color:var(--muted)">${driverPct}%</td>
+                    </tr>
+                    <tr>
+                      <td style="padding-left:22px;color:var(--ink-2)">↳ Outsourced Supplier Payouts (Partner Vehicle Duties)</td>
+                      <td><span style="font-size:10.5px;color:var(--muted)">Vendor Settlement</span></td>
+                      <td style="text-align:right;color:#dc2626">₹${(pnl.supplier_cost_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                      <td style="text-align:right;color:var(--muted)">${supplierPct}%</td>
+                    </tr>
+                    <tr>
+                      <td style="padding-left:22px;color:var(--ink-2)">↳ Fleet Running Cost (Fuel, Maintenance &amp; Tires @ ₹8/Km)</td>
+                      <td><span style="font-size:10.5px;color:var(--muted)">Fleet Amortization</span></td>
+                      <td style="text-align:right;color:#dc2626">₹${(pnl.running_cost_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                      <td style="text-align:right;color:var(--muted)">${runningPct}%</td>
+                    </tr>
+                    <tr style="background:#fef2f2">
+                      <td><strong style="color:#991b1b">Total Duty Operating Cost</strong></td>
+                      <td><span class="pill red" style="font-size:10px">Total Expenses</span></td>
+                      <td style="text-align:right;color:#991b1b;font-size:13.5px"><strong>₹${costRs}</strong></td>
+                      <td style="text-align:right;color:#991b1b;font-weight:650">${costPct}%</td>
+                    </tr>
+                    <tr style="background:${isProfitable ? '#ecfdf5' : '#fef2f2'};border-top:2px solid var(--line)">
+                      <td><strong style="font-size:13.5px;color:${isProfitable ? '#065f46' : '#991b1b'}">Company Net Operating Profit</strong></td>
+                      <td><span class="status ${isProfitable ? 'green' : 'red'}" style="font-size:10px">${isProfitable ? 'PROFITABLE' : 'UNPROFITABLE'}</span></td>
+                      <td style="text-align:right;font-size:15px;color:${isProfitable ? '#059669' : '#dc2626'}"><strong>${isProfitable ? '+' : ''}₹${profitRs}</strong></td>
+                      <td style="text-align:right;font-size:13.5px;color:${isProfitable ? '#059669' : '#dc2626'}"><strong>${pnl.margin_pct}%</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div class="card section-card" style="padding:16px">
-              <div class="eyebrow" style="margin:0 0 4px">Avg Revenue / Duty</div>
-              <div style="font-size:22px;font-weight:700;color:var(--ink)">₹${Math.round((pnl.revenue_paise / (pnl.total_bookings_count || 1)) / 100).toLocaleString('en-IN')}</div>
-              <div style="font-size:11px;color:var(--muted);margin-top:2px">Average booking yield</div>
-            </div>
-            <div class="card section-card" style="padding:16px">
-              <div class="eyebrow" style="margin:0 0 4px">Avg Operating Cost / Duty</div>
-              <div style="font-size:22px;font-weight:700;color:#dc2626">₹${Math.round((pnl.operating_cost_paise / (pnl.total_bookings_count || 1)) / 100).toLocaleString('en-IN')}</div>
-              <div style="font-size:11px;color:var(--muted);margin-top:2px">Direct duty fulfillment cost</div>
-            </div>
-            <div class="card section-card" style="padding:16px">
-              <div class="eyebrow" style="margin:0 0 4px">Avg Profit / Duty</div>
-              <div style="font-size:22px;font-weight:700;color:${isProfitable ? '#059669' : '#dc2626'}">${isProfitable ? '+' : ''}₹${Math.round((pnl.net_profit_paise / (pnl.total_bookings_count || 1)) / 100).toLocaleString('en-IN')}</div>
-              <div style="font-size:11px;color:var(--muted);margin-top:2px">Net company margin per run</div>
+
+            <!-- Right Column: Unit Economics & Margin Analytics -->
+            <div>
+              <h3 style="margin:0 0 12px 0;font-size:15px;font-weight:700;color:var(--ink)">Unit Economics &amp; Account Health</h3>
+              
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+                <div class="mini-stat">
+                  <span style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Fulfilled Duties</span>
+                  <span style="display:block;font-size:18px;font-weight:750;color:var(--ink);margin:4px 0 2px">${pnl.completed_duties_count}</span>
+                  <span style="font-size:10.5px;color:var(--muted-2)">Completed runs</span>
+                </div>
+                <div class="mini-stat">
+                  <span style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Avg Revenue / Duty</span>
+                  <span style="display:block;font-size:18px;font-weight:750;color:var(--ink);margin:4px 0 2px">₹${Math.round((pnl.revenue_paise / (pnl.total_bookings_count || 1)) / 100).toLocaleString('en-IN')}</span>
+                  <span style="font-size:10.5px;color:var(--muted-2)">Average yield</span>
+                </div>
+                <div class="mini-stat">
+                  <span style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Avg Cost / Duty</span>
+                  <span style="display:block;font-size:18px;font-weight:750;color:#dc2626;margin:4px 0 2px">₹${Math.round((pnl.operating_cost_paise / (pnl.total_bookings_count || 1)) / 100).toLocaleString('en-IN')}</span>
+                  <span style="font-size:10.5px;color:var(--muted-2)">Direct fulfillment</span>
+                </div>
+                <div class="mini-stat">
+                  <span style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Avg Net Profit</span>
+                  <span style="display:block;font-size:18px;font-weight:750;color:${isProfitable ? '#059669' : '#dc2626'};margin:4px 0 2px">${isProfitable ? '+' : ''}₹${Math.round((pnl.net_profit_paise / (pnl.total_bookings_count || 1)) / 100).toLocaleString('en-IN')}</span>
+                  <span style="font-size:10.5px;color:${isProfitable ? '#059669' : '#dc2626'}">${pnl.margin_pct}% margin</span>
+                </div>
+              </div>
+
+              <!-- Cost Split Progress Visualizer -->
+              <div style="background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--ink);margin-bottom:8px">
+                  <span>Revenue Cost Distribution</span>
+                  <span style="color:#059669">${pnl.margin_pct}% Retained Margin</span>
+                </div>
+                <div style="height:10px;border-radius:5px;overflow:hidden;background:#e2e8f0;display:flex">
+                  <div style="width:${supplierPct}%;background:#0284c7" title="Supplier Payouts: ${supplierPct}%"></div>
+                  <div style="width:${runningPct}%;background:#f59e0b" title="Fleet Running: ${runningPct}%"></div>
+                  <div style="width:${driverPct}%;background:#8b5cf6" title="Driver Batta: ${driverPct}%"></div>
+                  <div style="width:${Math.max(0, pnl.margin_pct)}%;background:#10b981" title="Net Margin: ${pnl.margin_pct}%"></div>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:10px;color:var(--muted);margin-top:8px">
+                  <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:7px;height:7px;background:#0284c7;border-radius:50%"></span> Suppliers (${supplierPct}%)</span>
+                  <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:7px;height:7px;background:#f59e0b;border-radius:50%"></span> Fleet Km (${runningPct}%)</span>
+                  <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:7px;height:7px;background:#10b981;border-radius:50%"></span> Net Profit (${pnl.margin_pct}%)</span>
+                </div>
+              </div>
+
+              <!-- Health Callout -->
+              <div style="padding:10px 12px;border-radius:8px;background:${isProfitable ? '#f0fdf4' : '#fef2f2'};border:1px solid ${isProfitable ? '#bbf7d0' : '#fecaca'};display:flex;align-items:center;gap:8px">
+                <span style="font-size:16px">${isProfitable ? '✅' : '⚠️'}</span>
+                <div style="font-size:11px;color:${isProfitable ? '#166534' : '#991b1b'};line-height:1.4">
+                  <strong>${isProfitable ? 'Commercial Health: Solid' : 'Commercial Warning: Low Margin'}</strong><br>
+                  ${isProfitable ? 'This account generates consistent positive operating cashflow above benchmark targets.' : 'Operating cost exceeds standard threshold. Review outsourced supplier allocations.'}
+                </div>
+              </div>
             </div>
           </div>
         `;
       } else if (activeTab === 'ledger') {
         tabBody = `
-          <section class="card section-card">
-            ${cardHead('Invoices & Accounts Ledger', `All billing statements, GST breakdowns, collections and outstanding balances for ${esc(c.name)}.`)}
-            <div class="table-wrap">
+          <div>
+            <div class="grid three-col" style="margin-bottom:16px">
+              <div class="mini-stat">
+                <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block">Total Billed Invoices</span>
+                <span style="font-size:18px;font-weight:750;color:var(--ink);display:block;margin:3px 0 1px">₹${invRs}</span>
+                <span style="font-size:10.5px;color:var(--muted-2)">${invoices.length} statements generated</span>
+              </div>
+              <div class="mini-stat">
+                <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block">Collections Received</span>
+                <span style="font-size:18px;font-weight:750;color:#059669;display:block;margin:3px 0 1px">₹${paidRs}</span>
+                <span style="font-size:10.5px;color:#059669">${ledger.total_invoiced_paise > 0 ? Math.round((ledger.paid_paise / ledger.total_invoiced_paise) * 100) : 0}% settlement rate</span>
+              </div>
+              <div class="mini-stat">
+                <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block">Outstanding Balance</span>
+                <span style="font-size:18px;font-weight:750;color:#dc2626;display:block;margin:3px 0 1px">₹${dueRs}</span>
+                <span style="font-size:10.5px;color:var(--muted-2)">Net receivables due</span>
+              </div>
+            </div>
+
+            <div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <h3 style="margin:0;font-size:15px;font-weight:700;color:var(--ink)">Invoices &amp; Accounts Ledger</h3>
+                <p style="margin:2px 0 0;font-size:11.5px;color:var(--muted)">All billing statements, GST breakdowns, collections and outstanding balances.</p>
+              </div>
+            </div>
+
+            <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
               <table>
                 <thead>
-                  <tr>
+                  <tr style="background:#f8fafc">
                     <th>Invoice #</th>
                     <th>Issued Date</th>
                     <th>Due Date</th>
@@ -5358,27 +5439,34 @@
                 </tbody>
               </table>
             </div>
-          </section>
+          </div>
         `;
       } else if (activeTab === 'pricing') {
         tabBody = `
-          <section class="card section-card">
-            ${cardHead('Corporate Rate Cards & Tariffs', 'Configured package slabs, vehicle groups, day/night batta, extra KM and hourly rates.', button(icon('plus') + ' Create Rate Card', 'small primary', `data-action="pricing-contract" data-customer-id="${esc(customerId)}"`))}
-            <div style="padding:16px 20px">
+          <div>
+            <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+              <div>
+                <h3 style="margin:0;font-size:15px;font-weight:700;color:var(--ink)">Corporate Rate Cards &amp; Tariffs</h3>
+                <p style="margin:2px 0 0;font-size:11.5px;color:var(--muted)">Configured package slabs, vehicle groups, day/night batta, extra KM and hourly rates.</p>
+              </div>
+              <button class="btn small primary" data-action="pricing-contract" data-customer-id="${esc(customerId)}">${icon('plus')} Create Rate Card</button>
+            </div>
+
+            <div>
               ${contracts.length ? contracts.map(cnt => `
-                <div style="border:1px solid var(--border,#e2e8f0);border-radius:10px;padding:16px;margin-bottom:14px;background:var(--slate-50,#f8fafc)">
+                <div style="border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px;background:#f8fafc">
                   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
                     <div>
-                      <h4 style="margin:0;font-size:15px;font-weight:650">${esc(cnt.name || 'Corporate Standard Tariff')} <span class="badge" style="font-size:10px;margin-left:6px">v${cnt.version || 1}</span></h4>
+                      <h4 style="margin:0;font-size:15px;font-weight:700;color:var(--ink)">${esc(cnt.name || 'Corporate Standard Tariff')} <span class="badge" style="font-size:10px;margin-left:6px">v${cnt.version || 1}</span></h4>
                       <span style="font-size:11px;color:var(--muted)">Status: <span class="status green" style="font-size:10px">${esc(cnt.status || 'active').toUpperCase()}</span></span>
                     </div>
                     <button class="btn small soft" data-action="pricing-contract" data-customer-id="${esc(customerId)}">${icon('edit')} Edit Rate Card</button>
                   </div>
                   ${cnt.rules && cnt.rules.length ? `
-                    <div class="table-wrap">
+                    <div class="table-wrap" style="background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden">
                       <table>
                         <thead>
-                          <tr>
+                          <tr style="background:#f8fafc">
                             <th>City / Hub</th>
                             <th>Vehicle Group</th>
                             <th>Duty Type</th>
@@ -5394,7 +5482,7 @@
                           ${cnt.rules.map(r => `
                             <tr>
                               <td>${esc(r.city || 'All')}</td>
-                              <td><span class="pill primary" style="font-size:11px">${esc(r.vehicle_group || 'Sedan')}</span></td>
+                              <td><span class="pill primary" style="font-size:10.5px">${esc(r.vehicle_group || 'Sedan')}</span></td>
                               <td>${esc(r.duty_type || 'Local')}</td>
                               <td>${r.included_km ? r.included_km + ' Km' : '—'} / ${r.package_minutes ? Math.round(r.package_minutes/60) + ' Hr' : '—'}</td>
                               <td style="text-align:right"><strong>₹${(r.base_paise / 100).toLocaleString('en-IN')}</strong></td>
@@ -5410,125 +5498,140 @@
                   ` : `<div style="font-size:12px;color:var(--muted);padding:8px 0">No specific package rules configured in this contract.</div>`}
                 </div>
               `).join('') : `
-                <div style="text-align:center;padding:32px 16px">
+                <div style="text-align:center;padding:36px 16px;border:1px dashed var(--line);border-radius:10px">
                   <div style="font-size:28px;margin-bottom:8px">📄</div>
-                  <h4 style="margin:0 0 6px">No Custom Rate Cards Attached</h4>
+                  <h4 style="margin:0 0 6px;font-size:15px;color:var(--ink)">No Custom Rate Cards Attached</h4>
                   <p style="font-size:12px;color:var(--muted);max-width:400px;margin:0 auto 16px auto">This customer is currently inheriting standard default pricing. Attach a corporate contract to enforce negotiated package slabs and night batta.</p>
                   <button class="btn primary" data-action="pricing-contract" data-customer-id="${esc(customerId)}">${icon('plus')} Create Corporate Rate Card</button>
                 </div>
               `}
             </div>
-          </section>
+          </div>
         `;
       } else if (activeTab === 'settings') {
         tabBody = `
-          <section class="card section-card">
-            ${cardHead('Profile & Governance Settings', 'Corporate billing credentials, financial credit policies and duty dispatch guardrails.')}
-            <div style="padding:20px">
-              <div class="grid two-col" style="gap:24px">
-                <!-- Left Column: Legal & Billing Setup -->
-                <div>
-                  <h4 style="margin:0 0 14px 0;font-size:14px;color:var(--ink);display:flex;align-items:center;gap:6px">${icon('building')} Legal &amp; Billing Information</h4>
-                  <div class="form-group" style="margin-bottom:12px">
-                    <label>Legal Company Name *</label>
-                    <input class="form-input" id="custPage_name" value="${esc(c.name || '')}">
+          <div>
+            <div style="margin-bottom:16px">
+              <h3 style="margin:0;font-size:15px;font-weight:700;color:var(--ink)">Profile &amp; Governance Settings</h3>
+              <p style="margin:2px 0 0;font-size:11.5px;color:var(--muted)">Corporate billing credentials, financial credit policies and duty dispatch guardrails.</p>
+            </div>
+
+            <div class="grid two-col" style="gap:24px;align-items:start">
+              <!-- Left Column: Legal & Billing Setup -->
+              <div class="card pad" style="background:#fff;border:1px solid var(--line)">
+                <h4 style="margin:0 0 14px 0;font-size:13.5px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px">${icon('building')} Legal &amp; Billing Information</h4>
+                <div class="form-group" style="margin-bottom:12px">
+                  <label>Legal Company Name *</label>
+                  <input class="form-input" id="custPage_name" value="${esc(c.name || '')}">
+                </div>
+                <div class="form-group" style="margin-bottom:12px">
+                  <label>Customer Code / Prefix</label>
+                  <input class="form-input" id="custPage_code" value="${esc(c.code || '')}" placeholder="e.g. IWP">
+                </div>
+                <div class="grid two-col" style="gap:12px;margin-bottom:12px">
+                  <div class="form-group">
+                    <label>Official Billing Email</label>
+                    <input class="form-input" id="custPage_email" type="email" value="${esc(c.email || '')}" placeholder="billing@company.com">
                   </div>
-                  <div class="form-group" style="margin-bottom:12px">
-                    <label>Customer Code / Prefix</label>
-                    <input class="form-input" id="custPage_code" value="${esc(c.code || '')}" placeholder="e.g. IWP">
-                  </div>
-                  <div class="grid two-col" style="gap:12px;margin-bottom:12px">
-                    <div class="form-group">
-                      <label>Official Billing Email</label>
-                      <input class="form-input" id="custPage_email" type="email" value="${esc(c.email || '')}" placeholder="billing@company.com">
-                    </div>
-                    <div class="form-group">
-                      <label>Operations Contact Phone</label>
-                      <input class="form-input" id="custPage_phone" type="tel" value="${esc(c.phone || '')}" placeholder="+91 80 4123 9900">
-                    </div>
-                  </div>
-                  <div class="grid two-col" style="gap:12px;margin-bottom:12px">
-                    <div class="form-group">
-                      <label>GSTIN (Tax ID)</label>
-                      <input class="form-input" id="custPage_gstin" value="${esc(c.gstin || '')}" placeholder="29AAACI9876Q1Z9">
-                    </div>
-                    <div class="form-group">
-                      <label>Permanent Account Number (PAN)</label>
-                      <input class="form-input" id="custPage_pan" value="${esc(settings.pan || '')}" placeholder="AAACI9876Q">
-                    </div>
-                  </div>
-                  <div class="grid two-col" style="gap:12px">
-                    <div class="form-group">
-                      <label>Credit Terms</label>
-                      <select class="form-input" id="custPage_payment_terms">
-                        <option value="immediate" ${settings.payment_terms === 'immediate' ? 'selected' : ''}>Immediate / Due on Receipt</option>
-                        <option value="15" ${settings.payment_terms === '15' ? 'selected' : ''}>Net 15 Days</option>
-                        <option value="30" ${settings.payment_terms === '30' || !settings.payment_terms ? 'selected' : ''}>Net 30 Days (Standard)</option>
-                        <option value="45" ${settings.payment_terms === '45' ? 'selected' : ''}>Net 45 Days</option>
-                        <option value="60" ${settings.payment_terms === '60' ? 'selected' : ''}>Net 60 Days</option>
-                      </select>
-                    </div>
-                    <div class="form-group">
-                      <label>Credit Limit (₹)</label>
-                      <input class="form-input" id="custPage_credit_limit" type="number" step="10000" value="${esc(settings.credit_limit || '500000')}" placeholder="500000">
-                    </div>
+                  <div class="form-group">
+                    <label>Operations Contact Phone</label>
+                    <input class="form-input" id="custPage_phone" type="tel" value="${esc(c.phone || '')}" placeholder="+91 80 4123 9900">
                   </div>
                 </div>
-
-                <!-- Right Column: Booking Compliance & Guardrails -->
-                <div>
-                  <h4 style="margin:0 0 14px 0;font-size:14px;color:var(--ink);display:flex;align-items:center;gap:6px">${icon('shield')} Corporate Booking Guardrails</h4>
-                  <div style="background:var(--slate-50,#f8fafc);border:1px solid var(--border,#e2e8f0);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px">
-                    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
-                      <input type="checkbox" id="custPage_reqEmpId" ${settings.require_employee_id ? 'checked' : ''} style="margin-top:3px">
-                      <div>
-                        <strong style="font-size:13px;display:block;color:var(--ink)">Require Employee ID on All Bookings</strong>
-                        <span style="font-size:11.5px;color:var(--muted)">Prevents dispatch until passenger employee ID is verified against the connected roster.</span>
-                      </div>
-                    </label>
-                    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
-                      <input type="checkbox" id="custPage_reqCostCenter" ${settings.require_cost_center ? 'checked' : ''} style="margin-top:3px">
-                      <div>
-                        <strong style="font-size:13px;display:block;color:var(--ink)">Require Cost Center / Project Code</strong>
-                        <span style="font-size:11.5px;color:var(--muted)">Mandatory department billing allocation code required before booking submission.</span>
-                      </div>
-                    </label>
-                    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
-                      <input type="checkbox" id="custPage_reqSig" ${settings.require_digital_sig !== false ? 'checked' : ''} style="margin-top:3px">
-                      <div>
-                        <strong style="font-size:13px;display:block;color:var(--ink)">Require Digital Signature or OTP on Duty Slip Closure</strong>
-                        <span style="font-size:11.5px;color:var(--muted)">Duty cannot transition to billed state without passenger OTP verification or digital signature on driver app.</span>
-                      </div>
-                    </label>
+                <div class="grid two-col" style="gap:12px;margin-bottom:12px">
+                  <div class="form-group">
+                    <label>GSTIN (Tax ID)</label>
+                    <input class="form-input" id="custPage_gstin" value="${esc(c.gstin || '')}" placeholder="29AAACI9876Q1Z9">
                   </div>
-
-                  <div style="margin-top:20px;padding:14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px">
-                    <div style="font-size:12px;color:#166534;line-height:1.5">
-                      <strong>Indecab Parity:</strong> Governance settings take effect immediately across all booking channels, web intake forms, and automated dispatch workflows.
-                    </div>
+                  <div class="form-group">
+                    <label>Permanent Account Number (PAN)</label>
+                    <input class="form-input" id="custPage_pan" value="${esc(settings.pan || '')}" placeholder="AAACI9876Q">
+                  </div>
+                </div>
+                <div class="grid two-col" style="gap:12px">
+                  <div class="form-group">
+                    <label>Credit Terms</label>
+                    <select class="form-input" id="custPage_payment_terms">
+                      <option value="immediate" ${settings.payment_terms === 'immediate' ? 'selected' : ''}>Immediate / Due on Receipt</option>
+                      <option value="15" ${settings.payment_terms === '15' ? 'selected' : ''}>Net 15 Days</option>
+                      <option value="30" ${settings.payment_terms === '30' || !settings.payment_terms ? 'selected' : ''}>Net 30 Days (Standard)</option>
+                      <option value="45" ${settings.payment_terms === '45' ? 'selected' : ''}>Net 45 Days</option>
+                      <option value="60" ${settings.payment_terms === '60' ? 'selected' : ''}>Net 60 Days</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Credit Limit (₹)</label>
+                    <input class="form-input" id="custPage_credit_limit" type="number" step="10000" value="${esc(settings.credit_limit || '250000')}" placeholder="250000">
                   </div>
                 </div>
               </div>
 
-              <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border,#e2e8f0);display:flex;justify-content:flex-end;gap:10px">
-                <button class="btn soft" data-action="back-to-customers">Cancel</button>
-                <button class="btn primary" id="custPageBtnSaveSettings">${icon('check')} Save Corporate Settings</button>
+              <!-- Right Column: Booking Compliance & Guardrails -->
+              <div class="card pad" style="background:#fff;border:1px solid var(--line)">
+                <h4 style="margin:0 0 14px 0;font-size:13.5px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px">${icon('shield')} Corporate Booking Guardrails</h4>
+                <div style="background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:14px">
+                  <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
+                    <input type="checkbox" id="custPage_reqEmpId" ${settings.require_employee_id ? 'checked' : ''} style="margin-top:3px">
+                    <div>
+                      <strong style="font-size:12.5px;display:block;color:var(--ink)">Require Employee ID on All Bookings</strong>
+                      <span style="font-size:11px;color:var(--muted)">Prevents dispatch until passenger employee ID is verified against the connected roster.</span>
+                    </div>
+                  </label>
+                  <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
+                    <input type="checkbox" id="custPage_reqCostCenter" ${settings.require_cost_center ? 'checked' : ''} style="margin-top:3px">
+                    <div>
+                      <strong style="font-size:12.5px;display:block;color:var(--ink)">Require Cost Center / Project Code</strong>
+                      <span style="font-size:11px;color:var(--muted)">Mandatory department billing allocation code required before booking submission.</span>
+                    </div>
+                  </label>
+                  <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
+                    <input type="checkbox" id="custPage_reqSig" ${settings.require_digital_sig !== false ? 'checked' : ''} style="margin-top:3px">
+                    <div>
+                      <strong style="font-size:12.5px;display:block;color:var(--ink)">Require Digital Signature or OTP on Duty Slip Closure</strong>
+                      <span style="font-size:11px;color:var(--muted)">Duty cannot transition to billed state without passenger OTP verification or digital signature on driver app.</span>
+                    </div>
+                  </label>
+                </div>
+
+                <div style="margin-top:16px;padding:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px">
+                  <div style="font-size:11.5px;color:#166534;line-height:1.45">
+                    <strong>Indecab Governance Parity:</strong> Settings take effect immediately across all booking channels, web intake forms, and automated dispatch workflows.
+                  </div>
+                </div>
               </div>
             </div>
-          </section>
+
+            <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px">
+              <button class="btn soft" data-action="back-to-customers">Cancel</button>
+              <button class="btn primary" id="custPageBtnSaveSettings">${icon('check')} Save Corporate Settings</button>
+            </div>
+          </div>
         `;
       }
 
-      return `
-        ${pageHead('Commercial · Corporate Account 360', esc(c.name), `Complete financial P&amp;L, duty fulfillment costs, accounts ledger and booking governance for ${esc(c.name)}.`, headActions)}
-        ${profileStrip}
-        ${kpis}
-        ${tabsBar}
-        ${tabBody}
+      const tabsContainer = `
+        <section class="card section-card" style="border-radius:12px;overflow:hidden">
+          <div class="panel-toolbar" style="background:#fff;border-bottom:1px solid var(--line);padding:10px 16px">
+            <div class="tabs">
+              <button class="tab ${activeTab === 'pnl' ? 'active' : ''}" data-cust-page-tab="pnl">${icon('chart')} Company P&amp;L Statement</button>
+              <button class="tab ${activeTab === 'ledger' ? 'active' : ''}" data-cust-page-tab="ledger">${icon('file')} Invoices &amp; Ledger (${invoices.length})</button>
+              <button class="tab ${activeTab === 'pricing' ? 'active' : ''}" data-cust-page-tab="pricing">${icon('copy')} Rate Cards &amp; Tariffs (${contracts.length})</button>
+              <button class="tab ${activeTab === 'settings' ? 'active' : ''}" data-cust-page-tab="settings">${icon('settings')} Profile &amp; Governance Settings</button>
+            </div>
+          </div>
+          <div style="padding:18px 20px">
+            ${tabBody}
+          </div>
+        </section>
       `;
-    }
 
-    function renderSuppliers() {
+      return `
+        ${pageHead('Commercial · Corporate Account 360', titleMarkup, 'Executive overview of client profitability, fulfillment costs, invoices ledger and booking governance.', headActions)}
+        ${metaStrip}
+        ${kpis}
+        ${tabsContainer}
+      `;
+    }function renderSuppliers() {
       const suppliers = state.liveData?.suppliers?.items || [];
       const vehicles = state.liveData?.vehicles?.items || [];
       const supplierVehicles = vehicles.filter(v => (v.ownership || '').toLowerCase() === 'supplier' || v.supplier_id);
