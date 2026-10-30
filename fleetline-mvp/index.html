@@ -5180,7 +5180,7 @@
       const headActions = `
         ${button(icon('arrow-left') + ' Back to Customers', 'soft', 'data-action="back-to-customers"')}
         ${button(icon('file') + ' Rate Card', '', `data-action="pricing-contract" data-customer-id="${esc(customerId)}"`)}
-        ${button(icon('users') + ' Add Employee', '', 'data-action="corporate-people"')}
+        ${button(icon('users') + ' Add Employee', '', `data-action="add-corp-employee" data-customer-id="${esc(customerId)}"`)}
         ${button(icon('plus') + ' Book Duty', 'primary', 'data-action="new-booking"')}
       `;
 
@@ -5528,6 +5528,48 @@
             ${invoicePaginationMarkup}
           </div>
         `;
+      } else if (activeTab === 'employees') {
+        const corpEmployees = res?.employees || (state.liveData?.employees?.items || []).filter(e => e.customer_id === customerId);
+        tabBody = `
+          <div>
+            <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+              <div>
+                <h3 style="margin:0;font-size:15px;font-weight:700;color:var(--ink)">Corporate Employees &amp; Booker Roster</h3>
+                <p style="margin:2px 0 0;font-size:11.5px;color:var(--muted)">Authorized passenger roster, cost center allocations and corporate bookers for ${esc(c.name)}.</p>
+              </div>
+              <button class="btn small primary" data-action="add-corp-employee" data-customer-id="${esc(customerId)}">${icon('plus')} Add Employee</button>
+            </div>
+
+            <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+              <table>
+                <thead>
+                  <tr style="background:#f8fafc">
+                    <th>Employee ID</th>
+                    <th>Full Name</th>
+                    <th>Official Email</th>
+                    <th>Phone</th>
+                    <th>Department</th>
+                    <th>Cost Center</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${corpEmployees.length ? corpEmployees.map(emp => `
+                    <tr>
+                      <td><span class="keycap" style="font-weight:600">${esc(emp.employee_code || emp.id)}</span></td>
+                      <td><strong style="color:var(--ink)">${esc(emp.full_name || 'Employee')}</strong></td>
+                      <td>${esc(emp.email || '—')}</td>
+                      <td>${esc(emp.phone || '—')}</td>
+                      <td><span class="pill primary" style="font-size:10.5px">${esc(emp.department || 'General')}</span></td>
+                      <td><span style="font-family:monospace;font-size:11px">${esc(emp.cost_center || '—')}</span></td>
+                      <td><span class="status ${emp.status === 'inactive' ? 'gray' : 'green'}">${esc(emp.status || 'active').toUpperCase()}</span></td>
+                    </tr>
+                  `).join('') : tenantTableEmpty(`No employee records attached to ${esc(c.name)}`, 'Add authorized employee records to enable corporate passenger bookings and cost-center allocations.', button(icon('plus') + ' Add Employee', 'small primary', `data-action="add-corp-employee" data-customer-id="${esc(customerId)}"`))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
       } else if (activeTab === 'pricing') {
         tabBody = `
           <div>
@@ -5702,6 +5744,7 @@
             <div class="tabs">
               <button class="tab ${activeTab === 'pnl' ? 'active' : ''}" data-cust-page-tab="pnl">${icon('chart')} Company P&amp;L Statement</button>
               <button class="tab ${activeTab === 'ledger' ? 'active' : ''}" data-cust-page-tab="ledger">${icon('file')} Invoices &amp; Ledger (${invoices.length})</button>
+              <button class="tab ${activeTab === 'employees' ? 'active' : ''}" data-cust-page-tab="employees">${icon('users')} Employees Roster (${(res?.employees || []).length})</button>
               <button class="tab ${activeTab === 'pricing' ? 'active' : ''}" data-cust-page-tab="pricing">${icon('copy')} Rate Cards &amp; Tariffs (${contracts.length})</button>
               <button class="tab ${activeTab === 'settings' ? 'active' : ''}" data-cust-page-tab="settings">${icon('settings')} Profile &amp; Governance Settings</button>
             </div>
@@ -7823,6 +7866,7 @@
         'masters-help': () => showToast('Masters are the operating foundation','Set up each reference record once, then reuse it across bookings, duties, billing and Network workflows.'),
         'add-customer': () => openCustomerModal(),
         'open-customer-detail': () => openCustomerDetailPage(el?.dataset?.customerId),
+        'add-corp-employee': () => openCorporateEmployeeModal(el?.dataset?.customerId || state.selectedCustomerId),
         'open-customer-profile': () => openCustomerDetailPage(el?.dataset?.customerId),
         'back-to-customers': () => {
           state.page = 'customers';
@@ -8388,18 +8432,36 @@
       });
     }
 
-    function openCorporateEmployeeModal() {
-      const modal = modalShell('Add employee record', 'Create the tenant person record first; role activation and visibility restrictions remain governed by the access policy.', `<div class="form-grid"><div class="form-group full"><label>Full name <span class="required">*</span></label><input class="form-input" data-employee-field="full_name" placeholder="Employee full name"></div><div class="form-group"><label>Employee code</label><input class="form-input" data-employee-field="employee_code" placeholder="Optional code"></div><div class="form-group"><label>Email</label><input class="form-input" data-employee-field="email" type="email" placeholder="name@company.com"></div><div class="form-group"><label>Phone</label><input class="form-input" data-employee-field="phone" placeholder="Optional phone"></div><div class="form-group"><label>Department</label><input class="form-input" data-employee-field="department" placeholder="Department"></div><div class="form-group"><label>Cost center</label><input class="form-input" data-employee-field="cost_center" placeholder="Cost center"></div></div>`, `${button('Cancel','','data-close-modal')}${button('Create employee','primary','data-submit-corporate-employee')}`);
+    function openCorporateEmployeeModal(defaultCustomerId = null) {
+      const customers = state.liveData?.customers?.items || [];
+      const selectedCid = defaultCustomerId || state.selectedCustomerId || '';
+      const customerOptions = customers.map(c => `<option value="${esc(c.id)}" ${c.id === selectedCid ? 'selected' : ''}>${esc(c.name || c.id)}</option>`).join('');
+
+      const customerField = customers.length ? `
+        <div class="form-group full">
+          <label>Corporate Customer / Client Account</label>
+          <select class="form-input" data-employee-field="customer_id">
+            <option value="">Tenant Shared / All Accounts</option>
+            ${customerOptions}
+          </select>
+        </div>
+      ` : '';
+
+      const modal = modalShell('Add corporate employee record', 'Affiliate an employee, travel coordinator or authorized passenger with this corporate account.', `<div class="form-grid">${customerField}<div class="form-group full"><label>Full name <span class="required">*</span></label><input class="form-input" data-employee-field="full_name" placeholder="Employee full name"></div><div class="form-group"><label>Employee code / ID</label><input class="form-input" data-employee-field="employee_code" placeholder="e.g. IWP-101"></div><div class="form-group"><label>Official Email</label><input class="form-input" data-employee-field="email" type="email" placeholder="name@company.com"></div><div class="form-group"><label>Phone Number</label><input class="form-input" data-employee-field="phone" placeholder="+91 98xxx xxxxx"></div><div class="form-group"><label>Department</label><input class="form-input" data-employee-field="department" placeholder="e.g. Executive Travel, Engineering"></div><div class="form-group"><label>Cost center</label><input class="form-input" data-employee-field="cost_center" placeholder="e.g. CC-IWP-01"></div></div>`, `${button('Cancel','','data-close-modal')}${button('Create employee','primary','data-submit-corporate-employee')}`);
       modal.querySelector('[data-submit-corporate-employee]').addEventListener('click', async () => {
         if (!validateFields(modal, [['[data-employee-field="full_name"]','Full name is required.']])) return;
         const read = key => modal.querySelector(`[data-employee-field="${key}"]`)?.value.trim() || '';
         const submit = modal.querySelector('[data-submit-corporate-employee]');
         submit.disabled = true;
         try {
-          await apiRequest('/api/employees', { method: 'POST', body: JSON.stringify({ full_name: read('full_name'), employee_code: read('employee_code'), email: read('email'), phone: read('phone'), department: read('department'), cost_center: read('cost_center') }) });
+          const custId = read('customer_id') || selectedCid || undefined;
+          await apiRequest('/api/employees', { method: 'POST', body: JSON.stringify({ full_name: read('full_name'), employee_code: read('employee_code'), email: read('email'), phone: read('phone'), department: read('department'), cost_center: read('cost_center'), customer_id: custId }) });
           closeModal();
-          showToast('Employee record created', 'The person is now available for tenant access setup and visibility assignment.');
+          showToast('Employee created', `${read('full_name')} is now registered and linked to corporate booking scope.`);
           await hydrateOperationalData();
+          if (state.page === 'customer-detail' && state.selectedCustomerId) {
+            await fetchCustomer360(state.selectedCustomerId);
+          }
         } catch (error) {
           submit.disabled = false;
           showToast('Employee record could not be created', error.message);

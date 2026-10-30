@@ -482,8 +482,9 @@ def _create_employee(conn, user, payload, ip):
     if not full_name: raise DomainError(400, "Employee name is required", "validation_error")
     employee_id = new_id("employee"); now = now_iso()
     code = _text(payload, "employee_code", maximum=50) or f"EMP-{conn.execute('SELECT COUNT(*) + 1 AS n FROM domain_employees WHERE organization_id = ?', (org,)).fetchone()['n']:04d}"
-    conn.execute("INSERT INTO domain_employees(id, organization_id, employee_code, full_name, email, phone, department, cost_center, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (employee_id, org, code, full_name, _text(payload, "email"), _text(payload, "phone"), _text(payload, "department"), _text(payload, "cost_center"), now, now))
-    _audit(conn, user, "employee.created", "employee", employee_id, ip, {"employee_code": code})
+    customer_id = _text(payload, "customer_id", maximum=64) or None
+    conn.execute("INSERT INTO domain_employees(id, organization_id, customer_id, employee_code, full_name, email, phone, department, cost_center, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (employee_id, org, customer_id, code, full_name, _text(payload, "email"), _text(payload, "phone"), _text(payload, "department"), _text(payload, "cost_center"), now, now))
+    _audit(conn, user, "employee.created", "employee", employee_id, ip, {"employee_code": code, "customer_id": customer_id})
     return {"ok": True, "item": _feature_item(conn, "domain_employees", employee_id, org)}
 
 

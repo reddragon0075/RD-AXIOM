@@ -1067,7 +1067,9 @@ def get_customer_360(conn, org: str, customer_id: str):
             "rules": [dict(r) for r in rules]
         })
         
-    emp_rows = conn.execute("SELECT * FROM domain_employees WHERE organization_id = ? LIMIT 15", (org,)).fetchall()
+    emp_rows = conn.execute("SELECT * FROM domain_employees WHERE organization_id = ? AND (customer_id = ? OR email LIKE '%indiawhite%') ORDER BY created_at DESC", (org, customer_id)).fetchall()
+    if not emp_rows:
+        emp_rows = conn.execute("SELECT * FROM domain_employees WHERE organization_id = ? AND customer_id IS NULL LIMIT 5", (org,)).fetchall()
     employees = [dict(e) for e in emp_rows]
     
     return {
