@@ -2639,6 +2639,35 @@
           </div>
         </div>
 
+        <!-- Dashboards Accordion -->
+        <div class="nav-accordion-group" data-section="dashboards">
+          <button class="nav-section nav-section-header" type="button" aria-expanded="true" aria-controls="section-items-dashboards">
+            <span class="nav-section-label">Dashboards</span>
+            <span class="nav-section-count">4</span>
+            <svg class="nav-accordion-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="nav-section-items" id="section-items-dashboards">
+            <div class="nav-section-items-inner">
+              <button class="nav-item" data-page="pnl-dashboard" data-tooltip="Executive Profit &amp; Loss Dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span>P&amp;L Dashboard</span>
+              </button>
+              <button class="nav-item" data-page="ops-dashboard" data-tooltip="Operations &amp; Dispatch Intelligence">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                <span>Operations</span>
+              </button>
+              <button class="nav-item" data-page="fleet-dashboard" data-tooltip="Fleet Health &amp; Asset Economics">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 17h14l-1.5-6h-11L5 17Z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>
+                <span>Fleet Health</span>
+              </button>
+              <button class="nav-item" data-page="partner-dashboard" data-tooltip="Client &amp; Partner Performance">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Clients &amp; Partners</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Fleet Control Accordion -->
         <div class="nav-accordion-group" data-section="fleet">
           <button class="nav-section nav-section-header" type="button" aria-expanded="true" aria-controls="section-items-fleet">
@@ -2859,7 +2888,7 @@
     // All workspace records are tenant-scoped API data. The console deliberately
     // starts empty when a tenant has no records; no demo roster or invoice rows
     // are embedded in the product bundle.
-    const navTitles = { overview:'Operations overview', 'customer-detail':'Corporate Customer 360', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', 'driver-payouts':'Driver payouts & settlements', 'vehicle-pnl':'Vehicle lifecycle & P&L analytics', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & corporate pricing', suppliers:'Suppliers & partner rates', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls', 'axiom-hq':'Axiom Fleet HQ Command Center' };
+    const navTitles = { overview:'Operations overview', 'pnl-dashboard':'Executive Profit & Loss Dashboard', 'ops-dashboard':'Operations Intelligence Dashboard', 'fleet-dashboard':'Fleet Health & Asset Economics', 'partner-dashboard':'Client & Partner Performance', 'customer-detail':'Corporate Customer 360', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', 'driver-payouts':'Driver payouts & settlements', 'vehicle-pnl':'Vehicle lifecycle & P&L analytics', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & corporate pricing', suppliers:'Suppliers & partner rates', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls', 'axiom-hq':'Axiom Fleet HQ Command Center' };
     const savedActivePage = (function() {
       try {
         const p = sessionStorage.getItem('axiomfleet_active_page');
@@ -2867,7 +2896,7 @@
       } catch (_) {}
       return 'overview';
     })();
-    const state = { page: savedActivePage, selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const state = { page: savedActivePage, pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
     const advancedPages = new Set(['customers','customer-detail','suppliers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq']);
@@ -3405,7 +3434,7 @@
       const driversParent = document.getElementById('navItemDrivers');
       if (driversParent) driversParent.classList.toggle('active', state.page === 'drivers' || state.page === 'driver-payouts');
       syncAdvancedNavigation();
-      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, 'customer-detail': renderCustomerDetail, suppliers: renderSuppliers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ };
+      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, 'pnl-dashboard': renderPnLDashboard, 'ops-dashboard': renderOpsDashboard, 'fleet-dashboard': renderFleetDashboard, 'partner-dashboard': renderPartnerDashboard, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, 'customer-detail': renderCustomerDetail, suppliers: renderSuppliers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ };
       content.innerHTML = (pages[state.page] || renderOverview)();
       attachPageEvents();
       decorateResponsiveTables();
@@ -3418,6 +3447,764 @@
         table.classList.add('mobile-card-table');
         table.querySelectorAll('tbody tr').forEach(row => [...row.children].forEach((cell, index) => { if (cell.tagName === 'TD') cell.dataset.label = headers[index] || 'Detail'; }));
       });
+    }
+
+    function renderPnLDashboard() {
+      if (!state.pnlDashboardData && !state._fetchingPnlDashboard) {
+        state._fetchingPnlDashboard = true;
+        apiRequest('/api/dashboards/pnl')
+          .then(res => {
+            state._fetchingPnlDashboard = false;
+            if (res && res.ok) {
+              state.pnlDashboardData = res;
+              if (state.page === 'pnl-dashboard') render();
+            }
+          })
+          .catch(err => {
+            state._fetchingPnlDashboard = false;
+            console.warn('PnL Dashboard fetch error:', err);
+          });
+      }
+
+      const res = state.pnlDashboardData;
+      const summary = res?.summary || { revenue_paise: 0, operating_cost_paise: 0, driver_cost_paise: 0, supplier_cost_paise: 0, running_cost_paise: 0, net_profit_paise: 0, margin_pct: 0, completed_duties_count: 0, total_duties_count: 0, total_invoiced_paise: 0, paid_paise: 0, outstanding_balance_paise: 0, invoice_count: 0 };
+      const rawDuties = res?.duties || [];
+      const rawInvoices = res?.invoices || [];
+      const customersList = res?.customers || [];
+      const dutyTypesList = res?.duty_types || [];
+      const fleetModelsList = res?.fleet_models || [];
+
+      // Filter settings
+      const periodFilter = state.pnlPeriodFilter || 'all';
+      const customerFilter = state.pnlCustomerFilter || 'all';
+      const dutyTypeFilter = state.pnlDutyTypeFilter || 'all';
+      const fleetModelFilter = state.pnlFleetModelFilter || 'all';
+      const customFrom = state.pnlDateFrom || '';
+      const customTo = state.pnlDateTo || '';
+      const activeTab = state.pnlDashboardTab || 'statement';
+
+      let filterStart = '';
+      let filterEnd = '';
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+
+      if (periodFilter === 'this_month') {
+        const s = new Date(year, month, 1);
+        const e = new Date(year, month + 1, 0);
+        filterStart = `${s.getFullYear()}-${String(s.getMonth()+1).padStart(2, '0')}-01`;
+        filterEnd = `${e.getFullYear()}-${String(e.getMonth()+1).padStart(2, '0')}-${String(e.getDate()).padStart(2, '0')}`;
+      } else if (periodFilter === 'last_month') {
+        const s = new Date(year, month - 1, 1);
+        const e = new Date(year, month, 0);
+        filterStart = `${s.getFullYear()}-${String(s.getMonth()+1).padStart(2, '0')}-01`;
+        filterEnd = `${e.getFullYear()}-${String(e.getMonth()+1).padStart(2, '0')}-${String(e.getDate()).padStart(2, '0')}`;
+      } else if (periodFilter === 'last_30') {
+        const s = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+        filterStart = `${s.getFullYear()}-${String(s.getMonth()+1).padStart(2, '0')}-${String(s.getDate()).padStart(2, '0')}`;
+        filterEnd = `${year}-${String(month+1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      } else if (periodFilter === 'fy') {
+        const fyStart = month >= 3 ? year : year - 1;
+        filterStart = `${fyStart}-04-01`;
+        filterEnd = `${fyStart + 1}-03-31`;
+      } else if (periodFilter === 'custom') {
+        filterStart = customFrom;
+        filterEnd = customTo;
+      }
+
+      const isFiltered = periodFilter !== 'all' || customerFilter !== 'all' || dutyTypeFilter !== 'all' || fleetModelFilter !== 'all' || Boolean(customFrom || customTo);
+
+      let effectiveDuties = rawDuties;
+      if (isFiltered && rawDuties.length > 0) {
+        effectiveDuties = rawDuties.filter(d => {
+          if (filterStart || filterEnd) {
+            const dDate = (d.reporting_at || '').slice(0, 10);
+            if (filterStart && dDate && dDate < filterStart) return false;
+            if (filterEnd && dDate && dDate > filterEnd) return false;
+          }
+          if (customerFilter !== 'all' && d.customer_id !== customerFilter) return false;
+          if (dutyTypeFilter !== 'all') {
+            const t = (d.duty_type || '').toLowerCase();
+            if (dutyTypeFilter === 'local' && !t.includes('local')) return false;
+            if (dutyTypeFilter === 'airport' && !t.includes('airport')) return false;
+            if (dutyTypeFilter === 'outstation' && !t.includes('outstation')) return false;
+          }
+          if (fleetModelFilter !== 'all') {
+            if (fleetModelFilter === 'owned' && d.is_supplier) return false;
+            if (fleetModelFilter === 'supplier' && !d.is_supplier) return false;
+          }
+          return true;
+        });
+      }
+
+      let effectiveInvoices = rawInvoices;
+      if (customerFilter !== 'all' || filterStart || filterEnd) {
+        effectiveInvoices = rawInvoices.filter(inv => {
+          if (customerFilter !== 'all' && inv.customer_id !== customerFilter) return false;
+          if (filterStart || filterEnd) {
+            const invDate = (inv.issued_at || '').slice(0, 10);
+            if (filterStart && invDate && invDate < filterStart) return false;
+            if (filterEnd && invDate && invDate > filterEnd) return false;
+          }
+          return true;
+        });
+      }
+
+      let calcRevPaise = summary.revenue_paise;
+      let calcCostPaise = summary.operating_cost_paise;
+      let calcDriverCostPaise = summary.driver_cost_paise;
+      let calcSupplierCostPaise = summary.supplier_cost_paise;
+      let calcRunningCostPaise = summary.running_cost_paise;
+      let calcNetProfitPaise = summary.net_profit_paise;
+      let calcMarginPct = summary.margin_pct;
+      let calcCompletedCount = summary.completed_duties_count;
+      let calcTotalDuties = summary.total_duties_count;
+
+      let calcInvoicedPaise = summary.total_invoiced_paise;
+      let calcPaidPaise = summary.paid_paise;
+      let calcDuePaise = summary.outstanding_balance_paise;
+
+      if (isFiltered) {
+        calcRevPaise = effectiveDuties.reduce((s, d) => s + (d.revenue_paise || 0), 0);
+        calcDriverCostPaise = effectiveDuties.reduce((s, d) => s + (d.driver_cost_paise || 0), 0);
+        calcSupplierCostPaise = effectiveDuties.reduce((s, d) => s + (d.supplier_cost_paise || 0), 0);
+        calcRunningCostPaise = effectiveDuties.reduce((s, d) => s + (d.running_cost_paise || 0), 0);
+        calcCostPaise = calcDriverCostPaise + calcSupplierCostPaise + calcRunningCostPaise;
+        calcNetProfitPaise = calcRevPaise - calcCostPaise;
+        calcMarginPct = calcRevPaise > 0 ? Number(((calcNetProfitPaise / calcRevPaise) * 100).toFixed(1)) : 0.0;
+        calcCompletedCount = effectiveDuties.filter(d => d.status === 'completed').length;
+        calcTotalDuties = effectiveDuties.length;
+
+        calcInvoicedPaise = effectiveInvoices.reduce((s, inv) => s + (inv.total_paise || 0), 0);
+        calcPaidPaise = effectiveInvoices.filter(inv => inv.status === 'paid').reduce((s, inv) => s + (inv.total_paise || 0), 0);
+        calcDuePaise = effectiveInvoices.filter(inv => inv.status !== 'paid').reduce((s, inv) => s + (inv.total_paise || 0), 0);
+      }
+
+      const revRs = (calcRevPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const costRs = (calcCostPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const profitRs = (calcNetProfitPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const invRs = (calcInvoicedPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const paidRs = (calcPaidPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const dueRs = (calcDuePaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const isProfitable = calcNetProfitPaise >= 0;
+
+      const costPct = calcRevPaise > 0 ? ((calcCostPaise / calcRevPaise) * 100).toFixed(1) : '0.0';
+      const supplierPct = calcRevPaise > 0 ? ((calcSupplierCostPaise / calcRevPaise) * 100).toFixed(1) : '0.0';
+      const runningPct = calcRevPaise > 0 ? ((calcRunningCostPaise / calcRevPaise) * 100).toFixed(1) : '0.0';
+      const driverPct = calcRevPaise > 0 ? ((calcDriverCostPaise / calcRevPaise) * 100).toFixed(1) : '0.0';
+      const collectionPct = calcInvoicedPaise > 0 ? Math.round((calcPaidPaise / calcInvoicedPaise) * 100) : 0;
+
+      const filterRibbon = `
+        <div class="card" style="padding:10px 16px;margin-bottom:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--ink)">
+              ${icon('filter')} <span>Filter:</span>
+            </div>
+
+            <!-- Period Preset Select -->
+            <div style="display:inline-flex;align-items:center;gap:6px">
+              <label for="pnlPeriodSelect" style="font-size:11px;font-weight:600;color:var(--muted)">Period</label>
+              <select id="pnlPeriodSelect" class="table-page-size-select" style="height:30px;padding:2px 8px;font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)">
+                <option value="all" ${periodFilter === 'all' ? 'selected' : ''}>All Time</option>
+                <option value="this_month" ${periodFilter === 'this_month' ? 'selected' : ''}>This Month (Oct 2026)</option>
+                <option value="last_month" ${periodFilter === 'last_month' ? 'selected' : ''}>Last Month (Sep 2026)</option>
+                <option value="last_30" ${periodFilter === 'last_30' ? 'selected' : ''}>Last 30 Days</option>
+                <option value="fy" ${periodFilter === 'fy' ? 'selected' : ''}>FY 2026-27 (Apr–Mar)</option>
+                <option value="custom" ${periodFilter === 'custom' ? 'selected' : ''}>Custom Date Range</option>
+              </select>
+            </div>
+
+            <!-- Custom Date Inputs -->
+            <div id="pnlCustomDatesWrap" style="display:${periodFilter === 'custom' ? 'inline-flex' : 'none'};align-items:center;gap:6px">
+              <input type="date" id="pnlDateFrom" value="${esc(customFrom)}" style="height:30px;padding:2px 6px;font-size:11.5px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)" title="Start date">
+              <span style="color:var(--muted);font-size:11px">to</span>
+              <input type="date" id="pnlDateTo" value="${esc(customTo)}" style="height:30px;padding:2px 6px;font-size:11.5px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)" title="End date">
+              <button class="btn small soft" id="pnlApplyDatesBtn" style="height:30px;padding:0 8px;font-size:11px">Apply</button>
+            </div>
+
+            <!-- Corporate Client Filter -->
+            <div style="display:inline-flex;align-items:center;gap:6px">
+              <label for="pnlCustomerSelect" style="font-size:11px;font-weight:600;color:var(--muted)">Client</label>
+              <select id="pnlCustomerSelect" class="table-page-size-select" style="height:30px;padding:2px 8px;font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);max-width:180px">
+                <option value="all">All Corporate Clients (${customersList.length})</option>
+                ${customersList.map(c => `<option value="${esc(c.id)}" ${customerFilter === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}
+              </select>
+            </div>
+
+            <!-- Duty Type Select -->
+            <div style="display:inline-flex;align-items:center;gap:6px">
+              <label for="pnlDutyTypeSelect" style="font-size:11px;font-weight:600;color:var(--muted)">Duty Type</label>
+              <select id="pnlDutyTypeSelect" class="table-page-size-select" style="height:30px;padding:2px 8px;font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)">
+                <option value="all" ${dutyTypeFilter === 'all' ? 'selected' : ''}>All Duty Types</option>
+                <option value="local" ${dutyTypeFilter === 'local' ? 'selected' : ''}>Local &amp; Packages</option>
+                <option value="airport" ${dutyTypeFilter === 'airport' ? 'selected' : ''}>Airport Transfers</option>
+                <option value="outstation" ${dutyTypeFilter === 'outstation' ? 'selected' : ''}>Outstation</option>
+              </select>
+            </div>
+
+            <!-- Fleet Model Select -->
+            <div style="display:inline-flex;align-items:center;gap:6px">
+              <label for="pnlFleetModelSelect" style="font-size:11px;font-weight:600;color:var(--muted)">Fleet Model</label>
+              <select id="pnlFleetModelSelect" class="table-page-size-select" style="height:30px;padding:2px 8px;font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)">
+                <option value="all" ${fleetModelFilter === 'all' ? 'selected' : ''}>All Fleet</option>
+                <option value="owned" ${fleetModelFilter === 'owned' ? 'selected' : ''}>Company Owned</option>
+                <option value="supplier" ${fleetModelFilter === 'supplier' ? 'selected' : ''}>Outsourced Partner</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="pill ${isFiltered ? 'primary' : 'soft'}" style="font-size:11px;padding:3px 8px;font-weight:650">
+              ${isFiltered ? `Filtered Scope: ${calcTotalDuties} Duties · ₹${revRs}` : `${calcTotalDuties} Total Organization Duties`}
+            </span>
+            ${isFiltered ? `<button class="btn small soft" id="pnlResetFilterBtn" style="height:28px;padding:0 8px;font-size:11px;color:#dc2626">${icon('x')} Reset Filters</button>` : ''}
+          </div>
+        </div>
+      `;
+
+      const kpis = `
+        <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;margin-bottom:18px">
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Gross Billed Revenue</span><span class="kpi-icon">${icon('wallet')}</span></div>
+            <div class="kpi-value">₹${revRs}</div>
+            <div class="kpi-foot"><span class="trend neutral">${calcTotalDuties} duties across ${customersList.length} clients</span></div>
+          </div>
+          <div class="card kpi red">
+            <div class="kpi-top"><span class="kpi-label">Duty Operating Cost</span><span class="kpi-icon red">${icon('trending-down')}</span></div>
+            <div class="kpi-value" style="color:#dc2626">₹${costRs}</div>
+            <div class="kpi-foot"><span class="trend down">Driver batta, km &amp; supplier payouts</span></div>
+          </div>
+          <div class="card kpi ${isProfitable ? 'teal' : 'red'}">
+            <div class="kpi-top"><span class="kpi-label">Company Net Operating P&amp;L</span><span class="kpi-icon ${isProfitable ? 'teal' : 'red'}">${icon(isProfitable ? 'check' : 'warning')}</span></div>
+            <div class="kpi-value" style="color:${isProfitable ? '#059669' : '#dc2626'}">${isProfitable ? '+' : ''}₹${profitRs}</div>
+            <div class="kpi-foot"><span class="trend ${isProfitable ? 'up' : 'down'}" style="font-weight:750;color:${isProfitable ? '#059669' : '#dc2626'}">${calcMarginPct}% net operating margin</span></div>
+          </div>
+          <div class="card kpi purple">
+            <div class="kpi-top"><span class="kpi-label">Cash Collections</span><span class="kpi-icon purple">${icon('file')}</span></div>
+            <div class="kpi-value">₹${paidRs}</div>
+            <div class="kpi-foot"><span class="trend neutral">${collectionPct}% realization · ₹${dueRs} due</span></div>
+          </div>
+          <div class="card kpi teal">
+            <div class="kpi-top"><span class="kpi-label">Avg Yield / Duty</span><span class="kpi-icon teal">${icon('check')}</span></div>
+            <div class="kpi-value">₹${calcTotalDuties > 0 ? Math.round((calcRevPaise / calcTotalDuties) / 100).toLocaleString('en-IN') : 0}</div>
+            <div class="kpi-foot"><span class="trend up" style="color:#059669">+₹${calcTotalDuties > 0 ? Math.round((calcNetProfitPaise / calcTotalDuties) / 100).toLocaleString('en-IN') : 0} avg profit / duty</span></div>
+          </div>
+        </div>
+      `;
+
+      let tabBody = '';
+
+      if (activeTab === 'statement') {
+        tabBody = `
+          <div class="grid two-col" style="align-items:start;gap:20px">
+            <!-- Left Column: The Financial Statement -->
+            <div>
+              <div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <h3 style="margin:0;font-size:15px;font-weight:700;color:var(--ink)">Company Profitability Statement</h3>
+                  <p style="margin:2px 0 0;font-size:11.5px;color:var(--muted)">Organization-wide gross revenue vs. operational fulfillment expenses.</p>
+                </div>
+                <span class="badge" style="font-size:10.5px;font-weight:650;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534">Audited Ledger</span>
+              </div>
+
+              <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+                <table>
+                  <thead>
+                    <tr style="background:#f8fafc">
+                      <th style="font-size:11px;font-weight:700">Cost / Revenue Line Item</th>
+                      <th style="font-size:11px;font-weight:700">Category</th>
+                      <th style="text-align:right;font-size:11px;font-weight:700">Amount (₹)</th>
+                      <th style="text-align:right;font-size:11px;font-weight:700">% of Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style="background:#f0fdf4">
+                      <td><strong style="color:#065f46">Gross Operating Revenue (Billed Duties &amp; Invoices)</strong></td>
+                      <td><span class="pill primary" style="font-size:10px">Operating Revenue</span></td>
+                      <td style="text-align:right;color:#065f46;font-size:13.5px"><strong>₹${revRs}</strong></td>
+                      <td style="text-align:right;color:#065f46;font-weight:650">100.0%</td>
+                    </tr>
+                    <tr>
+                      <td style="padding-left:22px;color:var(--ink-2)">↳ Driver Allowances (Day Batta &amp; Night Batta)</td>
+                      <td><span style="font-size:10.5px;color:var(--muted)">Driver Direct Cost</span></td>
+                      <td style="text-align:right;color:#dc2626">₹${(calcDriverCostPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                      <td style="text-align:right;color:var(--muted)">${driverPct}%</td>
+                    </tr>
+                    <tr>
+                      <td style="padding-left:22px;color:var(--ink-2)">↳ Outsourced Supplier Payouts (Partner Vehicle Duties)</td>
+                      <td><span style="font-size:10.5px;color:var(--muted)">Vendor Settlement</span></td>
+                      <td style="text-align:right;color:#dc2626">₹${(calcSupplierCostPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                      <td style="text-align:right;color:var(--muted)">${supplierPct}%</td>
+                    </tr>
+                    <tr>
+                      <td style="padding-left:22px;color:var(--ink-2)">↳ Fleet Running Cost (Fuel, Maintenance &amp; Tires @ ₹8/Km)</td>
+                      <td><span style="font-size:10.5px;color:var(--muted)">Fleet Amortization</span></td>
+                      <td style="text-align:right;color:#dc2626">₹${(calcRunningCostPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                      <td style="text-align:right;color:var(--muted)">${runningPct}%</td>
+                    </tr>
+                    <tr style="background:#fef2f2">
+                      <td><strong style="color:#991b1b">Total Duty Operating Cost (COGS)</strong></td>
+                      <td><span class="pill red" style="font-size:10px">Total Expenses</span></td>
+                      <td style="text-align:right;color:#991b1b;font-size:13.5px"><strong>₹${costRs}</strong></td>
+                      <td style="text-align:right;color:#991b1b;font-weight:650">${costPct}%</td>
+                    </tr>
+                    <tr style="background:${isProfitable ? '#ecfdf5' : '#fef2f2'};border-top:2px solid var(--line)">
+                      <td><strong style="font-size:13.5px;color:${isProfitable ? '#065f46' : '#991b1b'}">Company Net Operating Profit (EBITDA)</strong></td>
+                      <td><span class="status ${isProfitable ? 'green' : 'red'}" style="font-size:10px">${isProfitable ? 'PROFITABLE' : 'UNPROFITABLE'}</span></td>
+                      <td style="text-align:right;font-size:15px;color:${isProfitable ? '#059669' : '#dc2626'}"><strong>${isProfitable ? '+' : ''}₹${profitRs}</strong></td>
+                      <td style="text-align:right;font-size:13.5px;color:${isProfitable ? '#059669' : '#dc2626'}"><strong>${calcMarginPct}%</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Right Column: Cost Distribution Stack & Margin Visualizer -->
+            <div>
+              <h3 style="margin:0 0 12px 0;font-size:15px;font-weight:700;color:var(--ink)">Cost Structure &amp; Margin Distribution</h3>
+              
+              <div style="background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:14px">
+                <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--ink);margin-bottom:10px">
+                  <span>Revenue Cost Distribution Stack</span>
+                  <span style="color:#059669;font-weight:750">${calcMarginPct}% Net Operating Margin</span>
+                </div>
+                <div style="height:12px;border-radius:6px;overflow:hidden;background:#e2e8f0;display:flex">
+                  <div style="width:${supplierPct}%;background:#0284c7" title="Supplier Payouts: ${supplierPct}%"></div>
+                  <div style="width:${runningPct}%;background:#f59e0b" title="Fleet Running: ${runningPct}%"></div>
+                  <div style="width:${driverPct}%;background:#8b5cf6" title="Driver Batta: ${driverPct}%"></div>
+                  <div style="width:${Math.max(0, calcMarginPct)}%;background:#10b981" title="Net Margin: ${calcMarginPct}%"></div>
+                </div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:12px">
+                  <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:#0284c7;border-radius:50%"></span> Suppliers (${supplierPct}%)</span>
+                  <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:#f59e0b;border-radius:50%"></span> Fleet Km (${runningPct}%)</span>
+                  <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:#8b5cf6;border-radius:50%"></span> Driver Batta (${driverPct}%)</span>
+                  <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:#10b981;border-radius:50%"></span> Net Margin (${calcMarginPct}%)</span>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+                <div class="mini-stat">
+                  <span style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Fulfilled Duties</span>
+                  <span style="display:block;font-size:18px;font-weight:750;color:var(--ink);margin:4px 0 2px">${calcCompletedCount}</span>
+                  <span style="font-size:10.5px;color:var(--muted-2)">Total completed runs</span>
+                </div>
+                <div class="mini-stat">
+                  <span style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Cash Realization</span>
+                  <span style="display:block;font-size:18px;font-weight:750;color:#059669;margin:4px 0 2px">${collectionPct}%</span>
+                  <span style="font-size:10.5px;color:var(--muted-2)">Settled receivables</span>
+                </div>
+              </div>
+
+              <div style="padding:12px;border-radius:8px;background:${isProfitable ? '#f0fdf4' : '#fef2f2'};border:1px solid ${isProfitable ? '#bbf7d0' : '#fecaca'};display:flex;align-items:center;gap:10px">
+                <span style="font-size:18px">${isProfitable ? '✅' : '⚠️'}</span>
+                <div style="font-size:11.5px;color:${isProfitable ? '#166534' : '#991b1b'};line-height:1.45">
+                  <strong>${isProfitable ? 'Company Health: Profitable' : 'Company Margin Alert'}</strong><br>
+                  ${isProfitable ? 'The business model is delivering positive net operating cashflow with resilient gross yields across clients.' : 'Operating cost exceeds target thresholds. Consider renegotiating partner supplier payouts.'}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (activeTab === 'customers') {
+        tabBody = `
+          <div>
+            <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+              <div>
+                <h3 style="margin:0;font-size:15px;font-weight:700;color:var(--ink)">Corporate Customer Profitability Leaderboard</h3>
+                <p style="margin:2px 0 0;font-size:11.5px;color:var(--muted)">Ranked client account yields, direct fulfillment expenses, net margins and collections.</p>
+              </div>
+              <span class="pill soft" style="font-size:11px;font-weight:600">${customersList.length} Connected Accounts</span>
+            </div>
+
+            <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+              <table>
+                <thead>
+                  <tr style="background:#f8fafc">
+                    <th># Rank</th>
+                    <th>Corporate Client</th>
+                    <th>Duties</th>
+                    <th style="text-align:right">Revenue (₹)</th>
+                    <th style="text-align:right">Fulfillment Cost (₹)</th>
+                    <th style="text-align:right">Net Profit (₹)</th>
+                    <th style="text-align:right">Margin %</th>
+                    <th style="text-align:right">Outstanding Due</th>
+                    <th style="text-align:right">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${customersList.map((c, idx) => {
+                    const cProfitable = c.net_profit_paise >= 0;
+                    return `
+                      <tr>
+                        <td><span style="font-size:11px;font-weight:700;color:var(--muted)">#${idx + 1}</span></td>
+                        <td>
+                          <div style="display:flex;align-items:center;gap:8px">
+                            <strong style="color:var(--ink)">${esc(c.name)}</strong>
+                            ${c.code ? `<span class="badge" style="font-size:10px">${esc(c.code)}</span>` : ''}
+                          </div>
+                        </td>
+                        <td>${c.duties_count} runs</td>
+                        <td style="text-align:right"><strong>₹${(c.revenue_paise / 100).toLocaleString('en-IN')}</strong></td>
+                        <td style="text-align:right;color:#dc2626">₹${(c.operating_cost_paise / 100).toLocaleString('en-IN')}</td>
+                        <td style="text-align:right;color:${cProfitable ? '#059669' : '#dc2626'};font-weight:700">${cProfitable ? '+' : ''}₹${(c.net_profit_paise / 100).toLocaleString('en-IN')}</td>
+                        <td style="text-align:right">
+                          <span class="pill ${c.margin_pct >= 20 ? 'teal' : c.margin_pct >= 10 ? 'primary' : 'red'}" style="font-size:10px;font-weight:700">
+                            ${c.margin_pct}%
+                          </span>
+                        </td>
+                        <td style="text-align:right;color:var(--muted)">₹${(c.due_paise / 100).toLocaleString('en-IN')}</td>
+                        <td style="text-align:right">
+                          <button class="btn small soft" data-action="view-customer-360" data-customer-id="${esc(c.id)}">Customer 360</button>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      } else if (activeTab === 'duty_types') {
+        tabBody = `
+          <div>
+            <div style="margin-bottom:16px">
+              <h3 style="margin:0;font-size:15px;font-weight:700;color:var(--ink)">Duty Type Profitability Matrix</h3>
+              <p style="margin:2px 0 0;font-size:11.5px;color:var(--muted)">Comparative margin yields across local city rentals, airport transfers, and outstation trips.</p>
+            </div>
+
+            <div class="grid three-col" style="gap:16px;margin-bottom:20px">
+              ${dutyTypesList.map(dt => {
+                const dtProfitable = dt.net_profit_paise >= 0;
+                const label = dt.duty_type === 'airport' ? 'Airport Transfers' : dt.duty_type.includes('local') ? 'Local & Packages' : 'Outstation Trips';
+                const badge = dt.duty_type === 'airport' ? 'High Frequency' : dt.duty_type.includes('local') ? 'Package Slabs' : 'High KM Yield';
+                return `
+                  <div class="card pad" style="background:#fff;border:1px solid var(--line);border-radius:10px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                      <span class="pill primary" style="font-size:11px;font-weight:700">${esc(label)}</span>
+                      <span class="badge" style="font-size:10px">${badge}</span>
+                    </div>
+                    <div style="margin-bottom:14px">
+                      <span style="font-size:10.5px;color:var(--muted);text-transform:uppercase;font-weight:700;display:block">Net Margin</span>
+                      <span style="font-size:24px;font-weight:800;color:${dtProfitable ? '#059669' : '#dc2626'}">${dt.margin_pct}%</span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;border-top:1px solid var(--line);padding-top:10px">
+                      <div style="display:flex;justify-content:space-between">
+                        <span style="color:var(--muted)">Duties Completed:</span>
+                        <strong>${dt.completed_count} of ${dt.duties_count}</strong>
+                      </div>
+                      <div style="display:flex;justify-content:space-between">
+                        <span style="color:var(--muted)">Billed Revenue:</span>
+                        <strong style="color:#065f46">₹${(dt.revenue_paise / 100).toLocaleString('en-IN')}</strong>
+                      </div>
+                      <div style="display:flex;justify-content:space-between">
+                        <span style="color:var(--muted)">Fulfillment Cost:</span>
+                        <strong style="color:#dc2626">₹${(dt.operating_cost_paise / 100).toLocaleString('en-IN')}</strong>
+                      </div>
+                      <div style="display:flex;justify-content:space-between">
+                        <span style="color:var(--muted)">Net Operating Profit:</span>
+                        <strong style="color:${dtProfitable ? '#059669' : '#dc2626'}">${dtProfitable ? '+' : ''}₹${(dt.net_profit_paise / 100).toLocaleString('en-IN')}</strong>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      } else if (activeTab === 'fleet_model') {
+        tabBody = `
+          <div>
+            <div style="margin-bottom:16px">
+              <h3 style="margin:0;font-size:15px;font-weight:700;color:var(--ink)">Fleet Operating Model Profitability Split</h3>
+              <p style="margin:2px 0 0;font-size:11.5px;color:var(--muted)">Financial comparison between Self-Operated Company Owned Vehicles vs Outsourced Partner Supplier Fleet.</p>
+            </div>
+
+            <div class="grid two-col" style="gap:20px;align-items:start">
+              ${fleetModelsList.map(fm => {
+                const isOwned = fm.key === 'owned';
+                const fmProfitable = fm.net_profit_paise >= 0;
+                return `
+                  <div class="card pad" style="background:#fff;border:1px solid var(--line);border-radius:10px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                      <div>
+                        <h4 style="margin:0;font-size:16px;font-weight:750;color:var(--ink)">${esc(fm.label)}</h4>
+                        <span style="font-size:11px;color:var(--muted)">${isOwned ? 'Direct internal driver & fuel dispatch' : 'Partner vehicle payouts & commissions'}</span>
+                      </div>
+                      <span class="pill ${isOwned ? 'teal' : 'primary'}" style="font-size:11px;font-weight:700">${isOwned ? 'Asset Fleet' : 'Partner Network'}</span>
+                    </div>
+
+                    <div class="grid two-col" style="gap:10px;margin-bottom:16px">
+                      <div class="mini-stat">
+                        <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block">Gross Margin</span>
+                        <span style="font-size:22px;font-weight:800;color:${fmProfitable ? '#059669' : '#dc2626'};display:block;margin:3px 0 1px">${fm.margin_pct}%</span>
+                        <span style="font-size:10.5px;color:var(--muted-2)">Retained company spread</span>
+                      </div>
+                      <div class="mini-stat">
+                        <span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block">Net Profit</span>
+                        <span style="font-size:22px;font-weight:800;color:${fmProfitable ? '#059669' : '#dc2626'};display:block;margin:3px 0 1px">${fmProfitable ? '+' : ''}₹${(fm.net_profit_paise / 100).toLocaleString('en-IN')}</span>
+                        <span style="font-size:10.5px;color:var(--muted-2)">Total operating surplus</span>
+                      </div>
+                    </div>
+
+                    <div style="border-top:1px solid var(--line);padding-top:12px;font-size:12px;display:flex;flex-direction:column;gap:8px">
+                      <div style="display:flex;justify-content:space-between">
+                        <span style="color:var(--muted)">Duties Dispatched:</span>
+                        <strong>${fm.duties_count} runs (${fm.completed_count} completed)</strong>
+                      </div>
+                      <div style="display:flex;justify-content:space-between">
+                        <span style="color:var(--muted)">Total Billed Revenue:</span>
+                        <strong style="color:#065f46">₹${(fm.revenue_paise / 100).toLocaleString('en-IN')}</strong>
+                      </div>
+                      <div style="display:flex;justify-content:space-between">
+                        <span style="color:var(--muted)">Total Fulfillment Expenses:</span>
+                        <strong style="color:#dc2626">₹${(fm.operating_cost_paise / 100).toLocaleString('en-IN')}</strong>
+                      </div>
+                      <div style="display:flex;justify-content:space-between">
+                        <span style="color:var(--muted)">Operating Risk Profile:</span>
+                        <strong>${isOwned ? 'High (Asset Amortization & Fuel)' : 'Low (Fixed Margin Commission)'}</strong>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      const tabsContainer = `
+        <section class="card section-card" style="border-radius:12px;overflow:hidden">
+          <div class="panel-toolbar" style="background:#fff;border-bottom:1px solid var(--line);padding:10px 16px">
+            <div class="tabs">
+              <button class="tab ${activeTab === 'statement' ? 'active' : ''}" data-pnl-tab="statement">${icon('chart')} Company P&amp;L Statement</button>
+              <button class="tab ${activeTab === 'customers' ? 'active' : ''}" data-pnl-tab="customers">${icon('users')} Corporate Client Yield (${customersList.length})</button>
+              <button class="tab ${activeTab === 'duty_types' ? 'active' : ''}" data-pnl-tab="duty_types">${icon('copy')} Duty Type Economics</button>
+              <button class="tab ${activeTab === 'fleet_model' ? 'active' : ''}" data-pnl-tab="fleet_model">${icon('car')} Fleet Operating Model</button>
+            </div>
+          </div>
+          <div style="padding:18px 20px">
+            ${tabBody}
+          </div>
+        </section>
+      `;
+
+      const headActions = `
+        ${button(icon('file') + ' Export P&amp;L (CSV)', 'soft', 'id="btnExportPnlCSV"')}
+        ${button(icon('refresh-cw') + ' Refresh', '', 'id="btnRefreshPnlDashboard"')}
+      `;
+
+      return `
+        ${pageHead('FINANCIAL INTELLIGENCE · EXECUTIVE DASHBOARD', 'Executive Profit &amp; Loss (P&amp;L) Dashboard', 'Organization-wide financial performance, duty operating margins, cost structures, and corporate account profitability.', headActions)}
+        ${filterRibbon}
+        ${kpis}
+        ${tabsContainer}
+      `;
+    }
+
+    function renderOpsDashboard() {
+      const duties = dutyRowsForDisplay();
+      const bookings = state.liveData?.bookings?.items || [];
+      const assignedCount = duties.filter(d => d.driver_id || d.vehicle_id).length;
+      const completedCount = duties.filter(d => d.status === 'completed').length;
+      const unassignedCount = bookings.filter(b => b.status === 'confirmed' || b.status === 'pending').length;
+
+      return `
+        ${pageHead('OPERATIONS INTELLIGENCE · EXECUTIVE DASHBOARD', 'Operations &amp; Dispatch Intelligence', 'Real-time duty throughput, driver assignments, SLA fulfillment, and dispatch metrics.', `${button(icon('arrow-left') + ' Back to Overview', 'soft', 'data-action="view-overview"')}${button(icon('calendar') + ' View Duties Board', 'primary', 'data-action="view-duties"')}`)}
+        <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:18px">
+          <div class="card kpi teal">
+            <div class="kpi-top"><span class="kpi-label">Active Duties</span><span class="kpi-icon teal">${icon('check')}</span></div>
+            <div class="kpi-value">${duties.length}</div>
+            <div class="kpi-foot"><span class="trend up">${completedCount} runs completed</span></div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Driver Allotment Rate</span><span class="kpi-icon">${icon('users')}</span></div>
+            <div class="kpi-value">${duties.length ? Math.round((assignedCount / duties.length) * 100) : 100}%</div>
+            <div class="kpi-foot"><span class="trend neutral">${assignedCount} of ${duties.length} dispatched</span></div>
+          </div>
+          <div class="card kpi ${unassignedCount > 0 ? 'amber' : 'teal'}">
+            <div class="kpi-top"><span class="kpi-label">Unassigned Intake Queue</span><span class="kpi-icon ${unassignedCount > 0 ? 'amber' : 'teal'}">${icon('alert')}</span></div>
+            <div class="kpi-value">${unassignedCount}</div>
+            <div class="kpi-foot"><span class="trend ${unassignedCount > 0 ? 'down' : 'neutral'}">${unassignedCount ? 'Needs dispatch desk action' : 'Zero queue backlog'}</span></div>
+          </div>
+        </div>
+        <section class="card section-card" style="padding:24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div>
+              <h3 style="margin:0;font-size:16px;font-weight:700">Dispatch &amp; Service Parity Overview</h3>
+              <p style="margin:2px 0 0;font-size:12px;color:var(--muted)">Live board status across airport transfers, city packages, and outstation trips.</p>
+            </div>
+            <button class="btn small primary" data-action="view-duties">${icon('arrow-right')} Open Full Duties Board</button>
+          </div>
+          <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+            <table>
+              <thead>
+                <tr style="background:#f8fafc">
+                  <th>Duty ID</th>
+                  <th>Reporting Time</th>
+                  <th>Duty Type</th>
+                  <th>Passenger</th>
+                  <th>Driver / Vehicle</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${duties.slice(0, 8).map(d => `
+                  <tr>
+                    <td><span class="keycap">${esc(d.id)}</span></td>
+                    <td>${d.reporting_at ? esc(d.reporting_at.replace('T', ' ').slice(0, 16)) : '—'}</td>
+                    <td><span class="pill primary" style="font-size:10.5px">${esc(d.duty_type || 'local')}</span></td>
+                    <td><strong>${esc(d.passenger_name || 'Passenger')}</strong></td>
+                    <td>${d.driver_name ? esc(d.driver_name) : '<span style="color:var(--muted)">Unallotted</span>'} · ${d.vehicle_plate ? esc(d.vehicle_plate) : ''}</td>
+                    <td><span class="status ${d.status === 'completed' ? 'green' : d.status === 'cancelled' ? 'red' : 'amber'}">${esc(d.status || 'draft').toUpperCase()}</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderFleetDashboard() {
+      const vehicles = state.liveData?.vehicles?.items || [];
+      const activeVehicles = vehicles.filter(v => v.status === 'active' || v.status === 'available');
+      const supplierVehicles = vehicles.filter(v => (v.ownership || '').toLowerCase() === 'supplier' || v.supplier_id);
+      const ownedVehicles = vehicles.filter(v => (v.ownership || '').toLowerCase() === 'company_owned' || (!v.supplier_id && (v.ownership || '').toLowerCase() !== 'supplier'));
+
+      return `
+        ${pageHead('ASSET &amp; FLEET INTELLIGENCE', 'Fleet Health &amp; Asset Economics', 'Vehicle utilization, fuel economy, asset lifecycle costs, and maintenance tracking.', `${button(icon('arrow-left') + ' Back to Overview', 'soft', 'data-action="view-overview"')}${button(icon('car') + ' Vehicles Register', 'primary', 'data-action="view-vehicles"')}`)}
+        <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:18px">
+          <div class="card kpi teal">
+            <div class="kpi-top"><span class="kpi-label">Active Fleet Roster</span><span class="kpi-icon teal">${icon('car')}</span></div>
+            <div class="kpi-value">${vehicles.length}</div>
+            <div class="kpi-foot"><span class="trend up">${activeVehicles.length} road-ready vehicles</span></div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Company Owned Assets</span><span class="kpi-icon">${icon('shield')}</span></div>
+            <div class="kpi-value">${ownedVehicles.length}</div>
+            <div class="kpi-foot"><span class="trend neutral">Primary balance-sheet fleet</span></div>
+          </div>
+          <div class="card kpi purple">
+            <div class="kpi-top"><span class="kpi-label">Outsourced Partner Fleet</span><span class="kpi-icon purple">${icon('link')}</span></div>
+            <div class="kpi-value">${supplierVehicles.length}</div>
+            <div class="kpi-foot"><span class="trend neutral">Subcontracted partner assets</span></div>
+          </div>
+        </div>
+        <section class="card section-card" style="padding:24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div>
+              <h3 style="margin:0;font-size:16px;font-weight:700">Vehicles Asset Performance</h3>
+              <p style="margin:2px 0 0;font-size:12px;color:var(--muted)">Registration numbers, model groups, ownership and odometer readings.</p>
+            </div>
+            <button class="btn small primary" data-action="view-vehicles">${icon('arrow-right')} Open Vehicles Register</button>
+          </div>
+          <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+            <table>
+              <thead>
+                <tr style="background:#f8fafc">
+                  <th>License Plate</th>
+                  <th>Vehicle Model</th>
+                  <th>Group</th>
+                  <th>Ownership</th>
+                  <th>Odometer Reading</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${vehicles.slice(0, 8).map(v => `
+                  <tr>
+                    <td><strong style="color:var(--ink)">${esc(v.license_plate || v.id)}</strong></td>
+                    <td>${esc(v.make_model || v.model || 'Sedan')}</td>
+                    <td><span class="pill primary" style="font-size:10.5px">${esc(v.vehicle_group || 'Sedan')}</span></td>
+                    <td><span class="badge" style="font-size:10px">${esc(v.ownership || 'Company Owned').toUpperCase()}</span></td>
+                    <td style="font-family:monospace">${v.odometer_km ? Number(v.odometer_km).toLocaleString('en-IN') + ' Km' : '—'}</td>
+                    <td><span class="status ${v.status === 'active' || v.status === 'available' ? 'green' : 'gray'}">${esc(v.status || 'active').toUpperCase()}</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderPartnerDashboard() {
+      const customers = state.liveData?.customers?.items || [];
+      const suppliers = state.liveData?.suppliers?.items || [];
+
+      return `
+        ${pageHead('NETWORK &amp; COMMERCIAL INTELLIGENCE', 'Client &amp; Partner Performance', 'Corporate accounts receivables, debtor ageing, supplier payouts, and partner margins.', `${button(icon('arrow-left') + ' Back to Overview', 'soft', 'data-action="view-overview"')}${button(icon('users') + ' Customers Register', 'primary', 'data-action="back-to-customers"')}`)}
+        <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:18px">
+          <div class="card kpi teal">
+            <div class="kpi-top"><span class="kpi-label">Corporate Clients</span><span class="kpi-icon teal">${icon('users')}</span></div>
+            <div class="kpi-value">${customers.length}</div>
+            <div class="kpi-foot"><span class="trend up">Active commercial accounts</span></div>
+          </div>
+          <div class="card kpi purple">
+            <div class="kpi-top"><span class="kpi-label">Supplier Fleet Partners</span><span class="kpi-icon purple">${icon('link')}</span></div>
+            <div class="kpi-value">${suppliers.length}</div>
+            <div class="kpi-foot"><span class="trend neutral">Connected supplier partners</span></div>
+          </div>
+        </div>
+        <div class="grid two-col" style="gap:20px;align-items:start">
+          <div class="card section-card" style="padding:20px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+              <h3 style="margin:0;font-size:15px;font-weight:700">Connected Corporate Accounts</h3>
+              <button class="btn small soft" data-action="back-to-customers">View All (${customers.length})</button>
+            </div>
+            <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+              <table>
+                <thead>
+                  <tr style="background:#f8fafc">
+                    <th>Customer Name</th>
+                    <th>City / Hub</th>
+                    <th>Status</th>
+                    <th style="text-align:right">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${customers.map(c => `
+                    <tr>
+                      <td><strong>${esc(c.name)}</strong></td>
+                      <td>${esc(c.city || 'Bengaluru')}</td>
+                      <td><span class="status ${c.status === 'inactive' ? 'gray' : 'green'}">${esc(c.status || 'active').toUpperCase()}</span></td>
+                      <td style="text-align:right">
+                        <button class="btn small soft" data-action="view-customer-360" data-customer-id="${esc(c.id)}">Customer 360</button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card section-card" style="padding:20px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+              <h3 style="margin:0;font-size:15px;font-weight:700">Supplier Fleet Partners</h3>
+              <button class="btn small soft" data-page="suppliers">View All (${suppliers.length})</button>
+            </div>
+            <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+              <table>
+                <thead>
+                  <tr style="background:#f8fafc">
+                    <th>Supplier Partner</th>
+                    <th>Coverage / Type</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${suppliers.map(s => `
+                    <tr>
+                      <td><strong>${esc(s.name)}</strong></td>
+                      <td>${esc(s.city || 'Hub Network')}</td>
+                      <td><span class="status ${s.status === 'inactive' ? 'gray' : 'green'}">${esc(s.status || 'active').toUpperCase()}</span></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
     }
 
     function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-head"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1><p>${desc}</p></div><div class="head-actions">${actions}</div></div>`; }
@@ -7305,6 +8092,90 @@
         render();
       });
 
+      // P&L Dashboard Event Handlers
+      const pnlPeriodSel = document.getElementById('pnlPeriodSelect');
+      if (pnlPeriodSel) pnlPeriodSel.addEventListener('change', e => {
+        state.pnlPeriodFilter = e.target.value;
+        render();
+      });
+      const pnlDateFrom = document.getElementById('pnlDateFrom');
+      if (pnlDateFrom) pnlDateFrom.addEventListener('change', e => { state.pnlDateFrom = e.target.value; });
+      const pnlDateTo = document.getElementById('pnlDateTo');
+      if (pnlDateTo) pnlDateTo.addEventListener('change', e => { state.pnlDateTo = e.target.value; });
+      const pnlApplyDatesBtn = document.getElementById('pnlApplyDatesBtn');
+      if (pnlApplyDatesBtn) pnlApplyDatesBtn.addEventListener('click', () => {
+        state.pnlPeriodFilter = 'custom';
+        render();
+      });
+      const pnlCustSel = document.getElementById('pnlCustomerSelect');
+      if (pnlCustSel) pnlCustSel.addEventListener('change', e => {
+        state.pnlCustomerFilter = e.target.value;
+        render();
+      });
+      const pnlDutyTypeSel = document.getElementById('pnlDutyTypeSelect');
+      if (pnlDutyTypeSel) pnlDutyTypeSel.addEventListener('change', e => {
+        state.pnlDutyTypeFilter = e.target.value;
+        render();
+      });
+      const pnlFleetModelSel = document.getElementById('pnlFleetModelSelect');
+      if (pnlFleetModelSel) pnlFleetModelSel.addEventListener('change', e => {
+        state.pnlFleetModelFilter = e.target.value;
+        render();
+      });
+      const pnlResetFilterBtn = document.getElementById('pnlResetFilterBtn');
+      if (pnlResetFilterBtn) pnlResetFilterBtn.addEventListener('click', () => {
+        state.pnlPeriodFilter = 'all';
+        state.pnlCustomerFilter = 'all';
+        state.pnlDutyTypeFilter = 'all';
+        state.pnlFleetModelFilter = 'all';
+        state.pnlDateFrom = '';
+        state.pnlDateTo = '';
+        render();
+      });
+      content.querySelectorAll('[data-pnl-tab]').forEach(el => el.addEventListener('click', () => {
+        state.pnlDashboardTab = el.dataset.pnlTab;
+        render();
+      }));
+      const btnRefreshPnl = document.getElementById('btnRefreshPnlDashboard');
+      if (btnRefreshPnl) btnRefreshPnl.addEventListener('click', () => {
+        state.pnlDashboardData = null;
+        showToast('Refreshing P&L Dashboard', 'Loading real-time financial ledger data...');
+        render();
+      });
+      const btnExportPnl = document.getElementById('btnExportPnlCSV');
+      if (btnExportPnl) btnExportPnl.addEventListener('click', () => {
+        const sum = state.pnlDashboardData?.summary || {};
+        const rev = (sum.revenue_paise || 0) / 100;
+        const cost = (sum.operating_cost_paise || 0) / 100;
+        const profit = (sum.net_profit_paise || 0) / 100;
+        const rows = [
+          ['Axiom Fleet - Executive Profit & Loss Statement'],
+          ['Exported At', new Date().toISOString()],
+          ['Filter Period', state.pnlPeriodFilter || 'all'],
+          ['Customer Filter', state.pnlCustomerFilter || 'all'],
+          ['Duty Type Filter', state.pnlDutyTypeFilter || 'all'],
+          [],
+          ['Metric', 'Category', 'Amount (INR)'],
+          ['Gross Billed Revenue', 'Operating Revenue', rev.toFixed(2)],
+          ['Duty Operating Cost', 'COGS', cost.toFixed(2)],
+          ['Net Operating Profit (EBITDA)', 'Net Profit', profit.toFixed(2)],
+          ['Operating Margin %', 'Profitability', (sum.margin_pct || 0) + '%'],
+          [],
+          ['Corporate Customer', 'Duties Count', 'Revenue (INR)', 'Cost (INR)', 'Net Profit (INR)', 'Margin %']
+        ];
+        (state.pnlDashboardData?.customers || []).forEach(c => {
+          rows.push([c.name, c.duties_count, (c.revenue_paise/100).toFixed(2), (c.operating_cost_paise/100).toFixed(2), (c.net_profit_paise/100).toFixed(2), c.margin_pct + '%']);
+        });
+        const csv = 'data:text/csv;charset=utf-8,' + rows.map(r => r.map(x => `"${String(x).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const link = document.createElement('a');
+        link.href = encodeURI(csv);
+        link.download = `axiom_pnl_statement_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('Export Successful', 'P&L statement downloaded as CSV.');
+      });
+
       content.querySelectorAll('[data-action="driver-page-first"]').forEach(el => el.addEventListener('click', () => { state.driverPage = 1; render(); }));
       content.querySelectorAll('[data-action="driver-page-prev"]').forEach(el => el.addEventListener('click', () => { state.driverPage = Math.max(1, (Number(state.driverPage) || 1) - 1); render(); }));
       content.querySelectorAll('[data-action="driver-page-next"]').forEach(el => el.addEventListener('click', () => { state.driverPage = (Number(state.driverPage) || 1) + 1; render(); }));
@@ -8074,6 +8945,25 @@
         'add-corp-employee': () => openCorporateEmployeeModal(el?.dataset?.customerId || state.selectedCustomerId),
         'open-customer-profile': () => openCustomerDetailPage(el?.dataset?.customerId),
         'back-to-customers': () => {
+          state.page = 'customers';
+          try { window.location.hash = '#customers'; } catch (_) {}
+          render();
+        },
+        'view-customer-360': () => {
+          const cid = el?.dataset?.customerId;
+          if (cid) {
+            state.selectedCustomerId = cid;
+            state.customer360Data = null;
+            state.page = 'customer-detail';
+            try { window.location.hash = `#customer-detail?id=${encodeURIComponent(cid)}`; } catch (_) {}
+            render();
+          }
+        },
+        'view-overview': () => { state.page = 'overview'; try { window.location.hash = '#overview'; } catch (_) {} render(); },
+        'view-duties': () => { state.page = 'duties'; try { window.location.hash = '#duties'; } catch (_) {} render(); },
+        'view-vehicles': () => { state.page = 'vehicles'; try { window.location.hash = '#vehicles'; } catch (_) {} render(); },
+        'view-pnl-dashboard': () => { state.page = 'pnl-dashboard'; try { window.location.hash = '#pnl-dashboard'; } catch (_) {} render(); },
+        'back-to-customers-legacy': () => {
           state.page = 'customers';
           try { window.location.hash = '#customers'; } catch (_) {}
           render();

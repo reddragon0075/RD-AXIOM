@@ -1163,8 +1163,234 @@ def update_customer_settings(conn, org: str, customer_id: str, payload: dict):
     }}
 
 
+def get_organization_pnl_dashboard(conn, org: str):
+    query = """
+        SELECT d.id, d.status, COALESCE(d.reporting_at, b.scheduled_at, d.created_at, b.created_at) AS reporting_at,
+               d.start_odometer, d.end_odometer, d.calculation_snapshot_json, d.supplier_id, d.driver_id, d.vehicle_id,
+               b.duty_type, b.passenger_name, b.customer_id,
+               c.name as customer_name, c.code as customer_code,
+               s.name as supplier_name
+        FROM domain_duties d
+        JOIN domain_bookings b ON b.id = d.booking_id
+        LEFT JOIN domain_customers c ON c.id = b.customer_id
+        LEFT JOIN domain_suppliers s ON s.id = d.supplier_id
+        WHERE b.organization_id = ?
+        ORDER BY reporting_at DESC
+    """
+    d_rows = conn.execute(query, (org,)).fetchall()
+    
+    inv_rows = conn.execute("SELECT id, customer_id, invoice_number, status, issued_at, due_at, subtotal_paise, tax_paise, total_paise FROM domain_invoices WHERE organization_id = ? ORDER BY issued_at DESC", (org,)).fetchall()
+    
+    invoices = []
+    tot_invoiced = 0
+    tot_paid = 0
+    tot_outstanding = 0
+    
+    for r in inv_rows:
+        t = int(r["total_paise"] or 0)
+        tot_invoiced += t
+        if r["status"] == "paid":
+            tot_paid += t
+        else:
+            tot_outstanding += t
+        invoices.append({
+            "id": r["id"],
+            "customer_id": r["customer_id"],
+            "invoice_number": r["invoice_number"],
+            "status": r["status"],
+            "issued_at": r["issued_at"],
+            "due_at": r["due_at"],
+            "subtotal_paise": int(r["subtotal_paise"] or 0),
+            "tax_paise": int(r["tax_paise"] or 0),
+            "total_paise": t
+        })
+
+    tot_duty_rev = 0
+    tot_driver_cost = 0
+    tot_supplier_cost = 0
+    tot_running_cost = 0
+    completed_count = 0
+    duties_breakdown = []
+    
+    cust_map = {}
+    duty_type_map = {}
+    fleet_model_map = {
+        "owned": {"label": "Company Owned Fleet", "revenue_paise": 0, "operating_cost_paise": 0, "duties_count": 0, "completed_count": 0},
+        "supplier": {"label": "Outsourced Partner Fleet", "revenue_paise": 0, "operating_cost_paise": 0, "duties_count": 0, "completed_count": 0}
+    }
+    
+    for d in d_rows:
+        snap = {}
+        if d["calculation_snapshot_json"]:
+            try:
+                snap = json.loads(d["calculation_snapshot_json"])
+            except Exception:
+                snap = {}
+                
+        rev = int(snap.get("total_paise") or 0)
+        tot_duty_rev += rev
+        is_completed = (d["status"] == "completed")
+        if is_completed:
+            completed_count += 1
+            
+        bd = snap.get("breakdown") or {}
+        d_batta = int(snap.get("total_day_batta_paise") or bd.get("allowance_paise") or 0)
+        n_batta = int(snap.get("total_night_allowance_paise") or bd.get("night_allowance_paise") or 0)
+        d_pay = int(bd.get("driver_payout_paise") or 0)
+        d_cost = d_batta + n_batta + d_pay
+        tot_driver_cost += d_cost
+        
+        s_pay = 0
+        is_supplier = bool(d["supplier_id"])
+        if is_supplier:
+            s_pay = int(bd.get("supplier_payout_paise") or bd.get("supplier_cost_paise") or (rev * 0.75))
+            tot_supplier_cost += s_pay
+            
+        km = 0
+        if d["end_odometer"] and d["start_odometer"] and d["end_odometer"] > d["start_odometer"]:
+            km = d["end_odometer"] - d["start_odometer"]
+        else:
+            km = float(snap.get("effective_km") or snap.get("chargeable_km") or 35.0)
+        r_cost = int(km * 800)
+        tot_running_cost += r_cost
+        
+        tot_d_cost = d_cost + s_pay + r_cost
+        net_d_profit = rev - tot_d_cost
+        margin_d = round((net_d_profit / rev * 100), 1) if rev > 0 else 0.0
+
+        c_id = d["customer_id"] or "other"
+        c_name = d["customer_name"] or "General / Unaffiliated"
+        if c_id not in cust_map:
+            cust_map[c_id] = {
+                "id": c_id,
+                "name": c_name,
+                "code": d["customer_code"] or "",
+                "revenue_paise": 0,
+                "operating_cost_paise": 0,
+                "duties_count": 0,
+                "completed_count": 0
+            }
+        cust_map[c_id]["revenue_paise"] += rev
+        cust_map[c_id]["operating_cost_paise"] += tot_d_cost
+        cust_map[c_id]["duties_count"] += 1
+        if is_completed:
+            cust_map[c_id]["completed_count"] += 1
+
+        dt = (d["duty_type"] or "local").lower()
+        if dt not in duty_type_map:
+            duty_type_map[dt] = {
+                "duty_type": dt,
+                "revenue_paise": 0,
+                "operating_cost_paise": 0,
+                "duties_count": 0,
+                "completed_count": 0
+            }
+        duty_type_map[dt]["revenue_paise"] += rev
+        duty_type_map[dt]["operating_cost_paise"] += tot_d_cost
+        duty_type_map[dt]["duties_count"] += 1
+        if is_completed:
+            duty_type_map[dt]["completed_count"] += 1
+
+        f_key = "supplier" if is_supplier else "owned"
+        fleet_model_map[f_key]["revenue_paise"] += rev
+        fleet_model_map[f_key]["operating_cost_paise"] += tot_d_cost
+        fleet_model_map[f_key]["duties_count"] += 1
+        if is_completed:
+            fleet_model_map[f_key]["completed_count"] += 1
+
+        duties_breakdown.append({
+            "id": d["id"],
+            "reporting_at": d["reporting_at"],
+            "duty_type": d["duty_type"] or "local",
+            "status": d["status"],
+            "passenger_name": d["passenger_name"] or "Corporate Passenger",
+            "customer_id": d["customer_id"],
+            "customer_name": c_name,
+            "supplier_id": d["supplier_id"],
+            "supplier_name": d["supplier_name"],
+            "is_supplier": is_supplier,
+            "revenue_paise": rev,
+            "driver_cost_paise": d_cost,
+            "supplier_cost_paise": s_pay,
+            "running_cost_paise": r_cost,
+            "total_cost_paise": tot_d_cost,
+            "net_profit_paise": net_d_profit,
+            "margin_pct": margin_d
+        })
+
+    customers_ranking = []
+    for c_id, item in cust_map.items():
+        c_inv_total = sum(inv["total_paise"] for inv in invoices if inv["customer_id"] == c_id)
+        c_inv_paid = sum(inv["total_paise"] for inv in invoices if inv["customer_id"] == c_id and inv["status"] == "paid")
+        c_inv_due = sum(inv["total_paise"] for inv in invoices if inv["customer_id"] == c_id and inv["status"] != "paid")
+        p = item["revenue_paise"] - item["operating_cost_paise"]
+        m = round((p / item["revenue_paise"] * 100), 1) if item["revenue_paise"] > 0 else 0.0
+        customers_ranking.append({
+            **item,
+            "net_profit_paise": p,
+            "margin_pct": m,
+            "invoiced_paise": c_inv_total,
+            "paid_paise": c_inv_paid,
+            "due_paise": c_inv_due
+        })
+    customers_ranking.sort(key=lambda x: x["revenue_paise"], reverse=True)
+
+    duty_types_list = []
+    for dt, item in duty_type_map.items():
+        p = item["revenue_paise"] - item["operating_cost_paise"]
+        m = round((p / item["revenue_paise"] * 100), 1) if item["revenue_paise"] > 0 else 0.0
+        duty_types_list.append({
+            **item,
+            "net_profit_paise": p,
+            "margin_pct": m
+        })
+    duty_types_list.sort(key=lambda x: x["revenue_paise"], reverse=True)
+
+    fleet_model_list = []
+    for fk, item in fleet_model_map.items():
+        p = item["revenue_paise"] - item["operating_cost_paise"]
+        m = round((p / item["revenue_paise"] * 100), 1) if item["revenue_paise"] > 0 else 0.0
+        fleet_model_list.append({
+            "key": fk,
+            **item,
+            "net_profit_paise": p,
+            "margin_pct": m
+        })
+
+    total_op_cost = tot_driver_cost + tot_supplier_cost + tot_running_cost
+    effective_rev = tot_duty_rev if tot_duty_rev > 0 else tot_invoiced
+    net_profit = effective_rev - total_op_cost
+    margin_pct = round((net_profit / effective_rev * 100), 1) if effective_rev > 0 else 0.0
+
+    return {
+        "ok": True,
+        "summary": {
+            "revenue_paise": effective_rev,
+            "operating_cost_paise": total_op_cost,
+            "driver_cost_paise": tot_driver_cost,
+            "supplier_cost_paise": tot_supplier_cost,
+            "running_cost_paise": tot_running_cost,
+            "net_profit_paise": net_profit,
+            "margin_pct": margin_pct,
+            "completed_duties_count": completed_count,
+            "total_duties_count": len(d_rows),
+            "total_invoiced_paise": tot_invoiced,
+            "paid_paise": tot_paid,
+            "outstanding_balance_paise": tot_outstanding,
+            "invoice_count": len(invoices)
+        },
+        "customers": customers_ranking,
+        "duty_types": duty_types_list,
+        "fleet_models": fleet_model_list,
+        "duties": duties_breakdown,
+        "invoices": invoices
+    }
+
+
 def handle_booking_parity(conn, user, method: str, raw_route: str, payload: dict, ip: str):
     route = urlsplit(raw_route).path.rstrip("/") or "/"
+    if route == "/api/dashboards/pnl" and method == "GET":
+        return get_organization_pnl_dashboard(conn, _org(user))
     match_cust_360 = re.match(r"^/api/customers/([^/]+)/360$", route)
     if match_cust_360 and method == "GET":
         customer_id = match_cust_360.group(1)
