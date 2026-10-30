@@ -812,6 +812,7 @@ def _pricing_routes(conn, user, method, route, payload, ip):
             night_paise = int(payload.get("night_allowance_paise") or (payload.get("extras") or {}).get("night_allowance_paise") or 0)
             conn.execute("INSERT INTO domain_booking_pricing_rules(id,organization_id,contract_id,city,vehicle_group,duty_type,package_minutes,included_km,base_paise,extra_km_paise,extra_hour_paise,extra_half_hour_paise,waiting_paise,allowance_paise,night_allowance_paise,auto_switch_json,extras_json,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET city=excluded.city, vehicle_group=excluded.vehicle_group, duty_type=excluded.duty_type, package_minutes=excluded.package_minutes, included_km=excluded.included_km, base_paise=excluded.base_paise, extra_km_paise=excluded.extra_km_paise, extra_hour_paise=excluded.extra_hour_paise, extra_half_hour_paise=excluded.extra_half_hour_paise, waiting_paise=excluded.waiting_paise, allowance_paise=excluded.allowance_paise, night_allowance_paise=excluded.night_allowance_paise, auto_switch_json=excluded.auto_switch_json, extras_json=excluded.extras_json, updated_at=excluded.updated_at", (rule_id, org, contract_id, str(payload.get("city") or "").lower(), str(payload.get("vehicle_group") or "").lower(), str(payload.get("duty_type") or "").lower(), int(payload.get("package_minutes") or 0), _number(payload.get("included_km")), int(payload.get("base_paise") or 0), int(payload.get("extra_km_paise") or 0), int(payload.get("extra_hour_paise") or 0), int(payload.get("extra_half_hour_paise") or 0), int(payload.get("waiting_paise") or 0), int(payload.get("allowance_paise") or 0), night_paise, json.dumps(payload.get("auto_switch") if isinstance(payload.get("auto_switch"), dict) else {}), json.dumps(payload.get("extras") if isinstance(payload.get("extras"), dict) else {}), now, now))
             return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_booking_pricing_rules WHERE id = ?", (rule_id,)).fetchone(), ("auto_switch_json", "extras_json"))}
+
     if route == "/api/pricing/quote" and method == "POST":
         booking = None
         booking_id = str(payload.get("booking_id") or "").strip()
@@ -968,8 +969,187 @@ def _duty_state_routes(conn, user, method, route, payload, ip):
     return None
 
 
+
+def get_customer_360(conn, org: str, customer_id: str):
+    c = conn.execute("SELECT * FROM domain_customers WHERE organization_id = ? AND id = ?", (org, customer_id)).fetchone()
+    if not c:
+        return {"ok": False, "error": "Customer not found"}
+    
+    settings = {}
+    try:
+        settings = json.loads(c["settings_json"] or "{}") if "settings_json" in c.keys() else {}
+    except Exception:
+        settings = {}
+        
+    inv_rows = conn.execute("SELECT * FROM domain_invoices WHERE organization_id = ? AND customer_id = ? ORDER BY issued_at DESC", (org, customer_id)).fetchall()
+    invoices = []
+    tot_invoiced = 0
+    tot_paid = 0
+    tot_outstanding = 0
+    
+    for r in inv_rows:
+        t = int(r["total_paise"] or 0)
+        tot_invoiced += t
+        if r["status"] == "paid":
+            tot_paid += t
+        else:
+            tot_outstanding += t
+        invoices.append({
+            "id": r["id"],
+            "invoice_number": r["invoice_number"],
+            "issued_at": r["issued_at"],
+            "due_at": r["due_at"],
+            "subtotal_paise": int(r["subtotal_paise"] or 0),
+            "tax_paise": int(r["tax_paise"] or 0),
+            "total_paise": t,
+            "status": r["status"]
+        })
+        
+    d_rows = conn.execute("""
+        SELECT d.id, d.status, d.reporting_at, d.start_odometer, d.end_odometer, d.calculation_snapshot_json, d.supplier_id, d.driver_id,
+               b.duty_type, b.passenger_name
+        FROM domain_duties d
+        JOIN domain_bookings b ON b.id = d.booking_id
+        WHERE b.organization_id = ? AND b.customer_id = ?
+        ORDER BY d.reporting_at DESC
+    """, (org, customer_id)).fetchall()
+    
+    duty_rev = 0
+    driver_cost = 0
+    supplier_cost = 0
+    running_cost = 0
+    completed_count = 0
+    
+    for d in d_rows:
+        snap = {}
+        if d["calculation_snapshot_json"]:
+            try:
+                snap = json.loads(d["calculation_snapshot_json"])
+            except Exception:
+                snap = {}
+        
+        rev = int(snap.get("total_paise") or 0)
+        duty_rev += rev
+        if d["status"] == "completed":
+            completed_count += 1
+            
+        bd = snap.get("breakdown") or {}
+        d_batta = int(snap.get("total_day_batta_paise") or bd.get("allowance_paise") or 0)
+        n_batta = int(snap.get("total_night_allowance_paise") or bd.get("night_allowance_paise") or 0)
+        d_pay = int(bd.get("driver_payout_paise") or 0)
+        driver_cost += (d_batta + n_batta + d_pay)
+        
+        if d["supplier_id"]:
+            s_pay = int(bd.get("supplier_payout_paise") or bd.get("supplier_cost_paise") or (rev * 0.75))
+            supplier_cost += s_pay
+            
+        km = 0
+        if d["end_odometer"] and d["start_odometer"] and d["end_odometer"] > d["start_odometer"]:
+            km = d["end_odometer"] - d["start_odometer"]
+        else:
+            km = float(snap.get("effective_km") or snap.get("chargeable_km") or 35.0)
+        running_cost += int(km * 800)
+        
+    total_operating_cost = driver_cost + supplier_cost + running_cost
+    effective_revenue = duty_rev if duty_rev > 0 else tot_invoiced
+    net_profit = effective_revenue - total_operating_cost
+    margin_pct = round((net_profit / effective_revenue * 100), 1) if effective_revenue > 0 else 0.0
+    
+    contracts = []
+    c_rows = conn.execute("SELECT * FROM domain_booking_pricing_contracts WHERE organization_id = ? AND customer_id = ? ORDER BY version DESC", (org, customer_id)).fetchall()
+    for cr in c_rows:
+        rules = conn.execute("SELECT * FROM domain_booking_pricing_rules WHERE organization_id = ? AND contract_id = ?", (org, cr["id"])).fetchall()
+        contracts.append({
+            "id": cr["id"],
+            "name": cr["name"],
+            "version": cr["version"],
+            "status": cr["status"],
+            "rules": [dict(r) for r in rules]
+        })
+        
+    emp_rows = conn.execute("SELECT * FROM domain_employees WHERE organization_id = ? LIMIT 15", (org,)).fetchall()
+    employees = [dict(e) for e in emp_rows]
+    
+    return {
+        "ok": True,
+        "customer": {
+            "id": c["id"],
+            "name": c["name"],
+            "code": c["code"],
+            "email": c["email"],
+            "phone": c["phone"],
+            "gstin": c["gstin"],
+            "status": c["status"],
+            "settings": settings
+        },
+        "pnl_summary": {
+            "revenue_paise": effective_revenue,
+            "operating_cost_paise": total_operating_cost,
+            "driver_cost_paise": driver_cost,
+            "supplier_cost_paise": supplier_cost,
+            "running_cost_paise": running_cost,
+            "net_profit_paise": net_profit,
+            "margin_pct": margin_pct,
+            "completed_duties_count": completed_count or len(d_rows),
+            "total_bookings_count": len(d_rows)
+        },
+        "ledger_summary": {
+            "total_invoiced_paise": tot_invoiced,
+            "paid_paise": tot_paid,
+            "outstanding_balance_paise": tot_outstanding,
+            "invoice_count": len(invoices)
+        },
+        "invoices": invoices,
+        "contracts": contracts,
+        "employees": employees
+    }
+
+
+def update_customer_settings(conn, org: str, customer_id: str, payload: dict):
+    c = _assert_owned(conn, "domain_customers", customer_id, org)
+    now = now_iso()
+    name = str(payload.get("name") or c["name"])
+    email = str(payload.get("email") or c["email"] or "")
+    phone = str(payload.get("phone") or c["phone"] or "")
+    gstin = str(payload.get("gstin") or c["gstin"] or "")
+    code = str(payload.get("code") or c["code"] or "")
+    
+    curr_settings = {}
+    try:
+        curr_settings = json.loads(c["settings_json"] or "{}") if "settings_json" in c.keys() else {}
+    except Exception:
+        curr_settings = {}
+    
+    new_settings = {**curr_settings, **(payload.get("settings") or {})}
+    
+    conn.execute("""
+        UPDATE domain_customers 
+        SET name = ?, email = ?, phone = ?, gstin = ?, code = ?, settings_json = ?, updated_at = ?
+        WHERE organization_id = ? AND id = ?
+    """, (name, email, phone, gstin, code, json.dumps(new_settings), now, org, customer_id))
+    
+    return {"ok": True, "customer": {
+        "id": customer_id,
+        "name": name,
+        "email": email,
+        "phone": phone,
+        "gstin": gstin,
+        "code": code,
+        "settings": new_settings
+    }}
+
+
 def handle_booking_parity(conn, user, method: str, raw_route: str, payload: dict, ip: str):
     route = urlsplit(raw_route).path.rstrip("/") or "/"
+    match_cust_360 = re.match(r"^/api/customers/([^/]+)/360$", route)
+    if match_cust_360 and method == "GET":
+        customer_id = match_cust_360.group(1)
+        return get_customer_360(conn, _org(user), customer_id)
+
+    match_cust_patch = re.match(r"^/api/customers/([^/]+)$", route)
+    if match_cust_patch and method in {"PATCH", "PUT"}:
+        customer_id = match_cust_patch.group(1)
+        return update_customer_settings(conn, _org(user), customer_id, payload)
     duty_result = _duty_state_routes(conn, user, method, route, payload, ip)
     if duty_result is not None: return duty_result
     pricing_result = _pricing_routes(conn, user, method, route, payload, ip)

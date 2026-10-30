@@ -5075,16 +5075,19 @@
                 ${customers.length ? customers.map(item => `
                   <tr>
                     <td>
-                      <span class="primary">${esc(item.name || item.id)}</span>
+                      <span class="primary"><a href="javascript:void(0)" data-action="open-customer-profile" data-customer-id="${esc(item.id)}" style="color:var(--ink);text-decoration:none;font-weight:650;cursor:pointer">${esc(item.name || item.id)}</a></span>
                       <span class="secondary">${esc(item.code || item.email || item.id)}</span>
                     </td>
                     <td>${esc(item.city || 'All Operating Cities')}</td>
                     <td>
-                      <span class="pill primary" style="font-size:11px;padding:2px 8px;font-weight:600">Standard Corporate Tariff</span>
+                      <span class="pill primary" style="font-size:11px;padding:2px 8px;font-weight:600">Corporate Tariff Attached</span>
                     </td>
                     <td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td>
                     <td>
-                      <button class="btn small soft" data-action="pricing-contract" data-customer-id="${esc(item.id)}" title="Configure tariff">${icon('file')} Rate card</button>
+                      <div style="display:flex;gap:6px;align-items:center">
+                        <button class="btn small primary" data-action="open-customer-profile" data-customer-id="${esc(item.id)}" title="View Customer 360 profile, P&L, ledger & settings" style="font-weight:600">${icon('building')} Profile &amp; P&amp;L</button>
+                        <button class="btn small soft" data-action="pricing-contract" data-customer-id="${esc(item.id)}" title="Configure tariff">${icon('file')} Rate card</button>
+                      </div>
                     </td>
                   </tr>
                 `).join('') : tenantTableEmpty('No customer entities returned', 'Add the first customer entity before restricting visibility by account.', button(icon('plus')+'Add customer', 'small soft', 'data-action="add-customer"'))}
@@ -7145,6 +7148,7 @@
         'add-branch': () => openBranchModal(),
         'masters-help': () => showToast('Masters are the operating foundation','Set up each reference record once, then reuse it across bookings, duties, billing and Network workflows.'),
         'add-customer': () => openCustomerModal(),
+        'open-customer-profile': () => openCustomerProfileModal(el?.dataset?.customerId),
         'pricing-contract': () => openPricingContractModal('customer', el?.dataset?.customerId),
         'supplier-pricing-contract': () => openPricingContractModal('supplier', el?.dataset?.supplierId),
         'view-supplier-vehicles': () => {
@@ -10105,6 +10109,386 @@ function openDriverModal(existing) {
         });
       });
     }
+
+
+    async function openCustomerProfileModal(customerId) {
+      if (!customerId) return showToast('Customer required', 'No customer ID provided.');
+      showToast('Loading Customer 360', 'Fetching profile, P&L, ledger and rate cards…');
+
+      let res = null;
+      try {
+        res = await apiRequest(`/api/customers/${encodeURIComponent(customerId)}/360`);
+      } catch (err) {
+        console.warn('Backend 360 endpoint failed, falling back to cached state:', err);
+      }
+
+      const c = res?.customer || (state.liveData?.customers?.items || []).find(item => item.id === customerId) || { id: customerId, name: 'Corporate Customer' };
+      const pnl = res?.pnl_summary || { revenue_paise: 0, operating_cost_paise: 0, driver_cost_paise: 0, supplier_cost_paise: 0, running_cost_paise: 0, net_profit_paise: 0, margin_pct: 0, completed_duties_count: 0, total_bookings_count: 0 };
+      const ledger = res?.ledger_summary || { total_invoiced_paise: 0, paid_paise: 0, outstanding_balance_paise: 0, invoice_count: 0 };
+      const invoices = res?.invoices || (state.liveData?.invoices?.items || []).filter(inv => inv.customer_id === customerId);
+      const contracts = res?.contracts || (state.followonData?.['/api/pricing/contracts']?.items || []).filter(cnt => cnt.customer_id === customerId);
+      const settings = c.settings || {};
+
+      const revRs = (pnl.revenue_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const costRs = (pnl.operating_cost_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const profitRs = (pnl.net_profit_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const invRs = (ledger.total_invoiced_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const paidRs = (ledger.paid_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const dueRs = (ledger.outstanding_balance_paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const isProfitable = pnl.net_profit_paise >= 0;
+
+      const body = `
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <!-- Profile Header Banner -->
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <h3 style="margin:0;font-size:18px;font-weight:700;color:var(--ink)">${esc(c.name)}</h3>
+                <span class="status green" style="font-size:10px">${esc(c.status || 'active').toUpperCase()}</span>
+                ${c.code ? `<span class="pill" style="font-size:10px;padding:2px 7px;background:#e2e8f0">${esc(c.code)}</span>` : ''}
+              </div>
+              <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:6px">
+                <span><strong>Email:</strong> ${esc(c.email || 'finance@customer.com')}</span>
+                <span><strong>Phone:</strong> ${esc(c.phone || '+91 98xxx xxxxx')}</span>
+                <span><strong>GSTIN:</strong> ${esc(c.gstin || '29ABCDE1234F1Z5')}</span>
+                <span><strong>Operating Hub:</strong> ${esc(c.city || 'Bengaluru')}</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn small soft" id="custBtnRateCard" title="Configure contract">${icon('file')} Rate card</button>
+              <button class="btn small primary" id="custBtnAddEmp" title="Add corporate employee">${icon('plus')} Add employee</button>
+            </div>
+          </div>
+
+          <!-- Top Financial & P&L Cards -->
+          <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));gap:10px">
+            <div class="card kpi" style="padding:12px 14px">
+              <div class="kpi-top"><span class="kpi-label">Billed Revenue</span><span class="kpi-icon">${icon('wallet')}</span></div>
+              <div class="kpi-value" style="font-size:20px">₹${revRs}</div>
+              <div class="kpi-foot">${pnl.total_bookings_count} duties &amp; trips</div>
+            </div>
+            <div class="card kpi red" style="padding:12px 14px">
+              <div class="kpi-top"><span class="kpi-label">Duty Operating Cost</span><span class="kpi-icon red">${icon('trending-down')}</span></div>
+              <div class="kpi-value" style="font-size:20px;color:#dc2626">₹${costRs}</div>
+              <div class="kpi-foot">Driver &amp; supplier payouts</div>
+            </div>
+            <div class="card kpi ${isProfitable ? 'teal' : 'red'}" style="padding:12px 14px">
+              <div class="kpi-top"><span class="kpi-label">Company Net P&amp;L</span><span class="kpi-icon ${isProfitable ? 'teal' : 'red'}">${icon(isProfitable ? 'check' : 'warning')}</span></div>
+              <div class="kpi-value" style="font-size:20px;color:${isProfitable ? '#059669' : '#dc2626'}">${isProfitable ? '+' : ''}₹${profitRs}</div>
+              <div class="kpi-foot" style="font-weight:600;color:${isProfitable ? '#059669' : '#dc2626'}">${pnl.margin_pct}% net margin</div>
+            </div>
+            <div class="card kpi purple" style="padding:12px 14px">
+              <div class="kpi-top"><span class="kpi-label">Outstanding Balance</span><span class="kpi-icon purple">${icon('file')}</span></div>
+              <div class="kpi-value" style="font-size:20px">₹${dueRs}</div>
+              <div class="kpi-foot">₹${paidRs} paid of ₹${invRs}</div>
+            </div>
+          </div>
+
+          <!-- Tab Bar Navigation -->
+          <div style="display:flex;gap:4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px;margin-top:4px">
+            <button class="btn small primary cust-tab-btn" data-cust-tab="pnl" style="border-radius:6px 6px 0 0;font-weight:600">${icon('chart')} Company P&amp;L</button>
+            <button class="btn small soft cust-tab-btn" data-cust-tab="ledger" style="border-radius:6px 6px 0 0;font-weight:600">${icon('file')} Invoices &amp; Ledger (${invoices.length})</button>
+            <button class="btn small soft cust-tab-btn" data-cust-tab="pricing" style="border-radius:6px 6px 0 0;font-weight:600">${icon('copy')} Rate Cards (${contracts.length})</button>
+            <button class="btn small soft cust-tab-btn" data-cust-tab="settings" style="border-radius:6px 6px 0 0;font-weight:600">${icon('settings')} Profile &amp; Settings</button>
+          </div>
+
+          <!-- Tab 1: Company P&L Breakdown -->
+          <div class="cust-tab-content" id="custTabPnl">
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px">
+              <div style="font-weight:650;font-size:13px;color:var(--ink);margin-bottom:12px">Corporate Customer Duty Profitability Statement</div>
+              <div class="table-wrap">
+                <table style="width:100%;font-size:12px">
+                  <thead>
+                    <tr style="background:#f8fafc">
+                      <th>Cost &amp; Revenue Line</th>
+                      <th>Category</th>
+                      <th style="text-align:right">Amount (₹)</th>
+                      <th style="text-align:right">Share of Rev %</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Total Gross Billed Duty Revenue</strong></td>
+                      <td><span class="pill primary" style="font-size:11px;padding:2px 7px">Revenue</span></td>
+                      <td style="text-align:right;font-weight:700;color:#059669">₹${revRs}</td>
+                      <td style="text-align:right">100.0%</td>
+                    </tr>
+                    <tr>
+                      <td>Driver Day &amp; Night Batta Allowances</td>
+                      <td>Direct Allowance</td>
+                      <td style="text-align:right;color:#dc2626">- ₹${(pnl.driver_cost_paise / 100).toLocaleString('en-IN', {maximumFractionDigits:0})}</td>
+                      <td style="text-align:right">${pnl.revenue_paise ? (pnl.driver_cost_paise / pnl.revenue_paise * 100).toFixed(1) : 0}%</td>
+                    </tr>
+                    <tr>
+                      <td>Outsourced Supplier Partner Payouts</td>
+                      <td>Vendor Cost</td>
+                      <td style="text-align:right;color:#dc2626">- ₹${(pnl.supplier_cost_paise / 100).toLocaleString('en-IN', {maximumFractionDigits:0})}</td>
+                      <td style="text-align:right">${pnl.revenue_paise ? (pnl.supplier_cost_paise / pnl.revenue_paise * 100).toFixed(1) : 0}%</td>
+                    </tr>
+                    <tr>
+                      <td>Vehicle Fleet Running &amp; Fuel Operating Cost</td>
+                      <td>Vehicle Running</td>
+                      <td style="text-align:right;color:#dc2626">- ₹${(pnl.running_cost_paise / 100).toLocaleString('en-IN', {maximumFractionDigits:0})}</td>
+                      <td style="text-align:right">${pnl.revenue_paise ? (pnl.running_cost_paise / pnl.revenue_paise * 100).toFixed(1) : 0}%</td>
+                    </tr>
+                    <tr style="border-top:2px solid #e2e8f0;background:#f8fafc">
+                      <td><strong>Net Profit Contribution (Company P&amp;L)</strong></td>
+                      <td><strong>Net Margin</strong></td>
+                      <td style="text-align:right;font-weight:700;font-size:14px;color:${isProfitable ? '#059669' : '#dc2626'}">₹${profitRs}</td>
+                      <td style="text-align:right;font-weight:700;color:${isProfitable ? '#059669' : '#dc2626'}">${pnl.margin_pct}%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Invoices & Ledger -->
+          <div class="cust-tab-content" id="custTabLedger" style="display:none">
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                <div style="font-weight:650;font-size:13px;color:var(--ink)">Customer Billing Ledger &amp; Invoices</div>
+                <div style="font-size:12px;color:var(--muted)">${invoices.length} total invoice records</div>
+              </div>
+              <div class="table-wrap">
+                <table style="width:100%;font-size:12px">
+                  <thead>
+                    <tr style="background:#f8fafc">
+                      <th>Invoice #</th>
+                      <th>Issued Date</th>
+                      <th>Due Date</th>
+                      <th style="text-align:right">Subtotal</th>
+                      <th style="text-align:right">Tax</th>
+                      <th style="text-align:right">Total Amount</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${invoices.length ? invoices.map(inv => `
+                      <tr>
+                        <td><strong>${esc(inv.invoice_number || inv.id)}</strong></td>
+                        <td>${inv.issued_at ? esc(inv.issued_at.slice(0, 10)) : '—'}</td>
+                        <td>${inv.due_at ? esc(inv.due_at.slice(0, 10)) : '—'}</td>
+                        <td style="text-align:right">₹${((inv.subtotal_paise || inv.total_paise) / 100).toLocaleString('en-IN', {maximumFractionDigits:0})}</td>
+                        <td style="text-align:right">₹${((inv.tax_paise || 0) / 100).toLocaleString('en-IN', {maximumFractionDigits:0})}</td>
+                        <td style="text-align:right;font-weight:650">₹${(inv.total_paise / 100).toLocaleString('en-IN', {maximumFractionDigits:0})}</td>
+                        <td>${status(inv.status || 'pending', inv.status === 'paid' ? 'green' : inv.status === 'overdue' ? 'red' : 'amber')}</td>
+                        <td>
+                          <button class="btn small soft" data-action="invoice-detail" data-invoice="${esc(inv.id)}" title="View Invoice details">${icon('file')} View</button>
+                        </td>
+                      </tr>
+                    `).join('') : `
+                      <tr>
+                        <td colspan="8" style="text-align:center;padding:24px;color:var(--muted)">No invoices recorded for this customer yet.</td>
+                      </tr>
+                    `}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3: Rate Cards & Contracts -->
+          <div class="cust-tab-content" id="custTabPricing" style="display:none">
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                <div style="font-weight:650;font-size:13px;color:var(--ink)">Corporate Contract Rate Cards</div>
+                <button class="btn small primary" id="custBtnAddRateCard">${icon('plus')} Add / Update Rate Card</button>
+              </div>
+              ${contracts.length ? contracts.map(cnt => `
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:12px">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                    <div>
+                      <strong style="font-size:13px">${esc(cnt.name)}</strong>
+                      <span class="pill" style="font-size:10px;margin-left:8px">Version ${esc(cnt.version || 1)}</span>
+                      <span class="status green" style="font-size:10px;margin-left:6px">${esc(cnt.status || 'active').toUpperCase()}</span>
+                    </div>
+                  </div>
+                  <div class="table-wrap">
+                    <table style="width:100%;font-size:11.5px">
+                      <thead>
+                        <tr>
+                          <th>Vehicle Group</th>
+                          <th>Duty Package</th>
+                          <th>Included</th>
+                          <th>Base Fare</th>
+                          <th>Extra KM</th>
+                          <th>Extra Hr</th>
+                          <th>Day Batta</th>
+                          <th>Night Batta (22:00-06:00)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${(cnt.rules || []).map(r => `
+                          <tr>
+                            <td><strong>${esc((r.vehicle_group || 'sedan').toUpperCase())}</strong></td>
+                            <td>${esc((r.duty_type || 'local').toUpperCase())}</td>
+                            <td>${r.package_minutes ? r.package_minutes / 60 : 4}h / ${r.included_km || 40}km</td>
+                            <td style="font-weight:600">₹${(r.base_paise / 100).toLocaleString('en-IN')}</td>
+                            <td>₹${(r.extra_km_paise / 100).toFixed(1)}/km</td>
+                            <td>₹${(r.extra_hour_paise / 100).toFixed(0)}/hr</td>
+                            <td>₹${((r.allowance_paise || 0) / 100).toFixed(0)}</td>
+                            <td><strong style="color:#059669">₹${((r.night_allowance_paise || 0) / 100).toFixed(0)}</strong></td>
+                          </tr>
+                        `).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              `).join('') : `
+                <div style="text-align:center;padding:24px;background:#f8fafc;border-radius:8px;border:1px dashed #cbd5e1">
+                  <p style="font-size:12px;color:var(--muted);margin-bottom:12px">No dedicated contract attached. This client uses tenant default corporate rate card.</p>
+                  <button class="btn small primary" id="custBtnCreateRateCard">${icon('file')} Create Corporate Rate Card</button>
+                </div>
+              `}
+            </div>
+          </div>
+
+          <!-- Tab 4: Profile & Settings -->
+          <div class="cust-tab-content" id="custTabSettings" style="display:none">
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px">
+              <div style="font-weight:650;font-size:13px;color:var(--ink);margin-bottom:12px">Corporate Account Settings &amp; Mandatory Controls</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Company Legal Name <span class="required">*</span></label>
+                  <input class="form-input" id="custSet_name" value="${esc(c.name)}">
+                </div>
+                <div class="form-group">
+                  <label>Customer Account Code</label>
+                  <input class="form-input" id="custSet_code" value="${esc(c.code || '')}" placeholder="e.g. IWP">
+                </div>
+                <div class="form-group">
+                  <label>Billing Email</label>
+                  <input class="form-input" type="email" id="custSet_email" value="${esc(c.email || '')}" placeholder="finance@company.com">
+                </div>
+                <div class="form-group">
+                  <label>Billing Phone</label>
+                  <input class="form-input" id="custSet_phone" value="${esc(c.phone || '')}" placeholder="+91 98xxx xxxxx">
+                </div>
+                <div class="form-group">
+                  <label>GSTIN</label>
+                  <input class="form-input" id="custSet_gstin" value="${esc(c.gstin || '')}" placeholder="29ABCDE1234F1Z5">
+                </div>
+                <div class="form-group">
+                  <label>PAN Number</label>
+                  <input class="form-input" id="custSet_pan" value="${esc(settings.pan || '')}" placeholder="ABCDE1234F">
+                </div>
+                <div class="form-group">
+                  <label>Payment Terms</label>
+                  <select class="form-input" id="custSet_payment_terms">
+                    <option value="net_30" ${settings.payment_terms === 'net_30' ? 'selected' : ''}>Net 30 Days</option>
+                    <option value="net_15" ${settings.payment_terms === 'net_15' ? 'selected' : ''}>Net 15 Days</option>
+                    <option value="net_45" ${settings.payment_terms === 'net_45' ? 'selected' : ''}>Net 45 Days</option>
+                    <option value="advance" ${settings.payment_terms === 'advance' ? 'selected' : ''}>Advance Payment Only</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Credit Limit (₹)</label>
+                  <input class="form-input" type="number" id="custSet_credit_limit" value="${esc(settings.credit_limit || '500000')}" placeholder="500000">
+                </div>
+                <div class="form-group full" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-top:4px">
+                  <div style="font-weight:600;font-size:12px;margin-bottom:8px">Corporate Booking Validation Guardrails</div>
+                  <div style="display:flex;flex-direction:column;gap:8px;font-size:11.5px">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                      <input type="checkbox" id="custSet_reqEmpId" ${settings.require_employee_id !== false ? 'checked' : ''}>
+                      <span>Require Employee ID / Passenger ID on every duty booking</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                      <input type="checkbox" id="custSet_reqCostCenter" ${settings.require_cost_center ? 'checked' : ''}>
+                      <span>Require Cost Center / Project Code for billing allocation</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                      <input type="checkbox" id="custSet_reqSig" ${settings.require_digital_sig !== false ? 'checked' : ''}>
+                      <span>Require Passenger Digital Signature or OTP on duty slip closure</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top:16px;display:flex;justify-content:flex-end">
+                <button class="btn primary" id="custBtnSaveSettings">${icon('check')} Save Corporate Settings</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const modal = modalShell(`Customer 360: ${esc(c.name)}`, 'Review complete corporate customer financials, P&L, accounts ledger, rate cards and governance settings.', body, button('Close', '', 'data-close-modal'));
+      modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+
+      // Quick action buttons
+      modal.querySelector('#custBtnRateCard')?.addEventListener('click', () => { closeModal(); openPricingContractModal('customer', customerId); });
+      modal.querySelector('#custBtnAddRateCard')?.addEventListener('click', () => { closeModal(); openPricingContractModal('customer', customerId); });
+      modal.querySelector('#custBtnCreateRateCard')?.addEventListener('click', () => { closeModal(); openPricingContractModal('customer', customerId); });
+      modal.querySelector('#custBtnAddEmp')?.addEventListener('click', () => { closeModal(); openCorporateEmployeeModal(); });
+
+      // Tab switcher
+      const tabBtns = modal.querySelectorAll('.cust-tab-btn');
+      const tabContents = {
+        pnl: modal.querySelector('#custTabPnl'),
+        ledger: modal.querySelector('#custTabLedger'),
+        pricing: modal.querySelector('#custTabPricing'),
+        settings: modal.querySelector('#custTabSettings')
+      };
+
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tab = btn.dataset.custTab;
+          tabBtns.forEach(b => {
+            b.classList.remove('primary');
+            b.classList.add('soft');
+          });
+          btn.classList.remove('soft');
+          btn.classList.add('primary');
+
+          Object.keys(tabContents).forEach(k => {
+            if (tabContents[k]) tabContents[k].style.display = k === tab ? 'block' : 'none';
+          });
+        });
+      });
+
+      // Save settings handler
+      modal.querySelector('#custBtnSaveSettings')?.addEventListener('click', async () => {
+        const name = modal.querySelector('#custSet_name')?.value.trim() || c.name;
+        const code = modal.querySelector('#custSet_code')?.value.trim();
+        const email = modal.querySelector('#custSet_email')?.value.trim();
+        const phone = modal.querySelector('#custSet_phone')?.value.trim();
+        const gstin = modal.querySelector('#custSet_gstin')?.value.trim();
+        const pan = modal.querySelector('#custSet_pan')?.value.trim();
+        const paymentTerms = modal.querySelector('#custSet_payment_terms')?.value;
+        const creditLimit = modal.querySelector('#custSet_credit_limit')?.value;
+        const reqEmpId = modal.querySelector('#custSet_reqEmpId')?.checked;
+        const reqCostCenter = modal.querySelector('#custSet_reqCostCenter')?.checked;
+        const reqSig = modal.querySelector('#custSet_reqSig')?.checked;
+
+        const payload = {
+          name, code, email, phone, gstin,
+          settings: {
+            pan,
+            payment_terms: paymentTerms,
+            credit_limit: creditLimit,
+            require_employee_id: reqEmpId,
+            require_cost_center: reqCostCenter,
+            require_digital_sig: reqSig
+          }
+        };
+
+        const saveBtn = modal.querySelector('#custBtnSaveSettings');
+        if (saveBtn) saveBtn.disabled = true;
+
+        try {
+          await apiRequest(`/api/customers/${encodeURIComponent(customerId)}`, { method: 'PATCH', body: JSON.stringify(payload) });
+          showToast('Customer Settings Saved', `Profile and booking guardrails for "${name}" have been updated.`);
+          await hydrateOperationalData();
+          closeModal();
+          openCustomerProfileModal(customerId);
+        } catch (err) {
+          if (saveBtn) saveBtn.disabled = false;
+          showToast('Save Failed', err.message);
+        }
+      });
+    }
+
 
     function openPricingContractModal(defaultScope = 'customer', defaultEntityId = null) {
       const customers = state.liveData?.customers?.items || [];
