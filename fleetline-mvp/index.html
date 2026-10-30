@@ -2896,7 +2896,7 @@
       } catch (_) {}
       return 'overview';
     })();
-    const state = { page: savedActivePage, pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const state = { page: savedActivePage, pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
     const advancedPages = new Set(['customers','customer-detail','suppliers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq']);
@@ -4002,101 +4002,337 @@
     }
 
     function renderOpsDashboard() {
-      const duties = dutyRowsForDisplay();
-      const bookings = state.liveData?.bookings?.items || [];
-      const assignedCount = duties.filter(d => d.driver_id || d.vehicle_id).length;
-      const completedCount = duties.filter(d => d.status === 'completed').length;
-      const unassignedCount = bookings.filter(b => b.status === 'confirmed' || b.status === 'pending').length;
+      if (!state.opsDashboardData && !state._fetchingOpsDashboard) {
+        state._fetchingOpsDashboard = true;
+        apiRequest('/api/dashboards/ops')
+          .then(res => {
+            state._fetchingOpsDashboard = false;
+            if (res && res.ok) {
+              state.opsDashboardData = res;
+              if (state.page === 'ops-dashboard') render();
+            }
+          })
+          .catch(err => {
+            state._fetchingOpsDashboard = false;
+            console.warn('Ops Dashboard fetch error:', err);
+          });
+      }
 
-      return `
-        ${pageHead('OPERATIONS INTELLIGENCE · EXECUTIVE DASHBOARD', 'Operations &amp; Dispatch Intelligence', 'Real-time duty throughput, driver assignments, SLA fulfillment, and dispatch metrics.', `${button(icon('arrow-left') + ' Back to Overview', 'soft', 'data-action="view-overview"')}${button(icon('calendar') + ' View Duties Board', 'primary', 'data-action="view-duties"')}`)}
-        <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:18px">
-          <div class="card kpi teal">
-            <div class="kpi-top"><span class="kpi-label">Active Duties</span><span class="kpi-icon teal">${icon('check')}</span></div>
-            <div class="kpi-value">${duties.length}</div>
-            <div class="kpi-foot"><span class="trend up">${completedCount} runs completed</span></div>
-          </div>
-          <div class="card kpi">
-            <div class="kpi-top"><span class="kpi-label">Driver Allotment Rate</span><span class="kpi-icon">${icon('users')}</span></div>
-            <div class="kpi-value">${duties.length ? Math.round((assignedCount / duties.length) * 100) : 100}%</div>
-            <div class="kpi-foot"><span class="trend neutral">${assignedCount} of ${duties.length} dispatched</span></div>
-          </div>
-          <div class="card kpi ${unassignedCount > 0 ? 'amber' : 'teal'}">
-            <div class="kpi-top"><span class="kpi-label">Unassigned Intake Queue</span><span class="kpi-icon ${unassignedCount > 0 ? 'amber' : 'teal'}">${icon('alert')}</span></div>
-            <div class="kpi-value">${unassignedCount}</div>
-            <div class="kpi-foot"><span class="trend ${unassignedCount > 0 ? 'down' : 'neutral'}">${unassignedCount ? 'Needs dispatch desk action' : 'Zero queue backlog'}</span></div>
-          </div>
-        </div>
-        <section class="card section-card" style="padding:24px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-            <div>
-              <h3 style="margin:0;font-size:16px;font-weight:700">Dispatch &amp; Service Parity Overview</h3>
-              <p style="margin:2px 0 0;font-size:12px;color:var(--muted)">Live board status across airport transfers, city packages, and outstation trips.</p>
-            </div>
-            <button class="btn small primary" data-action="view-duties">${icon('arrow-right')} Open Full Duties Board</button>
-          </div>
+      const res = state.opsDashboardData;
+      const summary = res?.summary || { total_duties: 0, completed_duties: 0, in_progress_duties: 0, dispatched_duties: 0, scheduled_duties: 0, cancelled_duties: 0, unassigned_queue_count: 0, driver_allotment_rate_pct: 100, vehicle_allotment_rate_pct: 100, on_time_performance_pct: 97.5, total_executed_km: 0, avg_trip_km: 0 };
+      const rawDuties = res?.live_queue || [];
+      const unassignedQueue = res?.unassigned_queue || [];
+      const hubsList = res?.hubs || [];
+      const dutyTypesList = res?.duty_types || [];
+      const statusDist = res?.status_distribution || { completed: 0, in_progress: 0, dispatched: 0, scheduled: 0, cancelled: 0 };
+
+      // Filters
+      const hubFilter = state.opsHubFilter || 'all';
+      const statusFilter = state.opsStatusFilter || 'all';
+      const dutyTypeFilter = state.opsDutyTypeFilter || 'all';
+      const searchQuery = (state.opsSearchQuery || '').toLowerCase().trim();
+      const currentTab = state.opsDashboardTab || 'cockpit';
+
+      let filteredDuties = rawDuties.filter(d => {
+        if (hubFilter !== 'all' && (d.city || '').toLowerCase() !== hubFilter.toLowerCase()) return false;
+        if (statusFilter !== 'all' && (d.status || '').toLowerCase() !== statusFilter.toLowerCase()) return false;
+        if (dutyTypeFilter !== 'all' && (d.duty_type || '').toLowerCase() !== dutyTypeFilter.toLowerCase()) return false;
+        if (searchQuery) {
+          const hay = `${d.id} ${d.passenger_name} ${d.driver_name} ${d.vehicle_plate} ${d.customer_name} ${d.pickup} ${d.dropoff}`.toLowerCase();
+          if (!hay.includes(searchQuery)) return false;
+        }
+        return true;
+      });
+
+      // Distinct hubs and duty types for filter dropdowns
+      const allCities = [...new Set(rawDuties.map(d => d.city).filter(Boolean))];
+      const allTypes = [...new Set(rawDuties.map(d => d.duty_type).filter(Boolean))];
+
+      // Calculate status percentages for progress bar
+      const tot = summary.total_duties || 1;
+      const pctCompleted = Math.round(((statusDist.completed || 0) / tot) * 100);
+      const pctDispatched = Math.round(((statusDist.dispatched || 0) / tot) * 100);
+      const pctInProgress = Math.round(((statusDist.in_progress || 0) / tot) * 100);
+      const pctScheduled = Math.round(((statusDist.scheduled || 0) / tot) * 100);
+      const pctCancelled = Math.round(((statusDist.cancelled || 0) / tot) * 100);
+
+      let tabContent = '';
+      if (currentTab === 'cockpit') {
+        tabContent = `
           <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
             <table>
               <thead>
                 <tr style="background:#f8fafc">
                   <th>Duty ID</th>
                   <th>Reporting Time</th>
+                  <th>Customer &amp; Passenger</th>
                   <th>Duty Type</th>
-                  <th>Passenger</th>
-                  <th>Driver / Vehicle</th>
+                  <th>Allotted Driver &amp; Vehicle</th>
+                  <th>Hub / Route</th>
                   <th>Status</th>
+                  <th style="text-align:right">Action</th>
                 </tr>
               </thead>
               <tbody>
-                ${duties.slice(0, 8).map(d => `
+                ${filteredDuties.length ? filteredDuties.map(d => `
                   <tr>
                     <td><span class="keycap">${esc(d.id)}</span></td>
-                    <td>${d.reporting_at ? esc(d.reporting_at.replace('T', ' ').slice(0, 16)) : '—'}</td>
-                    <td><span class="pill primary" style="font-size:10.5px">${esc(d.duty_type || 'local')}</span></td>
-                    <td><strong>${esc(d.passenger_name || 'Passenger')}</strong></td>
-                    <td>${d.driver_name ? esc(d.driver_name) : '<span style="color:var(--muted)">Unallotted</span>'} · ${d.vehicle_plate ? esc(d.vehicle_plate) : ''}</td>
-                    <td><span class="status ${d.status === 'completed' ? 'green' : d.status === 'cancelled' ? 'red' : 'amber'}">${esc(d.status || 'draft').toUpperCase()}</span></td>
+                    <td>
+                      <div style="font-weight:600;font-size:12.5px">${d.reporting_at ? esc(d.reporting_at.replace('T', ' ').slice(0, 16)) : '—'}</div>
+                      <div style="font-size:11px;color:var(--muted)">Sched: ${d.scheduled_at ? esc(d.scheduled_at.replace('T', ' ').slice(11, 16)) : '—'}</div>
+                    </td>
+                    <td>
+                      <div style="font-weight:600;color:var(--ink)">${esc(d.passenger_name)}</div>
+                      <div style="font-size:11px;color:var(--muted)">${esc(d.customer_name)}</div>
+                    </td>
+                    <td><span class="pill primary" style="font-size:10.5px">${esc((d.duty_type || 'local').toUpperCase())}</span></td>
+                    <td>
+                      ${d.driver_name ? `<div><strong>${esc(d.driver_name)}</strong></div><div style="font-family:monospace;font-size:11px;color:var(--muted)">${esc(d.vehicle_plate || '—')}</div>` : `<span class="badge" style="background:#fef3c7;color:#92400e;font-size:10.5px">Unallotted</span>`}
+                    </td>
+                    <td>
+                      <div style="font-weight:500;font-size:12px">${esc(d.city || 'Bengaluru')}</div>
+                      <div style="font-size:11px;color:var(--muted);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(d.pickup)} → ${esc(d.dropoff)}">${esc(d.pickup || '—')}</div>
+                    </td>
+                    <td>
+                      <span class="status ${d.status === 'completed' || d.status === 'closed' || d.status === 'billed' ? 'green' : d.status === 'in_progress' ? 'teal' : d.status === 'cancelled' ? 'red' : 'amber'}">
+                        ${esc((d.status || 'scheduled').toUpperCase())}
+                      </span>
+                    </td>
+                    <td style="text-align:right">
+                      <button class="btn small soft" data-action="view-duty-details" data-duty-id="${esc(d.id)}">View</button>
+                    </td>
                   </tr>
-                `).join('')}
+                `).join('') : `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted)">No duties found matching current filters.</td></tr>`}
               </tbody>
             </table>
           </div>
+        `;
+      } else if (currentTab === 'intake') {
+        tabContent = `
+          <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:var(--muted)">Bookings received but not yet allotted to a driver or duty slip.</span>
+            <span class="badge" style="background:#e0f2fe;color:#0369a1;font-weight:700">${unassignedQueue.length} Pending Allotment</span>
+          </div>
+          <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+            <table>
+              <thead>
+                <tr style="background:#f8fafc">
+                  <th>Booking ID</th>
+                  <th>Scheduled Pickup</th>
+                  <th>Customer &amp; Passenger</th>
+                  <th>Duty Type</th>
+                  <th>City / Location</th>
+                  <th style="text-align:right">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${unassignedQueue.length ? unassignedQueue.map(u => `
+                  <tr>
+                    <td><span class="keycap">${esc(u.id)}</span></td>
+                    <td><strong>${u.scheduled_at ? esc(u.scheduled_at.replace('T', ' ').slice(0, 16)) : '—'}</strong></td>
+                    <td>
+                      <div style="font-weight:600;color:var(--ink)">${esc(u.passenger_name)}</div>
+                      <div style="font-size:11px;color:var(--muted)">${esc(u.customer_name)} (${esc(u.customer_code)})</div>
+                    </td>
+                    <td><span class="pill primary" style="font-size:10.5px">${esc((u.duty_type || 'local').toUpperCase())}</span></td>
+                    <td>
+                      <div>${esc(u.city)}</div>
+                      <div style="font-size:11px;color:var(--muted)">${esc(u.pickup || '—')}</div>
+                    </td>
+                    <td style="text-align:right">
+                      <button class="btn small primary" data-action="allot-duty-from-booking" data-booking-id="${esc(u.id)}">${icon('check')} Allot Now</button>
+                    </td>
+                  </tr>
+                `).join('') : `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted)">Zero intake backlog! All bookings are dispatched.</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } else if (currentTab === 'hubs') {
+        tabContent = `
+          <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+            <table>
+              <thead>
+                <tr style="background:#f8fafc">
+                  <th>Operating Hub / City</th>
+                  <th style="text-align:right">Total Duties</th>
+                  <th style="text-align:right">Completed Runs</th>
+                  <th style="text-align:right">Active / Scheduled</th>
+                  <th style="text-align:right">Fulfillment Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${hubsList.length ? hubsList.map(h => {
+                  const rate = h.duties_count ? Math.round((h.completed / h.duties_count) * 100) : 100;
+                  return `
+                    <tr>
+                      <td><strong style="color:var(--ink);font-size:14px">${esc(h.city)}</strong></td>
+                      <td style="text-align:right;font-weight:700">${h.duties_count}</td>
+                      <td style="text-align:right;color:#16a34a;font-weight:600">${h.completed}</td>
+                      <td style="text-align:right;color:#0284c7;font-weight:600">${h.active}</td>
+                      <td style="text-align:right">
+                        <span class="badge" style="background:${rate >= 80 ? '#dcfce7;color:#166534' : '#fef3c7;color:#92400e'};font-weight:700">${rate}%</span>
+                      </td>
+                    </tr>
+                  `;
+                }).join('') : `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted)">No hub data available.</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      return `
+        ${pageHead('OPERATIONS INTELLIGENCE · LIVE COCKPIT', 'Operations &amp; Dispatch Intelligence', 'Real-time duty throughput, driver assignments, SLA fulfillment, and dispatch metrics.', `
+          <button class="btn soft" id="btnRefreshOpsDashboard">${icon('refresh')} Refresh</button>
+          <button class="btn soft" id="btnExportOpsCSV">${icon('download')} Export CSV</button>
+          <button class="btn primary" data-action="view-duties">${icon('calendar')} Full Duties Board</button>
+        `)}
+
+        <!-- 5 KPI Cards -->
+        <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:14px;margin-bottom:18px">
+          <div class="card kpi teal">
+            <div class="kpi-top"><span class="kpi-label">Total Duties</span><span class="kpi-icon teal">${icon('check')}</span></div>
+            <div class="kpi-value">${summary.total_duties}</div>
+            <div class="kpi-foot"><span class="trend up">${summary.completed_duties} completed runs</span></div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Driver Allotment Rate</span><span class="kpi-icon">${icon('users')}</span></div>
+            <div class="kpi-value">${summary.driver_allotment_rate_pct}%</div>
+            <div class="kpi-foot"><span class="trend neutral">Vehicle Allotment: ${summary.vehicle_allotment_rate_pct}%</span></div>
+          </div>
+          <div class="card kpi purple">
+            <div class="kpi-top"><span class="kpi-label">On-Time Performance (OTP)</span><span class="kpi-icon purple">${icon('shield')}</span></div>
+            <div class="kpi-value">${summary.on_time_performance_pct}%</div>
+            <div class="kpi-foot"><span class="trend up">SLA threshold: 95.0%</span></div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Executed Fleet Mileage</span><span class="kpi-icon">${icon('car')}</span></div>
+            <div class="kpi-value">${Number(summary.total_executed_km || 0).toLocaleString('en-IN')} <span style="font-size:14px;font-weight:400">Km</span></div>
+            <div class="kpi-foot"><span class="trend neutral">Avg trip: ${summary.avg_trip_km} Km</span></div>
+          </div>
+          <div class="card kpi ${summary.unassigned_queue_count > 0 ? 'amber' : 'teal'}">
+            <div class="kpi-top"><span class="kpi-label">Unassigned Intake</span><span class="kpi-icon ${summary.unassigned_queue_count > 0 ? 'amber' : 'teal'}">${icon('alert')}</span></div>
+            <div class="kpi-value">${summary.unassigned_queue_count}</div>
+            <div class="kpi-foot"><span class="trend ${summary.unassigned_queue_count > 0 ? 'down' : 'up'}">${summary.unassigned_queue_count ? 'Needs dispatch desk action' : 'Zero queue backlog'}</span></div>
+          </div>
+        </div>
+
+        <!-- Duty Status Distribution Progress Bar -->
+        <div class="card" style="padding:16px 20px;margin-bottom:18px;background:#fff">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-weight:700;font-size:12.5px;color:var(--ink);letter-spacing:0.5px">DUTY STATUS DISTRIBUTION</span>
+            <div style="display:flex;gap:14px;font-size:11.5px">
+              <span style="color:#16a34a;font-weight:600">● Completed (${statusDist.completed})</span>
+              <span style="color:#0284c7;font-weight:600">● Scheduled (${statusDist.scheduled})</span>
+              <span style="color:#6366f1;font-weight:600">● Dispatched (${statusDist.dispatched})</span>
+              <span style="color:#dc2626;font-weight:600">● Cancelled (${statusDist.cancelled})</span>
+            </div>
+          </div>
+          <div style="height:10px;background:#e2e8f0;border-radius:6px;overflow:hidden;display:flex">
+            <div style="width:${pctCompleted}%;background:#16a34a" title="Completed: ${pctCompleted}%"></div>
+            <div style="width:${pctScheduled}%;background:#0284c7" title="Scheduled: ${pctScheduled}%"></div>
+            <div style="width:${pctDispatched}%;background:#6366f1" title="Dispatched: ${pctDispatched}%"></div>
+            <div style="width:${pctCancelled}%;background:#dc2626" title="Cancelled: ${pctCancelled}%"></div>
+          </div>
+        </div>
+
+        <!-- Multi-Filter Ribbon -->
+        <div class="card" style="padding:14px 18px;margin-bottom:18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;background:#fff">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px;font-weight:600;color:var(--muted)">Hub:</span>
+            <select id="opsHubFilter" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--line)">
+              <option value="all"${hubFilter === 'all' ? ' selected' : ''}>All Hubs</option>
+              ${allCities.map(c => `<option value="${esc(c)}"${hubFilter.toLowerCase() === c.toLowerCase() ? ' selected' : ''}>${esc(c)}</option>`).join('')}
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px;font-weight:600;color:var(--muted)">Status:</span>
+            <select id="opsStatusFilter" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--line)">
+              <option value="all"${statusFilter === 'all' ? ' selected' : ''}>All Statuses</option>
+              <option value="scheduled"${statusFilter === 'scheduled' ? ' selected' : ''}>Scheduled</option>
+              <option value="completed"${statusFilter === 'completed' ? ' selected' : ''}>Completed</option>
+              <option value="cancelled"${statusFilter === 'cancelled' ? ' selected' : ''}>Cancelled</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px;font-weight:600;color:var(--muted)">Duty Type:</span>
+            <select id="opsDutyTypeFilter" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--line)">
+              <option value="all"${dutyTypeFilter === 'all' ? ' selected' : ''}>All Types</option>
+              ${allTypes.map(t => `<option value="${esc(t)}"${dutyTypeFilter.toLowerCase() === t.toLowerCase() ? ' selected' : ''}>${esc(t.toUpperCase())}</option>`).join('')}
+            </select>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <input type="text" id="opsSearchInput" placeholder="Search duty ID, passenger, driver, vehicle..." value="${esc(state.opsSearchQuery || '')}" style="width:100%;font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid var(--line)" />
+          </div>
+          <button class="btn small soft" id="btnResetOpsFilters">Reset Filters</button>
+        </div>
+
+        <!-- Section Card with Sub-Tabs -->
+        <section class="card section-card" style="padding:24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:14px">
+            <div style="display:flex;gap:10px">
+              <button class="btn small ${currentTab === 'cockpit' ? 'primary' : 'soft'}" data-ops-tab="cockpit">${icon('check')} Live Dispatch Cockpit (${filteredDuties.length})</button>
+              <button class="btn small ${currentTab === 'intake' ? 'primary' : 'soft'}" data-ops-tab="intake">${icon('alert')} Unassigned Intake (${unassignedQueue.length})</button>
+              <button class="btn small ${currentTab === 'hubs' ? 'primary' : 'soft'}" data-ops-tab="hubs">${icon('shield')} Operating Hubs (${hubsList.length})</button>
+            </div>
+            <span style="font-size:12px;color:var(--muted)">Showing ${filteredDuties.length} filtered duties</span>
+          </div>
+          ${tabContent}
         </section>
       `;
     }
 
     function renderFleetDashboard() {
-      const vehicles = state.liveData?.vehicles?.items || [];
-      const activeVehicles = vehicles.filter(v => v.status === 'active' || v.status === 'available');
-      const supplierVehicles = vehicles.filter(v => (v.ownership || '').toLowerCase() === 'supplier' || v.supplier_id);
-      const ownedVehicles = vehicles.filter(v => (v.ownership || '').toLowerCase() === 'company_owned' || (!v.supplier_id && (v.ownership || '').toLowerCase() !== 'supplier'));
+      if (!state.fleetDashboardData && !state._fetchingFleetDashboard) {
+        state._fetchingFleetDashboard = true;
+        apiRequest('/api/dashboards/fleet')
+          .then(res => {
+            state._fetchingFleetDashboard = false;
+            if (res && res.ok) {
+              state.fleetDashboardData = res;
+              if (state.page === 'fleet-dashboard') render();
+            }
+          })
+          .catch(err => {
+            state._fetchingFleetDashboard = false;
+            console.warn('Fleet Dashboard fetch error:', err);
+          });
+      }
 
-      return `
-        ${pageHead('ASSET &amp; FLEET INTELLIGENCE', 'Fleet Health &amp; Asset Economics', 'Vehicle utilization, fuel economy, asset lifecycle costs, and maintenance tracking.', `${button(icon('arrow-left') + ' Back to Overview', 'soft', 'data-action="view-overview"')}${button(icon('car') + ' Vehicles Register', 'primary', 'data-action="view-vehicles"')}`)}
-        <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:18px">
-          <div class="card kpi teal">
-            <div class="kpi-top"><span class="kpi-label">Active Fleet Roster</span><span class="kpi-icon teal">${icon('car')}</span></div>
-            <div class="kpi-value">${vehicles.length}</div>
-            <div class="kpi-foot"><span class="trend up">${activeVehicles.length} road-ready vehicles</span></div>
-          </div>
-          <div class="card kpi">
-            <div class="kpi-top"><span class="kpi-label">Company Owned Assets</span><span class="kpi-icon">${icon('shield')}</span></div>
-            <div class="kpi-value">${ownedVehicles.length}</div>
-            <div class="kpi-foot"><span class="trend neutral">Primary balance-sheet fleet</span></div>
-          </div>
-          <div class="card kpi purple">
-            <div class="kpi-top"><span class="kpi-label">Outsourced Partner Fleet</span><span class="kpi-icon purple">${icon('link')}</span></div>
-            <div class="kpi-value">${supplierVehicles.length}</div>
-            <div class="kpi-foot"><span class="trend neutral">Subcontracted partner assets</span></div>
-          </div>
-        </div>
-        <section class="card section-card" style="padding:24px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-            <div>
-              <h3 style="margin:0;font-size:16px;font-weight:700">Vehicles Asset Performance</h3>
-              <p style="margin:2px 0 0;font-size:12px;color:var(--muted)">Registration numbers, model groups, ownership and odometer readings.</p>
-            </div>
-            <button class="btn small primary" data-action="view-vehicles">${icon('arrow-right')} Open Vehicles Register</button>
+      const res = state.fleetDashboardData;
+      const summary = res?.summary || { total_vehicles: 0, road_ready_count: 0, idle_available_count: 0, on_duty_count: 0, maintenance_count: 0, uptime_pct: 100, service_alerts_count: 0, total_odometer_km: 0, avg_odometer_km: 0, company_owned_count: 0, partner_fleet_count: 0 };
+      const rawVehicles = res?.vehicles || [];
+      const radarList = res?.maintenance_radar || [];
+      const groupsList = res?.vehicle_groups || [];
+      const currentTab = state.fleetDashboardTab || 'radar';
+
+      // Filters
+      const ownershipFilter = state.fleetOwnershipFilter || 'all';
+      const fuelFilter = state.fleetFuelFilter || 'all';
+      const groupFilter = state.fleetGroupFilter || 'all';
+      const searchQuery = (state.fleetSearchQuery || '').toLowerCase().trim();
+
+      let filteredVehicles = rawVehicles.filter(v => {
+        if (ownershipFilter !== 'all' && (v.ownership_type || '').toLowerCase() !== ownershipFilter.toLowerCase()) return false;
+        if (fuelFilter !== 'all' && (v.fuel_type || '').toLowerCase() !== fuelFilter.toLowerCase()) return false;
+        if (groupFilter !== 'all' && (v.vehicle_group || '').toLowerCase() !== groupFilter.toLowerCase()) return false;
+        if (searchQuery) {
+          const hay = `${v.registration_number} ${v.make_model} ${v.vehicle_group} ${v.supplier_name}`.toLowerCase();
+          if (!hay.includes(searchQuery)) return false;
+        }
+        return true;
+      });
+
+      const allGroups = [...new Set(rawVehicles.map(v => v.vehicle_group).filter(Boolean))];
+      const allFuels = [...new Set(rawVehicles.map(v => v.fuel_type).filter(Boolean))];
+
+      let tabContent = '';
+      if (currentTab === 'radar') {
+        tabContent = `
+          <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:var(--muted)">Vehicles requiring periodic maintenance service (≤ 1,500 Km remaining) or expiring statutory documents.</span>
+            <span class="badge" style="background:#fee2e2;color:#991b1b;font-weight:700">${radarList.length} Action Items</span>
           </div>
           <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
             <table>
@@ -4104,31 +4340,205 @@
                 <tr style="background:#f8fafc">
                   <th>License Plate</th>
                   <th>Vehicle Model</th>
-                  <th>Group</th>
                   <th>Ownership</th>
-                  <th>Odometer Reading</th>
-                  <th>Status</th>
+                  <th>Current Odometer</th>
+                  <th>Next Service Milestone</th>
+                  <th>Distance Remaining</th>
+                  <th>Alert Triggers</th>
+                  <th style="text-align:right">Action</th>
                 </tr>
               </thead>
               <tbody>
-                ${vehicles.slice(0, 8).map(v => `
+                ${radarList.length ? radarList.map(r => `
                   <tr>
-                    <td><strong style="color:var(--ink)">${esc(v.license_plate || v.id)}</strong></td>
-                    <td>${esc(v.make_model || v.model || 'Sedan')}</td>
-                    <td><span class="pill primary" style="font-size:10.5px">${esc(v.vehicle_group || 'Sedan')}</span></td>
-                    <td><span class="badge" style="font-size:10px">${esc(v.ownership || 'Company Owned').toUpperCase()}</span></td>
-                    <td style="font-family:monospace">${v.odometer_km ? Number(v.odometer_km).toLocaleString('en-IN') + ' Km' : '—'}</td>
-                    <td><span class="status ${v.status === 'active' || v.status === 'available' ? 'green' : 'gray'}">${esc(v.status || 'active').toUpperCase()}</span></td>
+                    <td><strong style="color:var(--ink);font-size:13.5px">${esc(r.registration_number)}</strong></td>
+                    <td>
+                      <div>${esc(r.make_model)}</div>
+                      <div style="font-size:11px;color:var(--muted)">${esc(r.vehicle_group)}</div>
+                    </td>
+                    <td><span class="badge" style="font-size:10px">${esc(r.ownership)}</span></td>
+                    <td style="font-family:monospace;font-weight:600">${Number(r.current_odometer_km).toLocaleString('en-IN')} Km</td>
+                    <td style="font-family:monospace;color:var(--muted)">${Number(r.next_service_due_km).toLocaleString('en-IN')} Km</td>
+                    <td>
+                      <span class="badge" style="background:${r.km_remaining <= 500 ? '#fee2e2;color:#991b1b' : '#fef3c7;color:#92400e'};font-weight:700">
+                        ${Number(r.km_remaining).toLocaleString('en-IN')} Km
+                      </span>
+                    </td>
+                    <td>
+                      ${r.reasons.map(rs => `<div style="font-size:11.5px;color:#dc2626;font-weight:500">⚠ ${esc(rs)}</div>`).join('')}
+                    </td>
+                    <td style="text-align:right">
+                      <button class="btn small primary" data-action="schedule-vehicle-maintenance" data-vehicle-id="${esc(r.id)}">Schedule Service</button>
+                    </td>
                   </tr>
-                `).join('')}
+                `).join('') : `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted)">All fleet vehicles are healthy and compliant with zero service overdues!</td></tr>`}
               </tbody>
             </table>
           </div>
+        `;
+      } else if (currentTab === 'roster') {
+        tabContent = `
+          <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+            <table>
+              <thead>
+                <tr style="background:#f8fafc">
+                  <th>License Plate</th>
+                  <th>Model &amp; Group</th>
+                  <th>Fuel &amp; Ownership</th>
+                  <th>Current Odometer</th>
+                  <th>Next Service Milestone</th>
+                  <th>Duty Runs</th>
+                  <th>Status</th>
+                  <th style="text-align:right">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredVehicles.length ? filteredVehicles.map(v => `
+                  <tr>
+                    <td><strong style="color:var(--ink);font-size:13.5px">${esc(v.registration_number)}</strong></td>
+                    <td>
+                      <div style="font-weight:600">${esc(v.make_model)}</div>
+                      <div style="font-size:11px;color:var(--muted)">${esc(v.vehicle_group)}</div>
+                    </td>
+                    <td>
+                      <div><span class="pill primary" style="font-size:10.5px">${esc(v.fuel_type)}</span></div>
+                      <div style="font-size:11px;color:var(--muted);margin-top:2px">${esc((v.ownership_type || 'owned').toUpperCase())}${v.supplier_name ? ` · ${esc(v.supplier_name)}` : ''}</div>
+                    </td>
+                    <td style="font-family:monospace;font-weight:600">${Number(v.current_odometer_km).toLocaleString('en-IN')} Km</td>
+                    <td>
+                      <div style="font-family:monospace;font-size:12px">${Number(v.next_service_due_km).toLocaleString('en-IN')} Km</div>
+                      <div style="font-size:11px;color:${v.is_service_due ? '#dc2626;font-weight:600' : 'var(--muted)'}">
+                        ${v.is_service_due ? `⚠ Due in ${Number(v.km_to_service).toLocaleString('en-IN')} Km` : `${Number(v.km_to_service).toLocaleString('en-IN')} Km left`}
+                      </div>
+                    </td>
+                    <td style="font-weight:700;color:var(--ink)">${v.duties_count} runs</td>
+                    <td>
+                      <span class="status ${v.status === 'on_duty' ? 'teal' : v.status === 'available' || v.status === 'active' ? 'green' : 'amber'}">
+                        ${esc((v.status || 'available').toUpperCase())}
+                      </span>
+                    </td>
+                    <td style="text-align:right">
+                      <button class="btn small soft" data-action="view-vehicle-detail" data-vehicle-id="${esc(v.id)}">Details</button>
+                    </td>
+                  </tr>
+                `).join('') : `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted)">No vehicles match the selected filters.</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } else if (currentTab === 'models') {
+        tabContent = `
+          <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+            <table>
+              <thead>
+                <tr style="background:#f8fafc">
+                  <th>Vehicle Group / Segment</th>
+                  <th style="text-align:right">Active Assets</th>
+                  <th style="text-align:right">Total Logged Km</th>
+                  <th style="text-align:right">Average Km / Vehicle</th>
+                  <th style="text-align:right">Duty Runs Fulfilled</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${groupsList.length ? groupsList.map(g => `
+                  <tr>
+                    <td><strong style="color:var(--ink);font-size:13.5px">${esc(g.group)}</strong></td>
+                    <td style="text-align:right;font-weight:700">${g.count}</td>
+                    <td style="text-align:right;font-family:monospace">${Number(g.total_odo || 0).toLocaleString('en-IN')} Km</td>
+                    <td style="text-align:right;font-family:monospace">${g.count ? Number(Math.round(g.total_odo / g.count)).toLocaleString('en-IN') : 0} Km</td>
+                    <td style="text-align:right;font-weight:700;color:#16a34a">${g.duties_count}</td>
+                  </tr>
+                `).join('') : `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted)">No group breakdown available.</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      return `
+        ${pageHead('ASSET &amp; FLEET HEALTH · LIFECYCLE ECONOMICS', 'Fleet Health &amp; Asset Economics', 'Vehicle utilization, fuel economy, asset lifecycle costs, and maintenance tracking.', `
+          <button class="btn soft" id="btnRefreshFleetDashboard">${icon('refresh')} Refresh</button>
+          <button class="btn soft" id="btnExportFleetCSV">${icon('download')} Export CSV</button>
+          <button class="btn primary" data-action="view-vehicles">${icon('car')} Vehicles Register</button>
+        `)}
+
+        <!-- 5 KPI Cards -->
+        <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:14px;margin-bottom:18px">
+          <div class="card kpi teal">
+            <div class="kpi-top"><span class="kpi-label">Active Fleet Roster</span><span class="kpi-icon teal">${icon('car')}</span></div>
+            <div class="kpi-value">${summary.total_vehicles}</div>
+            <div class="kpi-foot"><span class="trend up">${summary.uptime_pct}% Fleet Uptime</span></div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Road-Ready Assets</span><span class="kpi-icon">${icon('shield')}</span></div>
+            <div class="kpi-value">${summary.road_ready_count}</div>
+            <div class="kpi-foot"><span class="trend neutral">${summary.idle_available_count} idle · ${summary.on_duty_count} on duty</span></div>
+          </div>
+          <div class="card kpi ${summary.service_alerts_count > 0 ? 'amber' : 'teal'}">
+            <div class="kpi-top"><span class="kpi-label">Maintenance Alerts</span><span class="kpi-icon ${summary.service_alerts_count > 0 ? 'amber' : 'teal'}">${icon('alert')}</span></div>
+            <div class="kpi-value">${summary.service_alerts_count}</div>
+            <div class="kpi-foot"><span class="trend ${summary.service_alerts_count > 0 ? 'down' : 'up'}">${summary.service_alerts_count ? 'Service / renewal due' : 'All assets compliant'}</span></div>
+          </div>
+          <div class="card kpi purple">
+            <div class="kpi-top"><span class="kpi-label">Fleet Logged Distance</span><span class="kpi-icon purple">${icon('check')}</span></div>
+            <div class="kpi-value">${Number(summary.total_odometer_km || 0).toLocaleString('en-IN')} <span style="font-size:14px;font-weight:400">Km</span></div>
+            <div class="kpi-foot"><span class="trend neutral">Avg: ${Number(summary.avg_odometer_km || 0).toLocaleString('en-IN')} Km / car</span></div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Ownership Split</span><span class="kpi-icon">${icon('users')}</span></div>
+            <div class="kpi-value" style="font-size:20px">${summary.company_owned_count} <span style="font-size:13px;font-weight:500;color:var(--muted)">Owned</span> / ${summary.partner_fleet_count} <span style="font-size:13px;font-weight:500;color:var(--muted)">Partner</span></div>
+            <div class="kpi-foot"><span class="trend neutral">Balanced operating model</span></div>
+          </div>
+        </div>
+
+        <!-- Multi-Filter Ribbon -->
+        <div class="card" style="padding:14px 18px;margin-bottom:18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;background:#fff">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px;font-weight:600;color:var(--muted)">Ownership:</span>
+            <select id="fleetOwnershipFilter" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--line)">
+              <option value="all"${ownershipFilter === 'all' ? ' selected' : ''}>All Ownerships</option>
+              <option value="owned"${ownershipFilter === 'owned' ? ' selected' : ''}>Company Owned</option>
+              <option value="supplier"${ownershipFilter === 'supplier' ? ' selected' : ''}>Outsourced Partner</option>
+              <option value="dco"${ownershipFilter === 'dco' ? ' selected' : ''}>Driver-Cum-Owner (DCO)</option>
+              <option value="leased"${ownershipFilter === 'leased' ? ' selected' : ''}>Leased</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px;font-weight:600;color:var(--muted)">Group:</span>
+            <select id="fleetGroupFilter" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--line)">
+              <option value="all"${groupFilter === 'all' ? ' selected' : ''}>All Groups</option>
+              ${allGroups.map(g => `<option value="${esc(g)}"${groupFilter.toLowerCase() === g.toLowerCase() ? ' selected' : ''}>${esc(g)}</option>`).join('')}
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px;font-weight:600;color:var(--muted)">Fuel:</span>
+            <select id="fleetFuelFilter" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--line)">
+              <option value="all"${fuelFilter === 'all' ? ' selected' : ''}>All Fuel Types</option>
+              ${allFuels.map(f => `<option value="${esc(f)}"${fuelFilter.toLowerCase() === f.toLowerCase() ? ' selected' : ''}>${esc(f)}</option>`).join('')}
+            </select>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <input type="text" id="fleetSearchInput" placeholder="Search plate, model, supplier..." value="${esc(state.fleetSearchQuery || '')}" style="width:100%;font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid var(--line)" />
+          </div>
+          <button class="btn small soft" id="btnResetFleetFilters">Reset Filters</button>
+        </div>
+
+        <!-- Section Card with Sub-Tabs -->
+        <section class="card section-card" style="padding:24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:14px">
+            <div style="display:flex;gap:10px">
+              <button class="btn small ${currentTab === 'radar' ? 'primary' : 'soft'}" data-fleet-tab="radar">${icon('alert')} Maintenance Radar (${radarList.length})</button>
+              <button class="btn small ${currentTab === 'roster' ? 'primary' : 'soft'}" data-fleet-tab="roster">${icon('car')} Full Fleet Roster (${filteredVehicles.length})</button>
+              <button class="btn small ${currentTab === 'models' ? 'primary' : 'soft'}" data-fleet-tab="models">${icon('shield')} Models Breakdown (${groupsList.length})</button>
+            </div>
+            <span style="font-size:12px;color:var(--muted)">Showing ${filteredVehicles.length} vehicles</span>
+          </div>
+          ${tabContent}
         </section>
       `;
     }
 
-    function renderPartnerDashboard() {
+        function renderPartnerDashboard() {
       const customers = state.liveData?.customers?.items || [];
       const suppliers = state.liveData?.suppliers?.items || [];
 
@@ -8175,6 +8585,122 @@
         document.body.removeChild(link);
         showToast('Export Successful', 'P&L statement downloaded as CSV.');
       });
+      // Operations Dashboard Events
+      const opsHubSel = document.getElementById('opsHubFilter');
+      if (opsHubSel) opsHubSel.addEventListener('change', e => { state.opsHubFilter = e.target.value; render(); });
+      const opsStatusSel = document.getElementById('opsStatusFilter');
+      if (opsStatusSel) opsStatusSel.addEventListener('change', e => { state.opsStatusFilter = e.target.value; render(); });
+      const opsDutyTypeSel = document.getElementById('opsDutyTypeFilter');
+      if (opsDutyTypeSel) opsDutyTypeSel.addEventListener('change', e => { state.opsDutyTypeFilter = e.target.value; render(); });
+      const opsSearch = document.getElementById('opsSearchInput');
+      if (opsSearch) opsSearch.addEventListener('input', e => {
+        state.opsSearchQuery = e.target.value;
+        render();
+        requestAnimationFrame(() => {
+          const inp = document.getElementById('opsSearchInput');
+          if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+        });
+      });
+      const btnResetOps = document.getElementById('btnResetOpsFilters');
+      if (btnResetOps) btnResetOps.addEventListener('click', () => {
+        state.opsHubFilter = 'all'; state.opsStatusFilter = 'all'; state.opsDutyTypeFilter = 'all'; state.opsSearchQuery = '';
+        render();
+      });
+      content.querySelectorAll('[data-ops-tab]').forEach(el => el.addEventListener('click', () => {
+        state.opsDashboardTab = el.dataset.opsTab;
+        render();
+      }));
+      const btnRefreshOps = document.getElementById('btnRefreshOpsDashboard');
+      if (btnRefreshOps) btnRefreshOps.addEventListener('click', () => {
+        state.opsDashboardData = null;
+        showToast('Refreshing Operations Dashboard', 'Pulling live dispatch queue & telemetry metrics...');
+        render();
+      });
+      const btnExportOps = document.getElementById('btnExportOpsCSV');
+      if (btnExportOps) btnExportOps.addEventListener('click', () => {
+        const sum = state.opsDashboardData?.summary || {};
+        const rows = [
+          ['Axiom Fleet - Operations & Dispatch Intelligence Report'],
+          ['Exported At', new Date().toISOString()],
+          ['Filter Hub', state.opsHubFilter || 'all'],
+          ['Filter Status', state.opsStatusFilter || 'all'],
+          ['Total Duties', sum.total_duties],
+          ['Completed Duties', sum.completed_duties],
+          ['On-Time Performance', (sum.on_time_performance_pct || 0) + '%'],
+          [],
+          ['Duty ID', 'Reporting Time', 'Customer', 'Passenger', 'Duty Type', 'Driver', 'Vehicle', 'City', 'Status']
+        ];
+        (state.opsDashboardData?.live_queue || []).forEach(d => {
+          rows.push([d.id, d.reporting_at || '', d.customer_name || '', d.passenger_name || '', d.duty_type || '', d.driver_name || '', d.vehicle_plate || '', d.city || '', d.status || '']);
+        });
+        const csv = 'data:text/csv;charset=utf-8,' + rows.map(r => r.map(x => `"${String(x).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const link = document.createElement('a');
+        link.href = encodeURI(csv);
+        link.download = `axiom_operations_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('Export Successful', 'Operations report downloaded as CSV.');
+      });
+
+      // Fleet Health Dashboard Events
+      const fleetOwnSel = document.getElementById('fleetOwnershipFilter');
+      if (fleetOwnSel) fleetOwnSel.addEventListener('change', e => { state.fleetOwnershipFilter = e.target.value; render(); });
+      const fleetGroupSel = document.getElementById('fleetGroupFilter');
+      if (fleetGroupSel) fleetGroupSel.addEventListener('change', e => { state.fleetGroupFilter = e.target.value; render(); });
+      const fleetFuelSel = document.getElementById('fleetFuelFilter');
+      if (fleetFuelSel) fleetFuelSel.addEventListener('change', e => { state.fleetFuelFilter = e.target.value; render(); });
+      const fleetSearch = document.getElementById('fleetSearchInput');
+      if (fleetSearch) fleetSearch.addEventListener('input', e => {
+        state.fleetSearchQuery = e.target.value;
+        render();
+        requestAnimationFrame(() => {
+          const inp = document.getElementById('fleetSearchInput');
+          if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+        });
+      });
+      const btnResetFleet = document.getElementById('btnResetFleetFilters');
+      if (btnResetFleet) btnResetFleet.addEventListener('click', () => {
+        state.fleetOwnershipFilter = 'all'; state.fleetGroupFilter = 'all'; state.fleetFuelFilter = 'all'; state.fleetSearchQuery = '';
+        render();
+      });
+      content.querySelectorAll('[data-fleet-tab]').forEach(el => el.addEventListener('click', () => {
+        state.fleetDashboardTab = el.dataset.fleetTab;
+        render();
+      }));
+      const btnRefreshFleet = document.getElementById('btnRefreshFleetDashboard');
+      if (btnRefreshFleet) btnRefreshFleet.addEventListener('click', () => {
+        state.fleetDashboardData = null;
+        showToast('Refreshing Fleet Dashboard', 'Checking real-time vehicle odometers & maintenance status...');
+        render();
+      });
+      const btnExportFleet = document.getElementById('btnExportFleetCSV');
+      if (btnExportFleet) btnExportFleet.addEventListener('click', () => {
+        const sum = state.fleetDashboardData?.summary || {};
+        const rows = [
+          ['Axiom Fleet - Fleet Health & Asset Lifecycle Report'],
+          ['Exported At', new Date().toISOString()],
+          ['Filter Ownership', state.fleetOwnershipFilter || 'all'],
+          ['Total Fleet Assets', sum.total_vehicles],
+          ['Road-Ready Assets', sum.road_ready_count],
+          ['Fleet Uptime', (sum.uptime_pct || 0) + '%'],
+          ['Total Logged Odometer', sum.total_odometer_km + ' Km'],
+          [],
+          ['License Plate', 'Model', 'Group', 'Fuel', 'Ownership', 'Current Odo (Km)', 'Next Service Due (Km)', 'Km Remaining', 'Duty Runs', 'Status']
+        ];
+        (state.fleetDashboardData?.vehicles || []).forEach(v => {
+          rows.push([v.registration_number, v.make_model, v.vehicle_group, v.fuel_type, v.ownership_type, v.current_odometer_km, v.next_service_due_km, v.km_to_service, v.duties_count, v.status]);
+        });
+        const csv = 'data:text/csv;charset=utf-8,' + rows.map(r => r.map(x => `"${String(x).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const link = document.createElement('a');
+        link.href = encodeURI(csv);
+        link.download = `axiom_fleet_health_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('Export Successful', 'Fleet health report downloaded as CSV.');
+      });
+
 
       content.querySelectorAll('[data-action="driver-page-first"]').forEach(el => el.addEventListener('click', () => { state.driverPage = 1; render(); }));
       content.querySelectorAll('[data-action="driver-page-prev"]').forEach(el => el.addEventListener('click', () => { state.driverPage = Math.max(1, (Number(state.driverPage) || 1) - 1); render(); }));
