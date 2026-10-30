@@ -2692,25 +2692,21 @@
         <button class="nav-more" id="advancedNavToggle" type="button" aria-expanded="false" aria-controls="advanced-nav"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/><circle cx="11" cy="18" r="1.5" fill="currentColor"/></svg>More tools</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
         <div id="advanced-nav" class="advanced-nav" hidden>
           <div class="nav-accordion-group" data-section="commercial">
+            <button class="nav-section nav-section-header" type="button" aria-expanded="true" aria-controls="section-items-commercial">
+              <span class="nav-section-label">Customers &amp; pricing</span>
+              <span class="nav-section-count">2</span>
+              <svg class="nav-accordion-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
             <div class="nav-section-items" id="section-items-commercial">
               <div class="nav-section-items-inner">
-                <!-- Customers & Pricing Menu with Submenu Items -->
-                <div class="nav-parent-item-group" style="margin-bottom:2px">
-                  <button class="nav-item" data-page="customers" id="navItemCommercial" data-tooltip="Customers &amp; pricing" style="font-weight:650">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM16 3.2a4 4 0 0 1 0 7.7M17 15h1a4 4 0 0 1 4 4v2"/></svg>
-                    <span>Customers &amp; pricing</span>
-                  </button>
-                  <div class="nav-sub-items-container" style="padding-left:14px;margin-left:16px;border-left:2px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;gap:1px;margin-top:2px;margin-bottom:4px">
-                    <button class="nav-item nav-sub-child" data-page="customers" data-tooltip="Customer entities &amp; pricing" style="padding:6px 10px;font-size:11.5px">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg>
-                      <span>Customers</span>
-                    </button>
-                    <button class="nav-item nav-sub-child" data-page="suppliers" data-tooltip="Supplier partners &amp; payouts" style="padding:6px 10px;font-size:11.5px">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="m8.5 10.5 7-3M8.5 13.5l7 3"/></svg>
-                      <span>Suppliers</span>
-                    </button>
-                  </div>
-                </div>
+                <button class="nav-item" data-page="customers" data-tooltip="Customer entities &amp; corporate pricing">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM16 3.2a4 4 0 0 1 0 7.7M17 15h1a4 4 0 0 1 4 4v2"/></svg>
+                  <span>Customers</span>
+                </button>
+                <button class="nav-item" data-page="suppliers" data-tooltip="Supplier fleet partners &amp; payouts">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="m8.5 10.5 7-3M8.5 13.5l7 3"/></svg>
+                  <span>Suppliers</span>
+                </button>
               </div>
             </div>
           </div>
@@ -3156,7 +3152,7 @@
             if (item.dataset.page === 'overview') span.textContent = 'Overview';
             else if (item.dataset.page === 'bookings') span.textContent = 'Bookings';
             else if (item.dataset.page === 'duties') span.textContent = 'Duties board';
-            else if (item.dataset.page === 'customers') span.textContent = item.classList.contains('nav-sub-child') ? 'Customers' : 'Customers & pricing';
+            else if (item.dataset.page === 'customers') span.textContent = 'Customers';
             else if (item.dataset.page === 'suppliers') span.textContent = 'Suppliers';
             else if (item.dataset.page === 'billing') span.textContent = 'Billing & receipts';
             else if (item.dataset.page === 'settings') span.textContent = 'Settings';
@@ -3403,8 +3399,7 @@
       if (state.hydration.status === 'error' && !state.liveData) { content.innerHTML = renderErrorState(); attachPageEvents(); return; }
       topbarTitle.textContent = currentUser?.role === 'corporate' && state.page === 'overview' ? 'Corporate account workspace' : (navTitles[state.page] || 'Operations overview');
       document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.page === state.page));
-      const commercialParent = document.getElementById('navItemCommercial');
-      if (commercialParent) commercialParent.classList.toggle('active', state.page === 'customers' || state.page === 'suppliers');
+
       const vehiclesParent = document.getElementById('navItemVehicles');
       if (vehiclesParent) vehiclesParent.classList.toggle('active', state.page === 'vehicles' || state.page === 'vehicle-pnl');
       const driversParent = document.getElementById('navItemDrivers');
