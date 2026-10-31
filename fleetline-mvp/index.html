@@ -12248,18 +12248,14 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         }
 
         try {
-          if (dId) {
-            await apiRequest('/api/bookings/assign-resource', {
-              method: 'POST',
-              body: JSON.stringify({ booking_id: item.id || bookingId, driver_id: dId })
-            });
-          }
-          if (vId) {
-            await apiRequest('/api/bookings/assign-resource', {
-              method: 'POST',
-              body: JSON.stringify({ booking_id: item.id || bookingId, vehicle_id: vId })
-            });
-          }
+          await apiRequest('/api/bookings/assign-resource', {
+            method: 'POST',
+            body: JSON.stringify({
+              booking_id: item.id || bookingId,
+              driver_id: dId || null,
+              vehicle_id: vId || null
+            })
+          });
           showToast('Allotment Saved', 'Driver and vehicle successfully assigned.');
           closeModal();
           if (typeof hydrateOperationalData === 'function') await hydrateOperationalData();

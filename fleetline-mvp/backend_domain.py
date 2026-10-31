@@ -554,6 +554,104 @@ def _invoice(conn, invoice_id, org):
     return data
 
 
+
+def _assign_booking_resources(conn, user, booking_id: str, payload: dict, ip: str):
+    org = _org(user)
+    _require_role(user)
+    booking = _assert_owned(conn, "domain_bookings", booking_id, org)
+
+    driver_id = _text(payload, "driver_id") or None
+    vehicle_id = _text(payload, "vehicle_id") or None
+    supplier_id = _text(payload, "supplier_id") or None
+
+    driver_name = None
+    if driver_id:
+        drv = conn.execute(
+            "SELECT id, full_name, phone FROM domain_drivers WHERE id = ? AND (organization_id = ? OR organization_id IS NULL)",
+            (driver_id, org),
+        ).fetchone()
+        if drv:
+            driver_name = drv["full_name"]
+
+    vehicle_number = None
+    if vehicle_id:
+        veh = conn.execute(
+            "SELECT id, registration_number, make_model FROM domain_vehicles WHERE id = ? AND organization_id = ?",
+            (vehicle_id, org),
+        ).fetchone()
+        if veh:
+            vehicle_number = veh["registration_number"]
+
+    supplier_name = None
+    if supplier_id and supplier_id != "OWN":
+        sup = conn.execute(
+            "SELECT id, name FROM domain_suppliers WHERE id = ? AND organization_id = ?",
+            (supplier_id, org),
+        ).fetchone()
+        if sup:
+            supplier_name = sup["name"]
+    elif supplier_id == "OWN" or (not supplier_id and (driver_id or vehicle_id)):
+        supplier_name = "Own Fleet"
+        supplier_id = None
+
+    now = now_iso()
+    new_status = "assigned" if (driver_id and vehicle_id) else ("confirmed" if (driver_id or vehicle_id) else "requested")
+
+    trip_id = booking["trip_id"] if "trip_id" in booking.keys() and booking["trip_id"] else None
+    if not trip_id:
+        customer_id = booking["customer_id"] if "customer_id" in booking.keys() else None
+        customer = conn.execute("SELECT code, name FROM domain_customers WHERE id = ? AND organization_id = ?", (customer_id, org)).fetchone() if customer_id else None
+        corp_code = customer["code"] if customer and customer["code"] else _derive_corp_code(customer["name"] if customer else "TRIP")
+        trip_id = _generate_trip_id(conn, org, corp_code)
+
+    # Update domain_bookings
+    conn.execute(
+        """UPDATE domain_bookings 
+           SET driver_id = ?, driver_name = ?, vehicle_id = ?, vehicle_number = ?, 
+               supplier_id = ?, supplier_name = ?, status = ?, trip_id = ?, updated_at = ?
+           WHERE id = ? AND organization_id = ?""",
+        (driver_id, driver_name, vehicle_id, vehicle_number, supplier_id, supplier_name, new_status, trip_id, now, booking_id, org),
+    )
+
+    # Check if a duty already exists
+    existing_duty = conn.execute(
+        "SELECT id FROM domain_duties WHERE organization_id = ? AND booking_id = ?",
+        (org, booking_id),
+    ).fetchone()
+    if existing_duty:
+        conn.execute(
+            """UPDATE domain_duties 
+               SET driver_id = ?, vehicle_id = ?, supplier_id = ?, status = ?, updated_at = ?
+               WHERE id = ? AND organization_id = ?""",
+            (driver_id, vehicle_id, supplier_id, new_status, now, existing_duty["id"], org),
+        )
+    else:
+        # Create duty
+        conn.execute(
+            """INSERT INTO domain_duties (
+                   id, organization_id, booking_id, driver_id, vehicle_id, supplier_id, 
+                   status, reporting_at, created_at, updated_at
+               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (trip_id, org, booking_id, driver_id, vehicle_id, supplier_id, new_status, booking["scheduled_at"], now, now),
+        )
+
+    _audit(conn, user, "booking.allotted", "booking", booking_id, ip, {
+        "driver_id": driver_id,
+        "driver_name": driver_name,
+        "vehicle_id": vehicle_id,
+        "vehicle_number": vehicle_number,
+        "trip_id": trip_id,
+        "status": new_status,
+    })
+
+    return {
+        "ok": True,
+        "status": new_status,
+        "trip_id": trip_id,
+        "item": _booking(conn, booking_id, org),
+    }
+
+
 def _update_booking(conn, user, booking_id, payload, ip):
     org = _org(user)
     _require_role(user)
@@ -1358,6 +1456,16 @@ def handle_domain(conn, user, method: str, raw_route: str, payload: dict, ip: st
     if route == "/api/customers" and method == "POST": return _create_customer(conn, user, payload, ip)
     if route == "/api/drivers" and method == "POST": return _create_driver(conn, user, payload, ip)
     if route == "/api/vehicles" and method == "POST": return _create_vehicle(conn, user, payload, ip)
+    if route == "/api/bookings/assign-resource" and method == "POST":
+        b_id = str(payload.get("booking_id") or "").strip()
+        if not b_id:
+            raise DomainError(400, "booking_id is required", "validation_error")
+        return _assign_booking_resources(conn, user, b_id, payload, ip)
+
+    if assign_match := re.match(r"^/api/bookings/([^/]+)/assign$", route):
+        if method == "POST":
+            return _assign_booking_resources(conn, user, assign_match.group(1), payload, ip)
+
     if route == "/api/bookings" and method == "POST": return _create_booking(conn, user, payload, ip)
     if route == "/api/duties" and method == "POST": return _create_duty(conn, user, payload, ip)
     if route == "/api/invoices" and method == "POST": return _create_invoice(conn, user, payload, ip)
