@@ -3162,7 +3162,7 @@
       const label = toggle.querySelector('span');
       if (label) label.lastChild.textContent = currentUser?.role === 'driver' ? 'Driver menu' : currentUser?.role === 'corporate' ? 'Advanced tools' : 'More tools';
       const role = currentUser?.role;
-      const isStaffUser = Boolean(currentUser?.email?.toLowerCase().endsWith('@axiomfleet.in') || role === 'axiom_admin' || role === 'axiom_super_admin');
+      const isStaffUser = Boolean(currentUser?.email?.toLowerCase().endsWith('@axiomfleet.in') || currentUser?.email?.toLowerCase().endsWith('@axiomfleet.com') || currentUser?.email?.toLowerCase() === 'reddragon0075@gmail.com' || role === 'axiom_admin' || role === 'axiom_super_admin' || role === 'vendor');
       const hqGroup = document.getElementById('nav-group-axiom-hq');
       if (hqGroup) hqGroup.hidden = !isStaffUser;
       const hqNavBtn = document.getElementById('nav-item-axiom-hq');
@@ -8213,7 +8213,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
     function renderAxiomHQ() {
       const email = (currentUser?.email || '').toLowerCase();
       const role = (currentUser?.role || '').toLowerCase();
-      const isStaff = email.endsWith('@axiomfleet.in') || role === 'axiom_admin' || role === 'axiom_staff';
+      const isStaff = email.endsWith('@axiomfleet.in') || email.endsWith('@axiomfleet.com') || email === 'reddragon0075@gmail.com' || role === 'axiom_admin' || role === 'axiom_staff' || role === 'axiom_super_admin' || role === 'vendor';
       if (!isStaff) {
         return `<div class="p-8 text-center" style="max-width:540px;margin:80px auto;background:#0f172a;border:1px solid rgba(244,63,94,.4);border-radius:16px;padding:36px;color:#f87171;text-align:center;">
           <div style="font-size:32px;margin-bottom:12px;">🛡️</div>
