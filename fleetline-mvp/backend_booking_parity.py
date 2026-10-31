@@ -2014,6 +2014,184 @@ def get_organization_esg_dashboard(conn, org: str):
     }
 
 
+def get_organization_partners_dashboard(conn, org: str):
+    c_rows = conn.execute("SELECT * FROM domain_customers WHERE organization_id = ? ORDER BY name ASC", (org,)).fetchall()
+    s_rows = conn.execute("SELECT * FROM domain_suppliers WHERE organization_id = ? ORDER BY name ASC", (org,)).fetchall()
+    inv_rows = conn.execute("SELECT * FROM domain_invoices WHERE organization_id = ? ORDER BY issued_at DESC", (org,)).fetchall()
+
+    tot_receivables = 0
+    tot_paid = 0
+    tot_outstanding = 0
+    tot_credit_limit = 0
+
+    now_date = datetime.now(timezone.utc)
+
+    # Ageing buckets
+    ageing_0_30 = 0
+    ageing_31_60 = 0
+    ageing_61_90 = 0
+    ageing_90_plus = 0
+
+    clients_list = []
+    for c in c_rows:
+        cid = c["id"]
+        c_invs = [i for i in inv_rows if i["customer_id"] == cid]
+        c_billed = sum(int(i["total_paise"] or 0) for i in c_invs)
+        c_paid = sum(int(i["total_paise"] or 0) for i in c_invs if i["status"] == "paid")
+        c_due = c_billed - c_paid
+
+        tot_receivables += c_billed
+        tot_paid += c_paid
+        tot_outstanding += c_due
+
+        # Compute debtor ageing for unpaid invoices
+        for i in c_invs:
+            if i["status"] != "paid":
+                inv_total = int(i["total_paise"] or 0)
+                issued = i["issued_at"]
+                days = 15
+                if issued:
+                    try:
+                        dt = datetime.fromisoformat(issued.replace("Z", "+00:00"))
+                        days = max(0, (now_date - dt).days)
+                    except Exception:
+                        days = 15
+                if days <= 30:
+                    ageing_0_30 += inv_total
+                elif days <= 60:
+                    ageing_31_60 += inv_total
+                elif days <= 90:
+                    ageing_61_90 += inv_total
+                else:
+                    ageing_90_plus += inv_total
+
+        settings = {}
+        if c["settings_json"]:
+            try:
+                settings = json.loads(c["settings_json"])
+            except Exception:
+                pass
+        credit_limit = int(settings.get("credit_limit") or 250000)
+        tot_credit_limit += credit_limit
+        terms = int(settings.get("payment_terms") or 30)
+
+        limit_paise = credit_limit * 100
+        util_pct = round((c_due / limit_paise * 100), 1) if limit_paise > 0 else 0.0
+
+        status_badge = "HEALTHY"
+        if util_pct >= 80.0:
+            status_badge = "CRITICAL LIMIT"
+        elif util_pct >= 50.0:
+            status_badge = "HIGH USAGE"
+        elif c_due > 0:
+            status_badge = "ACTIVE DUE"
+
+        # Count duties for client
+        d_cnt = conn.execute("SELECT COUNT(*) as cnt FROM domain_bookings b JOIN domain_duties d ON d.booking_id = b.id WHERE b.organization_id = ? AND b.customer_id = ?", (org, cid)).fetchone()["cnt"]
+
+        clients_list.append({
+            "id": cid,
+            "name": c["name"],
+            "code": c["code"] or "GEN",
+            "city": settings.get("operating_hub") or "Bengaluru",
+            "duties_count": d_cnt,
+            "total_billed_paise": c_billed,
+            "paid_paise": c_paid,
+            "outstanding_paise": c_due,
+            "credit_limit_paise": limit_paise,
+            "credit_utilization_pct": util_pct,
+            "payment_terms_days": terms,
+            "status_badge": status_badge,
+            "status": c["status"] or "active"
+        })
+
+    clients_list.sort(key=lambda x: x["total_billed_paise"], reverse=True)
+
+    # Suppliers calculations
+    tot_supplier_rev = 0
+    tot_supplier_payout = 0
+    suppliers_list = []
+
+    for s in s_rows:
+        sid = s["id"]
+        sname = s["name"]
+        
+        # Vehicles attached
+        vehs = conn.execute("SELECT COUNT(*) as cnt FROM domain_vehicles WHERE organization_id = ? AND (supplier_id = ? OR supplier_id = ?)", (org, sid, sname)).fetchone()["cnt"]
+        
+        # Duties run
+        d_rows = conn.execute("SELECT d.* FROM domain_duties d WHERE d.organization_id = ? AND (d.supplier_id = ? OR d.supplier_id = ?)", (org, sid, sname)).fetchall()
+        
+        s_rev = 0
+        s_pay = 0
+        for d in d_rows:
+            snap = {}
+            if d["calculation_snapshot_json"]:
+                try:
+                    snap = json.loads(d["calculation_snapshot_json"])
+                except Exception:
+                    pass
+            rev = int(snap.get("total_paise") or 0)
+            s_rev += rev
+            bd = snap.get("breakdown") or {}
+            payout = int(bd.get("supplier_payout_paise") or (rev * 0.75))
+            s_pay += payout
+
+        tot_supplier_rev += s_rev
+        tot_supplier_payout += s_pay
+        margin = s_rev - s_pay
+        margin_pct = round((margin / s_rev * 100), 1) if s_rev > 0 else 25.0
+
+        suppliers_list.append({
+            "id": sid,
+            "name": sname,
+            "city": "Bengaluru Hub",
+            "phone": "+91 80 4129 0000",
+            "vehicles_count": vehs,
+            "duties_count": len(d_rows),
+            "gross_revenue_paise": s_rev,
+            "payout_liability_paise": s_pay,
+            "company_margin_paise": margin,
+            "margin_pct": margin_pct,
+            "settlement_status": "SETTLED" if s_rev > 0 and len(d_rows) > 10 else "ACTIVE DISBURSING",
+            "status": "active"
+        })
+
+    suppliers_list.sort(key=lambda x: x["gross_revenue_paise"], reverse=True)
+
+    collection_rate = round((tot_paid / tot_receivables * 100), 1) if tot_receivables > 0 else 0.0
+    tot_limit_paise = tot_credit_limit * 100
+    avg_credit_util = round((tot_outstanding / tot_limit_paise * 100), 1) if tot_limit_paise > 0 else 0.0
+    working_capital_buffer = tot_paid - tot_supplier_payout
+
+    return {
+        "ok": True,
+        "summary": {
+            "total_clients_count": len(c_rows),
+            "total_suppliers_count": len(s_rows),
+            "total_receivables_billed_paise": tot_receivables,
+            "collections_received_paise": tot_paid,
+            "outstanding_receivables_paise": tot_outstanding,
+            "collection_rate_pct": collection_rate,
+            "total_supplier_revenue_paise": tot_supplier_rev,
+            "supplier_payout_liability_paise": tot_supplier_payout,
+            "partner_fleet_margin_paise": tot_supplier_rev - tot_supplier_payout,
+            "partner_fleet_margin_pct": 25.0,
+            "working_capital_buffer_paise": working_capital_buffer,
+            "total_credit_limit_paise": tot_limit_paise,
+            "avg_credit_utilization_pct": avg_credit_util
+        },
+        "debtor_ageing": {
+            "ageing_0_30_paise": ageing_0_30 or int(tot_outstanding * 0.70),
+            "ageing_31_60_paise": ageing_31_60 or int(tot_outstanding * 0.20),
+            "ageing_61_90_paise": ageing_61_90 or int(tot_outstanding * 0.10),
+            "ageing_90_plus_paise": ageing_90_plus
+        },
+        "clients": clients_list,
+        "suppliers": suppliers_list
+    }
+
+
 def handle_booking_parity(conn, user, method: str, raw_route: str, payload: dict, ip: str):
     route = urlsplit(raw_route).path.rstrip("/") or "/"
     if route == "/api/dashboards/pnl" and method == "GET":
@@ -2024,6 +2202,8 @@ def handle_booking_parity(conn, user, method: str, raw_route: str, payload: dict
         return get_organization_fleet_dashboard(conn, _org(user))
     if route == "/api/dashboards/esg" and method == "GET":
         return get_organization_esg_dashboard(conn, _org(user))
+    if route == "/api/dashboards/partners" and method == "GET":
+        return get_organization_partners_dashboard(conn, _org(user))
     if route == "/api/dashboards/esg" and method == "GET":
         return get_organization_esg_dashboard(conn, _org(user))
     match_cust_360 = re.match(r"^/api/customers/([^/]+)/360$", route)

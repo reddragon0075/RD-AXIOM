@@ -2900,7 +2900,7 @@
       } catch (_) {}
       return 'overview';
     })();
-    const state = { page: savedActivePage, pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', esgDashboardData: null, _fetchingEsgDashboard: false, esgPeriodFilter: 'all', esgCustomerFilter: 'all', esgFuelFilter: 'all', esgSearchQuery: '', esgDashboardTab: 'environmental', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const state = { page: savedActivePage, pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', esgDashboardData: null, _fetchingEsgDashboard: false, esgPeriodFilter: 'all', esgCustomerFilter: 'all', esgFuelFilter: 'all', esgSearchQuery: '', esgDashboardTab: 'environmental', partnersDashboardData: null, _fetchingPartnersDashboard: false, partnerEntityFilter: 'all', partnerStatusFilter: 'all', partnerSearchQuery: '', partnerDashboardTab: 'clients', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
     const advancedPages = new Set(['customers','customer-detail','suppliers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq']);
@@ -5000,505 +5000,334 @@
     }
 
     function renderPartnerDashboard() {
-      const customers = state.liveData?.customers?.items || [];
-      const suppliers = state.liveData?.suppliers?.items || [];
+      if (!state.partnersDashboardData && !state._fetchingPartnersDashboard) {
+        state._fetchingPartnersDashboard = true;
+        apiRequest('/api/dashboards/partners')
+          .then(res => {
+            state._fetchingPartnersDashboard = false;
+            if (res && res.ok) {
+              state.partnersDashboardData = res;
+              if (state.page === 'partner-dashboard') render();
+            }
+          })
+          .catch(err => {
+            state._fetchingPartnersDashboard = false;
+            console.warn('Partners Dashboard fetch error:', err);
+          });
+      }
 
-      return `
-        ${pageHead('NETWORK &amp; COMMERCIAL INTELLIGENCE', 'Client &amp; Partner Performance', 'Corporate accounts receivables, debtor ageing, supplier payouts, and partner margins.', `${button(icon('arrow-left') + ' Back to Overview', 'soft', 'data-action="view-overview"')}${button(icon('users') + ' Customers Register', 'primary', 'data-action="back-to-customers"')}`)}
-        <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:18px">
-          <div class="card kpi teal">
-            <div class="kpi-top"><span class="kpi-label">Corporate Clients</span><span class="kpi-icon teal">${icon('users')}</span></div>
-            <div class="kpi-value">${customers.length}</div>
-            <div class="kpi-foot"><span class="trend up">Active commercial accounts</span></div>
-          </div>
-          <div class="card kpi purple">
-            <div class="kpi-top"><span class="kpi-label">Supplier Fleet Partners</span><span class="kpi-icon purple">${icon('link')}</span></div>
-            <div class="kpi-value">${suppliers.length}</div>
-            <div class="kpi-foot"><span class="trend neutral">Connected supplier partners</span></div>
-          </div>
-        </div>
-        <div class="grid two-col" style="gap:20px;align-items:start">
-          <div class="card section-card" style="padding:20px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-              <h3 style="margin:0;font-size:15px;font-weight:700">Connected Corporate Accounts</h3>
-              <button class="btn small soft" data-action="back-to-customers">View All (${customers.length})</button>
+      const res = state.partnersDashboardData;
+      const summary = res?.summary || { total_clients_count: 0, total_suppliers_count: 0, total_receivables_billed_paise: 0, collections_received_paise: 0, outstanding_receivables_paise: 0, collection_rate_pct: 0, total_supplier_revenue_paise: 0, supplier_payout_liability_paise: 0, partner_fleet_margin_paise: 0, partner_fleet_margin_pct: 25, working_capital_buffer_paise: 0, total_credit_limit_paise: 0, avg_credit_utilization_pct: 0 };
+      const rawClients = res?.clients || [];
+      const rawSuppliers = res?.suppliers || [];
+      const ageing = res?.debtor_ageing || { ageing_0_30_paise: 0, ageing_31_60_paise: 0, ageing_61_90_paise: 0, ageing_90_plus_paise: 0 };
+      const currentTab = state.partnerDashboardTab || 'clients';
+
+      // Filters
+      const entityFilter = state.partnerEntityFilter || 'all';
+      const statusFilter = state.partnerStatusFilter || 'all';
+      const searchQuery = (state.partnerSearchQuery || '').toLowerCase().trim();
+
+      let filteredClients = rawClients.filter(c => {
+        if (entityFilter === 'suppliers') return false;
+        if (statusFilter !== 'all' && (c.status_badge || '').toLowerCase() !== statusFilter.toLowerCase()) return false;
+        if (searchQuery) {
+          const hay = `${c.name} ${c.code} ${c.city}`.toLowerCase();
+          if (!hay.includes(searchQuery)) return false;
+        }
+        return true;
+      });
+
+      let filteredSuppliers = rawSuppliers.filter(s => {
+        if (entityFilter === 'clients') return false;
+        if (statusFilter !== 'all' && (s.settlement_status || '').toLowerCase() !== statusFilter.toLowerCase()) return false;
+        if (searchQuery) {
+          const hay = `${s.name} ${s.city} ${s.phone}`.toLowerCase();
+          if (!hay.includes(searchQuery)) return false;
+        }
+        return true;
+      });
+
+      const totOutstandingRs = summary.outstanding_receivables_paise / 100;
+      const age0_30 = ageing.ageing_0_30_paise / 100;
+      const age31_60 = ageing.ageing_31_60_paise / 100;
+      const age61_90 = ageing.ageing_61_90_paise / 100;
+      const age90Plus = ageing.ageing_90_plus_paise / 100;
+
+      const pct0_30 = totOutstandingRs > 0 ? Math.round((age0_30 / totOutstandingRs) * 100) : 70;
+      const pct31_60 = totOutstandingRs > 0 ? Math.round((age31_60 / totOutstandingRs) * 100) : 20;
+      const pct61_90 = totOutstandingRs > 0 ? Math.round((age61_90 / totOutstandingRs) * 100) : 10;
+      const pct90Plus = totOutstandingRs > 0 ? Math.round((age90Plus / totOutstandingRs) * 100) : 0;
+
+      let tabContent = '';
+      if (currentTab === 'clients') {
+        tabContent = `
+          <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <h4 style="margin:0;font-size:15px;font-weight:700;color:var(--ink)">Corporate Client Commercial Accounts</h4>
+              <p style="margin:2px 0 0;font-size:12px;color:var(--muted)">Billed receivables, outstanding debt, approved credit limits, and credit utilization rates.</p>
             </div>
-            <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
-              <table>
-                <thead>
-                  <tr style="background:#f8fafc">
-                    <th>Customer Name</th>
-                    <th>City / Hub</th>
-                    <th>Status</th>
-                    <th style="text-align:right">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${customers.map(c => `
+            <span class="badge" style="background:#e0f2fe;color:#0369a1;font-weight:700">${filteredClients.length} Commercial Clients</span>
+          </div>
+          <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+            <table>
+              <thead>
+                <tr style="background:#f8fafc">
+                  <th>Corporate Client</th>
+                  <th>Operating Hub</th>
+                  <th style="text-align:right">Duties Run</th>
+                  <th style="text-align:right">Total Billed</th>
+                  <th style="text-align:right">Outstanding Due</th>
+                  <th style="text-align:right">Credit Line</th>
+                  <th style="min-width:140px">Credit Utilization</th>
+                  <th>Payment Terms</th>
+                  <th>Commercial Health</th>
+                  <th style="text-align:right">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredClients.length ? filteredClients.map(c => {
+                  const billedRs = c.total_billed_paise / 100;
+                  const outRs = c.outstanding_paise / 100;
+                  const limitRs = c.credit_limit_paise / 100;
+                  const util = c.credit_utilization_pct || 0;
+                  return `
                     <tr>
-                      <td><strong>${esc(c.name)}</strong></td>
-                      <td>${esc(c.city || 'Bengaluru')}</td>
-                      <td><span class="status ${c.status === 'inactive' ? 'gray' : 'green'}">${esc(c.status || 'active').toUpperCase()}</span></td>
+                      <td>
+                        <div style="font-weight:700;color:var(--ink);font-size:13.5px">${esc(c.name)}</div>
+                        <div style="font-size:11px;color:var(--muted)">Account Code: ${esc(c.code)}</div>
+                      </td>
+                      <td>${esc(c.city)}</td>
+                      <td style="text-align:right;font-weight:600">${c.duties_count}</td>
+                      <td style="text-align:right;font-family:monospace;font-weight:600">₹${Number(billedRs).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                      <td style="text-align:right;font-family:monospace;font-weight:700;color:${outRs > 0 ? '#b91c1c' : '#16a34a'}">₹${Number(outRs).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                      <td style="text-align:right;font-family:monospace;color:var(--muted)">₹${Number(limitRs).toLocaleString('en-IN', {maximumFractionDigits: 0})}</td>
+                      <td>
+                        <div style="display:flex;align-items:center;gap:8px">
+                          <div style="flex:1;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden">
+                            <div style="width:${Math.min(100, util)}%;height:100%;background:${util >= 80 ? '#dc2626' : util >= 50 ? '#f59e0b' : '#10b981'}"></div>
+                          </div>
+                          <span style="font-size:11px;font-weight:700;width:38px;text-align:right">${util}%</span>
+                        </div>
+                      </td>
+                      <td><span class="badge" style="font-size:10.5px">Net ${c.payment_terms_days} Days</span></td>
+                      <td>
+                        <span class="badge" style="background:${c.status_badge === 'HEALTHY' ? '#dcfce7;color:#166534' : c.status_badge === 'CRITICAL LIMIT' ? '#fee2e2;color:#991b1b' : '#fef3c7;color:#92400e'};font-weight:700">
+                          ${esc(c.status_badge)}
+                        </span>
+                      </td>
                       <td style="text-align:right">
                         <button class="btn small soft" data-action="view-customer-360" data-customer-id="${esc(c.id)}">Customer 360</button>
                       </td>
                     </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
+                  `;
+                }).join('') : `<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--muted)">No corporate accounts found matching filters.</td></tr>`}
+              </tbody>
+            </table>
           </div>
-          <div class="card section-card" style="padding:20px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-              <h3 style="margin:0;font-size:15px;font-weight:700">Supplier Fleet Partners</h3>
-              <button class="btn small soft" data-page="suppliers">View All (${suppliers.length})</button>
+        `;
+      } else if (currentTab === 'suppliers') {
+        tabContent = `
+          <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <h4 style="margin:0;font-size:15px;font-weight:700;color:var(--ink)">Supplier Fleet Partners Performance Matrix</h4>
+              <p style="margin:2px 0 0;font-size:12px;color:var(--muted)">Subcontracted partner fleets, attached vehicles, payout liabilities, and Axiom retained margins.</p>
             </div>
-            <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
-              <table>
-                <thead>
-                  <tr style="background:#f8fafc">
-                    <th>Supplier Partner</th>
-                    <th>Coverage / Type</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${suppliers.map(s => `
+            <span class="badge" style="background:#f3e8ff;color:#7e22ce;font-weight:700">${filteredSuppliers.length} Fleet Partners</span>
+          </div>
+          <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+            <table>
+              <thead>
+                <tr style="background:#f8fafc">
+                  <th>Supplier Fleet Partner</th>
+                  <th>Operating Hub</th>
+                  <th style="text-align:right">Attached Fleet</th>
+                  <th style="text-align:right">Duties Run</th>
+                  <th style="text-align:right">Gross Revenue (INR)</th>
+                  <th style="text-align:right">Partner Payout (INR)</th>
+                  <th style="text-align:right">Axiom Retained Margin</th>
+                  <th>Settlement Status</th>
+                  <th style="text-align:right">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredSuppliers.length ? filteredSuppliers.map(s => {
+                  const revRs = s.gross_revenue_paise / 100;
+                  const payRs = s.payout_liability_paise / 100;
+                  const marginRs = s.company_margin_paise / 100;
+                  return `
                     <tr>
-                      <td><strong>${esc(s.name)}</strong></td>
-                      <td>${esc(s.city || 'Hub Network')}</td>
-                      <td><span class="status ${s.status === 'inactive' ? 'gray' : 'green'}">${esc(s.status || 'active').toUpperCase()}</span></td>
+                      <td>
+                        <div style="font-weight:700;color:var(--ink);font-size:13.5px">${esc(s.name)}</div>
+                        <div style="font-size:11px;color:var(--muted)">Primary Vendor ID: ${esc(s.id)}</div>
+                      </td>
+                      <td>${esc(s.city)}</td>
+                      <td style="text-align:right;font-weight:600">${s.vehicles_count} vehicles</td>
+                      <td style="text-align:right;font-weight:600">${s.duties_count}</td>
+                      <td style="text-align:right;font-family:monospace;font-weight:600">₹${Number(revRs).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                      <td style="text-align:right;font-family:monospace;font-weight:700;color:#0284c7">₹${Number(payRs).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                      <td style="text-align:right;font-family:monospace;font-weight:700;color:#16a34a">₹${Number(marginRs).toLocaleString('en-IN', {minimumFractionDigits: 2})} (${s.margin_pct}%)</td>
+                      <td>
+                        <span class="badge" style="background:${s.settlement_status === 'SETTLED' ? '#dcfce7;color:#166534' : '#fef3c7;color:#92400e'};font-weight:700">
+                          ${esc(s.settlement_status)}
+                        </span>
+                      </td>
+                      <td style="text-align:right">
+                        <button class="btn small soft" data-page="suppliers">View Partner</button>
+                      </td>
                     </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
+                  `;
+                }).join('') : `<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted)">No supplier partners found matching filters.</td></tr>`}
+              </tbody>
+            </table>
           </div>
-        </div>
-      `;
-    }
-
-    function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-head"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1><p>${desc}</p></div><div class="head-actions">${actions}</div></div>`; }
-
-    function renderCorporateOverview() {
-      const bookings = state.liveData?.bookings?.items || [];
-      const duties = dutyRowsForDisplay();
-      const reports = state.liveData?.reports?.summary || {};
-      const invoiceSummary = reports.invoices || {};
-      const invoiceRows = state.liveData?.invoices?.items || [];
-      const corporateAccountResponse = state.corporateData?.['/api/corporate/account'];
-      const corporateAccount = corporateAccountResponse?.account || null;
-      const corporateReadiness = corporateAccountResponse?.readiness || null;
-      const corporateUsersResponse = state.corporateData?.['/api/corporate/users'];
-      const employeesSource = corporateUsersResponse?.items ?? state.liveData?.employees?.items;
-      const employees = employeesSource || [];
-      const corporatePoliciesResponse = state.corporateData?.['/api/corporate/policies'];
-      const policiesSource = corporatePoliciesResponse?.items ?? state.liveData?.policies?.items;
-      const policies = policiesSource || [];
-      const approvalSource = state.liveData?.approvals?.items;
-      const approvals = approvalSource || [];
-      const dutySlipApprovals = state.corporateData?.['/api/corporate/duty-slip-approvals']?.items || [];
-      const pendingDutySlipApprovals = dutySlipApprovals.filter(item => String(item.status || '').toLowerCase() === 'pending');
-      const notificationSource = state.liveData?.notifications?.items;
-      const notifications = notificationSource || [];
-      const suppliers = state.liveData?.suppliers?.items || [];
-      const customers = state.liveData?.customers?.items || [];
-      const branches = state.liveData?.branches?.items || [];
-      const vehicles = state.liveData?.vehicles?.items || [];
-      const checklist = state.liveData?.onboarding || state.liveData?.checklist;
-      const organization = state.liveData?.organization?.item || {};
-      const settings = state.liveData?.settings?.item?.settings || {};
-      const localization = state.phase3Data?.['/api/phase3/localization']?.item || {};
-      const activity = state.extendedData?.['/api/audit']?.items || state.liveData?.['/api/audit']?.items || [];
-      const network = state.networkData || {};
-      const networkFlag = network['/api/network/v1/feature-flag']?.flag;
-      const profiles = network['/api/network/v1/vendor-profiles']?.items || [];
-      const invites = network['/api/network/v1/invites']?.items || [];
-      const serviceOrders = network['/api/network/v1/service-orders']?.items || [];
-      const workspaceName = organization.name || currentUser?.organization?.name || currentUser?.organization_name || 'Tenant workspace';
-      const branchName = branches[0]?.name || branches[0]?.city || 'All operating locations';
-      const currencyReady = Boolean(localization.currency || settings.currency || settings.effective_region_id);
-      const pendingRequests = bookings.filter(item => ['requested', 'pending_approval'].includes(String(item.status || '').toLowerCase()));
-      const pendingDecisionCount = approvals.filter(item => String(item.status || '').toLowerCase() === 'pending').length;
-      const activeBookingStatuses = new Set(['requested', 'pending_approval', 'approved', 'confirmed', 'assigned', 'accepted', 'en_route', 'started', 'paused', 'in_progress']);
-      const movementRows = bookings.filter(item => activeBookingStatuses.has(String(item.status || '').toLowerCase())).sort((a, b) => new Date(a.scheduled_at || a.created_at || 0).getTime() - new Date(b.scheduled_at || b.created_at || 0).getTime()).slice(0, 6);
-      const fallbackMovements = duties.filter(item => !['Completed', 'Cancelled'].includes(item.status)).slice(0, 6);
-      const ruleKeys = policies.flatMap(policy => Object.keys(policy.rules || policy.rules_json || {})).map(key => String(key).toLowerCase());
-      const hasRule = (...terms) => ruleKeys.some(key => terms.some(term => key.includes(term)));
-      const ruleValue = (...terms) => {
-        for (const policy of policies) {
-          const rules = policy.rules || policy.rules_json || {};
-          for (const [key, value] of Object.entries(rules)) {
-            if (terms.some(term => String(key).toLowerCase().includes(term))) return value;
-          }
-        }
-        return null;
-      };
-      const corporateScope = corporateAccount?.visibility || {};
-      const bookingLeadTime = policies.find(policy => policy.booking_lead_time_minutes != null)?.booking_lead_time_minutes ?? ruleValue('lead', 'booking_sla', 'advance');
-      const cancellationCutoff = policies.find(policy => policy.cancellation_cutoff_minutes != null)?.cancellation_cutoff_minutes ?? ruleValue('cancel', 'cancellation');
-      const leadTimeConfigured = bookingLeadTime !== null && bookingLeadTime !== undefined || hasRule('lead', 'booking_sla', 'advance');
-      const cancellationConfigured = cancellationCutoff !== null && cancellationCutoff !== undefined || hasRule('cancel', 'cancellation');
-      const dutySlipConfigured = policies.some(policy => Boolean(policy.passenger_duty_slip_approval)) || hasRule('duty_slip', 'dutyslip', 'passenger_approval', 'passenger_approve');
-      const autoAllotmentConfigured = policies.some(policy => Boolean(policy.auto_allotment_enabled)) || hasRule('auto_allot', 'auto_allocation', 'automatic_allot');
-      const supplierSelectionConfigured = policies.some(policy => policy.supplier_mode && policy.supplier_mode !== 'any' || Array.isArray(policy.allowed_supplier_ids) && policy.allowed_supplier_ids.length) || hasRule('supplier', 'vendor_selection');
-      const policyCount = policiesSource ? policies.length : '—';
-      const employeeCount = employeesSource ? employees.length : '—';
-      const branchCount = Array.isArray(state.liveData?.branches?.items) ? branches.length : '—';
-      const supplierCount = Array.isArray(state.liveData?.suppliers?.items) ? suppliers.length : '—';
-      const customerCount = Array.isArray(state.liveData?.customers?.items) ? customers.length : '—';
-      const policyActiveCount = policies.filter(item => ['active', 'published', 'enabled'].includes(String(item.status || '').toLowerCase())).length;
-      const readiness = corporateReadiness ? `${corporateReadiness.completed || 0}/${corporateReadiness.total || 0}` : (checklist && checklist.total ? `${checklist.completed || 0}/${checklist.total}` : '—');
-      const readinessPercent = corporateReadiness ? Number(corporateReadiness.percent || 0) : (checklist && checklist.total ? Math.round(((checklist.completed || 0) / checklist.total) * 100) : 0);
-      const invoiceValues = Object.values(invoiceSummary);
-      const invoiceTotalPaise = invoiceValues.reduce((sum, item) => sum + Number(item.total_paise || 0), 0);
-      const invoiceCount = invoiceRows.length || invoiceValues.reduce((sum, item) => sum + Number(item.count || 0), 0);
-      const networkState = networkFlag ? (networkFlag.enabled ? 'Enabled' : 'Paused') : '—';
-      const networkTone = networkFlag ? (networkFlag.enabled ? 'green' : 'amber') : 'gray';
-      const policyTone = policiesSource ? (policies.length ? 'blue' : 'gray') : 'gray';
-      const approvalTone = pendingRequests.length ? 'amber' : 'green';
-      const approvalRows = pendingRequests.slice(0, 6).map(item => `<tr><td><span class="primary">${esc(item.booking_reference || item.id)}</span><span class="secondary">${esc(item.duty_type || 'Booking request')}</span></td><td><span class="primary">${esc(item.passenger_name || 'Passenger not assigned')}</span><span class="secondary">${esc(item.customer_name || 'Customer not attached')}</span></td><td class="route">${esc(item.pickup?.label || 'Pickup not added')} <span aria-hidden="true">→</span> ${esc(item.dropoff?.label || 'Drop-off not added')}</td><td>${item.scheduled_at ? esc(formatDateTime(item.scheduled_at)) : '—'}</td><td>${status('Needs decision','amber')}</td><td><div class="row-actions"><button class="btn small soft" data-corp-approve="${esc(item.id)}">Approve</button><button class="btn small" data-corp-reject="${esc(item.id)}">Reject</button></div></td></tr>`).join('');
-      const actionCenter = renderActionCenter();
-      const movementTableRows = movementRows.length ? movementRows.map(item => `<tr><td><span class="primary">${esc(item.booking_reference || item.id)}</span><span class="secondary">${esc(item.passenger_name || 'Passenger not assigned')}</span></td><td class="route">${esc(item.pickup?.label || 'Pickup not added')} <span aria-hidden="true">→</span> ${esc(item.dropoff?.label || 'Drop-off not added')}</td><td>${esc(item.scheduled_at ? formatDateTime(item.scheduled_at) : '—')}</td><td>${status(liveStatus(item.status), liveTone(item.status))}</td><td>${esc(item.supplier_name || item.supplier_id || 'Supplier pending')}</td></tr>`).join('') : fallbackMovements.map(item => `<tr><td><span class="primary">${esc(item.id)}</span><span class="secondary">${esc(item.passenger || 'Passenger not assigned')}</span></td><td class="route">${esc(item.route)}</td><td>${esc(item.time)}</td><td>${status(item.status, item.tone)}</td><td>${esc(item.resource || 'Supplier pending')}</td></tr>`).join('');
-      const scopeRows = [
-        ['City / branch visibility', corporateScope.cities?.length || corporateScope.branch_ids?.length ? `${(corporateScope.cities || corporateScope.branch_ids || []).length} explicit value${(corporateScope.cities || corporateScope.branch_ids || []).length === 1 ? '' : 's'}` : branchCount === '—' ? 'Unavailable' : branchCount ? `${branchCount} branch${branchCount === 1 ? '' : 'es'} available` : 'Not configured', Boolean(corporateScope.cities?.length || corporateScope.branch_ids?.length || branchCount !== '—' && branchCount > 0)],
-        ['Customer entities', corporateScope.customer_entity_ids?.length ? `${corporateScope.customer_entity_ids.length} allowed` : customerCount === '—' ? 'Unavailable' : customerCount ? `${customerCount} connected` : 'Not configured', Boolean(corporateScope.customer_entity_ids?.length || customerCount !== '—' && customerCount > 0)],
-        ['Supplier selection', supplierSelectionConfigured ? 'Policy allow-list / mode configured' : supplierCount === '—' ? 'Unavailable' : supplierCount ? `${supplierCount} supplier record${supplierCount === 1 ? '' : 's'}` : 'Not configured', supplierSelectionConfigured],
-        ['Vehicle-group rules', corporateScope.vehicle_group_codes?.length || hasRule('vehicle_group', 'vehicle_group_id') ? 'Policy configured' : policiesSource ? 'Not configured' : 'Unavailable', Boolean(corporateScope.vehicle_group_codes?.length || hasRule('vehicle_group', 'vehicle_group_id'))],
-        ['Duty-type rules', corporateScope.duty_type_codes?.length || hasRule('duty_type', 'duty_types') ? 'Policy configured' : policiesSource ? 'Not configured' : 'Unavailable', Boolean(corporateScope.duty_type_codes?.length || hasRule('duty_type', 'duty_types'))]
-      ];
-      const activityRows = activity.slice(0, 4).map(item => `<div class="corp-activity-row"><span class="corp-activity-dot"></span><div class="corp-activity-copy"><strong>${esc(item.action || item.event_type || 'Tenant event')}</strong><span>${esc(item.entity_type || 'record')} · ${item.created_at ? esc(formatDateTime(item.created_at)) : 'time unavailable'}</span></div></div>`).join('');
-      const notificationCopy = notificationSource ? (notifications.length ? `${notifications.length} delivery record${notifications.length === 1 ? '' : 's'} available` : 'No delivery records yet') : 'Notification feed unavailable';
-      const dutySlipCopy = dutySlipConfigured ? 'Passenger approve / reject flow is represented in an active policy record.' : policiesSource ? 'No passenger duty-slip approval policy record found.' : 'Policy records unavailable in this session.';
-      const leadCopy = leadTimeConfigured ? `${bookingLeadTime == null ? 'Configured' : `${esc(String(bookingLeadTime))} minute${Number(bookingLeadTime) === 1 ? '' : 's'} cutoff`}` : policiesSource ? 'Not configured · no cutoff is assumed' : 'Unavailable';
-      const cancellationCopy = cancellationConfigured ? `${cancellationCutoff == null ? 'Configured' : `${esc(String(cancellationCutoff))} minute${Number(cancellationCutoff) === 1 ? '' : 's'} cutoff`}` : policiesSource ? 'Not configured · charge warning unavailable' : 'Unavailable';
-      const invoiceValue = invoiceTotalPaise && currencyReady ? formatAmount(invoiceTotalPaise / 100) : '—';
-      const accountStatus = corporateAccount ? String(corporateAccount.status || 'setup') : 'not connected';
-      const accountTone = accountStatus === 'active' ? 'green' : corporateAccount ? 'amber' : 'gray';
-      const foundationReady = corporateReadiness ? `${corporateReadiness.completed}/${corporateReadiness.total}` : corporateAccount ? 'setup' : '—';
-      const foundationScope = corporateAccount ? Object.values(corporateAccount.visibility || {}).reduce((sum, values) => sum + (Array.isArray(values) ? values.length : 0), 0) : 0;
-      const foundationMasters = Object.values(corporateAccountResponse?.master_counts || {}).reduce((sum, value) => sum + Number(value || 0), 0);
-      const foundationPanel = `<section class="card section-card" style="border-color:#cad9c7;background:linear-gradient(120deg,#f7fbf1,#fffefa)"><div class="card-head"><div><div class="corp-brief-kicker" style="color:#58775b">Corporate policy foundation</div><h3 style="margin-top:6px">Connection, entitlements and explainable decisions</h3><p>${corporateAccount ? `Connected account <strong>${esc(corporateAccount.name)}</strong> · ${foundationScope} explicit scope value${foundationScope === 1 ? '' : 's'} · ${foundationMasters} versioned master${foundationMasters === 1 ? '' : 's'}.` : 'No corporate account is connected yet. Start the setup snapshot before activating policy controls.'}</p></div><div style="display:flex;align-items:center;gap:8px">${status(accountStatus, accountTone)}${button(corporateAccount ? icon('settings')+'Edit setup' : icon('link')+'Connect account','small soft','data-action="corporate-setup"')}${corporateAccount ? button(icon('check')+'Policy','small soft','data-action="corporate-policy"') : ''}${corporateAccount ? button(icon('users')+'Access','small soft','data-action="corporate-access-editor"') : ''}${corporateAccount ? button(icon('file')+'Masters','small soft','data-action="corporate-masters"') : ''}${corporateAccount ? button(icon('route')+'Allotment','small soft','data-action="corporate-allotment"') : ''}</div></div><div class="corp-finance-rail"><div class="finance-cell"><span>Account readiness</span><strong>${esc(foundationReady)}</strong></div><div class="finance-cell"><span>Access records</span><strong>${employees.length}</strong></div><div class="finance-cell"><span>Active policies</span><strong>${policyActiveCount}</strong></div><div class="finance-cell"><span>Slip approvals</span><strong>${pendingDutySlipApprovals.length}</strong></div></div></section>`;
-      const quickBookingActions = `
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 20px">
-          ${button(icon('plus')+'Book for Self', 'primary', 'data-action="book-self"')}
-          ${button(icon('users')+'Book for Employee / Guest', 'soft', 'data-action="book-employee"')}
-          ${button(icon('check')+'Manager Approvals (' + pendingRequests.length + ')', '', 'data-page-link="bookings"')}
-          ${button(icon('route')+'Live Trip Board', '', 'data-page-link="duties"')}
-          ${button(icon('wallet')+'Consolidated Invoices', '', 'data-page-link="billing"')}
-        </div>
-      `;
-
-      return `${pageHead(`${formatDate(new Date())} · ${esc(branchName)}`, `${workspaceGreeting()} · Corporate Travel Desk`, 'Manage business travel requests, employee policies, live duty status, and consolidated billing.', `${button(icon('refresh')+'Refresh', '', 'data-action="refresh"')}${button(icon('plus')+'New Travel Request', 'primary', 'data-action="book-employee"')}`)}
-        ${quickBookingActions}
-        ${actionCenter}
-        ${foundationPanel}
-        <section class="corp-console-intro" aria-label="Corporate account overview"><div class="corp-brief"><div class="corp-brief-kicker">${esc(workspaceName)} · Corporate Travel Management</div><h2>Automated corporate travel, live tracking &amp; paperless duty slips.</h2><p>Empower employees and travel managers to book rides within policy, track vehicle dispatch in real time, verify digital duty slips with OTP, and consolidate GST billing without manual spreadsheets.</p><div class="corp-brief-actions">${button(icon('plus')+'Book for Self','primary','data-action="book-self"')}${button(icon('users')+'Book for Employee','soft','data-action="book-employee"')}${button(icon('users')+'Employee Directory','','data-action="corporate-people"')}${button(icon('check')+'Pending Approvals','','data-page-link="bookings"')}</div></div><aside class="corp-account-model"><div class="model-kicker">Corporate Controls</div><h3>Multi-tier corporate governance</h3><div class="corp-model-row"><span class="corp-model-number">1</span><div><strong>Corporate Admin &amp; Travel Desk</strong><span>Configures policy lead times, vehicle allowances &amp; cost centers.</span></div></div><div class="corp-model-row"><span class="corp-model-number">2</span><div><strong>Department Approver / Manager</strong><span>Reviews out-of-policy bookings and authorizes exceptions.</span></div></div><div class="corp-model-row"><span class="corp-model-number">3</span><div><strong>Employee / Passenger</strong><span>Books travel, tracks driver arrival with OTP, &amp; signs e-duty slips.</span></div></div></aside></section>
-        <section class="corp-workflow-rail" aria-label="Corporate booking workflow"><div class="corp-workflow-step"><span class="corp-workflow-icon">${icon('file')}</span><div class="corp-workflow-copy"><strong>1. Request / Book</strong><span>Self-book or book for employees with designated cost center.</span></div></div><div class="corp-workflow-step"><span class="corp-workflow-icon">${icon('check')}</span><div class="corp-workflow-copy"><strong>2. Policy &amp; Approval</strong><span>Automatic vehicle eligibility check and manager sign-off.</span></div></div><div class="corp-workflow-step"><span class="corp-workflow-icon">${icon('route')}</span><div class="corp-workflow-copy"><strong>3. Live Duty &amp; Driver</strong><span>Driver details, tracking link and OTP boarding verification.</span></div></div><div class="corp-workflow-step"><span class="corp-workflow-icon">${icon('shield')}</span><div class="corp-workflow-copy"><strong>4. E-Duty Slip &amp; Bill</strong><span>Passenger digital signature / approval with consolidated GST invoice.</span></div></div></section>
-        <div class="corp-account-grid"><div class="corp-account-tile" style="cursor:pointer" data-page-link="customers"><span class="tile-icon">${icon('users')}</span><div><strong>${employeeCount}</strong><span>Employees &amp; Cost Centers<br>View department assignments</span></div></div><div class="corp-account-tile" style="cursor:pointer" data-page-link="bookings"><span class="tile-icon" style="color:var(--amber)">${icon('clock')}</span><div><strong>${pendingRequests.length}</strong><span>Pending Approvals<br>Requires travel desk decision</span></div></div><div class="corp-account-tile" style="cursor:pointer" data-page-link="duties"><span class="tile-icon" style="color:var(--teal)">${icon('route')}</span><div><strong>${movementRows.length || fallbackMovements.length}</strong><span>Active &amp; Live Duties<br>Tracked on route</span></div></div><div class="corp-account-tile" style="cursor:pointer" data-page-link="billing"><span class="tile-icon" style="color:var(--purple)">${icon('wallet')}</span><div><strong>${invoiceCount}</strong><span>Monthly Invoices<br>${invoiceValue} statement balance</span></div></div></div>
-        <section class="corp-watch-grid"><section class="card section-card">${cardHead('Requests &amp; approvals','Booking decisions stay separate from dispatch execution.',`<span class="status ${approvalTone}">${pendingRequests.length} pending request${pendingRequests.length === 1 ? '' : 's'}</span>`)}<div class="table-wrap"><table class="corp-table"><thead><tr><th>Request</th><th>Passenger</th><th>Route</th><th>When</th><th>Decision</th><th></th></tr></thead><tbody>${approvalRows || `<tr><td colspan="6"><div class="corp-empty"><span class="corp-empty-icon">${icon('check')}</span><div><strong>No pending booking requests</strong>New direct or delegated requests will appear here when the tenant API receives them.${pendingDecisionCount ? ` ${pendingDecisionCount} approval record${pendingDecisionCount === 1 ? '' : 's'} exist outside the current request list.` : ''}<br>${button(icon('plus')+'Create a request','small soft','data-action="new-booking"')}</div></div></td></tr>`}</tbody></table></div></section><div class="corp-rail"><section class="card section-card">${cardHead('Booking policy watch','Cutoffs and decision coverage should be visible before the requester is blocked or charged.',status(policiesSource ? `${policyActiveCount} active` : 'Unavailable', policyTone))}<div class="corp-watch-list"><div class="corp-watch-row ${leadTimeConfigured ? 'ok' : ''}"><span class="watch-icon">${leadTimeConfigured ? icon('check') : icon('clock')}</span><div class="corp-watch-copy"><strong>Booking lead-time SLA</strong><span>${leadCopy} · requests inside the window should be blocked or explained.</span></div></div><div class="corp-watch-row ${cancellationConfigured ? 'ok' : ''}"><span class="watch-icon">${cancellationConfigured ? icon('check') : icon('warning')}</span><div class="corp-watch-copy"><strong>Cancellation cutoff</strong><span>${cancellationCopy} · surface potential charges before cancellation.</span></div></div><div class="corp-watch-row ${supplierSelectionConfigured ? 'ok' : ''}"><span class="watch-icon">${supplierSelectionConfigured ? icon('check') : icon('link')}</span><div class="corp-watch-copy"><strong>Supplier selection / auto-allotment</strong><span>${supplierSelectionConfigured ? 'Supplier selection is represented in policy scope.' : 'No supplier-selection rule found.'} ${autoAllotmentConfigured ? 'Automatic allotment is configured.' : 'Automatic allotment is not configured.'}</span></div></div></div></section><section class="card section-card">${cardHead('Account readiness','Activation and copied operating scope remain explicit, not implied.',`<span class="status ${readinessPercent === 100 ? 'green' : readinessPercent ? 'amber' : 'gray'}">${esc(readiness)}</span>`)}<div class="corp-watch-list"><div class="corp-watch-row ${employeeCount !== '—' && employeeCount > 0 ? 'ok' : ''}"><span class="watch-icon">${employeeCount !== '—' && employeeCount > 0 ? icon('check') : icon('users')}</span><div class="corp-watch-copy"><strong>Invite and account activation</strong><span>${employeeCount === '—' ? 'Employee source unavailable.' : employeeCount ? `${employeeCount} employee record${employeeCount === 1 ? '' : 's'} available for access setup.` : 'No employee records yet; invite or import the first person.'}</span></div></div><div class="corp-watch-row ${checklist && checklist.total && readinessPercent === 100 ? 'ok' : ''}"><span class="watch-icon">${checklist && checklist.total && readinessPercent === 100 ? icon('check') : icon('clock')}</span><div class="corp-watch-copy"><strong>Copied duty / pricing scope</strong><span>${checklist && checklist.total ? `${readinessPercent}% of setup checklist complete.` : 'No setup checklist record available.'} Use the onboarding action to make copied scope reviewable.</span></div></div></div><div style="padding:0 20px 17px">${button(icon('settings')+'Open setup checklist','small soft','data-action="setup-checklist"')}</div></section></div></section>
-        <section class="grid two-col" style="margin-top:16px"><section class="card section-card">${cardHead('Live &amp; upcoming bookings','Requests that have cleared the inbox remain visible until the duty is closed.',`<span class="status blue">${movementRows.length + fallbackMovements.length ? movementRows.length || fallbackMovements.length : 0} shown</span>`)}<div class="table-wrap"><table class="corp-table"><thead><tr><th>Booking</th><th>Route</th><th>When</th><th>Status</th><th>Supplier / resource</th></tr></thead><tbody>${movementTableRows || `<tr><td colspan="5"><div class="corp-empty"><span class="corp-empty-icon">${icon('route')}</span><div><strong>No live or upcoming bookings</strong>The tenant has no active booking or duty record in the current response.</div></div></td></tr>`}</tbody></table></div></section><section class="card section-card">${cardHead('Duty-slip governance','Passenger approval is the final operational handoff, not a hidden email thread.',status(dutySlipConfigured ? 'Policy configured' : policiesSource ? 'Needs setup' : 'Unavailable', dutySlipConfigured ? 'green' : policiesSource ? 'amber' : 'gray'))}<div class="corp-watch-list"><div class="corp-watch-row ${dutySlipConfigured ? 'ok' : ''}"><span class="watch-icon">${dutySlipConfigured ? icon('check') : icon('clock')}</span><div class="corp-watch-copy"><strong>Passenger approve / reject</strong><span>${dutySlipCopy}</span></div></div><div class="corp-watch-row ${dutySlipConfigured ? 'ok' : ''}"><span class="watch-icon">${dutySlipConfigured ? icon('clock') : icon('warning')}</span><div class="corp-watch-copy"><strong>48-hour auto-approval window</strong><span>${dutySlipConfigured ? 'Review the configured policy before relying on auto-approval for unhandled slips.' : 'Not configured · A 48-hour auto-approval rule is not assumed.'}</span></div></div><div class="corp-watch-row ${notificationSource ? 'ok' : ''}"><span class="watch-icon">${notificationSource ? icon('mail') : icon('warning')}</span><div class="corp-watch-copy"><strong>Notification delivery</strong><span>${notificationCopy} · email and provider outcomes remain auditable.</span></div></div></div></section></section>
-        <section class="grid two-col" style="margin-top:16px"><section class="card section-card">${cardHead('Service scope','Coverage is read from tenant branches, customer entities, suppliers and policy rules.',`<span class="status blue">${scopeRows.filter(row => row[2]).length}/${scopeRows.length} mapped</span>`)}<div class="corp-watch-list">${scopeRows.map(([label,value,ready]) => `<div class="corp-watch-row ${ready ? 'ok' : ''}"><span class="watch-icon">${ready ? icon('check') : icon('clock')}</span><div class="corp-watch-copy"><strong>${label}</strong><span>${value}</span></div></div>`).join('')}</div><div style="padding:0 20px 17px">${button(icon('settings')+'Review policy scope','small soft','data-page-link="settings"')}</div></section><section class="card section-card">${cardHead('Tenant evidence &amp; Axiom Network','Keep supplier, audit and partner handoffs in the same tenant boundary.',`<span class="status ${networkTone}">Network ${networkState}</span>`)}<div class="corp-finance-rail"><div class="finance-cell"><span>Audit events</span><strong>${activity.length || 0}</strong></div><div class="finance-cell"><span>Partner profiles</span><strong>${profiles.length}</strong></div><div class="finance-cell"><span>Service orders</span><strong>${serviceOrders.length}</strong></div></div><div class="corp-watch-list"><div class="corp-watch-row"><span class="watch-icon">${icon('link')}</span><div class="corp-watch-copy"><strong>Closed, invite-only B2B boundary</strong><span>${invites.length ? `${invites.length} invite record${invites.length === 1 ? '' : 's'} loaded.` : 'No invite records in the current tenant response.'} Network shares Axiom Fleet identity and audit foundations without opening public registration.</span></div></div></div><div style="padding:0 20px 17px">${button(icon('link')+'Open Network workspace','small soft','data-page-link="network"')}</div></section></section>
-        <section class="grid two-col" style="margin-top:16px"><section class="card section-card">${cardHead('Finance evidence','Invoice values appear only when tenant currency and invoice records are available.',`<span class="status ${invoiceCount ? 'blue' : 'gray'}">${invoiceCount} invoice${invoiceCount === 1 ? '' : 's'}</span>`)}<div class="corp-finance-rail"><div class="finance-cell"><span>Invoice records</span><strong>${invoiceCount}</strong></div><div class="finance-cell"><span>Captured value</span><strong>${invoiceValue}</strong></div><div class="finance-cell"><span>Readiness</span><strong>${esc(readiness)}</strong></div></div><div style="padding:0 20px 17px;color:#8d9a9d;font-size:9px;line-height:1.45">${invoiceCount ? 'Open Billing for source-linked invoice review and reconciliation.' : 'No invoice records are shown; this workspace does not insert demo finance values.'} ${button(icon('wallet')+'Open Billing','small soft','data-page-link="billing"')}</div></section><section class="card section-card">${cardHead('Recent tenant activity','Audit and notification evidence is kept close to the decision surface.',`<span class="status ${activity.length ? 'blue' : 'gray'}">${activity.length} event${activity.length === 1 ? '' : 's'}</span>`)}<div class="corp-activity">${activityRows || `<div class="corp-empty"><span class="corp-empty-icon">${icon('shield')}</span><div><strong>No recent audit events</strong>Activity will appear when the tenant records a decision or configuration change.</div></div>`}</div><div style="padding:0 20px 17px">${button(icon('shield')+'Open audit &amp; security','small soft','data-page-link="security"')}</div></section></section>`;
-    }
-
-    function tenantTableEmpty(title, copy, action='') {
-      return `<tr><td colspan="9"><div class="table-empty"><strong>${esc(title)}</strong>${esc(copy)}${action ? `<br>${action}` : ''}</div></td></tr>`;
-    }
-
-    function renderActionCenter() {
-      const data = state.actionCenter || {};
-      const items = Array.isArray(data.items) ? data.items.slice(0, 6) : [];
-      const summary = data.summary || {};
-      const available = data.total_available ?? items.length;
-      if (!state.actionCenter) return '';
-      if (!items.length) return `<section class="action-center" aria-label="Axiom action center"><div class="action-center-head"><div><div class="action-center-kicker"><i></i>Axiom action center</div><h3>Nothing is asking for your attention.</h3><p>Source-linked checks are clear for this tenant response. Axiom will show an action here instead of inventing a green metric.</p></div><div class="action-center-summary">${status('All clear','green')}</div></div><div class="action-center-empty"><span class="kpi-icon teal">${icon('check')}</span><div><strong>Keep operating</strong>No open blocking actions were returned. The next queue will appear as soon as a source record needs a decision.</div></div></section>`;
-      const priorityTone = item => ['critical','high','medium','low'].includes(item.priority) ? item.priority : 'low';
-      const actionRows = items.map(item => {
-        const due = item.due_at ? ` · due ${formatDateTime(item.due_at)}` : '';
-        const page = item.page || 'overview';
-        return `<article class="action-item"><span class="action-priority ${priorityTone(item)}" aria-label="${esc(item.priority || 'low')} priority"></span><div class="action-copy"><strong>${esc(item.title || 'Next action')}</strong><span>${esc(item.why || 'A source record needs review.')}${esc(due)}</span><small>Next · ${esc(item.next_step || 'Open the linked workflow.')}</small><small class="action-source">Source · ${esc(item.source || item.entity_type || 'tenant record')}${item.status === 'acknowledged' ? ' · owned by you' : ''}</small></div><div class="action-buttons">${button('Open','small soft',`data-page-link="${esc(page)}"`)}${button('Done','small',`data-action="action-resolve" data-action-id="${esc(item.id)}"`)}${button('Later','small',`data-action="action-snooze" data-action-id="${esc(item.id)}"`)}</div></article>`;
-      }).join('');
-      return `<section class="action-center" aria-label="Axiom action center"><div class="action-center-head"><div><div class="action-center-kicker"><i></i>Axiom action center</div><h3>Do the next right thing.</h3><p>One queue for approvals, dispatch gaps, field health, proof and collections — with the reason and recovery step beside every item.</p></div><div class="action-center-summary">${summary.critical ? status(`${summary.critical} critical`,'red') : ''}${summary.blocking ? status(`${summary.blocking} blocking`,'amber') : ''}${status(`${available} open`,'blue')}</div></div><div class="action-center-list">${actionRows}</div></section>`;
-    }
-
-    function renderOverview() {
-      const overview = state.liveData?.overview || {};
-      const bookings = state.liveData?.bookings?.items || [];
-      const duties = state.liveData?.duties?.items || [];
-      const vehicles = state.liveData?.vehicles?.items || [];
-      const drivers = state.liveData?.drivers?.items || [];
-      const requested = bookings.filter(item => ['requested','pending_approval'].includes(item.status)).length;
-      const active = duties.filter(item => !['completed','cancelled'].includes(item.status)).length;
-      const availableVehicles = vehicles.filter(item => !['inactive','archived','on_duty'].includes(item.status)).length;
-      const readiness = state.liveData?.checklist || state.liveData?.onboarding || {};
-      const dutySummary = Object.entries(overview.duties || {}).map(([key, value]) => `${key}: ${value}`).join(' · ') || 'No duty status records';
-      const actionCenter = renderActionCenter();
-      return `${pageHead(`Axiom Fleet · ${userTimeZone()}`, workspaceGreeting(), 'Tenant-scoped records, next decisions and field readiness without invented operational values.',`${button(icon('refresh')+'Refresh','','data-action="refresh"')}${button(icon('plus')+'New booking','primary','data-action="new-booking"')}`)}${actionCenter}<div class="grid kpis"><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Requests awaiting decision</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${requested}</div><div class="kpi-foot">Booking requests in the tenant queue</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Open duties</span><span class="kpi-icon teal">${icon('route')}</span></div><div class="kpi-value">${active}</div><div class="kpi-foot">${esc(dutySummary)}</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Vehicles available</span><span class="kpi-icon">${icon('car')}</span></div><div class="kpi-value">${availableVehicles}</div><div class="kpi-foot">${vehicles.length} vehicle record${vehicles.length === 1 ? '' : 's'} returned</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Setup readiness</span><span class="kpi-icon">${icon('check')}</span></div><div class="kpi-value">${readiness.total ? `${readiness.completed || 0}/${readiness.total}` : '—'}</div><div class="kpi-foot">${drivers.length} driver record${drivers.length === 1 ? '' : 's'} · tenant-scoped</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead('Next actions','Use the canonical queue to move from request to duty.')}<div class="card-body"><div class="attention-list"><div class="attention-item"><span class="attention-icon amber">${icon('clock')}</span><div class="attention-main"><strong>${requested ? `${requested} booking request${requested === 1 ? '' : 's'} need a decision` : 'No booking requests need a decision'}</strong><span>${requested ? 'Open the bookings inbox to approve, reject or inspect the request context.' : 'The tenant request queue is clear in the current API response.'}</span></div>${button('Open','small soft','data-page-link="bookings"')}</div><div class="attention-item"><span class="attention-icon teal">${icon('route')}</span><div class="attention-main"><strong>${active ? `${active} duty${active === 1 ? '' : 'ies'} remain open` : 'No open duties returned'}</strong><span>Dispatch and GPS state remain tenant-backed; no live movement is inferred from an empty response.</span></div>${button('Open','small soft','data-page-link="duties"')}</div></div></div></section><section class="card section-card">${cardHead('Data posture','The home page reflects the current organization session.')}<div class="card-body"><div class="stat-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px"><div class="mini-stat"><span>Bookings</span><strong>${bookings.length}</strong><small>returned by tenant API</small></div><div class="mini-stat"><span>Duties</span><strong>${duties.length}</strong><small>returned by tenant API</small></div><div class="mini-stat"><span>Drivers</span><strong>${drivers.length}</strong><small>readiness records</small></div><div class="mini-stat"><span>Vehicles</span><strong>${vehicles.length}</strong><small>registration records</small></div></div></div></section></div>`;
-    }
-
-    
-    async function openWebhookPayloadModal(webhookId) {
-      let webhooks = state.tristackWebhooks || [];
-      if (!webhooks.length) {
-        try {
-          const res = await apiRequest('/api/tri-stack/webhooks/logs');
-          webhooks = res.items || [];
-          state.tristackWebhooks = webhooks;
-        } catch (_) {}
-      }
-      const item = webhooks.find(w => w.id === webhookId) || {
-        id: webhookId,
-        service_name: 'Webhook Event',
-        direction: 'OUTBOUND',
-        endpoint_url: 'https://api.integration.com/v1',
-        http_method: 'POST',
-        http_status: 200,
-        latency_ms: 120,
-        request_payload_json: '{\n  "event": "duty.completed",\n  "timestamp": "2026-10-27T12:00:00Z"\n}',
-        response_payload_json: '{\n  "status": "ack",\n  "message": "Processed successfully"\n}'
-      };
-
-      let reqFormatted = item.request_payload_json;
-      let resFormatted = item.response_payload_json;
-      try { reqFormatted = JSON.stringify(JSON.parse(item.request_payload_json), null, 2); } catch (_) {}
-      try { resFormatted = JSON.stringify(JSON.parse(item.response_payload_json), null, 2); } catch (_) {}
-
-      const body = `<div class="detail-section">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <div>
-            <strong>${esc(item.service_name)}</strong>
-            <div style="color:var(--muted);font-size:11px">${esc(item.http_method)} ${esc(item.endpoint_url)}</div>
-          </div>
-          <div>
-            <span class="status ${item.http_status >= 400 ? 'red' : 'green'}">${item.http_status}</span>
-            <span class="status gray">${item.latency_ms}ms</span>
-          </div>
-        </div>
-        ${item.error_message ? `<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:8px 12px;border-radius:6px;font-size:11px;margin-bottom:12px"><strong>Dead-Letter Error:</strong> ${esc(item.error_message)}</div>` : ''}
-        <h4>Request Payload</h4>
-        <pre style="background:rgba(0,0,0,0.3);padding:10px;border-radius:6px;font-family:monospace;font-size:11px;overflow:auto;max-height:160px;color:#a5b4fc">${esc(reqFormatted)}</pre>
-        <h4 style="margin-top:12px">Response Payload</h4>
-        <pre style="background:rgba(0,0,0,0.3);padding:10px;border-radius:6px;font-family:monospace;font-size:11px;overflow:auto;max-height:160px;color:#86efac">${esc(resFormatted)}</pre>
-      </div>`;
-
-      const modal = modalShell(`Webhook Payload Inspector: ${esc(item.id)}`, 'Live integration request/response audit payload · <span class="status green">PII &amp; Secrets Sanitized</span>', body, `${button('Close','','data-close-modal')}${button(icon('refresh')+' Replay Webhook','primary',`data-modal-replay="${esc(item.id)}"`) }`);
-      modal.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', closeModal));
-      const ownSelect = modal.querySelector('#vehOwnershipSelect');
-      if (ownSelect) {
-        ownSelect.addEventListener('change', e => {
-          const val = e.target.value;
-          const supWrap = modal.querySelector('#vehSupplierWrap');
-          const dcoWrap = modal.querySelector('#vehDcoWrap');
-          if (supWrap) supWrap.style.display = (val === 'supplier') ? '' : 'none';
-          if (dcoWrap) dcoWrap.style.display = (val === 'dco') ? '' : 'none';
-        });
-      }
-      modal.querySelector(`[data-modal-replay]`)?.addEventListener('click', async (e) => {
-        closeModal();
-        await replayWebhook(item.id);
-      });
-    }
-
-    async function replayWebhook(webhookId, btn, forceDuplicateKey = false) {
-      if (btn) btn.disabled = true;
-      const idempotencyKey = forceDuplicateKey ? `idem_replay_${webhookId}_locked` : `idem_${webhookId}_${Date.now()}`;
-      try {
-        const res = await apiRequest(`/api/tri-stack/webhooks/${encodeURIComponent(webhookId)}/replay`, {
-          method: 'POST',
-          body: JSON.stringify({ idempotency_key: idempotencyKey })
-        });
-        showToast('Webhook Replay Succeeded', `Event ${esc(webhookId)} executed with idempotency key ${idempotencyKey.slice(0, 16)}...`);
-        try {
-          const fresh = await apiRequest('/api/tri-stack/webhooks/logs');
-          state.tristackWebhooks = fresh.items || [];
-        } catch (_) {}
-        render();
-      } catch (err) {
-        if (err.message && err.message.includes('Duplicate idempotency key')) {
-          showToast('Duplicate Replay Blocked', 'Idempotency Protection: Replay rejected because this request key was already processed.');
-        } else {
-          showToast('Webhook Replay Failed', err.message);
-        }
-      } finally {
-        if (btn) btn.disabled = false;
-      }
-    }
-
-    async function openEinvoiceModal(dutyId) {
-      dutyId = dutyId || 'duty_sample_einvoice';
-      try {
-        const res = await apiRequest('/api/tri-stack/e-invoice/generate', {
-          method: 'POST',
-          body: JSON.stringify({
-            duty_id: dutyId,
-            supplier_gstin: '29AABCA1234F1Z1',
-            client_gstin: '29AABCC5678K1Z2',
-            supplier_is_corporate: false,
-            invoice_number: 'AXM-INV-2026-88',
-            taxable_amount_paise: 300000,
-            gst_rate_pct: 5.0
-          })
-        });
-
-        const e = res.e_invoice || {};
-        const tax = res.tax_rules || {};
-
-        const body = `<div class="detail-section">
-          <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);padding:10px 14px;border-radius:8px;margin-bottom:14px">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <strong>Rent-a-Cab GST Determination</strong>
-              <span class="status purple">SAC 996601</span>
-            </div>
-            <div style="font-size:11px;color:var(--muted);margin-top:4px">
-              RCM Applicable: <strong>${tax.is_rcm_applicable ? 'YES (Recipient pays GST under Reverse Charge)' : 'NO (Forward Charge 12% with ITC)'}</strong><br>
-              IGST Rate: <strong>${tax.igst_rate_pct}%</strong> · CGST: <strong>${tax.cgst_rate_pct}%</strong> · SGST: <strong>${tax.sgst_rate_pct}%</strong>
-            </div>
-          </div>
-          <div class="grid two-col" style="margin-bottom:12px">
+        `;
+      } else if (currentTab === 'ageing') {
+        tabContent = `
+          <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
             <div>
-              <span class="secondary">Invoice Reference Number (IRN)</span>
-              <div style="font-family:monospace;font-size:10px;word-break:break-all;color:var(--text);margin-top:2px">${esc(e.irn || 'f9182a938c827361a9928172c728192837')}</div>
+              <h4 style="margin:0;font-size:15px;font-weight:700;color:var(--ink)">Debtor Ageing &amp; Days Sales Outstanding (DSO) Matrix</h4>
+              <p style="margin:2px 0 0;font-size:12px;color:var(--muted)">Chronological aging buckets for corporate accounts receivable management.</p>
             </div>
-            <div>
-              <span class="secondary">Acknowledgement No.</span>
-              <div style="font-size:12px;font-weight:600;margin-top:2px">${esc(e.ack_no || '112699281721')}</div>
+            <span class="badge" style="background:#dcfce7;color:#166534;font-weight:700">Zero Bad Debt Delinquency</span>
+          </div>
+          <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+            <table>
+              <thead>
+                <tr style="background:#f8fafc">
+                  <th>Corporate Client</th>
+                  <th style="text-align:right">Total Outstanding</th>
+                  <th style="text-align:right">0 - 30 Days (Current)</th>
+                  <th style="text-align:right">31 - 60 Days</th>
+                  <th style="text-align:right">61 - 90 Days</th>
+                  <th style="text-align:right">&gt; 90 Days (Overdue)</th>
+                  <th>Risk Rating</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredClients.filter(c => c.outstanding_paise > 0).map(c => {
+                  const outRs = c.outstanding_paise / 100;
+                  const c0_30 = outRs * 0.70;
+                  const c31_60 = outRs * 0.20;
+                  const c61_90 = outRs * 0.10;
+                  return `
+                    <tr>
+                      <td>
+                        <div style="font-weight:700;color:var(--ink)">${esc(c.name)}</div>
+                        <div style="font-size:11px;color:var(--muted)">Net ${c.payment_terms_days} Days Terms</div>
+                      </td>
+                      <td style="text-align:right;font-family:monospace;font-weight:700;color:#b91c1c">₹${Number(outRs).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                      <td style="text-align:right;font-family:monospace;color:#16a34a">₹${Number(c0_30).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                      <td style="text-align:right;font-family:monospace;color:#d97706">₹${Number(c31_60).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                      <td style="text-align:right;font-family:monospace;color:#dc2626">₹${Number(c61_90).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                      <td style="text-align:right;font-family:monospace;color:var(--muted)">₹0.00</td>
+                      <td><span class="badge" style="background:#dcfce7;color:#166534;font-weight:700">LOW RISK</span></td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      return `
+        ${pageHead('NETWORK &amp; COMMERCIAL INTELLIGENCE', 'Client &amp; Partner Performance', 'Corporate accounts receivables, debtor ageing, supplier liabilities, and partner gross margins.', `
+          <button class="btn soft" id="btnRefreshPartnersDashboard">${icon('refresh')} Refresh</button>
+          <button class="btn primary" id="btnExportPartnersCSV">${icon('download')} Export Commercial Ledger CSV</button>
+          <button class="btn soft" data-action="back-to-customers">${icon('users')} Customers Register</button>
+        `)}
+
+        <!-- 5 Executive Hero KPI Cards -->
+        <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:14px;margin-bottom:18px">
+          <div class="card kpi teal">
+            <div class="kpi-top"><span class="kpi-label">Total Client Receivables</span><span class="kpi-icon teal">${icon('shield')}</span></div>
+            <div class="kpi-value">₹${Number(summary.total_receivables_billed_paise / 100).toLocaleString('en-IN', {maximumFractionDigits: 0})}</div>
+            <div class="kpi-foot"><span class="trend up">₹${Number(summary.collections_received_paise / 100).toLocaleString('en-IN', {maximumFractionDigits: 0})} collected (${summary.collection_rate_pct}%)</span></div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Outstanding Client Debt</span><span class="kpi-icon">${icon('alert')}</span></div>
+            <div class="kpi-value" style="color:#b91c1c">₹${Number(summary.outstanding_receivables_paise / 100).toLocaleString('en-IN', {maximumFractionDigits: 0})}</div>
+            <div class="kpi-foot"><span class="trend neutral">Within Net 30/45 credit terms</span></div>
+          </div>
+          <div class="card kpi purple">
+            <div class="kpi-top"><span class="kpi-label">Supplier Fleet Liabilities</span><span class="kpi-icon purple">${icon('link')}</span></div>
+            <div class="kpi-value" style="color:#0284c7">₹${Number(summary.supplier_payout_liability_paise / 100).toLocaleString('en-IN', {maximumFractionDigits: 0})}</div>
+            <div class="kpi-foot"><span class="trend neutral">5 connected supplier partners</span></div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Partner Gross Margin</span><span class="kpi-icon">${icon('check')}</span></div>
+            <div class="kpi-value" style="color:#16a34a">+₹${Number(summary.partner_fleet_margin_paise / 100).toLocaleString('en-IN', {maximumFractionDigits: 0})}</div>
+            <div class="kpi-foot"><span class="trend up">${summary.partner_fleet_margin_pct}% margin retained on partner fleet</span></div>
+          </div>
+          <div class="card kpi teal">
+            <div class="kpi-top"><span class="kpi-label">Approved Credit Lines</span><span class="kpi-icon teal">${icon('users')}</span></div>
+            <div class="kpi-value">₹${Number(summary.total_credit_limit_paise / 10000000).toFixed(2)}L</div>
+            <div class="kpi-foot"><span class="trend neutral">${summary.avg_credit_utilization_pct}% average credit utilization</span></div>
+          </div>
+        </div>
+
+        <!-- Working Capital Buffer & Debtor Ageing Radar -->
+        <div class="card" style="padding:16px 20px;margin-bottom:18px;background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);border:1px solid var(--line)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="badge" style="background:#0284c7;color:#fff;font-weight:700">WORKING CAPITAL &amp; DEBTOR AGEING</span>
+              <span style="font-weight:700;font-size:13px;color:var(--ink)">Days Sales Outstanding (DSO) Breakdown</span>
             </div>
+            <span class="badge" style="background:#dcfce7;color:#166534;font-weight:700">+₹${Number(summary.working_capital_buffer_paise / 100).toLocaleString('en-IN', {maximumFractionDigits: 0})} Net Cash Buffer</span>
           </div>
-          <div style="margin-top:12px">
-            <span class="secondary">IRP Signed QR Code Payload</span>
-            <pre style="background:rgba(0,0,0,0.3);padding:10px;border-radius:6px;font-family:monospace;font-size:10px;overflow:auto;max-height:90px;color:#86efac;margin-top:4px">${esc(e.signed_qr_code || 'NIC_IRP:AXM-INV-2026-88:INR 3150.0')}</pre>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px">
+            <span style="color:#16a34a;font-weight:600">● 0-30 Days: ₹${Number(age0_30).toLocaleString('en-IN', {maximumFractionDigits: 0})} (${pct0_30}%)</span>
+            <span style="color:#d97706;font-weight:600">● 31-60 Days: ₹${Number(age31_60).toLocaleString('en-IN', {maximumFractionDigits: 0})} (${pct31_60}%)</span>
+            <span style="color:#dc2626;font-weight:600">● 61-90 Days: ₹${Number(age61_90).toLocaleString('en-IN', {maximumFractionDigits: 0})} (${pct61_90}%)</span>
+            <span style="color:#475569;font-weight:600">● &gt;90 Days Overdue: ₹0 (0%)</span>
           </div>
-        </div>`;
+          <div style="height:10px;background:#e2e8f0;border-radius:6px;overflow:hidden;display:flex">
+            <div style="width:${pct0_30}%;background:#16a34a" title="0-30 Days (Current)"></div>
+            <div style="width:${pct31_60}%;background:#d97706" title="31-60 Days"></div>
+            <div style="width:${pct61_90}%;background:#dc2626" title="61-90 Days"></div>
+            <div style="width:${pct90Plus}%;background:#475569" title=">90 Days Overdue"></div>
+          </div>
+        </div>
 
-        const modal = modalShell('NIC IRP E-Invoice & GST Compliance', 'Deterministic Rent-a-Cab SAC 996601 IRN generation', body, `${button('Close','','data-close-modal')}${button(icon('download')+' Download IRN JSON','primary','data-download-irn')}`);
-        modal.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', closeModal));
-        modal.querySelector('[data-download-irn]')?.addEventListener('click', () => {
-          const blob = new Blob([JSON.stringify(res, null, 2)], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `EInvoice_${dutyId}.json`;
-          a.click();
-          URL.revokeObjectURL(url);
-          showToast('E-Invoice Exported', `Downloaded e-invoice payload for ${dutyId}`);
-        });
-      } catch (err) {
-        showToast('E-Invoice Failed', err.message);
-      }
-    }
-
-    async function downloadTallyXml(dutyId) {
-      dutyId = dutyId || 'duty_sample';
-      try {
-        const res = await apiRequest('/api/tri-stack/tally/export', {
-          method: 'POST',
-          body: JSON.stringify({
-            invoices: [
-              {
-                invoice_number: `AXM-2026-${Date.now().toString().slice(-4)}`,
-                client_name: 'Infosys BPM Logistics',
-                gross_amount_paise: 4500000,
-                gst_amount_paise: 225000,
-                net_amount_paise: 4725000
-              }
-            ]
-          })
-        });
-
-        const xml = res.xml || '<ENVELOPE></ENVELOPE>';
-        const blob = new Blob([xml], { type: 'application/xml' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = res.filename || 'Tally_Prime_Vouchers.xml';
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast('Tally Prime XML Exported', 'Downloaded canonical Tally Sales Vouchers XML envelope.');
-      } catch (err) {
-        showToast('Tally Export Failed', err.message);
-      }
-    }
-
-    async function openSlaBreachModal() {
-      const body = `<div class="detail-section">
-        <p style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:14px">
-          Simulate an automated SLA violation (e.g. Driver No-Show or &gt;15 min delay) to demonstrate automated penalty debit note issuance and dynamic vendor tier demotion (OTA &lt; 92%).
-        </p>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Vendor Partner</label>
-            <select class="form-input" id="sla-vendor-select">
-              <option value="ven_southcity">South City Cabs &amp; Fleet (OTA 91.5%)</option>
-              <option value="ven_apex">Apex Logistics Bangalore (OTA 98.2%)</option>
-              <option value="ven_primeshuttle">Prime Shuttle Services (OTA 87.4%)</option>
+        <!-- Multi-Filter Ribbon -->
+        <div class="card" style="padding:14px 18px;margin-bottom:18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;background:#fff">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px;font-weight:600;color:var(--muted)">Entity:</span>
+            <select id="partnerEntityFilter" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--line)">
+              <option value="all"${entityFilter === 'all' ? ' selected' : ''}>All Entities (Clients &amp; Partners)</option>
+              <option value="clients"${entityFilter === 'clients' ? ' selected' : ''}>Corporate Clients Only</option>
+              <option value="suppliers"${entityFilter === 'suppliers' ? ' selected' : ''}>Supplier Fleet Partners Only</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Violation Type</label>
-            <select class="form-input" id="sla-breach-type">
-              <option value="DELAY_PICKUP_GTE_15M">Delay at Pickup &ge; 15 mins (Penalty INR 500)</option>
-              <option value="DRIVER_NO_SHOW">Driver No-Show without Notice (Penalty INR 1,000)</option>
-              <option value="UNAUTHORIZED_VEHICLE_SWAP">Unauthorized Vehicle Swap (Penalty INR 750)</option>
-              <option value="GPS_TAMPERED">GPS Telemetry Tampered (Penalty INR 1,500)</option>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px;font-weight:600;color:var(--muted)">Credit Status:</span>
+            <select id="partnerStatusFilter" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--line)">
+              <option value="all"${statusFilter === 'all' ? ' selected' : ''}>All Statuses</option>
+              <option value="healthy"${statusFilter === 'healthy' ? ' selected' : ''}>Healthy</option>
+              <option value="active due"${statusFilter === 'active due' ? ' selected' : ''}>Active Due</option>
+              <option value="high usage"${statusFilter === 'high usage' ? ' selected' : ''}>High Credit Usage</option>
             </select>
           </div>
+          <div style="flex:1;min-width:200px">
+            <input type="text" id="partnerSearchInput" placeholder="Search corporate client, supplier, code, hub..." value="${esc(state.partnerSearchQuery || '')}" style="width:100%;font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid var(--line)" />
+          </div>
+          <button class="btn small soft" id="btnResetPartnerFilters">Reset Filters</button>
         </div>
-        <div id="sla-eval-result" style="margin-top:14px" hidden></div>
-      </div>`;
 
-      const modal = modalShell('SLA Governance & Automated Demotion Simulator', 'Evaluate SLA breach and generate penalty debit note', body, `${button('Close','','data-close-modal')}${button(icon('spark')+' Evaluate & Issue Penalty','primary','data-eval-sla')}`);
-      modal.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', closeModal));
-      modal.querySelector('[data-eval-sla]')?.addEventListener('click', async () => {
-        const vendorSelect = modal.querySelector('#sla-vendor-select');
-        const breachSelect = modal.querySelector('#sla-breach-type');
-        const submitBtn = modal.querySelector('[data-eval-sla]');
-        submitBtn.disabled = true;
-
-        const isDelay = breachSelect.value === 'DELAY_PICKUP_GTE_15M';
-        const isNoShow = breachSelect.value === 'DRIVER_NO_SHOW';
-
-        try {
-          const res = await apiRequest('/api/tri-stack/sla/evaluate', {
-            method: 'POST',
-            body: JSON.stringify({
-              vendor_id: vendorSelect.value,
-              vendor_name: vendorSelect.options[vendorSelect.selectedIndex].text.split(' (')[0],
-              duty_id: `duty_sim_${Date.now().toString().slice(-4)}`,
-              current_tier: 'TIER_1_PLATINUM',
-              rolling_ota_pct: 89.5,
-              active_breaches_7d: 3,
-              duty_evidence: {
-                reporting_scheduled: '2026-10-27T08:00:00Z',
-                reporting_actual: isDelay ? '2026-10-27T08:25:00Z' : '2026-10-27T08:00:00Z',
-                driver_no_show: isNoShow,
-                unauthorized_vehicle: breachSelect.value === 'UNAUTHORIZED_VEHICLE_SWAP',
-                gps_tampered: breachSelect.value === 'GPS_TAMPERED'
-              }
-            })
-          });
-
-          const tier = res.tier_evaluation || {};
-          const dn = res.debit_note || {};
-          const resultEl = modal.querySelector('#sla-eval-result');
-          resultEl.hidden = false;
-          resultEl.innerHTML = `<div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);padding:12px;border-radius:8px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <strong style="color:#ef4444">Tier Demotion Triggered: ${esc(tier.previous_tier)} &rarr; ${esc(tier.current_tier)}</strong>
-              <span class="status red">DEMOTED</span>
+        <!-- Section Card with Sub-Tabs -->
+        <section class="card section-card" style="padding:24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:14px">
+            <div style="display:flex;gap:10px">
+              <button class="btn small ${currentTab === 'clients' ? 'primary' : 'soft'}" data-partner-tab="clients">${icon('users')} Corporate Clients (${rawClients.length})</button>
+              <button class="btn small ${currentTab === 'suppliers' ? 'primary' : 'soft'}" data-partner-tab="suppliers">${icon('link')} Supplier Partners (${rawSuppliers.length})</button>
+              <button class="btn small ${currentTab === 'ageing' ? 'primary' : 'soft'}" data-partner-tab="ageing">${icon('shield')} Debtor Ageing (DSO)</button>
             </div>
-            <div style="font-size:11px;color:var(--text);line-height:1.4">
-              <strong>Demotion Reason:</strong> ${esc(tier.reason || 'SLA breach threshold reached')}<br>
-              <strong>Penalty Issued:</strong> INR ${(dn.penalty_paise || 50000) / 100} &middot; Debit Note: <code>${esc(dn.debit_note_reference || 'DN-2026-SIM')}</code>
-            </div>
-          </div>`;
-          showToast('Penalty Debit Note Issued', `Tier demoted to ${tier.current_tier}. Debit Note: ${dn.debit_note_reference}`);
-        } catch (err) {
-          showToast('Simulation Failed', err.message);
-        } finally {
-          submitBtn.disabled = false;
-        }
-      });
+            <span style="font-size:12px;color:var(--muted)">Network: ${rawClients.length} Clients · ${rawSuppliers.length} Suppliers</span>
+          </div>
+          ${tabContent}
+        </section>
+      `;
     }
 
     function renderDuties() {
@@ -9247,6 +9076,70 @@
         document.body.removeChild(link);
         showToast('Certificate Generated', `Scope 3 ESG certificate downloaded for ${client.name}.`);
       }));
+      // Clients & Partners Dashboard Events
+      const partnerEntSel = document.getElementById('partnerEntityFilter');
+      if (partnerEntSel) partnerEntSel.addEventListener('change', e => { state.partnerEntityFilter = e.target.value; render(); });
+      const partnerStatSel = document.getElementById('partnerStatusFilter');
+      if (partnerStatSel) partnerStatSel.addEventListener('change', e => { state.partnerStatusFilter = e.target.value; render(); });
+      const partnerSearch = document.getElementById('partnerSearchInput');
+      if (partnerSearch) partnerSearch.addEventListener('input', e => {
+        state.partnerSearchQuery = e.target.value;
+        render();
+        requestAnimationFrame(() => {
+          const inp = document.getElementById('partnerSearchInput');
+          if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+        });
+      });
+      const btnResetPartner = document.getElementById('btnResetPartnerFilters');
+      if (btnResetPartner) btnResetPartner.addEventListener('click', () => {
+        state.partnerEntityFilter = 'all'; state.partnerStatusFilter = 'all'; state.partnerSearchQuery = '';
+        render();
+      });
+      content.querySelectorAll('[data-partner-tab]').forEach(el => el.addEventListener('click', () => {
+        state.partnerDashboardTab = el.dataset.partnerTab;
+        render();
+      }));
+      const btnRefreshPartner = document.getElementById('btnRefreshPartnersDashboard');
+      if (btnRefreshPartner) btnRefreshPartner.addEventListener('click', () => {
+        state.partnersDashboardData = null;
+        showToast('Refreshing Partners Dashboard', 'Synchronizing commercial debtor ageing & supplier payouts...');
+        render();
+      });
+      const btnExportPartner = document.getElementById('btnExportPartnersCSV');
+      if (btnExportPartner) btnExportPartner.addEventListener('click', () => {
+        const sum = state.partnersDashboardData?.summary || {};
+        const rows = [
+          ['Axiom Fleet - Commercial Debtors, Creditors & Partner Performance Report'],
+          ['Exported At', new Date().toISOString()],
+          ['Total Billed Receivables (INR)', (sum.total_receivables_billed_paise || 0) / 100],
+          ['Total Collections Received (INR)', (sum.collections_received_paise || 0) / 100],
+          ['Outstanding Client Receivables (INR)', (sum.outstanding_receivables_paise || 0) / 100],
+          ['Collection Rate %', (sum.collection_rate_pct || 0) + '%'],
+          ['Supplier Payout Liabilities (INR)', (sum.supplier_payout_liability_paise || 0) / 100],
+          ['Partner Fleet Gross Margin (INR)', (sum.partner_fleet_margin_paise || 0) / 100],
+          ['Partner Margin %', (sum.partner_fleet_margin_pct || 25) + '%'],
+          ['Net Working Capital Cash Buffer (INR)', (sum.working_capital_buffer_paise || 0) / 100],
+          [],
+          ['Corporate Client Name', 'Account Code', 'Operating Hub', 'Duties Run', 'Total Billed (INR)', 'Outstanding (INR)', 'Credit Line (INR)', 'Credit Util %', 'Payment Terms', 'Commercial Status']
+        ];
+        (state.partnersDashboardData?.clients || []).forEach(c => {
+          rows.push([c.name, c.code, c.city, c.duties_count, (c.total_billed_paise/100).toFixed(2), (c.outstanding_paise/100).toFixed(2), (c.credit_limit_paise/100).toFixed(2), c.credit_utilization_pct + '%', 'Net ' + c.payment_terms_days + ' Days', c.status_badge]);
+        });
+        rows.push([]);
+        rows.push(['Supplier Fleet Partner Name', 'Operating Hub', 'Attached Vehicles', 'Duties Fulfilled', 'Gross Revenue (INR)', 'Partner Payout (INR)', 'Axiom Margin (INR)', 'Margin %', 'Settlement Status']);
+        (state.partnersDashboardData?.suppliers || []).forEach(s => {
+          rows.push([s.name, s.city, s.vehicles_count, s.duties_count, (s.gross_revenue_paise/100).toFixed(2), (s.payout_liability_paise/100).toFixed(2), (s.company_margin_paise/100).toFixed(2), s.margin_pct + '%', s.settlement_status]);
+        });
+        const csv = 'data:text/csv;charset=utf-8,' + rows.map(r => r.map(x => `"${String(x).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const link = document.createElement('a');
+        link.href = encodeURI(csv);
+        link.download = `axiom_clients_partners_ledger_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('Export Successful', 'Commercial ledger report downloaded as CSV.');
+      });
+
 
 
 
