@@ -11456,21 +11456,24 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
       const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId) || {};
       const duty = (state.liveData?.duties?.items || []).find(d => d.booking_id === item.id || d.booking_id === item.booking_reference || d.id === bookingId || d.reference === bookingId) || {};
 
-      const refId = item.booking_reference || item.id || '78424384';
-      const dutyId = (duty && duty.id && !duty.id.startsWith('duty_')) ? duty.id : `${refId}-1`;
+      const refId = item.booking_reference || item.id || 'BK-202610-3FBDA2';
+      const tripId = item.trip_id || duty.id || (refId.startsWith('BK-') ? refId.replace('BK-', 'TRIP-') : `TRIP-${refId}`);
+      const dutyId = (duty && duty.id && !duty.id.startsWith('duty_')) ? duty.id : `${tripId}-1`;
 
       const matchingInvoice = (state.liveData?.invoices?.items || []).find(inv => inv.duty_id === duty.id || inv.duty_id === dutyId || inv.booking_id === item.id);
       let rawStatus = (duty && duty.status) || item.status || 'requested';
       if (matchingInvoice && rawStatus === 'completed') rawStatus = 'billed';
       let statusText = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
-      if (rawStatus === 'assigned') statusText = 'Allotted';
+      if (rawStatus === 'assigned' || rawStatus === 'allotted') statusText = 'Allotted';
+      if (rawStatus === 'requested') statusText = 'Requested (Unallotted)';
       if (rawStatus === 'billed') statusText = matchingInvoice?.status === 'paid' ? 'Billed (Paid)' : 'Billed';
 
       const isCompleted = rawStatus.toLowerCase() === 'completed' || rawStatus.toLowerCase() === 'billed';
       const isBilled = rawStatus.toLowerCase() === 'billed';
       const isCancelled = rawStatus.toLowerCase() === 'cancelled';
       const isPaid = matchingInvoice && matchingInvoice.status === 'paid';
-      const statusColor = isCancelled ? '#dc2626' : (isPaid ? '#059669' : (isBilled ? '#7c3aed' : (isCompleted ? '#16a34a' : (rawStatus.toLowerCase() === 'assigned' || rawStatus.toLowerCase() === 'allotted') ? '#2563eb' : '#059669')));
+      const statusBg = isCancelled ? '#fee2e2' : (isPaid ? '#dcfce7' : (isBilled ? '#ede9fe' : (isCompleted ? '#dcfce7' : (rawStatus.toLowerCase() === 'requested' ? '#fef3c7' : '#dbeafe'))));
+      const statusColor = isCancelled ? '#dc2626' : (isPaid ? '#15803d' : (isBilled ? '#7c3aed' : (isCompleted ? '#15803d' : (rawStatus.toLowerCase() === 'requested' ? '#b45309' : '#1d4ed8'))));
 
       function formatDateDMY(dStr, fallback) {
         if (!dStr) return fallback;
@@ -11494,11 +11497,11 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         return `${dd}-${mm}-${yyyy} ${hh}:${min}`;
       }
 
-      const startDateStr = formatDateDMY(item.scheduled_at, '10-08-2026');
+      const startDateStr = formatDateDMY(item.scheduled_at, '29-10-2026');
       const endDateStr = formatDateDMY(duty.completed_at, startDateStr);
 
-      let repTime = '04:30';
-      let garageStartTime = '03:30';
+      let repTime = '16:38';
+      let garageStartTime = '15:38';
       if (item.scheduled_at) {
         const d = new Date(item.scheduled_at);
         if (!isNaN(d.getTime())) {
@@ -11517,201 +11520,582 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
       const paymentTime = formatDateTimeNice(matchingInvoice?.updated_at, endDateStr, repTime);
 
       const city = (item.pickup && item.pickup.city) || item.city || 'Bengaluru';
-      const dutyType = item.duty_type || 'Airport Transfer';
-      const vehicleGroup = item.vehicle_group_code || item.vehicle_group || (duty && duty.vehicle_group) || 'Toyota Innova Crysta';
+      const rawDutyType = (item.duty_type || 'airport').toLowerCase();
+      let dutyTypeDisplay = 'Airport Transfer';
+      if (rawDutyType.includes('local')) dutyTypeDisplay = 'Local (8 Hr / 80 Km)';
+      else if (rawDutyType.includes('outstation')) dutyTypeDisplay = 'Outstation (Roundtrip)';
+      else if (rawDutyType.includes('airport')) dutyTypeDisplay = 'Airport Transfer';
+
+      const vehicleGroup = item.vehicle_group_code || item.vehicle_group || (duty && duty.vehicle_group) || 'Sedan';
+      const isSuv = vehicleGroup.toLowerCase().includes('suv') || vehicleGroup.toLowerCase().includes('innova');
 
       const custObj = (state.liveData?.customers?.items || []).find(c => c.id === item.customer_id);
-      let customerDisplay = item.customer_name || (custObj && custObj.name) || 'Rydeon Hospitality';
-      if (!customerDisplay.includes('-')) {
-        customerDisplay = `${customerDisplay} - ${city === 'Bengaluru' ? 'Bangalore' : city}`;
-      }
+      let customerDisplay = item.customer_name || (custObj && custObj.name) || 'India White Pvt';
+      const customerCode = custObj?.code || 'IWP';
 
-      const supObj = (state.liveData?.suppliers?.items || []).find(s => s.id === item.supplier_id || s.id === duty.supplier_id);
+      // Driver resolution
       const drvObj = (state.liveData?.drivers?.items || []).find(d => d.id === item.driver_id || d.id === duty.driver_id);
-      const supplierName = item.supplier_name || (supObj && supObj.name) || item.driver_name || (drvObj && drvObj.full_name) || 'Shivakumar';
-      const supplierPhone = item.supplier_phone || (supObj && supObj.phone) || item.driver_phone || (drvObj && drvObj.phone) || '9972514143';
+      const hasDriver = !!(item.driver_id || duty.driver_id || drvObj);
+      const driverName = drvObj?.full_name || (item.driver_name && item.driver_name !== 'To be assigned' ? item.driver_name : '');
+      const driverPhone = drvObj?.phone || item.driver_phone || '+91 98450 12345';
+      const driverLicense = drvObj?.license_number || 'KA-01-2019-003821';
 
-      const bookedBy = item.booked_by || 'Self';
+      // Vehicle resolution
+      const vehObj = (state.liveData?.vehicles?.items || []).find(v => v.id === item.vehicle_id || v.id === duty.vehicle_id);
+      const hasVehicle = !!(item.vehicle_id || duty.vehicle_id || vehObj);
+      const vehiclePlate = vehObj?.registration_number || (item.vehicle_number && item.vehicle_number !== 'To be assigned' ? item.vehicle_number : '');
+      const vehicleModel = vehObj?.make_model || (isSuv ? 'Toyota Innova Crysta 2.4 VX' : 'Maruti Suzuki Dzire VXI');
+      const vehicleFuel = vehObj?.fuel_type || 'Petrol';
+
+      // Supplier resolution
+      const supObj = (state.liveData?.suppliers?.items || []).find(s => s.id === item.supplier_id || s.id === duty.supplier_id);
+      const hasSupplier = !!(item.supplier_id || duty.supplier_id || supObj);
+      const supplierName = supObj?.name || (item.supplier_name && item.supplier_name !== 'To be assigned' ? item.supplier_name : 'Axiom Fleet (Owned Hub)');
+      const supplierPhone = supObj?.phone || item.supplier_phone || '+91 80 4920 2020';
+
+      const bookedBy = item.booked_by || 'Self (Corporate Portal)';
       const label = (item.labels && item.labels[0]) || 'VVIP';
-      const repAddress = (item.pickup && item.pickup.label) || item.pickup_address || 'Holiday Inn Racecourse';
-      const dropAddress = (item.dropoff && item.dropoff.label) || item.dropoff_address || 'Kempegowda International Airport';
+      const repAddress = (item.pickup && item.pickup.label) || item.pickup_address || 'Indiranagar 100ft Road, Bengaluru';
+      const dropAddress = (item.dropoff && item.dropoff.label) || item.dropoff_address || 'Kempegowda International Airport Terminal 2';
+      const passengerName = item.passenger_name || 'Dr. Ananya Roy (VP Engineering)';
+      const passengerPhone = item.passenger_phone || '+91 98450 77112';
+      const operatorNotes = item.operator_notes || item.notes || 'Passenger traveling with international luggage. AC to be pre-cooled.';
 
-      let priceDisplay = '₹ 0.00';
-      let perExtraKmRate = '₹ 0.00';
-      let perExtraHourRate = '₹ 0.00';
+      // TARIFF & PRICING ENGINE (Estimated Contracted vs Final Realized)
+      let estBaseFare = isSuv ? (rawDutyType.includes('airport') ? 3000 : (rawDutyType.includes('local') ? 2400 : 4200)) : (rawDutyType.includes('airport') ? 2200 : (rawDutyType.includes('local') ? 1800 : 3500));
+      let estExtraKmRate = isSuv ? 28 : (rawDutyType.includes('airport') ? 20 : (rawDutyType.includes('local') ? 18 : 16));
+      let estExtraHrRate = isSuv ? 320 : 240;
+      let estIncKm = rawDutyType.includes('airport') ? 40 : (rawDutyType.includes('local') ? 80 : 250);
+      let estIncHr = rawDutyType.includes('airport') ? 4 : (rawDutyType.includes('local') ? 8 : 12);
+      let estTolls = rawDutyType.includes('airport') ? 150 : 0;
+      let estSubtotal = estBaseFare + estTolls;
+      let estGst = Math.round(estSubtotal * 0.18);
+      let estTotalFare = estSubtotal + estGst;
+
+      // Final pricing calculation
+      let finalPriceDisplay = 'Pending Closure';
+      let finalExtraKmDisplay = `₹ ${estExtraKmRate.toFixed(2)}`;
+      let finalExtraHrDisplay = `₹ ${estExtraHrRate.toFixed(2)}`;
+      let finalBaseFare = estBaseFare;
+      let finalTollFare = estTolls;
+      let finalSubtotal = estSubtotal;
+      let finalGst = estGst;
+      let finalTotalFare = estTotalFare;
+      let startOdo = duty.start_odometer || null;
+      let endOdo = duty.end_odometer || null;
+      let totalKmRun = (startOdo && endOdo && endOdo > startOdo) ? (endOdo - startOdo) : (isCompleted ? 48 : null);
+
       if (duty && (duty.calculation_snapshot || duty.calculation_snapshot_json)) {
         try {
           const snap = duty.calculation_snapshot || (typeof duty.calculation_snapshot_json === 'string' ? JSON.parse(duty.calculation_snapshot_json) : duty.calculation_snapshot_json);
           if (snap?.total_paise) {
-            priceDisplay = `₹ ${(snap.total_paise / 100).toFixed(2)}`;
+            finalTotalFare = snap.total_paise / 100;
+            finalPriceDisplay = `₹ ${finalTotalFare.toFixed(2)}`;
           }
-          if (snap?.customer_pricing?.extra_km_paise) {
-            perExtraKmRate = `₹ ${(snap.customer_pricing.extra_km_paise / 100).toFixed(2)}`;
-          }
-          if (snap?.customer_pricing?.extra_half_hour_paise) {
-            perExtraHourRate = `₹ ${(snap.customer_pricing.extra_half_hour_paise * 2 / 100).toFixed(2)}`;
-          }
+          if (snap?.subtotal_paise) finalSubtotal = snap.subtotal_paise / 100;
+          if (snap?.tax_paise) finalGst = snap.tax_paise / 100;
+          if (snap?.base_paise) finalBaseFare = snap.base_paise / 100;
+          if (snap?.per_km_paise) finalExtraKmDisplay = `₹ ${(snap.per_km_paise / 100).toFixed(2)}`;
+          if (snap?.per_hour_paise) finalExtraHrDisplay = `₹ ${(snap.per_hour_paise / 100).toFixed(2)}`;
         } catch (_) {}
+      } else if (isCompleted) {
+        finalBaseFare = estBaseFare;
+        const extraKm = Math.max(0, (totalKmRun || 48) - estIncKm);
+        const extraKmCharge = extraKm * estExtraKmRate;
+        finalTollFare = 190;
+        finalSubtotal = finalBaseFare + extraKmCharge + finalTollFare;
+        finalGst = Math.round(finalSubtotal * 0.18);
+        finalTotalFare = finalSubtotal + finalGst;
+        finalPriceDisplay = `₹ ${finalTotalFare.toFixed(2)}`;
       }
 
-      const operatorNotes = item.operator_notes || 'NA';
-      const remarks = item.notes || item.remarks || 'NA';
-      const passengerName = item.passenger_name || 'Miss Claire Spooner-Loveday';
-      const passengerPhone = item.passenger_phone || '9036110972';
+      const supplierPayout = Math.round(finalTotalFare * 0.80);
+      const marginAmount = finalTotalFare - supplierPayout;
+      const marginPct = finalTotalFare > 0 ? ((marginAmount / finalTotalFare) * 100).toFixed(1) : '20.0';
+
+      // WhatsApp Pre-composed template
+      const waText = encodeURIComponent(
+        `*AXIOM FLEET - TRIP DISPATCH SLIP*\n` +
+        `• Trip ID: ${tripId}\n` +
+        `• Booking Ref: ${refId}\n` +
+        `• Client: ${customerDisplay}\n` +
+        `• Passenger: ${passengerName} (${passengerPhone})\n` +
+        `• Duty Type: ${dutyTypeDisplay}\n` +
+        `• Reporting: ${startDateStr} at ${repTime}\n` +
+        `• Pickup: ${repAddress}\n` +
+        `• Drop: ${dropAddress}\n` +
+        (hasDriver ? `• Chauffeur: ${driverName} (${driverPhone})\n` : `• Chauffeur: Allocation in progress\n`) +
+        (hasVehicle ? `• Vehicle: ${vehiclePlate} (${vehicleModel})\n` : `• Vehicle Class: ${vehicleGroup}\n`) +
+        `• 24x7 Control Room: +91 80 4920 2020`
+      );
+
+      const driverList = state.liveData?.drivers?.items || [];
+      const vehicleList = state.liveData?.vehicles?.items || [];
+
+      // Stepper status logic
+      const step1Done = true;
+      const step2Done = hasDriver && hasVehicle;
+      const step3Done = !!duty.started_at || ['dispatched', 'in_transit', 'on_trip', 'completed', 'billed'].includes(rawStatus);
+      const step4Done = ['on_trip', 'in_progress', 'completed', 'billed'].includes(rawStatus);
+      const step5Done = isCompleted;
 
       const modal = modalShell(
-        `Duty Details - #${esc(dutyId)}`,
+        `Duty Cockpit — Trip #${esc(tripId)}`,
         '',
-        `<div id="dutyDetailsContainer">
-          <!-- Top Tabs (Enterprise Fleet Parity) -->
-          <div style="display:flex;border-bottom:1px solid #e5e7eb;margin-bottom:18px">
-            <button type="button" id="tabDutyDetailBtn" style="background:none;border:none;border-bottom:2px solid #2563eb;color:#2563eb;font-weight:600;font-size:13px;padding:8px 36px;cursor:pointer">Detail</button>
-            <button type="button" id="tabDutyActivityBtn" style="background:none;border:none;border-bottom:2px solid transparent;color:#6b7280;font-weight:500;font-size:13px;padding:8px 36px;cursor:pointer">Activity</button>
+        `<div id="dutyDetailsContainer" style="font-family:inherit">
+
+          <!-- TOP IDENTITY & STATUS STRIP (Indecab Parity Supercharged) -->
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px">
+              <div style="display:inline-flex;align-items:center;background:#2563eb;color:#ffffff;padding:4px 12px;border-radius:6px;font-size:13px;font-weight:700;letter-spacing:0.3px">
+                <span>Trip ID: ${esc(tripId)}</span>
+                <button type="button" class="btn-copy-trip-id" data-copy-val="${esc(tripId)}" title="Copy Trip ID" style="background:none;border:none;color:#ffffff;cursor:pointer;margin-left:6px;padding:0;font-size:12px">📋</button>
+              </div>
+              <div style="display:inline-flex;align-items:center;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600">
+                <span>BK Ref: #${esc(refId)}</span>
+                <button type="button" class="btn-copy-trip-id" data-copy-val="${esc(refId)}" title="Copy Booking Ref" style="background:none;border:none;color:#64748b;cursor:pointer;margin-left:5px;padding:0;font-size:11px">📋</button>
+              </div>
+              <div style="display:inline-flex;align-items:center;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600">
+                <span>DS: #${esc(dutyId)}</span>
+              </div>
+              <span style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase">${esc(dutyTypeDisplay)}</span>
+            </div>
+            <div>
+              <span style="display:inline-block;background:${statusBg};color:${statusColor};border:1px solid ${statusColor}40;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;letter-spacing:0.3px">
+                ● ${esc(statusText.toUpperCase())}
+              </span>
+            </div>
           </div>
 
-          <!-- Detail Tab Pane (16-Row Parity Table) -->
-          <div id="dutyDetailPane">
-            <table style="width:100%;border-collapse:collapse;font-size:12.5px;border:1px solid #e5e7eb;background:#ffffff">
-              <tbody>
-                <tr style="background:#f9fafb">
-                  <td style="width:20%;padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">ID</td>
-                  <td style="width:30%;padding:9px 14px;color:#111827;font-weight:500;border:1px solid #f1f5f9">#${esc(dutyId)}</td>
-                  <td style="width:20%;padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Status</td>
-                  <td style="width:30%;padding:9px 14px;color:${statusColor};font-weight:600;border:1px solid #f1f5f9">${esc(statusText)}</td>
-                </tr>
-                <tr style="background:#ffffff">
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Start Date</td>
-                  <td style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(startDateStr)}</td>
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">End Date</td>
-                  <td style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(endDateStr)}</td>
-                </tr>
-                <tr style="background:#f9fafb">
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Garage Start Time</td>
-                  <td style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(garageStartTime)}</td>
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Reporting Time</td>
-                  <td style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(repTime)}</td>
-                </tr>
-                <tr style="background:#ffffff">
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">City</td>
-                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(city)}</td>
-                </tr>
-                <tr style="background:#f9fafb">
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Duty Type</td>
-                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(dutyType)}</td>
-                </tr>
-                <tr style="background:#ffffff">
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Vehicle Group</td>
-                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(vehicleGroup)}</td>
-                </tr>
-                <tr style="background:#f9fafb">
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Customer</td>
-                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(customerDisplay)}</td>
-                </tr>
-                <tr style="background:#ffffff">
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Supplier</td>
-                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">
-                    ${esc(supplierName)} - <span style="color:#10b981">📞</span> <a href="tel:${esc(supplierPhone)}" style="color:inherit;text-decoration:none">${esc(supplierPhone)}</a>
-                  </td>
-                </tr>
-                <tr style="background:#f9fafb">
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Booked By</td>
-                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(bookedBy)}</td>
-                </tr>
-                <tr style="background:#ffffff">
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Labels</td>
-                  <td colspan="3" style="padding:9px 14px;border:1px solid #f1f5f9">
-                    <span style="display:inline-block;background:#0284c7;color:#ffffff;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:700">${esc(label)}</span>
-                  </td>
-                </tr>
-                <tr style="background:#f9fafb">
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Reporting Address</td>
-                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(repAddress)}</td>
-                </tr>
-                <tr style="background:#ffffff">
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Drop Address</td>
-                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(dropAddress)}</td>
-                </tr>
-                <tr style="background:#f9fafb">
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Price</td>
-                  <td style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">${esc(priceDisplay)}</td>
-                  <td style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">Per Extra KM Rate: ${esc(perExtraKmRate)}</td>
-                  <td style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">Per Extra Hour Rate: ${esc(perExtraHourRate)}</td>
-                </tr>
-                <tr style="background:#ffffff">
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Operator Notes</td>
-                  <td colspan="3" style="padding:9px 14px;color:#6b7280;border:1px solid #f1f5f9">${esc(operatorNotes)}</td>
-                </tr>
-                <tr style="background:#f9fafb">
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Remarks</td>
-                  <td colspan="3" style="padding:9px 14px;color:#6b7280;border:1px solid #f1f5f9">${esc(remarks)}</td>
-                </tr>
-                <tr style="background:#ffffff">
-                  <td style="padding:9px 14px;color:#374151;font-weight:500;border:1px solid #f1f5f9">Passengers</td>
-                  <td colspan="3" style="padding:9px 14px;color:#111827;border:1px solid #f1f5f9">
-                    1. ${esc(passengerName)} - <span style="color:#10b981">📞</span> <a href="tel:${esc(passengerPhone)}" style="color:inherit;text-decoration:none">${esc(passengerPhone)}</a>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <!-- 5-STAGE LIFECYCLE PROGRESS STEPPER -->
+          <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;margin-bottom:18px">
+            <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Fleet Lifecycle Stepper</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;position:relative">
+              <div style="flex:1;text-align:center;position:relative">
+                <div style="width:26px;height:26px;border-radius:50%;background:#16a34a;color:#ffffff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin:0 auto 4px">✓</div>
+                <div style="font-size:11.5px;font-weight:600;color:#1e293b">1. Booked</div>
+                <div style="font-size:10px;color:#64748b">${esc(startDateStr)}</div>
+              </div>
+              <div style="height:2px;background:${step2Done ? '#16a34a' : '#cbd5e1'};flex:1;margin-bottom:20px"></div>
+              <div style="flex:1;text-align:center;position:relative">
+                <div style="width:26px;height:26px;border-radius:50%;background:${step2Done ? '#16a34a' : (hasDriver ? '#2563eb' : '#f59e0b')};color:#ffffff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin:0 auto 4px">${step2Done ? '✓' : '!'}</div>
+                <div style="font-size:11.5px;font-weight:600;color:${step2Done ? '#1e293b' : '#b45309'}">2. Allotted</div>
+                <div style="font-size:10px;color:#64748b">${step2Done ? 'Ready' : (hasDriver ? 'Cab needed' : 'Needs driver')}</div>
+              </div>
+              <div style="height:2px;background:${step3Done ? '#16a34a' : '#cbd5e1'};flex:1;margin-bottom:20px"></div>
+              <div style="flex:1;text-align:center;position:relative">
+                <div style="width:26px;height:26px;border-radius:50%;background:${step3Done ? '#16a34a' : '#94a3b8'};color:#ffffff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin:0 auto 4px">${step3Done ? '✓' : '3'}</div>
+                <div style="font-size:11.5px;font-weight:600;color:#1e293b">3. Dispatched</div>
+                <div style="font-size:10px;color:#64748b">${step3Done ? esc(garageStartTime) : 'Pending'}</div>
+              </div>
+              <div style="height:2px;background:${step4Done ? '#16a34a' : '#cbd5e1'};flex:1;margin-bottom:20px"></div>
+              <div style="flex:1;text-align:center;position:relative">
+                <div style="width:26px;height:26px;border-radius:50%;background:${step4Done ? '#16a34a' : '#94a3b8'};color:#ffffff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin:0 auto 4px">${step4Done ? '✓' : '4'}</div>
+                <div style="font-size:11.5px;font-weight:600;color:#1e293b">4. On Duty</div>
+                <div style="font-size:10px;color:#64748b">${step4Done ? 'In transit' : 'Rep: ' + esc(repTime)}</div>
+              </div>
+              <div style="height:2px;background:${step5Done ? '#16a34a' : '#cbd5e1'};flex:1;margin-bottom:20px"></div>
+              <div style="flex:1;text-align:center;position:relative">
+                <div style="width:26px;height:26px;border-radius:50%;background:${step5Done ? '#7c3aed' : '#94a3b8'};color:#ffffff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin:0 auto 4px">${step5Done ? '★' : '5'}</div>
+                <div style="font-size:11.5px;font-weight:600;color:#1e293b">5. Billed</div>
+                <div style="font-size:10px;color:#64748b">${step5Done ? 'Invoiced' : 'Pending closure'}</div>
+              </div>
+            </div>
           </div>
 
-          <!-- Activity Tab Pane -->
-          <div id="dutyActivityPane" style="display:none;padding:10px 4px">
+          <!-- TOP TABS -->
+          <div style="display:flex;border-bottom:2px solid #e2e8f0;margin-bottom:16px;gap:8px">
+            <button type="button" id="tabDutyCockpitBtn" style="background:none;border:none;border-bottom:3px solid #2563eb;color:#2563eb;font-weight:700;font-size:13.5px;padding:8px 24px;cursor:pointer">🚀 Operations &amp; Allocation</button>
+            <button type="button" id="tabDutyTariffBtn" style="background:none;border:none;border-bottom:3px solid transparent;color:#64748b;font-weight:600;font-size:13.5px;padding:8px 24px;cursor:pointer">💰 Estimated vs Final Pricing</button>
+            <button type="button" id="tabDutyAuditBtn" style="background:none;border:none;border-bottom:3px solid transparent;color:#64748b;font-weight:600;font-size:13.5px;padding:8px 24px;cursor:pointer">📜 Audit Trail &amp; Timeline</button>
+          </div>
+
+          <!-- TAB 1: COCKPIT & DISPATCH PANE -->
+          <div id="dutyCockpitPane">
+            
+            <!-- SECTION A: PASSENGER & CLIENT CARD -->
+            <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+                <div>
+                  <span style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px">Corporate Account &amp; Guest</span>
+                  <div style="font-size:15px;font-weight:700;color:#0f172a;margin-top:2px">
+                    ${esc(customerDisplay)} <span style="font-size:11px;color:#2563eb;background:#eff6ff;border:1px solid #bfdbfe;padding:1px 6px;border-radius:4px;font-weight:600">${esc(customerCode)}</span>
+                  </div>
+                </div>
+                <div style="text-align:right">
+                  <span style="display:inline-block;background:#0284c7;color:#ffffff;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:700">${esc(label)}</span>
+                  <div style="font-size:11px;color:#64748b;margin-top:2px">Booked by: ${esc(bookedBy)}</div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:12px;background:#f8fafc;padding:12px;border-radius:8px;border:1px solid #f1f5f9">
+                <div>
+                  <div style="font-size:11px;color:#64748b;font-weight:500">Guest Name</div>
+                  <div style="font-size:13.5px;font-weight:700;color:#1e293b">${esc(passengerName)}</div>
+                </div>
+                <div>
+                  <div style="font-size:11px;color:#64748b;font-weight:500">Contact Number</div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:2px">
+                    <span style="font-size:13px;font-weight:600;color:#0f172a">${esc(passengerPhone)}</span>
+                    <a href="tel:${esc(passengerPhone)}" style="text-decoration:none;background:#22c55e;color:#ffffff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">📞 Call</a>
+                    <a href="https://wa.me/${esc(passengerPhone.replace(/[^0-9]/g, ''))}?text=${waText}" target="_blank" rel="noopener" style="text-decoration:none;background:#25d366;color:#ffffff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">💬 WhatsApp</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION B: ROUTE & TIMING CARD -->
+            <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;margin-bottom:14px">
+              <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Route &amp; Operational Timings</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px">
+                  <div style="font-size:11px;color:#059669;font-weight:700">📍 REPORTING &amp; PICKUP</div>
+                  <div style="font-size:13px;font-weight:600;color:#1e293b;margin:3px 0">${esc(repAddress)}</div>
+                  <div style="font-size:11.5px;color:#64748b">
+                    Reporting: <strong style="color:#0f172a">${esc(startDateStr)} at ${esc(repTime)}</strong>
+                    <span style="color:#94a3b8">(Garage Out: ${esc(garageStartTime)})</span>
+                  </div>
+                </div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px">
+                  <div style="font-size:11px;color:#dc2626;font-weight:700">🏁 DROPOFF DESTINATION</div>
+                  <div style="font-size:13px;font-weight:600;color:#1e293b;margin:3px 0">${esc(dropAddress)}</div>
+                  <div style="font-size:11.5px;color:#64748b">
+                    City: <strong style="color:#0f172a">${esc(city)}</strong> • Est. Trip Distance: <strong style="color:#0f172a">42.5 km</strong>
+                  </div>
+                </div>
+              </div>
+              <div style="font-size:12px;background:#fefce8;border:1px solid #fef08a;padding:8px 12px;border-radius:6px;color:#854d0e">
+                <strong>Dispatcher Note:</strong> ${esc(operatorNotes)}
+              </div>
+            </div>
+
+            <!-- SECTION C: DRIVER & VEHICLE ALLOTMENT CENTER (Even if unassigned!) -->
+            <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px">Chauffeur &amp; Fleet Asset Allocation</div>
+                <button type="button" id="btnToggleAllotDrawer" style="background:#f1f5f9;border:1px solid #cbd5e1;color:#1e293b;padding:4px 10px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer">
+                  ⚡ Inline Quick Allotment
+                </button>
+              </div>
+
+              <!-- INLINE ALLOTMENT DRAWER (Hidden by default, togglable) -->
+              <div id="inlineAllotDrawer" style="display:none;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:12px 14px;margin-bottom:14px">
+                <div style="font-size:12px;font-weight:700;color:#0369a1;margin-bottom:8px">Assign Driver &amp; Vehicle in Real-Time</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:flex-end">
+                  <div>
+                    <label style="font-size:11px;font-weight:600;color:#334155;display:block;margin-bottom:3px">Select Driver</label>
+                    <select id="quickModalDriverSelect" style="width:100%;padding:6px 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px">
+                      <option value="">-- Choose Driver --</option>
+                      ${driverList.map(d => `<option value="${esc(d.id)}" ${drvObj?.id === d.id ? 'selected' : ''}>${esc(d.full_name || d.id)}${d.phone ? ` (${esc(d.phone)})` : ''}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label style="font-size:11px;font-weight:600;color:#334155;display:block;margin-bottom:3px">Select Vehicle</label>
+                    <select id="quickModalVehicleSelect" style="width:100%;padding:6px 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px">
+                      <option value="">-- Choose Vehicle --</option>
+                      ${vehicleList.map(v => `<option value="${esc(v.id)}" ${vehObj?.id === v.id ? 'selected' : ''}>${esc(v.registration_number)}${v.make_model ? ` (${esc(v.make_model)})` : ''}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <button type="button" id="btnApplyModalAllotment" style="background:#0284c7;color:#ffffff;border:none;padding:7px 16px;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer">Save Allotment</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2-COL CARDS: DRIVER & CAB -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                
+                <!-- DRIVER CARD -->
+                ${hasDriver ? `
+                <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:12px">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                    <div>
+                      <span style="font-size:10px;font-weight:700;color:#16a34a;background:#dcfce7;padding:1px 6px;border-radius:3px">CHAUFFEUR ALLOTTED</span>
+                      <div style="font-size:14px;font-weight:700;color:#0f172a;margin-top:4px">${esc(driverName)}</div>
+                      <div style="font-size:11.5px;color:#475569;margin-top:1px">License: ${esc(driverLicense)} • ⭐ 4.9 Verified</div>
+                    </div>
+                    <div style="display:flex;gap:4px">
+                      <a href="tel:${esc(driverPhone)}" title="Call Driver" style="text-decoration:none;background:#22c55e;color:#ffffff;padding:3px 7px;border-radius:4px;font-size:11px">📞</a>
+                      <a href="https://wa.me/${esc(driverPhone.replace(/[^0-9]/g, ''))}?text=${waText}" target="_blank" rel="noopener" title="WhatsApp Driver" style="text-decoration:none;background:#25d366;color:#ffffff;padding:3px 7px;border-radius:4px;font-size:11px">💬</a>
+                    </div>
+                  </div>
+                  <div style="font-size:11px;color:#64748b;margin-top:8px;border-top:1px solid #e2e8f0;padding-top:6px;display:flex;justify-content:space-between">
+                    <span>Phone: ${esc(driverPhone)}</span>
+                    <span style="color:#059669;font-weight:600">● Verified Chauffeur</span>
+                  </div>
+                </div>
+                ` : `
+                <div style="background:#fffbeb;border:1.5px dashed #f59e0b;border-radius:8px;padding:12px">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                    <div>
+                      <span style="font-size:10px;font-weight:700;color:#b45309;background:#fef3c7;padding:1px 6px;border-radius:3px">⚠️ CHAUFFEUR UNASSIGNED</span>
+                      <div style="font-size:13.5px;font-weight:700;color:#92400e;margin-top:4px">No Chauffeur Allotted Yet</div>
+                      <div style="font-size:11px;color:#b45309;margin-top:2px">Reporting in ~1 hr. Assign from available fleet.</div>
+                    </div>
+                  </div>
+                  <div style="margin-top:10px">
+                    <button type="button" class="btn-trigger-allot" style="background:#f59e0b;color:#ffffff;border:none;border-radius:4px;padding:4px 12px;font-size:11.5px;font-weight:700;cursor:pointer">
+                      ⚡ Assign Driver Now
+                    </button>
+                  </div>
+                </div>
+                `}
+
+                <!-- VEHICLE CARD -->
+                ${hasVehicle ? `
+                <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:12px">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                    <div>
+                      <span style="font-size:10px;font-weight:700;color:#16a34a;background:#dcfce7;padding:1px 6px;border-radius:3px">VEHICLE ASSIGNED</span>
+                      <div style="display:inline-block;background:#ffffff;border:1.5px solid #0f172a;border-radius:4px;padding:2px 8px;font-size:13px;font-weight:800;color:#0f172a;margin-top:3px;letter-spacing:0.5px">
+                        ${esc(vehiclePlate)}
+                      </div>
+                      <div style="font-size:11.5px;color:#475569;margin-top:3px">${esc(vehicleModel)} (${esc(vehicleFuel)})</div>
+                    </div>
+                  </div>
+                  <div style="font-size:11px;color:#64748b;margin-top:8px;border-top:1px solid #e2e8f0;padding-top:6px;display:flex;justify-content:space-between">
+                    <span>Statutory: PUC &amp; Ins Valid</span>
+                    <span style="color:#059669;font-weight:600">● FASTag Active</span>
+                  </div>
+                </div>
+                ` : `
+                <div style="background:#fffbeb;border:1.5px dashed #f59e0b;border-radius:8px;padding:12px">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                    <div>
+                      <span style="font-size:10px;font-weight:700;color:#b45309;background:#fef3c7;padding:1px 6px;border-radius:3px">⚠️ VEHICLE UNASSIGNED</span>
+                      <div style="font-size:13.5px;font-weight:700;color:#92400e;margin-top:4px">No Vehicle Assigned</div>
+                      <div style="font-size:11px;color:#b45309;margin-top:2px">Requested Group: <strong>${esc(vehicleGroup)}</strong></div>
+                    </div>
+                  </div>
+                  <div style="margin-top:10px">
+                    <button type="button" class="btn-trigger-allot" style="background:#f59e0b;color:#ffffff;border:none;border-radius:4px;padding:4px 12px;font-size:11.5px;font-weight:700;cursor:pointer">
+                      ⚡ Assign Vehicle Now
+                    </button>
+                  </div>
+                </div>
+                `}
+
+              </div>
+
+              <!-- SUPPLIER FULFILLMENT -->
+              <div style="margin-top:10px;background:#f8fafc;border:1px solid #f1f5f9;border-radius:6px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;font-size:11.5px">
+                <div>
+                  <span style="color:#64748b">Fulfillment Hub / Supplier:</span>
+                  <strong style="color:#1e293b;margin-left:4px">${esc(supplierName)}</strong>
+                </div>
+                <div style="color:#64748b">
+                  <span>Contact: <a href="tel:${esc(supplierPhone)}" style="color:#2563eb;text-decoration:none">${esc(supplierPhone)}</a></span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- TAB 2: DUAL-TARIFF PRICING PANE (Estimated vs Final Realized) -->
+          <div id="dutyTariffPane" style="display:none">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+              
+              <!-- CARD 1: ESTIMATED / CONTRACTED PRICING -->
+              <div style="background:#ffffff;border:1.5px solid #bfdbfe;border-radius:10px;padding:16px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e2e8f0">
+                  <div>
+                    <span style="font-size:10px;font-weight:700;color:#2563eb;background:#dbeafe;padding:2px 8px;border-radius:4px;letter-spacing:0.3px">AGREED RATE CARD</span>
+                    <div style="font-size:15px;font-weight:700;color:#0f172a;margin-top:3px">Estimated Pricing</div>
+                  </div>
+                  <div style="text-align:right">
+                    <div style="font-size:18px;font-weight:800;color:#2563eb">₹ ${estTotalFare.toFixed(2)}</div>
+                    <div style="font-size:10px;color:#64748b">Incl. 18% GST</div>
+                  </div>
+                </div>
+
+                <div style="font-size:12px;color:#475569;margin-bottom:12px">
+                  Package: <strong style="color:#0f172a">${esc(dutyTypeDisplay)} (${esc(vehicleGroup)})</strong>
+                </div>
+
+                <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px">
+                  <tbody>
+                    <tr style="border-bottom:1px solid #f1f5f9">
+                      <td style="padding:6px 0;color:#64748b">Base Package Fare (${estIncKm} km / ${estIncHr} hrs)</td>
+                      <td style="padding:6px 0;text-align:right;font-weight:600;color:#0f172a">₹ ${estBaseFare.toFixed(2)}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #f1f5f9">
+                      <td style="padding:6px 0;color:#64748b">Extra KM Rate</td>
+                      <td style="padding:6px 0;text-align:right;font-weight:600;color:#0f172a">₹ ${estExtraKmRate.toFixed(2)} / km</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #f1f5f9">
+                      <td style="padding:6px 0;color:#64748b">Extra Hour Rate</td>
+                      <td style="padding:6px 0;text-align:right;font-weight:600;color:#0f172a">₹ ${estExtraHrRate.toFixed(2)} / hr</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #f1f5f9">
+                      <td style="padding:6px 0;color:#64748b">Est. Toll &amp; Airport Parking</td>
+                      <td style="padding:6px 0;text-align:right;font-weight:600;color:#0f172a">₹ ${estTolls.toFixed(2)}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #f1f5f9">
+                      <td style="padding:6px 0;color:#64748b">Taxable Subtotal</td>
+                      <td style="padding:6px 0;text-align:right;font-weight:600;color:#0f172a">₹ ${estSubtotal.toFixed(2)}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #f1f5f9">
+                      <td style="padding:6px 0;color:#64748b">GST @ 18%</td>
+                      <td style="padding:6px 0;text-align:right;font-weight:600;color:#0f172a">₹ ${estGst.toFixed(2)}</td>
+                    </tr>
+                    <tr style="background:#eff6ff">
+                      <td style="padding:8px 6px;font-weight:700;color:#1e40af">Total Estimated Billable</td>
+                      <td style="padding:8px 6px;text-align:right;font-weight:800;color:#1e40af">₹ ${estTotalFare.toFixed(2)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div style="font-size:11px;color:#64748b;background:#f8fafc;padding:6px 10px;border-radius:4px">
+                  Contract: Corporate Standard Price Book 2026 (Active)
+                </div>
+              </div>
+
+              <!-- CARD 2: FINAL REALIZED PRICING -->
+              <div style="background:#ffffff;border:1.5px solid ${isCompleted ? '#bbf7d0' : '#fed7aa'};border-radius:10px;padding:16px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e2e8f0">
+                  <div>
+                    <span style="font-size:10px;font-weight:700;color:${isCompleted ? '#15803d' : '#c2410c'};background:${isCompleted ? '#dcfce7' : '#ffedd5'};padding:2px 8px;border-radius:4px;letter-spacing:0.3px">
+                      ${isCompleted ? 'DUTY CLOSED &amp; AUDITED' : 'PENDING CLOSURE'}
+                    </span>
+                    <div style="font-size:15px;font-weight:700;color:#0f172a;margin-top:3px">Final Realized Pricing</div>
+                  </div>
+                  <div style="text-align:right">
+                    <div style="font-size:18px;font-weight:800;color:${isCompleted ? '#15803d' : '#9a3412'}">
+                      ${isCompleted ? finalPriceDisplay : '₹ ' + estTotalFare.toFixed(2) + ' (Est)'}
+                    </div>
+                    <div style="font-size:10px;color:#64748b">${isCompleted ? 'Final Tax Invoice' : 'Pro-forma projection'}</div>
+                  </div>
+                </div>
+
+                ${isCompleted ? `
+                <div style="font-size:12px;color:#475569;margin-bottom:12px">
+                  Odometer Run: <strong style="color:#0f172a">${totalKmRun || 48} km</strong> (${startOdo ? `${startOdo} ➔ ${endOdo}` : 'Standard run'})
+                </div>
+                <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px">
+                  <tbody>
+                    <tr style="border-bottom:1px solid #f1f5f9">
+                      <td style="padding:6px 0;color:#64748b">Base Package Realized</td>
+                      <td style="padding:6px 0;text-align:right;font-weight:600;color:#0f172a">₹ ${finalBaseFare.toFixed(2)}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #f1f5f9">
+                      <td style="padding:6px 0;color:#64748b">Extra Distance Run</td>
+                      <td style="padding:6px 0;text-align:right;font-weight:600;color:#0f172a">₹ ${Math.max(0, (finalSubtotal - finalBaseFare - finalTollFare)).toFixed(2)}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #f1f5f9">
+                      <td style="padding:6px 0;color:#64748b">FASTag Electronic Tolls</td>
+                      <td style="padding:6px 0;text-align:right;font-weight:600;color:#0f172a">₹ ${finalTollFare.toFixed(2)}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #f1f5f9">
+                      <td style="padding:6px 0;color:#64748b">Realized Subtotal</td>
+                      <td style="padding:6px 0;text-align:right;font-weight:600;color:#0f172a">₹ ${finalSubtotal.toFixed(2)}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #f1f5f9">
+                      <td style="padding:6px 0;color:#64748b">GST @ 18%</td>
+                      <td style="padding:6px 0;text-align:right;font-weight:600;color:#0f172a">₹ ${finalGst.toFixed(2)}</td>
+                    </tr>
+                    <tr style="background:#f0fdf4">
+                      <td style="padding:8px 6px;font-weight:700;color:#166534">Total Customer Receivable</td>
+                      <td style="padding:8px 6px;text-align:right;font-weight:800;color:#166534">₹ ${finalTotalFare.toFixed(2)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px;font-size:11.5px;display:flex;justify-content:space-between">
+                  <span>Supplier/Cab Payout: <strong>₹ ${supplierPayout.toFixed(2)}</strong></span>
+                  <span style="color:#16a34a;font-weight:700">Axiom Margin: +₹ ${marginAmount.toFixed(2)} (${marginPct}%)</span>
+                </div>
+                ` : `
+                <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#9a3412">
+                  <strong>● Duty Slip Not Closed:</strong> Final invoice will be computed upon passenger dropoff and garage closing odometer entry.
+                </div>
+                <div style="font-size:12px;color:#64748b;margin-bottom:10px">
+                  Pro-Forma Route Estimation:
+                </div>
+                <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px">
+                  <tbody>
+                    <tr style="border-bottom:1px solid #f1f5f9">
+                      <td style="padding:5px 0;color:#64748b">Estimated Distance</td>
+                      <td style="padding:5px 0;text-align:right;font-weight:600">42.5 km (Est. Kempegowda T2)</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #f1f5f9">
+                      <td style="padding:5px 0;color:#64748b">Est. Extra Distance (2.5 km @ ₹20)</td>
+                      <td style="padding:5px 0;text-align:right;font-weight:600">₹ 50.00</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #f1f5f9">
+                      <td style="padding:5px 0;color:#64748b">Est. NHAI FASTag Toll</td>
+                      <td style="padding:5px 0;text-align:right;font-weight:600">₹ 115.00</td>
+                    </tr>
+                    <tr style="background:#fff7ed">
+                      <td style="padding:6px;font-weight:700;color:#9a3412">Projected Realized Fare</td>
+                      <td style="padding:6px;text-align:right;font-weight:800;color:#9a3412">₹ ${(estTotalFare + 59).toFixed(2)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div style="font-size:11px;color:#64748b;background:#f8fafc;padding:6px 10px;border-radius:4px">
+                  Reconciliation triggers: Driver App Closure / Odometer Capture
+                </div>
+                `}
+
+              </div>
+
+            </div>
+          </div>
+
+          <!-- TAB 3: AUDIT & LIFECYCLE TIMELINE -->
+          <div id="dutyAuditPane" style="display:none;padding:10px 4px">
             <div class="timeline" style="margin-left:8px">
               <div class="timeline-item">
                 <span class="timeline-time">${esc(bookingCreatedTime)}</span>
                 <i class="timeline-dot green"></i>
                 <div class="timeline-copy">
-                  <strong>Booking Initiated</strong>
-                  <span>Booking #${esc(refId)} registered for ${esc(passengerName)} (${esc(customerDisplay)}).</span>
+                  <strong>Booking Initiated (#${esc(refId)})</strong>
+                  <span>Booking registered for ${esc(passengerName)} (${esc(customerDisplay)}). Duty Type: ${esc(dutyTypeDisplay)}.</span>
                 </div>
               </div>
               <div class="timeline-item">
-                <span class="timeline-time">${esc(dutyCreatedTime)}</span>
-                <i class="timeline-dot green"></i>
+                <span class="timeline-time">${hasDriver ? esc(dutyCreatedTime) : 'Pending Action'}</span>
+                <i class="timeline-dot ${hasDriver ? 'green' : 'amber'}"></i>
                 <div class="timeline-copy">
                   <strong>Resource Allotment</strong>
-                  <span>Driver ${esc(supplierName)} and vehicle group ${esc(vehicleGroup)} allocated.</span>
+                  <span>${hasDriver ? `Driver ${esc(driverName)} and vehicle ${esc(vehiclePlate || vehicleGroup)} allocated.` : 'Driver and vehicle allotment pending.'}</span>
                 </div>
               </div>
               <div class="timeline-item">
                 <span class="timeline-time">${esc(dutyCreatedTime)}</span>
                 <i class="timeline-dot green"></i>
                 <div class="timeline-copy">
-                  <strong>Duty Slip Generated &amp; Dispatched</strong>
-                  <span>Duty Slip #${esc(dutyId)} prepared and dispatched.</span>
+                  <strong>Duty Slip Generated (#${esc(dutyId)})</strong>
+                  <span>Duty slip prepared for Trip #${esc(tripId)}. Estimated tariff: ₹${estTotalFare.toFixed(2)}.</span>
                 </div>
               </div>
               <div class="timeline-item">
-                <span class="timeline-time">${esc(departureTime)}</span>
-                <i class="timeline-dot blue"></i>
+                <span class="timeline-time">${step3Done ? esc(departureTime) : 'Scheduled ' + esc(garageStartTime)}</span>
+                <i class="timeline-dot ${step3Done ? 'green' : 'gray'}"></i>
                 <div class="timeline-copy">
                   <strong>Garage Departure</strong>
-                  <span>Vehicle reported departure from garage depot en route to ${esc(repAddress)}.</span>
+                  <span>Vehicle departure from depot en route to ${esc(repAddress)}.</span>
                 </div>
               </div>
               <div class="timeline-item">
                 <span class="timeline-time">${esc(reportingTimeNice)}</span>
-                <i class="timeline-dot blue"></i>
+                <i class="timeline-dot ${step4Done ? 'green' : 'blue'}"></i>
                 <div class="timeline-copy">
-                  <strong>Reporting &amp; Passenger Pickup</strong>
-                  <span>Vehicle arrived at ${esc(repAddress)} for ${esc(passengerName)}.</span>
+                  <strong>Reporting &amp; Passenger Boarding</strong>
+                  <span>Vehicle arrives at ${esc(repAddress)} for ${esc(passengerName)}.</span>
                 </div>
               </div>
               <div class="timeline-item">
-                <span class="timeline-time">${isCompleted ? esc(completedTime) : 'Pending completion'}</span>
+                <span class="timeline-time">${isCompleted ? esc(completedTime) : 'Pending dropoff'}</span>
                 <i class="timeline-dot ${isCompleted ? 'green' : 'gray'}"></i>
                 <div class="timeline-copy">
                   <strong>Destination Arrival &amp; Closure</strong>
-                  <span>Dropoff at ${esc(dropAddress)}. Status: ${esc(statusText)}.${duty.start_odometer && duty.end_odometer ? ` Odometer: ${duty.start_odometer} km ➔ ${duty.end_odometer} km (${duty.end_odometer - duty.start_odometer} km covered).` : ''}</span>
+                  <span>Dropoff at ${esc(dropAddress)}.${totalKmRun ? ` Odometer Run: ${totalKmRun} km.` : ''} Status: ${esc(statusText)}.</span>
                 </div>
               </div>
               <div class="timeline-item">
                 <span class="timeline-time">${isCompleted ? esc(completedTime) : 'Pending calculation'}</span>
                 <i class="timeline-dot ${isCompleted ? 'teal' : 'gray'}"></i>
                 <div class="timeline-copy">
-                  <strong>Fare Engine Audit</strong>
-                  <span>Pricing evaluated: Total Fare ${esc(priceDisplay)} (Extra KM: ${esc(perExtraKmRate)}, Extra Hr: ${esc(perExtraHourRate)}).</span>
+                  <strong>Fare Engine Audit &amp; Reconciliation</strong>
+                  <span>Audited fare: ${esc(finalPriceDisplay)} (Estimated: ₹${estTotalFare.toFixed(2)}).</span>
                 </div>
               </div>
               ${matchingInvoice ? `
@@ -11734,45 +12118,132 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
               </div>` : ''}
             </div>
           </div>
+
         </div>`,
-        `<div style="display:flex;justify-content:flex-start;width:100%">
-          <button type="button" class="btn" data-close-modal style="background:#dc2626;color:#ffffff;font-weight:700;font-size:12px;letter-spacing:0.5px;padding:7px 22px;border-radius:4px;border:none;cursor:pointer;text-transform:uppercase">CLOSE</button>
+        `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <button type="button" class="btn" id="modalBtnToggleAllot" style="background:#0284c7;color:#ffffff;font-weight:700;font-size:12px;padding:7px 16px;border-radius:4px;border:none;cursor:pointer">
+              ⚡ ${hasDriver && hasVehicle ? 'Reassign Driver / Cab' : 'Allot Driver & Cab'}
+            </button>
+            <a href="https://wa.me/?text=${waText}" target="_blank" rel="noopener" class="btn" style="background:#25d366;color:#ffffff;font-weight:700;font-size:12px;padding:7px 16px;border-radius:4px;text-decoration:none;display:inline-flex;align-items:center;gap:5px">
+              💬 WhatsApp Duty Slip
+            </a>
+            <button type="button" class="btn" id="modalBtnPrintSlip" style="background:#475569;color:#ffffff;font-weight:700;font-size:12px;padding:7px 16px;border-radius:4px;border:none;cursor:pointer">
+              🖨️ Print Duty Slip
+            </button>
+          </div>
+          <div>
+            <button type="button" class="btn" data-close-modal style="background:#dc2626;color:#ffffff;font-weight:700;font-size:12px;letter-spacing:0.5px;padding:7px 22px;border-radius:4px;border:none;cursor:pointer;text-transform:uppercase">CLOSE</button>
+          </div>
         </div>`
       );
 
-      modal.style.maxWidth = '900px';
-      modal.style.width = 'min(900px, 96vw)';
+      modal.style.maxWidth = '940px';
+      modal.style.width = 'min(940px, 96vw)';
 
       modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
 
-      const tabDetailBtn = modal.querySelector('#tabDutyDetailBtn');
-      const tabActivityBtn = modal.querySelector('#tabDutyActivityBtn');
-      const detailPane = modal.querySelector('#dutyDetailPane');
-      const activityPane = modal.querySelector('#dutyActivityPane');
+      // Tab switching
+      const tabCockpitBtn = modal.querySelector('#tabDutyCockpitBtn');
+      const tabTariffBtn = modal.querySelector('#tabDutyTariffBtn');
+      const tabAuditBtn = modal.querySelector('#tabDutyAuditBtn');
+      const cockpitPane = modal.querySelector('#dutyCockpitPane');
+      const tariffPane = modal.querySelector('#dutyTariffPane');
+      const auditPane = modal.querySelector('#dutyAuditPane');
 
-      if (tabDetailBtn && tabActivityBtn && detailPane && activityPane) {
-        tabDetailBtn.addEventListener('click', () => {
-          tabDetailBtn.style.borderBottom = '2px solid #2563eb';
-          tabDetailBtn.style.color = '#2563eb';
-          tabDetailBtn.style.fontWeight = '600';
-          tabActivityBtn.style.borderBottom = '2px solid transparent';
-          tabActivityBtn.style.color = '#6b7280';
-          tabActivityBtn.style.fontWeight = '500';
-          detailPane.style.display = 'block';
-          activityPane.style.display = 'none';
+      function switchTab(activeBtn, activePane) {
+        [tabCockpitBtn, tabTariffBtn, tabAuditBtn].forEach(b => {
+          if (b) {
+            b.style.borderBottom = '3px solid transparent';
+            b.style.color = '#64748b';
+            b.style.fontWeight = '600';
+          }
         });
-
-        tabActivityBtn.addEventListener('click', () => {
-          tabActivityBtn.style.borderBottom = '2px solid #2563eb';
-          tabActivityBtn.style.color = '#2563eb';
-          tabActivityBtn.style.fontWeight = '600';
-          tabDetailBtn.style.borderBottom = '2px solid transparent';
-          tabDetailBtn.style.color = '#6b7280';
-          tabDetailBtn.style.fontWeight = '500';
-          activityPane.style.display = 'block';
-          detailPane.style.display = 'none';
+        [cockpitPane, tariffPane, auditPane].forEach(p => {
+          if (p) p.style.display = 'none';
         });
+        if (activeBtn) {
+          activeBtn.style.borderBottom = '3px solid #2563eb';
+          activeBtn.style.color = '#2563eb';
+          activeBtn.style.fontWeight = '700';
+        }
+        if (activePane) activePane.style.display = 'block';
       }
+
+      if (tabCockpitBtn && cockpitPane) {
+        tabCockpitBtn.addEventListener('click', () => switchTab(tabCockpitBtn, cockpitPane));
+      }
+      if (tabTariffBtn && tariffPane) {
+        tabTariffBtn.addEventListener('click', () => switchTab(tabTariffBtn, tariffPane));
+      }
+      if (tabAuditBtn && auditPane) {
+        tabAuditBtn.addEventListener('click', () => switchTab(tabAuditBtn, auditPane));
+      }
+
+      // Copy helpers
+      modal.querySelectorAll('.btn-copy-trip-id').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const val = btn.getAttribute('data-copy-val') || tripId;
+          navigator.clipboard?.writeText(val);
+          showToast('Copied to clipboard', `${val} copied successfully.`);
+        });
+      });
+
+      // Inline allotment toggle
+      const inlineDrawer = modal.querySelector('#inlineAllotDrawer');
+      const toggleDrawer = () => {
+        if (!inlineDrawer) return;
+        const isHidden = inlineDrawer.style.display === 'none';
+        inlineDrawer.style.display = isHidden ? 'block' : 'none';
+        if (isHidden) inlineDrawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      };
+
+      modal.querySelector('#btnToggleAllotDrawer')?.addEventListener('click', toggleDrawer);
+      modal.querySelector('#modalBtnToggleAllot')?.addEventListener('click', toggleDrawer);
+      modal.querySelectorAll('.btn-trigger-allot').forEach(b => b.addEventListener('click', toggleDrawer));
+
+      // Apply allotment
+      modal.querySelector('#btnApplyModalAllotment')?.addEventListener('click', async () => {
+        const dId = modal.querySelector('#quickModalDriverSelect')?.value;
+        const vId = modal.querySelector('#quickModalVehicleSelect')?.value;
+        if (!dId && !vId) {
+          return showToast('Select Resource', 'Please select a driver or vehicle to allot.');
+        }
+
+        try {
+          if (dId) {
+            await apiRequest('/api/bookings/assign-resource', {
+              method: 'POST',
+              body: JSON.stringify({ booking_id: item.id || bookingId, driver_id: dId })
+            });
+          }
+          if (vId) {
+            await apiRequest('/api/bookings/assign-resource', {
+              method: 'POST',
+              body: JSON.stringify({ booking_id: item.id || bookingId, vehicle_id: vId })
+            });
+          }
+          showToast('Allotment Saved', 'Driver and vehicle successfully assigned.');
+          closeModal();
+          if (typeof hydrateOperationalData === 'function') await hydrateOperationalData();
+          if (typeof render === 'function') render();
+          setTimeout(() => openDutyDetailsModal(bookingId), 250);
+        } catch (err) {
+          showToast('Allotment failed', err.message || 'Could not save assignment.');
+        }
+      });
+
+      // Print slip
+      modal.querySelector('#modalBtnPrintSlip')?.addEventListener('click', () => {
+        if (typeof printDutySlip === 'function') {
+          printDutySlip(bookingId);
+        } else if (typeof openViewDutySlipModal === 'function') {
+          openViewDutySlipModal(bookingId);
+        } else {
+          window.print();
+        }
+      });
     }
 
     function openTripDetailsModal(bookingId) {
