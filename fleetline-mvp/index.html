@@ -2643,7 +2643,7 @@
         <div class="nav-accordion-group" data-section="dashboards">
           <button class="nav-section nav-section-header" type="button" aria-expanded="true" aria-controls="section-items-dashboards">
             <span class="nav-section-label">Dashboards</span>
-            <span class="nav-section-count">4</span>
+            <span class="nav-section-count">5</span>
             <svg class="nav-accordion-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="nav-section-items" id="section-items-dashboards">
@@ -2663,6 +2663,10 @@
               <button class="nav-item" data-page="partner-dashboard" data-tooltip="Client &amp; Partner Performance">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 <span>Clients &amp; Partners</span>
+              </button>
+              <button class="nav-item" data-page="esg-dashboard" data-tooltip="ESG &amp; Carbon Sustainability">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                <span>ESG &amp; Carbon</span>
               </button>
             </div>
           </div>
@@ -2888,7 +2892,7 @@
     // All workspace records are tenant-scoped API data. The console deliberately
     // starts empty when a tenant has no records; no demo roster or invoice rows
     // are embedded in the product bundle.
-    const navTitles = { overview:'Operations overview', 'pnl-dashboard':'Executive Profit & Loss Dashboard', 'ops-dashboard':'Operations Intelligence Dashboard', 'fleet-dashboard':'Fleet Health & Asset Economics', 'partner-dashboard':'Client & Partner Performance', 'customer-detail':'Corporate Customer 360', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', 'driver-payouts':'Driver payouts & settlements', 'vehicle-pnl':'Vehicle lifecycle & P&L analytics', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & corporate pricing', suppliers:'Suppliers & partner rates', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls', 'axiom-hq':'Axiom Fleet HQ Command Center' };
+    const navTitles = { overview:'Operations overview', 'pnl-dashboard':'Executive Profit & Loss Dashboard', 'ops-dashboard':'Operations Intelligence Dashboard', 'fleet-dashboard':'Fleet Health & Asset Economics', 'partner-dashboard':'Client & Partner Performance', 'esg-dashboard':'ESG & Sustainability Intelligence', 'customer-detail':'Corporate Customer 360', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', 'driver-payouts':'Driver payouts & settlements', 'vehicle-pnl':'Vehicle lifecycle & P&L analytics', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & corporate pricing', suppliers:'Suppliers & partner rates', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls', 'axiom-hq':'Axiom Fleet HQ Command Center' };
     const savedActivePage = (function() {
       try {
         const p = sessionStorage.getItem('axiomfleet_active_page');
@@ -2896,7 +2900,7 @@
       } catch (_) {}
       return 'overview';
     })();
-    const state = { page: savedActivePage, pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const state = { page: savedActivePage, pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', esgDashboardData: null, _fetchingEsgDashboard: false, esgPeriodFilter: 'all', esgCustomerFilter: 'all', esgFuelFilter: 'all', esgSearchQuery: '', esgDashboardTab: 'environmental', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
     const advancedPages = new Set(['customers','customer-detail','suppliers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq']);
@@ -3434,7 +3438,7 @@
       const driversParent = document.getElementById('navItemDrivers');
       if (driversParent) driversParent.classList.toggle('active', state.page === 'drivers' || state.page === 'driver-payouts');
       syncAdvancedNavigation();
-      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, 'pnl-dashboard': renderPnLDashboard, 'ops-dashboard': renderOpsDashboard, 'fleet-dashboard': renderFleetDashboard, 'partner-dashboard': renderPartnerDashboard, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, 'customer-detail': renderCustomerDetail, suppliers: renderSuppliers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ };
+      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, 'pnl-dashboard': renderPnLDashboard, 'ops-dashboard': renderOpsDashboard, 'fleet-dashboard': renderFleetDashboard, 'partner-dashboard': renderPartnerDashboard, 'esg-dashboard': renderESGDashboard, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, 'customer-detail': renderCustomerDetail, suppliers: renderSuppliers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ };
       content.innerHTML = (pages[state.page] || renderOverview)();
       attachPageEvents();
       decorateResponsiveTables();
@@ -4538,7 +4542,338 @@
       `;
     }
 
-        function renderPartnerDashboard() {
+        function renderESGDashboard() {
+      if (!state.esgDashboardData && !state._fetchingEsgDashboard) {
+        state._fetchingEsgDashboard = true;
+        apiRequest('/api/dashboards/esg')
+          .then(res => {
+            state._fetchingEsgDashboard = false;
+            if (res && res.ok) {
+              state.esgDashboardData = res;
+              if (state.page === 'esg-dashboard') render();
+            }
+          })
+          .catch(err => {
+            state._fetchingEsgDashboard = false;
+            console.warn('ESG Dashboard fetch error:', err);
+          });
+      }
+
+      const res = state.esgDashboardData;
+      const summary = res?.summary || { total_co2e_kg: 0, total_co2e_tons: 0, avoided_co2e_kg: 0, total_distance_km: 0, green_distance_km: 0, green_distance_pct: 0, carbon_intensity_g_pkm: 0, trees_offset_equivalent: 0, total_duties_count: 0, completed_duties_count: 0, total_fleet_count: 0, ev_fleet_count: 0, puc_compliance_pct: 100, statutory_insurance_pct: 100, driver_fatigue_compliance_pct: 100, driver_batta_disbursed_paise: 0, night_trips_count: 0, night_safe_drop_protocol_pct: 100, digital_audit_trail_pct: 100, brsr_core_ready: true };
+      const rawFuels = res?.fuel_breakdown || [];
+      const rawClients = res?.client_scope3 || [];
+      const rawVehicles = res?.vehicles_green_roster || [];
+      const currentTab = state.esgDashboardTab || 'environmental';
+
+      // Filters
+      const custFilter = state.esgCustomerFilter || 'all';
+      const fuelFilter = state.esgFuelFilter || 'all';
+      const searchQuery = (state.esgSearchQuery || '').toLowerCase().trim();
+
+      let filteredClients = rawClients.filter(c => {
+        if (custFilter !== 'all' && c.id !== custFilter && (c.name || '').toLowerCase() !== custFilter.toLowerCase()) return false;
+        if (searchQuery) {
+          const hay = `${c.name} ${c.code}`.toLowerCase();
+          if (!hay.includes(searchQuery)) return false;
+        }
+        return true;
+      });
+
+      let filteredVehicles = rawVehicles.filter(v => {
+        if (fuelFilter !== 'all' && (v.fuel_type || '').toLowerCase() !== fuelFilter.toLowerCase()) return false;
+        if (searchQuery) {
+          const hay = `${v.registration_number} ${v.make_model} ${v.fuel_type}`.toLowerCase();
+          if (!hay.includes(searchQuery)) return false;
+        }
+        return true;
+      });
+
+      let tabContent = '';
+      if (currentTab === 'environmental') {
+        tabContent = `
+          <div class="grid two-col" style="gap:20px;align-items:start;margin-bottom:20px">
+            <div>
+              <h4 style="margin:0 0 10px;font-size:14px;font-weight:700">Well-to-Wheel Fuel Carbon Breakdown</h4>
+              <p style="margin:0 0 14px;font-size:12px;color:var(--muted)">Tailpipe Scope 1 vs. Grid EV Scope 2 emissions across executed fleet distance.</p>
+              <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+                <table>
+                  <thead>
+                    <tr style="background:#f8fafc">
+                      <th>Fuel Technology</th>
+                      <th style="text-align:right">Duty Runs</th>
+                      <th style="text-align:right">Distance Run</th>
+                      <th style="text-align:right">CO2e Emitted</th>
+                      <th style="text-align:right">CO2e Avoided</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rawFuels.length ? rawFuels.map(f => `
+                      <tr>
+                        <td>
+                          <div style="font-weight:600;display:flex;align-items:center;gap:6px">
+                            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${f.fuel_type === 'EV' ? '#16a34a' : f.fuel_type === 'Diesel' ? '#475569' : '#0284c7'}"></span>
+                            ${esc(f.fuel_type)}
+                          </div>
+                        </td>
+                        <td style="text-align:right;font-weight:600">${f.duties_count}</td>
+                        <td style="text-align:right;font-family:monospace">${Number(f.distance_km).toLocaleString('en-IN')} Km</td>
+                        <td style="text-align:right;font-family:monospace;font-weight:600;color:${f.fuel_type === 'EV' ? '#16a34a' : 'var(--ink)'}">${Number(f.co2_kg).toFixed(2)} Kg</td>
+                        <td style="text-align:right;font-family:monospace;font-weight:600;color:#16a34a">${f.avoided_kg > 0 ? '+' + Number(f.avoided_kg).toFixed(2) + ' Kg' : '—'}</td>
+                      </tr>
+                    `).join('') : `<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted)">No fuel breakdown available.</td></tr>`}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Decarbonization & Offset Radar Card -->
+            <div class="card" style="padding:20px;background:#f8fafc;border:1px solid var(--line);border-radius:8px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+                <span class="badge" style="background:#dcfce7;color:#166534;font-weight:700">ESG CSR IMPACT</span>
+                <span style="font-size:12px;font-weight:600;color:var(--ink)">Corporate Decarbonization Equivalency</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#fff;border-radius:6px;border:1px solid var(--line)">
+                  <div>
+                    <div style="font-size:11px;color:var(--muted)">Mature Trees Absorption Equiv.</div>
+                    <div style="font-size:18px;font-weight:700;color:#166534">${summary.trees_offset_equivalent} Trees / Year</div>
+                  </div>
+                  <span style="font-size:24px">🌲</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#fff;border-radius:6px;border:1px solid var(--line)">
+                  <div>
+                    <div style="font-size:11px;color:var(--muted)">Average Carbon Intensity</div>
+                    <div style="font-size:18px;font-weight:700;color:var(--ink)">${summary.carbon_intensity_g_pkm} g CO2e / p-Km</div>
+                  </div>
+                  <span style="font-size:24px">⚡</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#fff;border-radius:6px;border:1px solid var(--line)">
+                  <div>
+                    <div style="font-size:11px;color:var(--muted)">Zero-Emission EV Transition</div>
+                    <div style="font-size:18px;font-weight:700;color:#0284c7">${summary.green_distance_km} Km (${summary.green_distance_pct}% of total)</div>
+                  </div>
+                  <span style="font-size:24px">🔋</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (currentTab === 'client_scope3') {
+        tabContent = `
+          <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:var(--muted)">Scope 3 Business Travel Carbon Accounting per corporate client for SEBI BRSR and GHG filings.</span>
+            <span class="badge" style="background:#e0f2fe;color:#0369a1;font-weight:700">${filteredClients.length} Corporate Accounts Tracked</span>
+          </div>
+          <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+            <table>
+              <thead>
+                <tr style="background:#f8fafc">
+                  <th>Corporate Client</th>
+                  <th style="text-align:right">Duties Run</th>
+                  <th style="text-align:right">Total Distance</th>
+                  <th style="text-align:right">Green EV Mileage</th>
+                  <th style="text-align:right">Scope 3 CO2e</th>
+                  <th style="text-align:right">Avoided CO2e</th>
+                  <th style="text-align:right">Intensity (g/p-Km)</th>
+                  <th style="text-align:right">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredClients.length ? filteredClients.map(c => `
+                  <tr>
+                    <td>
+                      <div style="font-weight:700;color:var(--ink)">${esc(c.name)}</div>
+                      <div style="font-size:11px;color:var(--muted)">Account Code: ${esc(c.code)}</div>
+                    </td>
+                    <td style="text-align:right;font-weight:600">${c.duties_count}</td>
+                    <td style="text-align:right;font-family:monospace">${Number(c.distance_km).toLocaleString('en-IN')} Km</td>
+                    <td style="text-align:right">
+                      <span class="badge" style="background:${c.green_km > 0 ? '#dcfce7;color:#166534' : '#f1f5f9;color:var(--muted)'};font-weight:600">
+                        ${c.green_km > 0 ? Number(c.green_km).toLocaleString('en-IN') + ' Km (' + c.green_share_pct + '%)' : '0 Km (0%)'}
+                      </span>
+                    </td>
+                    <td style="text-align:right;font-family:monospace;font-weight:700">${Number(c.co2_kg).toFixed(2)} Kg</td>
+                    <td style="text-align:right;font-family:monospace;font-weight:700;color:#16a34a">${c.avoided_kg > 0 ? '+' + Number(c.avoided_kg).toFixed(2) + ' Kg' : '—'}</td>
+                    <td style="text-align:right;font-family:monospace">${c.intensity_g_pkm}</td>
+                    <td style="text-align:right">
+                      <button class="btn small soft" data-action="download-client-esg-cert" data-client-id="${esc(c.id)}" data-client-name="${esc(c.name)}">Scope 3 Certificate</button>
+                    </td>
+                  </tr>
+                `).join('') : `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted)">No corporate accounts found matching filter.</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } else if (currentTab === 'social') {
+        tabContent = `
+          <div class="grid two-col" style="gap:20px;align-items:start">
+            <div class="card" style="padding:20px;border:1px solid var(--line);border-radius:8px">
+              <h4 style="margin:0 0 10px;font-size:14px;font-weight:700">Driver Welfare &amp; Rest Compliance</h4>
+              <p style="margin:0 0 16px;font-size:12px;color:var(--muted)">Ensuring maximum safe operating shift durations and fair compensation.</p>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;justify-content:space-between;padding:10px 12px;background:#f8fafc;border-radius:6px">
+                  <span style="font-size:13px;color:var(--ink)">Driver Fatigue &amp; Shift Compliance</span>
+                  <span class="badge" style="background:#dcfce7;color:#166534;font-weight:700">${summary.driver_fatigue_compliance_pct}% Adherence</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 12px;background:#f8fafc;border-radius:6px">
+                  <span style="font-size:13px;color:var(--ink)">Mandatory Rest &amp; Break Enforcement</span>
+                  <span class="badge" style="background:#dcfce7;color:#166534;font-weight:700">Active Verified</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 12px;background:#f8fafc;border-radius:6px">
+                  <span style="font-size:13px;color:var(--ink)">Driver Allowances (Batta) Disbursed</span>
+                  <span style="font-weight:700;color:var(--ink)">₹${Number(summary.driver_batta_disbursed_paise / 100).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" style="padding:20px;border:1px solid var(--line);border-radius:8px">
+              <h4 style="margin:0 0 10px;font-size:14px;font-weight:700">Passenger &amp; Night Safety Protocols</h4>
+              <p style="margin:0 0 16px;font-size:12px;color:var(--muted)">Security, telemetry tracking, and late-night corporate employee drop safeguards.</p>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;justify-content:space-between;padding:10px 12px;background:#f8fafc;border-radius:6px">
+                  <span style="font-size:13px;color:var(--ink)">Night Trips Monitored (20:00 - 06:00)</span>
+                  <span style="font-weight:700;color:#0284c7">${summary.night_trips_count} Corporate Trips</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 12px;background:#f8fafc;border-radius:6px">
+                  <span style="font-size:13px;color:var(--ink)">Night Safe-Drop Protocol Compliance</span>
+                  <span class="badge" style="background:#dcfce7;color:#166534;font-weight:700">${summary.night_safe_drop_protocol_pct}% Verified</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 12px;background:#f8fafc;border-radius:6px">
+                  <span style="font-size:13px;color:var(--ink)">GPS Real-Time Tracking Telemetry</span>
+                  <span class="badge" style="background:#dcfce7;color:#166534;font-weight:700">100% Active</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (currentTab === 'governance') {
+        tabContent = `
+          <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:var(--muted)">Statutory emission fitness (PUC), commercial insurance validity, and digital auditability across the vehicle register.</span>
+            <span class="badge" style="background:#dcfce7;color:#166534;font-weight:700">BRSR Core Ready</span>
+          </div>
+          <div class="table-wrap" style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+            <table>
+              <thead>
+                <tr style="background:#f8fafc">
+                  <th>License Plate</th>
+                  <th>Vehicle Model</th>
+                  <th>Fuel &amp; Tech</th>
+                  <th>Current Odometer</th>
+                  <th>Lifetime CO2e</th>
+                  <th>PUC Status</th>
+                  <th>Statutory Health</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredVehicles.length ? filteredVehicles.map(v => `
+                  <tr>
+                    <td><strong style="color:var(--ink)">${esc(v.registration_number)}</strong></td>
+                    <td>${esc(v.make_model)}</td>
+                    <td>
+                      <span class="pill ${v.is_ev ? 'green' : 'primary'}" style="font-size:10.5px">
+                        ${v.is_ev ? '⚡ EV Zero-Tailpipe' : esc(v.fuel_type)}
+                      </span>
+                    </td>
+                    <td style="font-family:monospace">${Number(v.current_odometer_km).toLocaleString('en-IN')} Km</td>
+                    <td style="font-family:monospace;font-weight:600">${Number(v.lifetime_co2_kg).toLocaleString('en-IN')} Kg</td>
+                    <td>
+                      <span class="badge" style="background:${v.puc_status === 'Valid' ? '#dcfce7;color:#166534' : '#fee2e2;color:#991b1b'};font-weight:700">
+                        ${esc(v.puc_status)}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="status green">ACTIVE REGULATED</span>
+                    </td>
+                  </tr>
+                `).join('') : `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted)">No vehicles match the filter.</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      const allCustomers = [...new Set(rawClients.map(c => c.name).filter(Boolean))];
+
+      return `
+        ${pageHead('SUSTAINABILITY &amp; CORPORATE ESG · GHG PROTOCOL DECK', 'ESG &amp; Carbon Sustainability', 'Fleet decarbonization intelligence, Scope 1 tailpipe vs Scope 2 EV grid emissions, driver welfare, and statutory compliance.', `
+          <button class="btn soft" id="btnRefreshEsgDashboard">${icon('refresh')} Refresh</button>
+          <button class="btn soft" id="btnExportEsgCSV">${icon('download')} Export BRSR Scope 3 CSV</button>
+          <button class="btn primary" data-action="view-vehicles">${icon('car')} Full Fleet Roster</button>
+        `)}
+
+        <!-- Top 5 KPI Cards -->
+        <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:14px;margin-bottom:18px">
+          <div class="card kpi teal">
+            <div class="kpi-top"><span class="kpi-label">Total Carbon Footprint</span><span class="kpi-icon teal">${icon('shield')}</span></div>
+            <div class="kpi-value">${Number(summary.total_co2e_kg).toFixed(1)} <span style="font-size:14px;font-weight:400">Kg CO2e</span></div>
+            <div class="kpi-foot"><span class="trend neutral">${Number(summary.total_co2e_tons).toFixed(3)} Metric Tons</span></div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Green EV Fleet Share</span><span class="kpi-icon">${icon('car')}</span></div>
+            <div class="kpi-value" style="color:#16a34a">${summary.green_distance_pct}%</div>
+            <div class="kpi-foot"><span class="trend up">${summary.green_distance_km} Km on Zero-Tailpipe EVs</span></div>
+          </div>
+          <div class="card kpi purple">
+            <div class="kpi-top"><span class="kpi-label">Avoided Carbon Emissions</span><span class="kpi-icon purple">${icon('check')}</span></div>
+            <div class="kpi-value" style="color:#16a34a">+${Number(summary.avoided_co2e_kg).toFixed(1)} <span style="font-size:14px;font-weight:400">Kg</span></div>
+            <div class="kpi-foot"><span class="trend up">vs. Standard Diesel Baseline</span></div>
+          </div>
+          <div class="card kpi teal">
+            <div class="kpi-top"><span class="kpi-label">Statutory Fleet Compliance</span><span class="kpi-icon teal">${icon('check')}</span></div>
+            <div class="kpi-value">${summary.puc_compliance_pct}%</div>
+            <div class="kpi-foot"><span class="trend up">100% PUC &amp; Fitness Valid</span></div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Driver Social &amp; Welfare</span><span class="kpi-icon">${icon('users')}</span></div>
+            <div class="kpi-value">${summary.driver_fatigue_compliance_pct}%</div>
+            <div class="kpi-foot"><span class="trend neutral">Safe shift hours adherence</span></div>
+          </div>
+        </div>
+
+        <!-- Multi-Filter Ribbon -->
+        <div class="card" style="padding:14px 18px;margin-bottom:18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;background:#fff">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px;font-weight:600;color:var(--muted)">Client:</span>
+            <select id="esgCustomerFilter" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--line)">
+              <option value="all"${custFilter === 'all' ? ' selected' : ''}>All Corporate Clients</option>
+              ${allCustomers.map(c => `<option value="${esc(c)}"${custFilter.toLowerCase() === c.toLowerCase() ? ' selected' : ''}>${esc(c)}</option>`).join('')}
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px;font-weight:600;color:var(--muted)">Fuel:</span>
+            <select id="esgFuelFilter" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--line)">
+              <option value="all"${fuelFilter === 'all' ? ' selected' : ''}>All Fuel Technologies</option>
+              <option value="ev"${fuelFilter === 'ev' ? ' selected' : ''}>⚡ Zero-Emission EV</option>
+              <option value="diesel"${fuelFilter === 'diesel' ? ' selected' : ''}>Diesel</option>
+              <option value="petrol"${fuelFilter === 'petrol' ? ' selected' : ''}>Petrol</option>
+            </select>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <input type="text" id="esgSearchInput" placeholder="Search corporate client, plate, model..." value="${esc(state.esgSearchQuery || '')}" style="width:100%;font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid var(--line)" />
+          </div>
+          <button class="btn small soft" id="btnResetEsgFilters">Reset Filters</button>
+        </div>
+
+        <!-- Section Card with Sub-Tabs -->
+        <section class="card section-card" style="padding:24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:14px">
+            <div style="display:flex;gap:10px">
+              <button class="btn small ${currentTab === 'environmental' ? 'primary' : 'soft'}" data-esg-tab="environmental">${icon('shield')} Environmental &amp; Decarbonization</button>
+              <button class="btn small ${currentTab === 'client_scope3' ? 'primary' : 'soft'}" data-esg-tab="client_scope3">${icon('car')} Corporate Client Scope 3 (${rawClients.length})</button>
+              <button class="btn small ${currentTab === 'social' ? 'primary' : 'soft'}" data-esg-tab="social">${icon('users')} Social &amp; Driver Welfare</button>
+              <button class="btn small ${currentTab === 'governance' ? 'primary' : 'soft'}" data-esg-tab="governance">${icon('check')} Governance &amp; Compliance</button>
+            </div>
+            <span style="font-size:12px;color:var(--muted)">Total Distance: ${Number(summary.total_distance_km).toLocaleString('en-IN')} Km</span>
+          </div>
+          ${tabContent}
+        </section>
+      `;
+    }
+
+
+    function renderPartnerDashboard() {
       const customers = state.liveData?.customers?.items || [];
       const suppliers = state.liveData?.suppliers?.items || [];
 
@@ -8700,6 +9035,93 @@
         document.body.removeChild(link);
         showToast('Export Successful', 'Fleet health report downloaded as CSV.');
       });
+      // ESG Dashboard Events
+      const esgCustSel = document.getElementById('esgCustomerFilter');
+      if (esgCustSel) esgCustSel.addEventListener('change', e => { state.esgCustomerFilter = e.target.value; render(); });
+      const esgFuelSel = document.getElementById('esgFuelFilter');
+      if (esgFuelSel) esgFuelSel.addEventListener('change', e => { state.esgFuelFilter = e.target.value; render(); });
+      const esgSearch = document.getElementById('esgSearchInput');
+      if (esgSearch) esgSearch.addEventListener('input', e => {
+        state.esgSearchQuery = e.target.value;
+        render();
+        requestAnimationFrame(() => {
+          const inp = document.getElementById('esgSearchInput');
+          if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+        });
+      });
+      const btnResetEsg = document.getElementById('btnResetEsgFilters');
+      if (btnResetEsg) btnResetEsg.addEventListener('click', () => {
+        state.esgCustomerFilter = 'all'; state.esgFuelFilter = 'all'; state.esgSearchQuery = '';
+        render();
+      });
+      content.querySelectorAll('[data-esg-tab]').forEach(el => el.addEventListener('click', () => {
+        state.esgDashboardTab = el.dataset.esgTab;
+        render();
+      }));
+      const btnRefreshEsg = document.getElementById('btnRefreshEsgDashboard');
+      if (btnRefreshEsg) btnRefreshEsg.addEventListener('click', () => {
+        state.esgDashboardData = null;
+        showToast('Refreshing ESG Dashboard', 'Auditing well-to-wheel emissions and Scope 3 metrics...');
+        render();
+      });
+      const btnExportEsg = document.getElementById('btnExportEsgCSV');
+      if (btnExportEsg) btnExportEsg.addEventListener('click', () => {
+        const sum = state.esgDashboardData?.summary || {};
+        const rows = [
+          ['Axiom Fleet - Corporate Mobility Scope 3 & SEBI BRSR Core Report'],
+          ['Exported At', new Date().toISOString()],
+          ['Total Fleet Distance (Km)', sum.total_distance_km],
+          ['Total CO2e Emitted (Kg)', sum.total_co2e_kg],
+          ['Total CO2e Emitted (Metric Tons)', sum.total_co2e_tons],
+          ['Avoided CO2e Emissions (Kg)', sum.avoided_co2e_kg],
+          ['Green EV Fleet Mileage Share', sum.green_distance_pct + '%'],
+          ['Carbon Intensity (g CO2e / p-Km)', sum.carbon_intensity_g_pkm],
+          ['Trees Offset Equivalent', sum.trees_offset_equivalent],
+          [],
+          ['Corporate Client', 'Account Code', 'Duties Fulfilled', 'Distance (Km)', 'Green EV Km', 'Green Share %', 'Scope 3 CO2e (Kg)', 'Avoided CO2e (Kg)', 'Intensity (g/p-Km)']
+        ];
+        (state.esgDashboardData?.client_scope3 || []).forEach(c => {
+          rows.push([c.name, c.code, c.duties_count, c.distance_km, c.green_km, c.green_share_pct + '%', c.co2_kg, c.avoided_kg, c.intensity_g_pkm]);
+        });
+        const csv = 'data:text/csv;charset=utf-8,' + rows.map(r => r.map(x => `"${String(x).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const link = document.createElement('a');
+        link.href = encodeURI(csv);
+        link.download = `axiom_esg_scope3_brsr_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('Export Successful', 'BRSR Scope 3 Report downloaded as CSV.');
+      });
+      content.querySelectorAll('[data-action="download-client-esg-cert"]').forEach(el => el.addEventListener('click', () => {
+        const clientName = el.dataset.clientName || 'Client';
+        const client = (state.esgDashboardData?.client_scope3 || []).find(c => c.name === clientName);
+        if (!client) return;
+        const rows = [
+          ['CERTIFICATE OF GREEN TRANSPORTATION & SCOPE 3 CARBON AUDIT'],
+          ['Client Name', client.name],
+          ['Account Code', client.code],
+          ['Audit Period', 'FY 2026-27 (Audited Live)'],
+          ['Total Business Travel Trips', client.duties_count],
+          ['Total Distance Logged (Km)', client.distance_km],
+          ['Green Zero-Emission Distance (Km)', client.green_km],
+          ['Green Travel Share', client.green_share_pct + '%'],
+          ['Scope 3 Business Travel Carbon Emitted (Kg CO2e)', client.co2_kg],
+          ['Scope 3 Business Travel Carbon Emitted (Metric Tons)', client.co2_tons],
+          ['Avoided Carbon Emissions (Kg CO2e Saved)', client.avoided_kg],
+          ['Average Travel Carbon Intensity', client.intensity_g_pkm + ' g CO2e / p-Km'],
+          ['CSR Tree Offset Equivalency', client.tree_offset_equiv + ' Trees / Year'],
+          ['GHG Protocol Standard', 'Scope 3 Category 6: Business Travel (ISO 14064 Compliant)']
+        ];
+        const csv = 'data:text/csv;charset=utf-8,' + rows.map(r => r.map(x => `"${String(x).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const link = document.createElement('a');
+        link.href = encodeURI(csv);
+        link.download = `esg_scope3_certificate_${client.code}_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('Certificate Generated', `Scope 3 ESG certificate downloaded for ${client.name}.`);
+      }));
+
 
 
       content.querySelectorAll('[data-action="driver-page-first"]').forEach(el => el.addEventListener('click', () => { state.driverPage = 1; render(); }));
