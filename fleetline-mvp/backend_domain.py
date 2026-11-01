@@ -303,6 +303,13 @@ def initialize_domain_schema(conn) -> None:
         CREATE INDEX IF NOT EXISTS idx_domain_sync_org_status ON domain_sync_operations(organization_id, status, created_at);
         CREATE INDEX IF NOT EXISTS idx_domain_expenses_duty ON domain_expenses(duty_id, created_at);
         CREATE INDEX IF NOT EXISTS idx_domain_invoices_org ON domain_invoices(organization_id, status);
+        CREATE INDEX IF NOT EXISTS idx_domain_duties_org_booking ON domain_duties(organization_id, booking_id);
+        CREATE INDEX IF NOT EXISTS idx_domain_duties_vehicle ON domain_duties(organization_id, vehicle_id, status);
+        CREATE INDEX IF NOT EXISTS idx_domain_price_book_items_lookup ON domain_price_book_items(price_book_id, duty_type, vehicle_group);
+        CREATE INDEX IF NOT EXISTS idx_domain_bookings_org_customer ON domain_bookings(organization_id, customer_id, scheduled_at);
+        CREATE INDEX IF NOT EXISTS idx_domain_invoices_org_customer ON domain_invoices(organization_id, customer_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_domain_invoices_duty ON domain_invoices(duty_id);
+        CREATE INDEX IF NOT EXISTS idx_audit_events_entity ON audit_events(entity_type, entity_id, created_at DESC);
         """
     )
     # Additive local migrations keep existing SQLite previews usable while the
