@@ -8299,32 +8299,6 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
       const totalBilled = totalPaidInvoices + totalPendingInvoices;
       const collectionRatePct = totalBilled > 0 ? Math.round((totalPaidInvoices / totalBilled) * 100) : 100;
 
-      // Top Interactive Sub-Nav Pills
-      const hqSubNav = `
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:6px;padding:5px;background:rgba(15,23,42,0.65);border:1px solid rgba(56,189,248,0.25);border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,0.25);">
-            <button class="btn btn-xs ${activeView === 'vendors' ? 'btn-primary' : 'btn-outline'}" onclick="state.page='axiom-hq-vendors';render();try{window.location.hash='#axiom-hq-vendors';}catch(_){}" style="display:flex;align-items:center;gap:7px;padding:7px 15px;border-radius:8px;font-weight:600;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14M21 7v14M6 10h3M6 14h3M6 18h3M15 10h3M15 14h3M15 18h3M3 7l9-4 9 4"/></svg>
-              Vendor SaaS Products (${vendors.length})
-            </button>
-            <button class="btn btn-xs ${activeView === 'corporates' ? 'btn-primary' : 'btn-outline'}" onclick="state.page='axiom-hq-corporates';render();try{window.location.hash='#axiom-hq-corporates';}catch(_){}" style="display:flex;align-items:center;gap:7px;padding:7px 15px;border-radius:8px;font-weight:600;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></svg>
-              Corporate SaaS Products (${corporates.length})
-            </button>
-            <button class="btn btn-xs ${activeView === 'all' ? 'btn-primary' : 'btn-outline'}" onclick="state.page='axiom-hq';render();try{window.location.hash='#axiom-hq';}catch(_){}" style="display:flex;align-items:center;gap:7px;padding:7px 15px;border-radius:8px;font-weight:600;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              Command Overview
-            </button>
-          </div>
-
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:12px;color:var(--muted);background:rgba(255,255,255,0.04);padding:5px 10px;border-radius:6px;border:1px solid var(--border);">
-              🔒 Company Owner Surface • Multi-Tenant Control
-            </span>
-          </div>
-        </div>
-      `;
-
       // Subview: Vendor SaaS Products
       if (activeView === 'vendors') {
         return `${pageHead('Axiom Fleet HQ • Vendor SaaS Products', 'Vendor SaaS Subscription Lifecycle & Automated Invoicing', 'Manage fleet operators buying Axiom Fleet OS: custom plan pricing, billing cycles, automated GST invoices, and collection health.', `
@@ -8333,8 +8307,6 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
             ${button(icon('spark')+'Run Billing Automation', 'primary', 'onclick="runHqBillingAutomation()"')}
           </div>
         `)}
-        ${hqSubNav}
-
         <!-- Context Callout for Company Leadership -->
         <div style="margin-bottom:20px;padding:12px 18px;background:linear-gradient(90deg, rgba(56,189,248,0.12), rgba(30,41,59,0.5));border:1px solid rgba(56,189,248,0.25);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:12px;">
@@ -8630,8 +8602,6 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
             ${button(icon('spark')+'Audit DNS & SSL', 'primary', 'onclick="checkHqCorporateDns()"')}
           </div>
         `)}
-        ${hqSubNav}
-
         <!-- Context Callout for Corporate Enterprises -->
         <div style="margin-bottom:20px;padding:12px 18px;background:linear-gradient(90deg, rgba(20,184,166,0.12), rgba(30,41,59,0.5));border:1px solid rgba(20,184,166,0.25);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:12px;">
@@ -8790,7 +8760,6 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
           ${button(icon('spark')+'Run Billing Automation', 'primary', 'onclick="runHqBillingAutomation()"')}
         </div>
       `)}
-      ${hqSubNav}
       <div class="grid kpis" style="margin-bottom:24px;">
         <div class="card kpi">
           <div class="kpi-top"><span class="kpi-label">Active Fleet Vendors</span><span class="kpi-icon">${icon('building')}</span></div>
