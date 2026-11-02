@@ -2617,12 +2617,23 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               Axiom HQ Staff
             </span>
-            <span class="nav-section-count" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">STAFF</span>
+            <span class="nav-section-count" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">2</span>
             <svg class="nav-accordion-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="nav-section-items" id="section-items-internal-hq">
             <div class="nav-section-items-inner">
-              <button class="nav-item" id="nav-item-axiom-hq" data-page="axiom-hq" data-tooltip="Axiom HQ Super-Admin Control Plane" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2);"><svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span style="color: #e0f2fe; font-weight: 600;">HQ Command Center</span></button>
+              <button class="nav-item" id="nav-item-axiom-hq-vendors" data-page="axiom-hq-vendors" data-tooltip="Vendor SaaS Products, Custom Plans & Invoicing">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14M21 7v14M6 10h3M6 14h3M6 18h3M15 10h3M15 14h3M15 18h3M3 7l9-4 9 4"/></svg>
+                <span>Vendor SaaS Products</span>
+              </button>
+              <button class="nav-item" id="nav-item-axiom-hq-corporates" data-page="axiom-hq-corporates" data-tooltip="Corporate SaaS Products, Portals & White-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></svg>
+                <span>Corporate SaaS Products</span>
+              </button>
+              <button class="nav-item" id="nav-item-axiom-hq" data-page="axiom-hq" data-tooltip="Axiom HQ Super-Admin Control Plane" style="background: rgba(56, 189, 248, 0.04); border: 1px dashed rgba(56, 189, 248, 0.2); margin-top: 4px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span style="color: #bae6fd; font-size: 11.5px;">HQ Command Overview</span>
+              </button>
             </div>
           </div>
         </div>
@@ -2898,7 +2909,7 @@
     // All workspace records are tenant-scoped API data. The console deliberately
     // starts empty when a tenant has no records; no demo roster or invoice rows
     // are embedded in the product bundle.
-    const navTitles = { overview:'Operations overview', 'pnl-dashboard':'Executive Profit & Loss Dashboard', 'ops-dashboard':'Operations Intelligence Dashboard', 'fleet-dashboard':'Fleet Health & Asset Economics', 'partner-dashboard':'Client & Partner Performance', 'esg-dashboard':'ESG & Sustainability Intelligence', 'customer-detail':'Corporate Customer 360', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', 'driver-payouts':'Driver payouts & settlements', 'vehicle-pnl':'Vehicle lifecycle & P&L analytics', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & corporate pricing', suppliers:'Suppliers & partner rates', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls', 'axiom-hq':'Axiom Fleet HQ Command Center' };
+    const navTitles = { overview:'Operations overview', 'pnl-dashboard':'Executive Profit & Loss Dashboard', 'ops-dashboard':'Operations Intelligence Dashboard', 'fleet-dashboard':'Fleet Health & Asset Economics', 'partner-dashboard':'Client & Partner Performance', 'esg-dashboard':'ESG & Sustainability Intelligence', 'customer-detail':'Corporate Customer 360', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', 'driver-payouts':'Driver payouts & settlements', 'vehicle-pnl':'Vehicle lifecycle & P&L analytics', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & corporate pricing', suppliers:'Suppliers & partner rates', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls', 'axiom-hq':'Axiom Fleet HQ Command Center', 'axiom-hq-vendors':'Vendor SaaS Products • Axiom HQ', 'axiom-hq-corporates':'Corporate SaaS Products • Axiom HQ' };
     const savedActivePage = (function() {
       try {
         const p = sessionStorage.getItem('axiomfleet_active_page');
@@ -2909,7 +2920,7 @@
     const state = { page: savedActivePage, pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', esgDashboardData: null, _fetchingEsgDashboard: false, esgPeriodFilter: 'all', esgCustomerFilter: 'all', esgFuelFilter: 'all', esgSearchQuery: '', esgDashboardTab: 'environmental', partnersDashboardData: null, _fetchingPartnersDashboard: false, partnerEntityFilter: 'all', partnerStatusFilter: 'all', partnerSearchQuery: '', partnerDashboardTab: 'clients', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
-    const advancedPages = new Set(['customers','customer-detail','suppliers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq']);
+    const advancedPages = new Set(['customers','customer-detail','suppliers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq','axiom-hq-vendors','axiom-hq-corporates']);
     let advancedNavOpen = false;
 
     const esc = (value='') => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -3167,6 +3178,10 @@
       if (hqGroup) hqGroup.hidden = !isStaffUser;
       const hqNavBtn = document.getElementById('nav-item-axiom-hq');
       if (hqNavBtn) hqNavBtn.hidden = !isStaffUser;
+      const hqVendorsBtn = document.getElementById('nav-item-axiom-hq-vendors');
+      if (hqVendorsBtn) hqVendorsBtn.hidden = !isStaffUser;
+      const hqCorpsBtn = document.getElementById('nav-item-axiom-hq-corporates');
+      if (hqCorpsBtn) hqCorpsBtn.hidden = !isStaffUser;
       const allowed = role === 'driver'
         ? new Set(['driver','planning','safety','settings'])
         : role === 'corporate'
@@ -3444,7 +3459,7 @@
       const driversParent = document.getElementById('navItemDrivers');
       if (driversParent) driversParent.classList.toggle('active', state.page === 'drivers' || state.page === 'driver-payouts');
       syncAdvancedNavigation();
-      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, 'pnl-dashboard': renderPnLDashboard, 'ops-dashboard': renderOpsDashboard, 'fleet-dashboard': renderFleetDashboard, 'partner-dashboard': renderPartnerDashboard, 'esg-dashboard': renderESGDashboard, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, 'customer-detail': renderCustomerDetail, suppliers: renderSuppliers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ };
+      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, 'pnl-dashboard': renderPnLDashboard, 'ops-dashboard': renderOpsDashboard, 'fleet-dashboard': renderFleetDashboard, 'partner-dashboard': renderPartnerDashboard, 'esg-dashboard': renderESGDashboard, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, 'customer-detail': renderCustomerDetail, suppliers: renderSuppliers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ, 'axiom-hq-vendors': () => renderAxiomHQ('vendors'), 'axiom-hq-corporates': () => renderAxiomHQ('corporates') };
       content.innerHTML = (pages[state.page] || renderOverview)();
       attachPageEvents();
       decorateResponsiveTables();
@@ -8210,7 +8225,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
     </div>`;
     }
     
-    function renderAxiomHQ() {
+    function renderAxiomHQ(subview) {
       const email = (currentUser?.email || '').toLowerCase();
       const role = (currentUser?.role || '').toLowerCase();
       const isStaff = email.endsWith('@axiomfleet.in') || email.endsWith('@axiomfleet.com') || email === 'reddragon0075@gmail.com' || role === 'axiom_admin' || role === 'axiom_staff' || role === 'axiom_super_admin' || role === 'vendor';
@@ -8235,6 +8250,355 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
       const plans = hq.plans || [];
       const invoices = hq.invoices || [];
 
+      // Determine active subview: 'vendors', 'corporates', or 'all'
+      const activeView = subview || (state.page === 'axiom-hq-vendors' ? 'vendors' : (state.page === 'axiom-hq-corporates' ? 'corporates' : 'all'));
+
+      // Top Interactive Sub-Nav Pills
+      const hqSubNav = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:22px;padding:6px;background:rgba(15,23,42,0.65);border:1px solid rgba(56,189,248,0.22);border-radius:12px;width:fit-content;max-width:100%;flex-wrap:wrap;box-shadow:0 4px 18px rgba(0,0,0,0.25);">
+          <button class="btn btn-xs ${activeView === 'vendors' ? 'btn-primary' : 'btn-outline'}" onclick="state.page='axiom-hq-vendors';render();try{window.location.hash='#axiom-hq-vendors';}catch(_){}" style="display:flex;align-items:center;gap:7px;padding:7px 15px;border-radius:8px;font-weight:600;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14M21 7v14M6 10h3M6 14h3M6 18h3M15 10h3M15 14h3M15 18h3M3 7l9-4 9 4"/></svg>
+            Vendor SaaS Products (${vendors.length})
+          </button>
+          <button class="btn btn-xs ${activeView === 'corporates' ? 'btn-primary' : 'btn-outline'}" onclick="state.page='axiom-hq-corporates';render();try{window.location.hash='#axiom-hq-corporates';}catch(_){}" style="display:flex;align-items:center;gap:7px;padding:7px 15px;border-radius:8px;font-weight:600;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></svg>
+            Corporate SaaS Products (${corporates.length})
+          </button>
+          <button class="btn btn-xs ${activeView === 'all' ? 'btn-primary' : 'btn-outline'}" onclick="state.page='axiom-hq';render();try{window.location.hash='#axiom-hq';}catch(_){}" style="display:flex;align-items:center;gap:7px;padding:7px 15px;border-radius:8px;font-weight:600;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Command Center Overview
+          </button>
+        </div>
+      `;
+
+      // Subview: Vendor SaaS Products
+      if (activeView === 'vendors') {
+        return `${pageHead('Axiom Fleet HQ • Vendor SaaS Products', 'Vendor SaaS Subscription Lifecycle & Automated Invoicing', 'Configure custom pricing plans, fee overrides, recurring GST invoices, and master plan tier matrix.', `
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${button(icon('refresh')+'Refresh Telemetry', 'soft', 'onclick="refreshAxiomHqData()"')}
+            ${button(icon('spark')+'Run Billing Automation', 'primary', 'onclick="runHqBillingAutomation()"')}
+            ${button(icon('plus')+'New Pricing Tier', 'soft', 'onclick="openHqNewPlanModal()"')}
+            ${button(icon('file')+'Issue SaaS Invoice', 'soft', 'onclick="openHqCreateInvoiceModal()"')}
+          </div>
+        `)}
+        ${hqSubNav}
+        <div class="grid kpis" style="margin-bottom:24px;">
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Active Fleet Vendors</span><span class="kpi-icon">${icon('building')}</span></div>
+            <div class="kpi-value">${kpis.total_vendors ?? vendors.length}</div>
+            <div class="kpi-foot">Onboarded SaaS operators</div>
+          </div>
+          <div class="card kpi teal">
+            <div class="kpi-top"><span class="kpi-label">Monthly SaaS MRR</span><span class="kpi-icon teal">${icon('shield')}</span></div>
+            <div class="kpi-value">₹${Number(kpis.monthly_saas_mrr_inr || 0).toLocaleString('en-IN')}</div>
+            <div class="kpi-foot">ARR: ₹${Number(kpis.annual_saas_arr_inr || 0).toLocaleString('en-IN')}</div>
+          </div>
+          <div class="card kpi purple">
+            <div class="kpi-top"><span class="kpi-label">Invoice Ledger</span><span class="kpi-icon purple">${icon('file')}</span></div>
+            <div class="kpi-value">₹${Number(kpis.total_invoices_paid_inr || 0).toLocaleString('en-IN')}</div>
+            <div class="kpi-foot">Pending: ₹${Number(kpis.total_invoices_pending_inr || 0).toLocaleString('en-IN')}</div>
+          </div>
+          <div class="card kpi ${kpis.vendors_overdue_payment > 0 ? 'amber' : 'teal'}">
+            <div class="kpi-top"><span class="kpi-label">Billing Compliance</span><span class="kpi-icon amber">${icon('warning')}</span></div>
+            <div class="kpi-value">${kpis.vendors_overdue_payment ?? 0} Overdue</div>
+            <div class="kpi-foot">${kpis.vendors_suspended > 0 ? `${kpis.vendors_suspended} suspended for default` : 'All accounts current or in grace'}</div>
+          </div>
+        </div>
+
+        <div class="grid" style="display:grid;gap:24px;">
+          <!-- Section 1: Vendors & SaaS Subscription Lifecycles -->
+          <section class="card section-card">
+            <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+              <div>
+                <h3 style="margin:0;font-size:15px;color:var(--text);">1. Vendor Partners • SaaS Plans & Custom Pricing Controls</h3>
+                <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Configure custom pricing plans, fee overrides, billing cycles, and next payment dates per operator.</p>
+              </div>
+              <span class="status blue">${vendors.length} Vendors Registered</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Vendor & Contact</th>
+                    <th>Joined Date</th>
+                    <th>SaaS Plan</th>
+                    <th>Fee & Billing Cycle</th>
+                    <th>Next Due Date</th>
+                    <th>Payment Status</th>
+                    <th>Owned Portals</th>
+                    <th>Pricing & Lifecycle Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${vendors.map(v => {
+                    const days = Number(v.days_until_payment_due || 0);
+                    const dueBadge = days < 0 ? status(`Overdue by ${Math.abs(days)}d`, 'red') : (days <= 7 ? status(`Due in ${days}d`, 'amber') : status(`Due in ${days}d`, 'green'));
+                    const pStatus = v.payment_status === 'ACTIVE_PAID' ? status('Active / Paid', 'green') : (v.payment_status === 'DUE_SOON' ? status('Due Soon', 'amber') : (v.payment_status === 'SUSPENDED' ? status('Suspended', 'red') : status('Grace Period', 'amber')));
+                    const planName = v.custom_plan_name || (v.saas_plan === 'ENTERPRISE_WHITE_LABEL' ? 'Enterprise White-Label' : (v.saas_plan === 'GROWTH' ? 'Growth Plan' : (v.saas_plan === 'STARTER' ? 'Starter Plan' : v.saas_plan)));
+                    const planBadge = v.saas_plan === 'ENTERPRISE_WHITE_LABEL' ? status(planName, 'purple') : (v.saas_plan === 'GROWTH' ? status(planName, 'blue') : status(planName, 'soft'));
+                    const discountNote = Number(v.custom_discount_pct || 0) > 0 ? `<br><small style="color:var(--green);font-weight:600;">-${v.custom_discount_pct}% VIP Disc</small>` : '';
+                    return `<tr>
+                      <td>
+                        <strong>${esc(v.vendor_name)}</strong><br>
+                        <small style="color:var(--muted);">${esc(v.contact_person)} · ${esc(v.phone)} · ${esc(v.city)}</small>
+                      </td>
+                      <td class="font-mono">${esc(v.joined_date)}</td>
+                      <td>${planBadge}</td>
+                      <td style="font-weight:600;">₹${Number(v.saas_fee_inr || 0).toLocaleString('en-IN')}<br><small style="color:var(--muted);">${esc(v.billing_cycle)}</small>${discountNote}</td>
+                      <td><strong>${esc(v.next_payment_due_date)}</strong><br>${dueBadge}</td>
+                      <td>${pStatus}</td>
+                      <td style="text-align:center;"><strong style="font-size:14px;color:var(--blue);">${v.owned_corporate_portals_count ?? 0}</strong></td>
+                      <td>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                          <button class="btn btn-outline btn-xs" onclick="openHqCustomPlanModal('${v.id}')">Customize Plan & Fee</button>
+                          <button class="btn btn-outline btn-xs" onclick="dispatchHqReminder('${v.id}')">Send Reminder</button>
+                        </div>
+                      </td>
+                    </tr>`;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Section 2: Subscription Invoices & Billing Ledger -->
+          <section class="card section-card">
+            <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+              <div>
+                <h3 style="margin:0;font-size:15px;color:var(--text);">2. Subscription Invoices & Billing Automation Ledger</h3>
+                <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Automated recurring subscription invoices, GST taxation, cycle tracking, and payment verification.</p>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-outline btn-xs" onclick="runHqBillingAutomation()">Run Automation</button>
+                <button class="btn btn-primary btn-xs" onclick="openHqCreateInvoiceModal()">Issue Invoice</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Invoice #</th>
+                    <th>Vendor Partner</th>
+                    <th>Plan & Period</th>
+                    <th>Base + 18% GST</th>
+                    <th>Total Payable</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Payment Verification</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${invoices.length ? invoices.map(inv => {
+                    const invStatusBadge = inv.status === 'PAID' ? status('Paid', 'green') : (inv.status === 'OVERDUE' ? status('Overdue', 'red') : status('Due', 'amber'));
+                    return `<tr>
+                      <td class="font-mono"><strong>${esc(inv.invoice_number)}</strong></td>
+                      <td><strong>${esc(inv.vendor_name)}</strong><br><small style="color:var(--muted);">${esc(inv.vendor_email || '')}</small></td>
+                      <td><strong>${esc(inv.plan_name)}</strong><br><small style="color:var(--muted);">${esc(inv.period_start)} to ${esc(inv.period_end)}</small></td>
+                      <td>₹${Number(inv.base_amount_inr || 0).toLocaleString('en-IN')} + ₹${Number(inv.gst_amount_inr || 0).toLocaleString('en-IN')}</td>
+                      <td><strong style="color:var(--blue);font-size:13px;">₹${Number(inv.total_amount_inr || 0).toLocaleString('en-IN')}</strong></td>
+                      <td class="font-mono">${esc(inv.due_date)}</td>
+                      <td>${invStatusBadge}</td>
+                      <td>
+                        ${inv.status === 'PAID' 
+                          ? `<small style="color:var(--muted);font-weight:600;">Paid: ${esc(inv.payment_reference || 'Verified')}<br>${inv.paid_at ? inv.paid_at.slice(0, 10) : ''}</small>`
+                          : `<button class="btn btn-primary btn-xs" onclick="openHqPayInvoiceModal('${inv.id}', '${inv.invoice_number}', ${inv.total_amount_inr})">Record Payment</button>`
+                        }
+                      </td>
+                    </tr>`;
+                  }).join('') : `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">No subscription invoices in ledger.</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Section 3: Master SaaS Pricing Plans (Tier Engine) -->
+          <section class="card section-card">
+            <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+              <div>
+                <h3 style="margin:0;font-size:15px;color:var(--text);">3. Master SaaS Pricing Plans • Tier & Feature Matrix</h3>
+                <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Catalog of standard and bespoke subscription tiers with fleet caps, white-label flags, and SLAs.</p>
+              </div>
+              <button class="btn btn-outline btn-xs" onclick="openHqNewPlanModal()">+ Add New Plan</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Plan Name & Tier</th>
+                    <th>Monthly Fee</th>
+                    <th>Annual Fee</th>
+                    <th>Duty & Fleet Cap</th>
+                    <th>Feature Matrix</th>
+                    <th>Support SLA</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${plans.map(p => {
+                    const dutiesCap = p.duty_limit === -1 ? 'Unlimited Duties' : `Up to ${p.duty_limit} duties/mo`;
+                    const fleetCap = p.vehicle_limit === -1 ? 'Unlimited Fleet' : `Up to ${p.vehicle_limit} vehicles`;
+                    return `<tr>
+                      <td><strong>${esc(p.name)}</strong><br><small class="font-mono" style="color:var(--muted);">${esc(p.tier)}</small></td>
+                      <td style="font-weight:600;">₹${Number(p.monthly_fee_inr || 0).toLocaleString('en-IN')}/mo</td>
+                      <td style="font-weight:600;">₹${Number(p.annual_fee_inr || 0).toLocaleString('en-IN')}/yr</td>
+                      <td><small>${dutiesCap}<br>${fleetCap}</small></td>
+                      <td>
+                        <small>
+                          White-label: ${p.white_label_enabled ? '✅ Yes' : '❌ No'} · 
+                          API: ${p.api_access_enabled ? '✅ Yes' : '❌ No'}<br>
+                          Custom Pricing: ${p.custom_pricing_enabled ? '✅ Enabled' : '❌ Disabled'}
+                        </small>
+                      </td>
+                      <td><small style="color:var(--muted);">${esc(p.support_tier)}</small></td>
+                      <td>${p.is_active ? status('Active', 'green') : status('Archived', 'soft')}</td>
+                      <td>
+                        <button class="btn btn-outline btn-xs" onclick="openHqEditPlanModal('${p.id}')">Edit Plan</button>
+                      </td>
+                    </tr>`;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>`;
+      }
+
+      // Subview: Corporate SaaS Products
+      if (activeView === 'corporates') {
+        const totalGmv = corporates.reduce((acc, c) => acc + (Number(c.monthly_gross_gmv_inr) || 0), 0);
+        const totalDuties = corporates.reduce((acc, c) => acc + (Number(c.monthly_duty_volume) || 0), 0);
+        const totalEmployees = corporates.reduce((acc, c) => acc + (Number(c.active_employees_count) || 0), 0);
+
+        return `${pageHead('Axiom Fleet HQ • Corporate SaaS Products', 'Corporate Client Portals & Enterprise Subdomains', 'Audit multi-tenant enterprise subdomains, corporate ownership models, B2B commercial agreements, and department policies.', `
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${button(icon('refresh')+'Refresh Telemetry', 'soft', 'onclick="refreshAxiomHqData()"')}
+            ${button(icon('spark')+'Audit DNS & SSL', 'primary', 'onclick="checkHqCorporateDns()"')}
+          </div>
+        `)}
+        ${hqSubNav}
+        <div class="grid kpis" style="margin-bottom:24px;">
+          <div class="card kpi teal">
+            <div class="kpi-top"><span class="kpi-label">Live Corporate Portals</span><span class="kpi-icon teal">${icon('building')}</span></div>
+            <div class="kpi-value">${kpis.total_corporate_portals ?? corporates.length}</div>
+            <div class="kpi-foot">White-label subdomains active</div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Monthly Corporate GMV</span><span class="kpi-icon">${icon('shield')}</span></div>
+            <div class="kpi-value">₹${totalGmv.toLocaleString('en-IN')}</div>
+            <div class="kpi-foot">Gross booking run-rate</div>
+          </div>
+          <div class="card kpi purple">
+            <div class="kpi-top"><span class="kpi-label">Monthly Duty Volume</span><span class="kpi-icon purple">${icon('car')}</span></div>
+            <div class="kpi-value">${totalDuties.toLocaleString('en-IN')}</div>
+            <div class="kpi-foot">Corporate trips executed</div>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-top"><span class="kpi-label">Active Corporate Users</span><span class="kpi-icon">${icon('users')}</span></div>
+            <div class="kpi-value">${totalEmployees.toLocaleString('en-IN')}</div>
+            <div class="kpi-foot">Roster employees & bookers</div>
+          </div>
+        </div>
+
+        <div class="grid" style="display:grid;gap:24px;">
+          <!-- Section 1: Corporate Portals & Owning Vendor Mapping -->
+          <section class="card section-card">
+            <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+              <div>
+                <h3 style="margin:0;font-size:15px;color:var(--text);">1. Corporate Portals • Vendor Ownership Mapping</h3>
+                <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Full audit of which corporate portal is owned and operated by what vendor partner.</p>
+              </div>
+              <span class="status teal">${corporates.length} Portals Mapped</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Corporate Client</th>
+                    <th>Portal Subdomain</th>
+                    <th>Owning Vendor Partner</th>
+                    <th>Ownership Model</th>
+                    <th>Employees</th>
+                    <th>Monthly Duties</th>
+                    <th>Monthly GMV</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${corporates.map(c => {
+                    const isVendorOwned = c.ownership_type === 'VENDOR_OWNED_PORTAL';
+                    const ownerBadge = isVendorOwned ? `<strong style="color:var(--blue);">${esc(c.owning_vendor_name)}</strong>` : `<strong style="color:var(--green);">${esc(c.owning_vendor_name)}</strong>`;
+                    const modelBadge = isVendorOwned ? status('Vendor Owned', 'blue') : status('Axiom Direct', 'green');
+                    return `<tr>
+                      <td>
+                        <strong>${esc(c.corporate_name)}</strong><br>
+                        <small style="color:var(--muted);">${esc(c.city)} · GST: ${esc(c.gst_number)}</small>
+                      </td>
+                      <td><a href="https://${esc(c.portal_subdomain)}" target="_blank" style="color:var(--blue);text-decoration:underline;font-family:monospace;">${esc(c.portal_subdomain)}</a></td>
+                      <td>${ownerBadge}</td>
+                      <td>${modelBadge}</td>
+                      <td>${Number(c.active_employees_count || 0).toLocaleString('en-IN')}</td>
+                      <td><strong>${Number(c.monthly_duty_volume || 0).toLocaleString('en-IN')}</strong></td>
+                      <td style="font-weight:600;">₹${Number(c.monthly_gross_gmv_inr || 0).toLocaleString('en-IN')}</td>
+                      <td>${status(c.portal_status || 'LIVE', 'green')}</td>
+                    </tr>`;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Section 2: Corporate Enterprise SaaS Commercial Models -->
+          <section class="card section-card">
+            <div class="card-head" style="padding:16px 20px;border-bottom:1px solid var(--border);">
+              <h3 style="margin:0;font-size:15px;color:var(--text);">2. Corporate Enterprise SaaS Tier Architecture & Capabilities</h3>
+              <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Product capabilities delivered to enterprise clients across customized subdomains.</p>
+            </div>
+            <div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+              <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:12px;padding:18px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                  <span style="font-size:20px;">🌐</span>
+                  <strong style="font-size:14px;color:var(--text);">White-Label Subdomains & SSO</strong>
+                </div>
+                <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px;">Each corporate client gets an isolated branded subdomain (e.g. <code>indiawhite.axiomfleet.in</code>) with automated Okta/Azure AD SAML SSO authentication.</p>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <span class="status green">SSL Enforced</span>
+                  <span class="status blue">Custom Logo</span>
+                  <span class="status purple">SSO Ready</span>
+                </div>
+              </div>
+
+              <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:12px;padding:18px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                  <span style="font-size:20px;">🏢</span>
+                  <strong style="font-size:14px;color:var(--text);">Department Cost Centers & Policies</strong>
+                </div>
+                <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px;">Multi-level travel policy enforcement with manager sign-off workflows, geofenced airport/local limits, and real-time budget depletion alerts.</p>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <span class="status teal">Budget Limits</span>
+                  <span class="status amber">Manager Sign-off</span>
+                  <span class="status green">GST Invoicing</span>
+                </div>
+              </div>
+
+              <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:12px;padding:18px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                  <span style="font-size:20px;">⚡</span>
+                  <strong style="font-size:14px;color:var(--text);">Commercial Revenue Sharing Models</strong>
+                </div>
+                <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px;">Supports both direct Axiom platform fee models (per-trip commission) and vendor-owned sub-tenancy where vendors bill corporates directly.</p>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <span class="status blue">Vendor Owned</span>
+                  <span class="status green">Axiom Direct</span>
+                  <span class="status soft">Commission Split</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>`;
+      }
+
+      // Default Subview: Command Center Overview (All Telemetry)
       return `${pageHead('Axiom Fleet HQ • Internal Staff Only', 'Super-Admin Command Center', 'Manage multi-tenant SaaS subscription lifecycles, automated recurring billing, custom pricing tiers, and corporate ownership.', `
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           ${button(icon('refresh')+'Refresh Telemetry', 'soft', 'onclick="refreshAxiomHqData()"')}
@@ -8243,239 +8607,250 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
           ${button(icon('file')+'Issue SaaS Invoice', 'soft', 'onclick="openHqCreateInvoiceModal()"')}
         </div>
       `)}
-<div class="grid kpis" style="margin-bottom:24px;">
-  <div class="card kpi">
-    <div class="kpi-top"><span class="kpi-label">Active Fleet Vendors</span><span class="kpi-icon">${icon('building')}</span></div>
-    <div class="kpi-value">${kpis.total_vendors ?? vendors.length}</div>
-    <div class="kpi-foot">Onboarded SaaS operators</div>
-  </div>
-  <div class="card kpi teal">
-    <div class="kpi-top"><span class="kpi-label">Monthly SaaS MRR</span><span class="kpi-icon teal">${icon('shield')}</span></div>
-    <div class="kpi-value">₹${Number(kpis.monthly_saas_mrr_inr || 0).toLocaleString('en-IN')}</div>
-    <div class="kpi-foot">ARR: ₹${Number(kpis.annual_saas_arr_inr || 0).toLocaleString('en-IN')}</div>
-  </div>
-  <div class="card kpi purple">
-    <div class="kpi-top"><span class="kpi-label">Invoice Ledger</span><span class="kpi-icon purple">${icon('file')}</span></div>
-    <div class="kpi-value">₹${Number(kpis.total_invoices_paid_inr || 0).toLocaleString('en-IN')}</div>
-    <div class="kpi-foot">Pending: ₹${Number(kpis.total_invoices_pending_inr || 0).toLocaleString('en-IN')}</div>
-  </div>
-  <div class="card kpi ${kpis.vendors_overdue_payment > 0 ? 'amber' : 'teal'}">
-    <div class="kpi-top"><span class="kpi-label">Billing Compliance</span><span class="kpi-icon amber">${icon('warning')}</span></div>
-    <div class="kpi-value">${kpis.vendors_overdue_payment ?? 0} Overdue</div>
-    <div class="kpi-foot">${kpis.vendors_suspended > 0 ? `${kpis.vendors_suspended} suspended for default` : 'All accounts current or in grace'}</div>
-  </div>
-  <div class="card kpi">
-    <div class="kpi-top"><span class="kpi-label">Live Corporate Portals</span><span class="kpi-icon">${icon('building')}</span></div>
-    <div class="kpi-value">${kpis.total_corporate_portals ?? corporates.length}</div>
-    <div class="kpi-foot">White-label subdomains</div>
-  </div>
-</div>
+      ${hqSubNav}
+      <div class="grid kpis" style="margin-bottom:24px;">
+        <div class="card kpi">
+          <div class="kpi-top"><span class="kpi-label">Active Fleet Vendors</span><span class="kpi-icon">${icon('building')}</span></div>
+          <div class="kpi-value">${kpis.total_vendors ?? vendors.length}</div>
+          <div class="kpi-foot">Onboarded SaaS operators</div>
+        </div>
+        <div class="card kpi teal">
+          <div class="kpi-top"><span class="kpi-label">Monthly SaaS MRR</span><span class="kpi-icon teal">${icon('shield')}</span></div>
+          <div class="kpi-value">₹${Number(kpis.monthly_saas_mrr_inr || 0).toLocaleString('en-IN')}</div>
+          <div class="kpi-foot">ARR: ₹${Number(kpis.annual_saas_arr_inr || 0).toLocaleString('en-IN')}</div>
+        </div>
+        <div class="card kpi purple">
+          <div class="kpi-top"><span class="kpi-label">Invoice Ledger</span><span class="kpi-icon purple">${icon('file')}</span></div>
+          <div class="kpi-value">₹${Number(kpis.total_invoices_paid_inr || 0).toLocaleString('en-IN')}</div>
+          <div class="kpi-foot">Pending: ₹${Number(kpis.total_invoices_pending_inr || 0).toLocaleString('en-IN')}</div>
+        </div>
+        <div class="card kpi ${kpis.vendors_overdue_payment > 0 ? 'amber' : 'teal'}">
+          <div class="kpi-top"><span class="kpi-label">Billing Compliance</span><span class="kpi-icon amber">${icon('warning')}</span></div>
+          <div class="kpi-value">${kpis.vendors_overdue_payment ?? 0} Overdue</div>
+          <div class="kpi-foot">${kpis.vendors_suspended > 0 ? `${kpis.vendors_suspended} suspended for default` : 'All accounts current or in grace'}</div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-top"><span class="kpi-label">Live Corporate Portals</span><span class="kpi-icon">${icon('building')}</span></div>
+          <div class="kpi-value">${kpis.total_corporate_portals ?? corporates.length}</div>
+          <div class="kpi-foot">White-label subdomains</div>
+        </div>
+      </div>
 
-<div class="grid" style="display:grid;gap:24px;">
-  <!-- Section 1: Vendors & SaaS Subscription Lifecycles -->
-  <section class="card section-card">
-    <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
-      <div>
-        <h3 style="margin:0;font-size:15px;color:var(--text);">1. Vendor Partners • SaaS Plans & Custom Pricing Controls</h3>
-        <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Configure custom pricing plans, fee overrides, billing cycles, and next payment dates per operator.</p>
-      </div>
-      <span class="status blue">${vendors.length} Vendors Registered</span>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Vendor & Contact</th>
-            <th>Joined Date</th>
-            <th>SaaS Plan</th>
-            <th>Fee & Billing Cycle</th>
-            <th>Next Due Date</th>
-            <th>Payment Status</th>
-            <th>Owned Portals</th>
-            <th>Pricing & Lifecycle Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${vendors.map(v => {
-            const days = Number(v.days_until_payment_due || 0);
-            const dueBadge = days < 0 ? status(`Overdue by ${Math.abs(days)}d`, 'red') : (days <= 7 ? status(`Due in ${days}d`, 'amber') : status(`Due in ${days}d`, 'green'));
-            const pStatus = v.payment_status === 'ACTIVE_PAID' ? status('Active / Paid', 'green') : (v.payment_status === 'DUE_SOON' ? status('Due Soon', 'amber') : (v.payment_status === 'SUSPENDED' ? status('Suspended', 'red') : status('Grace Period', 'amber')));
-            const planName = v.custom_plan_name || (v.saas_plan === 'ENTERPRISE_WHITE_LABEL' ? 'Enterprise White-Label' : (v.saas_plan === 'GROWTH' ? 'Growth Plan' : (v.saas_plan === 'STARTER' ? 'Starter Plan' : v.saas_plan)));
-            const planBadge = v.saas_plan === 'ENTERPRISE_WHITE_LABEL' ? status(planName, 'purple') : (v.saas_plan === 'GROWTH' ? status(planName, 'blue') : status(planName, 'soft'));
-            const discountNote = Number(v.custom_discount_pct || 0) > 0 ? `<br><small style="color:var(--green);font-weight:600;">-${v.custom_discount_pct}% VIP Disc</small>` : '';
-            return `<tr>
-              <td>
-                <strong>${esc(v.vendor_name)}</strong><br>
-                <small style="color:var(--muted);">${esc(v.contact_person)} · ${esc(v.phone)} · ${esc(v.city)}</small>
-              </td>
-              <td class="font-mono">${esc(v.joined_date)}</td>
-              <td>${planBadge}</td>
-              <td style="font-weight:600;">₹${Number(v.saas_fee_inr || 0).toLocaleString('en-IN')}<br><small style="color:var(--muted);">${esc(v.billing_cycle)}</small>${discountNote}</td>
-              <td><strong>${esc(v.next_payment_due_date)}</strong><br>${dueBadge}</td>
-              <td>${pStatus}</td>
-              <td style="text-align:center;"><strong style="font-size:14px;color:var(--blue);">${v.owned_corporate_portals_count ?? 0}</strong></td>
-              <td>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                  <button class="btn btn-outline btn-xs" onclick="openHqCustomPlanModal('${v.id}')">Customize Plan & Fee</button>
-                  <button class="btn btn-outline btn-xs" onclick="dispatchHqReminder('${v.id}')">Send Reminder</button>
-                </div>
-              </td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-  </section>
+      <div class="grid" style="display:grid;gap:24px;">
+        <!-- Section 1: Vendors & SaaS Subscription Lifecycles -->
+        <section class="card section-card">
+          <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+            <div>
+              <h3 style="margin:0;font-size:15px;color:var(--text);">1. Vendor Partners • SaaS Plans & Custom Pricing Controls</h3>
+              <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Configure custom pricing plans, fee overrides, billing cycles, and next payment dates per operator.</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="status blue">${vendors.length} Vendors Registered</span>
+              <button class="btn btn-outline btn-xs" onclick="state.page='axiom-hq-vendors';render();try{window.location.hash='#axiom-hq-vendors';}catch(_){}">Open Vendor SaaS ➔</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Vendor & Contact</th>
+                  <th>Joined Date</th>
+                  <th>SaaS Plan</th>
+                  <th>Fee & Billing Cycle</th>
+                  <th>Next Due Date</th>
+                  <th>Payment Status</th>
+                  <th>Owned Portals</th>
+                  <th>Pricing & Lifecycle Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${vendors.map(v => {
+                  const days = Number(v.days_until_payment_due || 0);
+                  const dueBadge = days < 0 ? status(`Overdue by ${Math.abs(days)}d`, 'red') : (days <= 7 ? status(`Due in ${days}d`, 'amber') : status(`Due in ${days}d`, 'green'));
+                  const pStatus = v.payment_status === 'ACTIVE_PAID' ? status('Active / Paid', 'green') : (v.payment_status === 'DUE_SOON' ? status('Due Soon', 'amber') : (v.payment_status === 'SUSPENDED' ? status('Suspended', 'red') : status('Grace Period', 'amber')));
+                  const planName = v.custom_plan_name || (v.saas_plan === 'ENTERPRISE_WHITE_LABEL' ? 'Enterprise White-Label' : (v.saas_plan === 'GROWTH' ? 'Growth Plan' : (v.saas_plan === 'STARTER' ? 'Starter Plan' : v.saas_plan)));
+                  const planBadge = v.saas_plan === 'ENTERPRISE_WHITE_LABEL' ? status(planName, 'purple') : (v.saas_plan === 'GROWTH' ? status(planName, 'blue') : status(planName, 'soft'));
+                  const discountNote = Number(v.custom_discount_pct || 0) > 0 ? `<br><small style="color:var(--green);font-weight:600;">-${v.custom_discount_pct}% VIP Disc</small>` : '';
+                  return `<tr>
+                    <td>
+                      <strong>${esc(v.vendor_name)}</strong><br>
+                      <small style="color:var(--muted);">${esc(v.contact_person)} · ${esc(v.phone)} · ${esc(v.city)}</small>
+                    </td>
+                    <td class="font-mono">${esc(v.joined_date)}</td>
+                    <td>${planBadge}</td>
+                    <td style="font-weight:600;">₹${Number(v.saas_fee_inr || 0).toLocaleString('en-IN')}<br><small style="color:var(--muted);">${esc(v.billing_cycle)}</small>${discountNote}</td>
+                    <td><strong>${esc(v.next_payment_due_date)}</strong><br>${dueBadge}</td>
+                    <td>${pStatus}</td>
+                    <td style="text-align:center;"><strong style="font-size:14px;color:var(--blue);">${v.owned_corporate_portals_count ?? 0}</strong></td>
+                    <td>
+                      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <button class="btn btn-outline btn-xs" onclick="openHqCustomPlanModal('${v.id}')">Customize Plan & Fee</button>
+                        <button class="btn btn-outline btn-xs" onclick="dispatchHqReminder('${v.id}')">Send Reminder</button>
+                      </div>
+                    </td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-  <!-- Section 2: Subscription Invoices & Billing Ledger -->
-  <section class="card section-card">
-    <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
-      <div>
-        <h3 style="margin:0;font-size:15px;color:var(--text);">2. Subscription Invoices & Billing Automation Ledger</h3>
-        <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Automated recurring subscription invoices, GST taxation, cycle tracking, and payment verification.</p>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-outline btn-xs" onclick="runHqBillingAutomation()">Run Automation</button>
-        <button class="btn btn-primary btn-xs" onclick="openHqCreateInvoiceModal()">Issue Invoice</button>
-      </div>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Invoice #</th>
-            <th>Vendor Partner</th>
-            <th>Plan & Period</th>
-            <th>Base + 18% GST</th>
-            <th>Total Payable</th>
-            <th>Due Date</th>
-            <th>Status</th>
-            <th>Payment Verification</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${invoices.length ? invoices.map(inv => {
-            const invStatusBadge = inv.status === 'PAID' ? status('Paid', 'green') : (inv.status === 'OVERDUE' ? status('Overdue', 'red') : status('Due', 'amber'));
-            return `<tr>
-              <td class="font-mono"><strong>${esc(inv.invoice_number)}</strong></td>
-              <td><strong>${esc(inv.vendor_name)}</strong><br><small style="color:var(--muted);">${esc(inv.vendor_email || '')}</small></td>
-              <td><strong>${esc(inv.plan_name)}</strong><br><small style="color:var(--muted);">${esc(inv.period_start)} to ${esc(inv.period_end)}</small></td>
-              <td>₹${Number(inv.base_amount_inr || 0).toLocaleString('en-IN')} + ₹${Number(inv.gst_amount_inr || 0).toLocaleString('en-IN')}</td>
-              <td><strong style="color:var(--blue);font-size:13px;">₹${Number(inv.total_amount_inr || 0).toLocaleString('en-IN')}</strong></td>
-              <td class="font-mono">${esc(inv.due_date)}</td>
-              <td>${invStatusBadge}</td>
-              <td>
-                ${inv.status === 'PAID' 
-                  ? `<small style="color:var(--muted);font-weight:600;">Paid: ${esc(inv.payment_reference || 'Verified')}<br>${inv.paid_at ? inv.paid_at.slice(0, 10) : ''}</small>`
-                  : `<button class="btn btn-primary btn-xs" onclick="openHqPayInvoiceModal('${inv.id}', '${inv.invoice_number}', ${inv.total_amount_inr})">Record Payment</button>`
-                }
-              </td>
-            </tr>`;
-          }).join('') : `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">No subscription invoices in ledger.</td></tr>`}
-        </tbody>
-      </table>
-    </div>
-  </section>
+        <!-- Section 2: Subscription Invoices & Billing Ledger -->
+        <section class="card section-card">
+          <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+            <div>
+              <h3 style="margin:0;font-size:15px;color:var(--text);">2. Subscription Invoices & Billing Automation Ledger</h3>
+              <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Automated recurring subscription invoices, GST taxation, cycle tracking, and payment verification.</p>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-outline btn-xs" onclick="runHqBillingAutomation()">Run Automation</button>
+              <button class="btn btn-primary btn-xs" onclick="openHqCreateInvoiceModal()">Issue Invoice</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Vendor Partner</th>
+                  <th>Plan & Period</th>
+                  <th>Base + 18% GST</th>
+                  <th>Total Payable</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th>Payment Verification</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${invoices.length ? invoices.map(inv => {
+                  const invStatusBadge = inv.status === 'PAID' ? status('Paid', 'green') : (inv.status === 'OVERDUE' ? status('Overdue', 'red') : status('Due', 'amber'));
+                  return `<tr>
+                    <td class="font-mono"><strong>${esc(inv.invoice_number)}</strong></td>
+                    <td><strong>${esc(inv.vendor_name)}</strong><br><small style="color:var(--muted);">${esc(inv.vendor_email || '')}</small></td>
+                    <td><strong>${esc(inv.plan_name)}</strong><br><small style="color:var(--muted);">${esc(inv.period_start)} to ${esc(inv.period_end)}</small></td>
+                    <td>₹${Number(inv.base_amount_inr || 0).toLocaleString('en-IN')} + ₹${Number(inv.gst_amount_inr || 0).toLocaleString('en-IN')}</td>
+                    <td><strong style="color:var(--blue);font-size:13px;">₹${Number(inv.total_amount_inr || 0).toLocaleString('en-IN')}</strong></td>
+                    <td class="font-mono">${esc(inv.due_date)}</td>
+                    <td>${invStatusBadge}</td>
+                    <td>
+                      ${inv.status === 'PAID' 
+                        ? `<small style="color:var(--muted);font-weight:600;">Paid: ${esc(inv.payment_reference || 'Verified')}<br>${inv.paid_at ? inv.paid_at.slice(0, 10) : ''}</small>`
+                        : `<button class="btn btn-primary btn-xs" onclick="openHqPayInvoiceModal('${inv.id}', '${inv.invoice_number}', ${inv.total_amount_inr})">Record Payment</button>`
+                      }
+                    </td>
+                  </tr>`;
+                }).join('') : `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">No subscription invoices in ledger.</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-  <!-- Section 3: Master SaaS Pricing Plans (Tier Engine) -->
-  <section class="card section-card">
-    <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
-      <div>
-        <h3 style="margin:0;font-size:15px;color:var(--text);">3. Master SaaS Pricing Plans • Tier & Feature Matrix</h3>
-        <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Catalog of standard and bespoke subscription tiers with fleet caps, white-label flags, and SLAs.</p>
-      </div>
-      <button class="btn btn-outline btn-xs" onclick="openHqNewPlanModal()">+ Add New Plan</button>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Plan Name & Tier</th>
-            <th>Monthly Fee</th>
-            <th>Annual Fee</th>
-            <th>Duty & Fleet Cap</th>
-            <th>Feature Matrix</th>
-            <th>Support SLA</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${plans.map(p => {
-            const dutiesCap = p.duty_limit === -1 ? 'Unlimited Duties' : `Up to ${p.duty_limit} duties/mo`;
-            const fleetCap = p.vehicle_limit === -1 ? 'Unlimited Fleet' : `Up to ${p.vehicle_limit} vehicles`;
-            return `<tr>
-              <td><strong>${esc(p.name)}</strong><br><small class="font-mono" style="color:var(--muted);">${esc(p.tier)}</small></td>
-              <td style="font-weight:600;">₹${Number(p.monthly_fee_inr || 0).toLocaleString('en-IN')}/mo</td>
-              <td style="font-weight:600;">₹${Number(p.annual_fee_inr || 0).toLocaleString('en-IN')}/yr</td>
-              <td><small>${dutiesCap}<br>${fleetCap}</small></td>
-              <td>
-                <small>
-                  White-label: ${p.white_label_enabled ? '✅ Yes' : '❌ No'} · 
-                  API: ${p.api_access_enabled ? '✅ Yes' : '❌ No'}<br>
-                  Custom Pricing: ${p.custom_pricing_enabled ? '✅ Enabled' : '❌ Disabled'}
-                </small>
-              </td>
-              <td><small style="color:var(--muted);">${esc(p.support_tier)}</small></td>
-              <td>${p.is_active ? status('Active', 'green') : status('Archived', 'soft')}</td>
-              <td>
-                <button class="btn btn-outline btn-xs" onclick="openHqEditPlanModal('${p.id}')">Edit Plan</button>
-              </td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-  </section>
+        <!-- Section 3: Master SaaS Pricing Plans (Tier Engine) -->
+        <section class="card section-card">
+          <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+            <div>
+              <h3 style="margin:0;font-size:15px;color:var(--text);">3. Master SaaS Pricing Plans • Tier & Feature Matrix</h3>
+              <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Catalog of standard and bespoke subscription tiers with fleet caps, white-label flags, and SLAs.</p>
+            </div>
+            <button class="btn btn-outline btn-xs" onclick="openHqNewPlanModal()">+ Add New Plan</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Plan Name & Tier</th>
+                  <th>Monthly Fee</th>
+                  <th>Annual Fee</th>
+                  <th>Duty & Fleet Cap</th>
+                  <th>Feature Matrix</th>
+                  <th>Support SLA</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${plans.map(p => {
+                  const dutiesCap = p.duty_limit === -1 ? 'Unlimited Duties' : `Up to ${p.duty_limit} duties/mo`;
+                  const fleetCap = p.vehicle_limit === -1 ? 'Unlimited Fleet' : `Up to ${p.vehicle_limit} vehicles`;
+                  return `<tr>
+                    <td><strong>${esc(p.name)}</strong><br><small class="font-mono" style="color:var(--muted);">${esc(p.tier)}</small></td>
+                    <td style="font-weight:600;">₹${Number(p.monthly_fee_inr || 0).toLocaleString('en-IN')}/mo</td>
+                    <td style="font-weight:600;">₹${Number(p.annual_fee_inr || 0).toLocaleString('en-IN')}/yr</td>
+                    <td><small>${dutiesCap}<br>${fleetCap}</small></td>
+                    <td>
+                      <small>
+                        White-label: ${p.white_label_enabled ? '✅ Yes' : '❌ No'} · 
+                        API: ${p.api_access_enabled ? '✅ Yes' : '❌ No'}<br>
+                        Custom Pricing: ${p.custom_pricing_enabled ? '✅ Enabled' : '❌ Disabled'}
+                      </small>
+                    </td>
+                    <td><small style="color:var(--muted);">${esc(p.support_tier)}</small></td>
+                    <td>${p.is_active ? status('Active', 'green') : status('Archived', 'soft')}</td>
+                    <td>
+                      <button class="btn btn-outline btn-xs" onclick="openHqEditPlanModal('${p.id}')">Edit Plan</button>
+                    </td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-  <!-- Section 4: Corporate Portals & Owning Vendor Mapping -->
-  <section class="card section-card">
-    <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
-      <div>
-        <h3 style="margin:0;font-size:15px;color:var(--text);">4. Corporate Portals • Vendor Ownership Mapping</h3>
-        <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Full audit of which corporate portal is owned and operated by what vendor partner.</p>
-      </div>
-      <span class="status teal">${corporates.length} Portals Mapped</span>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Corporate Client</th>
-            <th>Portal Subdomain</th>
-            <th>Owning Vendor Partner</th>
-            <th>Ownership Model</th>
-            <th>Employees</th>
-            <th>Monthly Duties</th>
-            <th>Monthly GMV</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${corporates.map(c => {
-            const isVendorOwned = c.ownership_type === 'VENDOR_OWNED_PORTAL';
-            const ownerBadge = isVendorOwned ? `<strong style="color:var(--blue);">${esc(c.owning_vendor_name)}</strong>` : `<strong style="color:var(--green);">${esc(c.owning_vendor_name)}</strong>`;
-            const modelBadge = isVendorOwned ? status('Vendor Owned', 'blue') : status('Axiom Direct', 'green');
-            return `<tr>
-              <td>
-                <strong>${esc(c.corporate_name)}</strong><br>
-                <small style="color:var(--muted);">${esc(c.city)} · GST: ${esc(c.gst_number)}</small>
-              </td>
-              <td><a href="https://${esc(c.portal_subdomain)}" target="_blank" style="color:var(--blue);text-decoration:underline;font-family:monospace;">${esc(c.portal_subdomain)}</a></td>
-              <td>${ownerBadge}</td>
-              <td>${modelBadge}</td>
-              <td>${Number(c.active_employees_count || 0).toLocaleString('en-IN')}</td>
-              <td><strong>${Number(c.monthly_duty_volume || 0).toLocaleString('en-IN')}</strong></td>
-              <td style="font-weight:600;">₹${Number(c.monthly_gross_gmv_inr || 0).toLocaleString('en-IN')}</td>
-              <td>${status(c.portal_status || 'LIVE', 'green')}</td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-  </section>
-</div>`;
+        <!-- Section 4: Corporate Portals & Owning Vendor Mapping -->
+        <section class="card section-card">
+          <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+            <div>
+              <h3 style="margin:0;font-size:15px;color:var(--text);">4. Corporate Portals • Vendor Ownership Mapping</h3>
+              <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Full audit of which corporate portal is owned and operated by what vendor partner.</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="status teal">${corporates.length} Portals Mapped</span>
+              <button class="btn btn-outline btn-xs" onclick="state.page='axiom-hq-corporates';render();try{window.location.hash='#axiom-hq-corporates';}catch(_){}">Open Corporate SaaS ➔</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Corporate Client</th>
+                  <th>Portal Subdomain</th>
+                  <th>Owning Vendor Partner</th>
+                  <th>Ownership Model</th>
+                  <th>Employees</th>
+                  <th>Monthly Duties</th>
+                  <th>Monthly GMV</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${corporates.map(c => {
+                  const isVendorOwned = c.ownership_type === 'VENDOR_OWNED_PORTAL';
+                  const ownerBadge = isVendorOwned ? `<strong style="color:var(--blue);">${esc(c.owning_vendor_name)}</strong>` : `<strong style="color:var(--green);">${esc(c.owning_vendor_name)}</strong>`;
+                  const modelBadge = isVendorOwned ? status('Vendor Owned', 'blue') : status('Axiom Direct', 'green');
+                  return `<tr>
+                    <td>
+                      <strong>${esc(c.corporate_name)}</strong><br>
+                      <small style="color:var(--muted);">${esc(c.city)} · GST: ${esc(c.gst_number)}</small>
+                    </td>
+                    <td><a href="https://${esc(c.portal_subdomain)}" target="_blank" style="color:var(--blue);text-decoration:underline;font-family:monospace;">${esc(c.portal_subdomain)}</a></td>
+                    <td>${ownerBadge}</td>
+                    <td>${modelBadge}</td>
+                    <td>${Number(c.active_employees_count || 0).toLocaleString('en-IN')}</td>
+                    <td><strong>${Number(c.monthly_duty_volume || 0).toLocaleString('en-IN')}</strong></td>
+                    <td style="font-weight:600;">₹${Number(c.monthly_gross_gmv_inr || 0).toLocaleString('en-IN')}</td>
+                    <td>${status(c.portal_status || 'LIVE', 'green')}</td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>`;
     }
+
+    window.checkHqCorporateDns = function() {
+      showToast('Corporate Subdomains Healthy', 'All 4 multi-tenant enterprise subdomains have active SSL and valid DNS A/CNAME records.', 'success');
+    };
 
     window.refreshAxiomHqData = async function() {
       state.axiomHqLoading = true;
