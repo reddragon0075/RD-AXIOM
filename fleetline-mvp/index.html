@@ -3460,7 +3460,33 @@
       if (driversParent) driversParent.classList.toggle('active', state.page === 'drivers' || state.page === 'driver-payouts');
       syncAdvancedNavigation();
       const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, 'pnl-dashboard': renderPnLDashboard, 'ops-dashboard': renderOpsDashboard, 'fleet-dashboard': renderFleetDashboard, 'partner-dashboard': renderPartnerDashboard, 'esg-dashboard': renderESGDashboard, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, 'customer-detail': renderCustomerDetail, suppliers: renderSuppliers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ, 'axiom-hq-vendors': () => renderAxiomHQ('vendors'), 'axiom-hq-corporates': () => renderAxiomHQ('corporates') };
-      content.innerHTML = (pages[state.page] || renderOverview)();
+      const rawPageHtml = (pages[state.page] || renderOverview)();
+      const isImpersonating = Boolean(sessionStorage.getItem('axiom_original_admin'));
+      let impBanner = '';
+      if (isImpersonating) {
+        const impName = currentUser?.impersonation_target_name || currentUser?.full_name || currentUser?.email || 'Client Workspace';
+        const impType = currentUser?.role === 'corporate' ? '🏛️ Corporate Enterprise Portal' : '🏢 Fleet Vendor Workspace';
+        impBanner = `
+          <div id="impersonation-active-banner" style="background: linear-gradient(90deg, #92400e, #d97706); color: #fff; padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,0.35); border-bottom: 2px solid #f59e0b; margin-bottom: 18px; border-radius: 8px; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 20px;">🔑</span>
+              <div>
+                <span style="color: #fef3c7; font-weight: 700;">SUPPORT IMPERSONATION ACTIVE:</span> Logged in as <strong>${esc(impName)}</strong> (${impType}).
+                <div style="font-size: 11px; color: #fde68a; font-weight: normal;">Viewing live client workspace to troubleshoot and resolve issues. All actions reflect in this tenant environment.</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button class="btn btn-xs" onclick="state.page='overview';render();try{window.location.hash='#overview';}catch(_){}" style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 5px 10px; border-radius: 6px;">Dashboard</button>
+              <button class="btn btn-xs" onclick="state.page='bookings';render();try{window.location.hash='#bookings';}catch(_){}" style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 5px 10px; border-radius: 6px;">Bookings</button>
+              <button class="btn btn-xs" onclick="state.page='duties';render();try{window.location.hash='#duties';}catch(_){}" style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 5px 10px; border-radius: 6px;">Duties</button>
+              <button class="btn btn-xs" onclick="exitImpersonation()" style="background: #ffffff; color: #92400e; font-weight: 700; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+                ❌ Exit & Return to HQ
+              </button>
+            </div>
+          </div>
+        `;
+      }
+      content.innerHTML = impBanner + rawPageHtml;
       attachPageEvents();
       decorateResponsiveTables();
       window.scrollTo({ top: 0, behavior: 'instant' });
@@ -8435,7 +8461,8 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                       <td>${pStatus}</td>
                       <td>${portalsBadge}</td>
                       <td>
-                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                          <button class="btn btn-primary btn-xs" onclick="impersonateTarget('vendor', '${v.id}', '${esc(v.vendor_name)}')" title="Login as ${esc(v.vendor_name)} to inspect their workspace and solve issues" style="background:#f59e0b;border-color:#d97706;color:#000;font-weight:700;">🔑 Login As</button>
                           <button class="btn btn-outline btn-xs" onclick="openHqCustomPlanModal('${v.id}')">Customize Fee</button>
                           <button class="btn btn-outline btn-xs" onclick="dispatchHqReminder('${v.id}')" title="Send WhatsApp & Email payment link">⚡ Reminder</button>
                         </div>
@@ -8677,6 +8704,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                     <th>Monthly Duties</th>
                     <th>Monthly GMV</th>
                     <th>Status</th>
+                    <th>Support Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -8696,8 +8724,11 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                       <td><strong>${Number(c.monthly_duty_volume || 0).toLocaleString('en-IN')}</strong></td>
                       <td style="font-weight:600;">₹${Number(c.monthly_gross_gmv_inr || 0).toLocaleString('en-IN')}</td>
                       <td>${status(c.portal_status || 'LIVE', 'green')}</td>
+                      <td>
+                        <button class="btn btn-primary btn-xs" onclick="impersonateTarget('corporate', '${c.id}', '${esc(c.corporate_name)}')" title="Login as ${esc(c.corporate_name)} to inspect their corporate portal and solve issues" style="background:#14b8a6;border-color:#0d9488;color:#000;font-weight:700;">🔑 Login As</button>
+                      </td>
                     </tr>`;
-                  }).join('') : `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">No corporate portals matching filter.</td></tr>`}
+                  }).join('') : `<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted);">No corporate portals matching filter.</td></tr>`}
                 </tbody>
               </table>
             </div>
@@ -8999,6 +9030,56 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         </section>
       </div>`;
     }
+
+    
+    window.impersonateTarget = async function(targetType, targetId, targetName) {
+      try {
+        showToast('Connecting...', `Assuming support session for ${targetName}...`, 'info');
+        const res = await apiRequest('/api/axiom-hq/impersonate', {
+          method: 'POST',
+          body: JSON.stringify({ target_type: targetType, target_id: targetId, reason: 'Troubleshooting & Support' })
+        });
+        if (!res?.target_user) throw new Error(res?.message || 'Failed to initiate shadow session');
+
+        // Save original admin state if not already impersonating
+        if (!sessionStorage.getItem('axiom_original_admin')) {
+          sessionStorage.setItem('axiom_original_admin', JSON.stringify(currentUser));
+          sessionStorage.setItem('axiom_impersonation_return_page', state.page || 'axiom-hq-vendors');
+        }
+
+        // Apply target shadow user and reload workspace
+        applyCurrentUser(res.target_user);
+        state.page = 'overview';
+        try { window.location.hash = '#overview'; } catch (_) {}
+        render();
+        showToast('Login As Successful', `You are now logged in as ${targetName}. You can inspect and resolve their issues.`, 'success');
+      } catch (err) {
+        showToast('Login As Failed', err.message, 'error');
+      }
+    };
+
+    window.exitImpersonation = function() {
+      try {
+        const rawOrig = sessionStorage.getItem('axiom_original_admin');
+        if (!rawOrig) {
+          window.location.reload();
+          return;
+        }
+        const origUser = JSON.parse(rawOrig);
+        const returnPage = sessionStorage.getItem('axiom_impersonation_return_page') || 'axiom-hq-vendors';
+        sessionStorage.removeItem('axiom_original_admin');
+        sessionStorage.removeItem('axiom_impersonation_return_page');
+
+        applyCurrentUser(origUser);
+        state.page = returnPage;
+        try { window.location.hash = '#' + returnPage; } catch (_) {}
+        render();
+        showToast('Impersonation Exited', 'Returned to Axiom HQ Super-Admin Console.', 'success');
+      } catch (err) {
+        console.error(err);
+        window.location.reload();
+      }
+    };
 
     window.checkHqCorporateDns = function() {
       showToast('Corporate Subdomains Healthy', 'All 4 multi-tenant enterprise subdomains have active SSL and valid DNS A/CNAME records.', 'success');

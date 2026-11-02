@@ -1004,4 +1004,109 @@ def handle_axiom_hq(
             "active_plans_count": plans_count,
         }
 
+    # 7. Impersonate / Login As Vendor or Corporate Client
+    if clean_path == "/api/axiom-hq/impersonate" and method == "POST":
+        data = payload or {}
+        target_type = str(data.get("target_type") or "vendor").lower()
+        target_id = str(data.get("target_id") or "")
+        reason = str(data.get("reason") or "Support & Issue Resolution")
+
+        admin_id = user.get("id") or "usr_axiom_hq"
+        admin_email = user.get("email") or "staff@axiomfleet.in"
+        now_iso = dt.datetime.now(dt.timezone.utc).isoformat()
+        exp_iso = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=60)).isoformat()
+
+        if target_type == "vendor":
+            cur = conn.execute("SELECT * FROM axiom_hq_vendors WHERE id = ?", (target_id,))
+            row = cur.fetchone()
+            if not row:
+                raise APIError(404, f"Vendor '{target_id}' not found in Axiom HQ", "not_found")
+            v = dict(row)
+            target_name = v["vendor_name"]
+            target_tenant_id = v["id"]
+            org_id = v["organization_id"] or f"org_{v['id']}"
+            target_user = {
+                "id": f"usr_shadow_{v['id']}",
+                "email": v["email"],
+                "role": "vendor",
+                "full_name": f"{v['vendor_name']} (Axiom Support Shadow)",
+                "organization_id": org_id,
+                "organization": {
+                    "id": org_id,
+                    "name": v["vendor_name"],
+                    "city": v["city"],
+                },
+                "is_impersonated": True,
+                "impersonated_by": admin_email,
+                "impersonation_target_type": "vendor",
+                "impersonation_target_id": v["id"],
+                "impersonation_target_name": v["vendor_name"],
+            }
+        elif target_type == "corporate":
+            cur = conn.execute("SELECT * FROM axiom_hq_corporates WHERE id = ?", (target_id,))
+            row = cur.fetchone()
+            if not row:
+                raise APIError(404, f"Corporate '{target_id}' not found in Axiom HQ", "not_found")
+            c = dict(row)
+            target_name = c["corporate_name"]
+            target_tenant_id = c["id"]
+            org_id = c["owning_vendor_id"] or "org_axiom_logistics"
+            target_user = {
+                "id": f"usr_shadow_{c['id']}",
+                "email": f"support+{c['id']}@axiomfleet.in",
+                "role": "corporate",
+                "full_name": f"{c['corporate_name']} (Axiom Support Shadow)",
+                "organization_id": org_id,
+                "corporate_id": c["id"],
+                "corporate_name": c["corporate_name"],
+                "portal_subdomain": c["portal_subdomain"],
+                "organization": {
+                    "id": org_id,
+                    "name": c["corporate_name"],
+                    "city": c["city"],
+                },
+                "is_impersonated": True,
+                "impersonated_by": admin_email,
+                "impersonation_target_type": "corporate",
+                "impersonation_target_id": c["id"],
+                "impersonation_target_name": c["corporate_name"],
+            }
+        else:
+            raise APIError(400, "Invalid target_type. Must be 'vendor' or 'corporate'", "validation_error")
+
+        session_id = f"imp_{uuid.uuid4().hex[:12]}"
+        try:
+            conn.execute(
+                """
+                INSERT INTO admin_impersonation_audit_logs (
+                    id, actor_admin_id, actor_admin_email, target_tenant_id, target_tenant_name,
+                    target_vendor_user_id, impersonation_mode, reason_code, session_token_hash,
+                    ip_address, started_at, expires_at, session_status
+                ) VALUES (?, ?, ?, ?, ?, ?, 'READ_WRITE', ?, ?, ?, ?, ?, 'ACTIVE')
+                """,
+                (
+                    session_id,
+                    admin_id,
+                    admin_email,
+                    target_tenant_id,
+                    target_name,
+                    target_user["id"],
+                    reason,
+                    hashlib.sha256(session_id.encode("utf-8")).hexdigest(),
+                    remote_ip,
+                    now_iso,
+                    exp_iso,
+                ),
+            )
+            conn.commit()
+        except Exception:
+            pass
+
+        return {
+            "ok": True,
+            "session_id": session_id,
+            "target_user": target_user,
+            "message": f"Assumed shadow identity for {target_name}",
+        }
+
     return None
