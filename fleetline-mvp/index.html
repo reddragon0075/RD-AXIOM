@@ -2917,7 +2917,7 @@
       } catch (_) {}
       return 'overview';
     })();
-    const state = { page: savedActivePage, pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', esgDashboardData: null, _fetchingEsgDashboard: false, esgPeriodFilter: 'all', esgCustomerFilter: 'all', esgFuelFilter: 'all', esgSearchQuery: '', esgDashboardTab: 'environmental', partnersDashboardData: null, _fetchingPartnersDashboard: false, partnerEntityFilter: 'all', partnerStatusFilter: 'all', partnerSearchQuery: '', partnerDashboardTab: 'clients', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', selectedSupplierId: null, supplier360Data: null, supplierDetailTab: 'pnl', _fetchingSupplier360: false, supplierPeriodFilter: 'all', supplierDateFrom: '', supplierDateTo: '', supplierDutyTypeFilter: 'all', supplierDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehiclePage: 1, vehiclePageSize: 10, vehiclePnlPage: 1, vehiclePnlPageSize: 10, vehiclePnlFilter: 'all', vehiclePnlQuery: '', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const state = { page: savedActivePage, pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', esgDashboardData: null, _fetchingEsgDashboard: false, esgPeriodFilter: 'all', esgCustomerFilter: 'all', esgFuelFilter: 'all', esgSearchQuery: '', esgDashboardTab: 'environmental', partnersDashboardData: null, _fetchingPartnersDashboard: false, partnerEntityFilter: 'all', partnerStatusFilter: 'all', partnerSearchQuery: '', partnerDashboardTab: 'clients', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', selectedSupplierId: null, supplier360Data: null, supplierDetailTab: 'pnl', _fetchingSupplier360: false, supplierPeriodFilter: 'all', supplierDateFrom: '', supplierDateTo: '', supplierDutyTypeFilter: 'all', supplierDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', invoicePage: 1, invoicePageSize: 10, driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehiclePage: 1, vehiclePageSize: 10, vehiclePnlPage: 1, vehiclePnlPageSize: 10, vehiclePnlFilter: 'all', vehiclePnlQuery: '', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
     const advancedPages = new Set(['customers','customer-detail','suppliers','supplier-detail','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq','axiom-hq-vendors','axiom-hq-corporates']);
@@ -6301,7 +6301,69 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
       });
       const totalPaise = rows.reduce((sum,item) => sum + Number(item.total_paise || 0), 0);
 
-      const rowMarkup = rows.map(item => {
+      const totalInvoices = rows.length;
+      const pageSizeRaw = state.invoicePageSize || 10;
+      const pageSize = pageSizeRaw === 'all' ? Math.max(totalInvoices, 1) : Math.max(1, parseInt(pageSizeRaw, 10) || 10);
+      const totalPages = Math.max(1, Math.ceil(totalInvoices / pageSize));
+      const currentPage = Math.min(Math.max(1, Number(state.invoicePage) || 1), totalPages);
+      state.invoicePage = currentPage;
+
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = pageSizeRaw === 'all' ? totalInvoices : Math.min(startIndex + pageSize, totalInvoices);
+      const pagedInvoices = rows.slice(startIndex, endIndex);
+
+      function generateInvoicePageButtons() {
+        if (totalPages <= 1) return `<button type="button" class="table-page-btn active" data-invoice-page="1">1</button>`;
+        const pageNumbers = [];
+        const maxButtons = 5;
+        let left = Math.max(1, currentPage - 2);
+        let right = Math.min(totalPages, left + maxButtons - 1);
+        if (right - left + 1 < maxButtons) {
+          left = Math.max(1, right - maxButtons + 1);
+        }
+        if (left > 1) {
+          pageNumbers.push(1);
+          if (left > 2) pageNumbers.push('...');
+        }
+        for (let i = left; i <= right; i++) pageNumbers.push(i);
+        if (right < totalPages - 1) pageNumbers.push('...');
+        if (totalPages > 1 && !pageNumbers.includes(totalPages)) pageNumbers.push(totalPages);
+
+        return pageNumbers.map(p => {
+          if (p === '...') return `<span class="table-page-ellipsis" style="padding:0 4px;color:var(--muted)">…</span>`;
+          const isActive = p === currentPage;
+          return `<button type="button" class="table-page-btn ${isActive ? 'active' : ''}" data-invoice-page="${p}">${p}</button>`;
+        }).join('');
+      }
+
+      const invoicePaginationMarkup = `
+        <div class="table-pagination">
+          <div class="table-pagination-left">
+            <div class="table-pagination-summary">
+              Showing <strong>${totalInvoices === 0 ? 0 : startIndex + 1}–${endIndex}</strong> of <strong>${totalInvoices}</strong> invoices
+            </div>
+            <div class="table-page-size-wrap">
+              <label for="invoicePageSizeSelect">Rows per page:</label>
+              <select id="invoicePageSizeSelect" class="table-page-size-select" data-action="invoice-page-size">
+                <option value="5" ${pageSizeRaw == 5 ? 'selected' : ''}>5</option>
+                <option value="10" ${pageSizeRaw == 10 ? 'selected' : ''}>10</option>
+                <option value="20" ${pageSizeRaw == 20 ? 'selected' : ''}>20</option>
+                <option value="50" ${pageSizeRaw == 50 ? 'selected' : ''}>50</option>
+                <option value="all" ${pageSizeRaw === 'all' ? 'selected' : ''}>All (${totalInvoices})</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-pagination-right">
+            <button type="button" class="table-page-btn" data-action="invoice-page-first" title="First page" aria-label="First page" ${currentPage <= 1 ? 'disabled' : ''}>«</button>
+            <button type="button" class="table-page-btn" data-action="invoice-page-prev" title="Previous page" aria-label="Previous page" ${currentPage <= 1 ? 'disabled' : ''}>‹</button>
+            ${generateInvoicePageButtons()}
+            <button type="button" class="table-page-btn" data-action="invoice-page-next" title="Next page" aria-label="Next page" ${currentPage >= totalPages ? 'disabled' : ''}>›</button>
+            <button type="button" class="table-page-btn" data-action="invoice-page-last" title="Last page" aria-label="Last page" ${currentPage >= totalPages ? 'disabled' : ''}>»</button>
+          </div>
+        </div>
+      `;
+
+      const rowMarkup = pagedInvoices.map(item => {
         const tripCount = item.trip_count || 1;
         const totalKm = item.total_km || 0;
         const dateFrom = item.trip_date_from || item.billing_period_from;
@@ -6398,6 +6460,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
           <label class="global-search" style="height:32px;max-width:220px;flex:none"><span>${icon('search')}</span><input id="invoiceQuery" placeholder="Search invoices…" value="${esc(state.invoiceQuery || '')}"></label>
         </div>
         ${bodyTable}
+        ${['dual-ledger', 'distance-audit'].includes(filter) ? '' : invoicePaginationMarkup}
       </section>`;
     }
 
@@ -10937,7 +11000,16 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
       content.querySelectorAll('[data-action]').forEach(el => el.addEventListener('click', () => handleAction(el.dataset.action, el)));
       content.querySelectorAll('[data-setting-toggle]').forEach(el => el.addEventListener('click', () => { const on = el.classList.toggle('on'); el.setAttribute('aria-pressed', String(on)); }));
       content.querySelectorAll('[data-pagination]').forEach(el => el.addEventListener('click', () => showToast('Pagination', 'All records returned by the current tenant query are shown on this page.')));
-      content.querySelectorAll('[data-invoice-filter]').forEach(el => el.addEventListener('click', () => { state.invoiceFilter = el.dataset.invoiceFilter; render(); }));
+      content.querySelectorAll('[data-invoice-filter]').forEach(el => el.addEventListener('click', () => { state.invoiceFilter = el.dataset.invoiceFilter; state.invoicePage = 1; render(); }));
+
+      // Billing & receipts pagination controls
+      content.querySelectorAll('[data-action="invoice-page-first"]').forEach(el => el.addEventListener('click', () => { state.invoicePage = 1; render(); }));
+      content.querySelectorAll('[data-action="invoice-page-prev"]').forEach(el => el.addEventListener('click', () => { state.invoicePage = Math.max(1, (Number(state.invoicePage) || 1) - 1); render(); }));
+      content.querySelectorAll('[data-action="invoice-page-next"]').forEach(el => el.addEventListener('click', () => { state.invoicePage = (Number(state.invoicePage) || 1) + 1; render(); }));
+      content.querySelectorAll('[data-action="invoice-page-last"]').forEach(el => el.addEventListener('click', () => { state.invoicePage = 999999; render(); }));
+      content.querySelectorAll('[data-invoice-page]').forEach(el => el.addEventListener('click', () => { const p = Number(el.dataset.invoicePage); if (!isNaN(p)) { state.invoicePage = p; render(); } }));
+      const billingInvPageSize = document.getElementById('invoicePageSizeSelect');
+      if (billingInvPageSize) billingInvPageSize.addEventListener('change', e => { state.invoicePageSize = e.target.value; state.invoicePage = 1; render(); });
       content.querySelectorAll('[data-driver-payout-filter]').forEach(el => el.addEventListener('click', () => { state.driverPayoutFilter = el.dataset.driverPayoutFilter; render(); }));
       content.querySelectorAll('[data-vehicle-pnl-filter]').forEach(el => el.addEventListener('click', () => { state.vehiclePnlFilter = el.dataset.vehiclePnlFilter; state.vehiclePnlPage = 1; render(); }));
       content.querySelector('#vehiclePnlQuery')?.addEventListener('input', e => { state.vehiclePnlQuery = e.target.value; state.vehiclePnlPage = 1; render(); requestAnimationFrame(() => { const next=document.getElementById('vehiclePnlQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
@@ -11010,7 +11082,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
       content.querySelectorAll('[data-action="booking-page-last"]').forEach(el => el.addEventListener('click', () => { state.bookingPage = 999999; renderBookingsInPlace(); }));
       content.querySelectorAll('[data-booking-page]').forEach(el => el.addEventListener('click', () => { const p = Number(el.dataset.bookingPage); if (!isNaN(p)) { state.bookingPage = p; renderBookingsInPlace(); } }));
       const bPageSize = document.getElementById('bookingPageSizeSelect'); if (bPageSize) bPageSize.addEventListener('change', e => { state.bookingPageSize = e.target.value; state.bookingPage = 1; renderBookingsInPlace(); });
-      const invoiceQuery = document.getElementById('invoiceQuery'); if (invoiceQuery) invoiceQuery.addEventListener('input', e => { state.invoiceQuery = e.target.value; render(); });
+      const invoiceQuery = document.getElementById('invoiceQuery'); if (invoiceQuery) invoiceQuery.addEventListener('input', e => { state.invoiceQuery = e.target.value; state.invoicePage = 1; render(); requestAnimationFrame(() => { const next = document.getElementById('invoiceQuery'); if (next) { next.focus(); next.setSelectionRange(next.value.length, next.value.length); } }); });
       const fleetQuery = document.getElementById('fleetQuery'); if (fleetQuery) fleetQuery.addEventListener('input', e => { state.fleetQuery = e.target.value; render(); requestAnimationFrame(() => { const next=document.getElementById('fleetQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
       const driverQuery = document.getElementById('driverQuery'); if (driverQuery) driverQuery.addEventListener('input', e => { state.driverQuery = e.target.value; state.driverPage = 1; render(); requestAnimationFrame(() => { const next=document.getElementById('driverQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
       const masterQuery = document.getElementById('masterQuery'); if (masterQuery) masterQuery.addEventListener('input', e => { state.masterQuery = e.target.value; render(); requestAnimationFrame(() => { const next=document.getElementById('masterQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
