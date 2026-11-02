@@ -13764,7 +13764,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
 
           <!-- TAB 2: DUAL-TARIFF PRICING PANE (Estimated vs Final Realized) -->
           <div id="dutyTariffPane" style="display:none">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+            <div style="display:flex;flex-direction:column;gap:18px;margin-bottom:16px">
               
               <!-- CARD 1: ESTIMATED / CONTRACTED PRICING -->
               <div style="background:#ffffff;border:1.5px solid #bfdbfe;border-radius:10px;padding:16px">
@@ -13818,9 +13818,13 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                 <div style="font-size:11px;color:#64748b;background:#f8fafc;padding:6px 10px;border-radius:4px">
                   Contract: Corporate Standard Price Book 2026 (Active)
                 </div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:9px 12px;font-size:11.5px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px">
+                  <span>Est. Payout to ${isSupplierAssigned ? `Supplier (<strong>${esc(supplierName)}</strong>)` : 'Driver / Own Fleet'}: <strong style="color:#0f172a">₹ ${estSupplierPayout.toFixed(2)}</strong></span>
+                  <span style="color:#16a34a;font-weight:700">Est. Gross Margin: +₹ ${estMarginAmount.toFixed(2)} (${estMarginPct}%)</span>
+                </div>
               </div>
 
-              <!-- CARD 2: FINAL REALIZED PRICING -->
+              <!-- CARD 2: FINAL REALIZED PRICING (PLACED BELOW) -->
               <div style="background:#ffffff;border:1.5px solid ${isCompleted ? '#bbf7d0' : '#fed7aa'};border-radius:10px;padding:16px">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e2e8f0">
                   <div>
@@ -13869,9 +13873,9 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                     </tr>
                   </tbody>
                 </table>
-                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px;font-size:11.5px;display:flex;justify-content:space-between">
-                  <span>Supplier/Cab Payout: <strong>₹ ${supplierPayout.toFixed(2)}</strong></span>
-                  <span style="color:#16a34a;font-weight:700">Axiom Margin: +₹ ${marginAmount.toFixed(2)} (${marginPct}%)</span>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;font-size:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+                  <span>Final Payout to ${isSupplierAssigned ? `Supplier (<strong>${esc(supplierName)}</strong>)` : 'Driver / Own Fleet'}: <strong style="color:#0f172a">₹ ${finalSupplierPayout.toFixed(2)}</strong> <small style="color:#64748b">(Est: ₹ ${estSupplierPayout.toFixed(2)})</small></span>
+                  <span style="color:#16a34a;font-weight:750">Final Realized Margin: +₹ ${finalMarginAmount.toFixed(2)} (${finalMarginPct}%) <small style="color:#15803d">(Est: +₹ ${estMarginAmount.toFixed(2)})</small></span>
                 </div>
                 ` : `
                 <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#9a3412">
@@ -13902,6 +13906,10 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                 </table>
                 <div style="font-size:11px;color:#64748b;background:#f8fafc;padding:6px 10px;border-radius:4px">
                   Reconciliation triggers: Driver App Closure / Odometer Capture
+                </div>
+                <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:9px 12px;font-size:11.5px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px">
+                  <span>Projected Payout to ${isSupplierAssigned ? `Supplier (<strong>${esc(supplierName)}</strong>)` : 'Driver / Own Fleet'}: <strong style="color:#9a3412">₹ ${estSupplierPayout.toFixed(2)}</strong></span>
+                  <span style="color:#c2410c;font-weight:700">Projected Margin: +₹ ${estMarginAmount.toFixed(2)} (${estMarginPct}%)</span>
                 </div>
                 `}
 
