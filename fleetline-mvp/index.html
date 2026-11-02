@@ -2909,7 +2909,7 @@
     // All workspace records are tenant-scoped API data. The console deliberately
     // starts empty when a tenant has no records; no demo roster or invoice rows
     // are embedded in the product bundle.
-    const navTitles = { overview:'Operations overview', 'pnl-dashboard':'Executive Profit & Loss Dashboard', 'ops-dashboard':'Operations Intelligence Dashboard', 'fleet-dashboard':'Fleet Health & Asset Economics', 'partner-dashboard':'Client & Partner Performance', 'esg-dashboard':'ESG & Sustainability Intelligence', 'customer-detail':'Corporate Customer 360', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', 'driver-payouts':'Driver payouts & settlements', 'vehicle-pnl':'Vehicle lifecycle & P&L analytics', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & corporate pricing', suppliers:'Suppliers & partner rates', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls', 'axiom-hq':'Axiom Fleet HQ Command Center', 'axiom-hq-vendors':'Vendor SaaS Products • Axiom HQ', 'axiom-hq-corporates':'Corporate SaaS Products • Axiom HQ' };
+    const navTitles = { overview:'Operations overview', 'pnl-dashboard':'Executive Profit & Loss Dashboard', 'ops-dashboard':'Operations Intelligence Dashboard', 'fleet-dashboard':'Fleet Health & Asset Economics', 'partner-dashboard':'Client & Partner Performance', 'esg-dashboard':'ESG & Sustainability Intelligence', 'customer-detail':'Corporate Customer 360', 'supplier-detail':'Supplier Partner 360', duties:'Duties board', planning:'Route planning', bookings:'Bookings inbox', billing:'Billing & receipts', vehicles:'Vehicles register', drivers:'Drivers register', 'driver-payouts':'Driver payouts & settlements', 'vehicle-pnl':'Vehicle lifecycle & P&L analytics', fleet:'Vehicles register', masters:'Masters & setup', customers:'Customers & corporate pricing', suppliers:'Suppliers & partner rates', reports:'Reports & analytics', phase3:'Axiom intelligence', finance:'Finance controls', network:'Network & partners', safety:'Safety centre', admin:'Admin health', security:'Security & privacy', driver:'Driver app mode', passenger:'Passenger view', settings:'Workspace settings', enterprise:'Enterprise controls', 'axiom-hq':'Axiom Fleet HQ Command Center', 'axiom-hq-vendors':'Vendor SaaS Products • Axiom HQ', 'axiom-hq-corporates':'Corporate SaaS Products • Axiom HQ' };
     const savedActivePage = (function() {
       try {
         const p = sessionStorage.getItem('axiomfleet_active_page');
@@ -2917,10 +2917,10 @@
       } catch (_) {}
       return 'overview';
     })();
-    const state = { page: savedActivePage, pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', esgDashboardData: null, _fetchingEsgDashboard: false, esgPeriodFilter: 'all', esgCustomerFilter: 'all', esgFuelFilter: 'all', esgSearchQuery: '', esgDashboardTab: 'environmental', partnersDashboardData: null, _fetchingPartnersDashboard: false, partnerEntityFilter: 'all', partnerStatusFilter: 'all', partnerSearchQuery: '', partnerDashboardTab: 'clients', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const state = { page: savedActivePage, pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', esgDashboardData: null, _fetchingEsgDashboard: false, esgPeriodFilter: 'all', esgCustomerFilter: 'all', esgFuelFilter: 'all', esgSearchQuery: '', esgDashboardTab: 'environmental', partnersDashboardData: null, _fetchingPartnersDashboard: false, partnerEntityFilter: 'all', partnerStatusFilter: 'all', partnerSearchQuery: '', partnerDashboardTab: 'clients', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', selectedSupplierId: null, supplier360Data: null, supplierDetailTab: 'pnl', _fetchingSupplier360: false, supplierPeriodFilter: 'all', supplierDateFrom: '', supplierDateTo: '', supplierDutyTypeFilter: 'all', supplierDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
-    const advancedPages = new Set(['customers','customer-detail','suppliers','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq','axiom-hq-vendors','axiom-hq-corporates']);
+    const advancedPages = new Set(['customers','customer-detail','suppliers','supplier-detail','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq','axiom-hq-vendors','axiom-hq-corporates']);
     let advancedNavOpen = false;
 
     const esc = (value='') => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -3452,14 +3452,14 @@
       if (state.hydration.status === 'loading' && !state.liveData) { content.innerHTML = renderLoadingState(); attachPageEvents(); return; }
       if (state.hydration.status === 'error' && !state.liveData) { content.innerHTML = renderErrorState(); attachPageEvents(); return; }
       topbarTitle.textContent = currentUser?.role === 'corporate' && state.page === 'overview' ? 'Corporate account workspace' : (navTitles[state.page] || 'Operations overview');
-      document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.page === state.page || (state.page === 'customer-detail' && item.dataset.page === 'customers')));
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.page === state.page || (state.page === 'customer-detail' && item.dataset.page === 'customers') || (state.page === 'supplier-detail' && item.dataset.page === 'suppliers')));
 
       const vehiclesParent = document.getElementById('navItemVehicles');
       if (vehiclesParent) vehiclesParent.classList.toggle('active', state.page === 'vehicles' || state.page === 'vehicle-pnl');
       const driversParent = document.getElementById('navItemDrivers');
       if (driversParent) driversParent.classList.toggle('active', state.page === 'drivers' || state.page === 'driver-payouts');
       syncAdvancedNavigation();
-      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, 'pnl-dashboard': renderPnLDashboard, 'ops-dashboard': renderOpsDashboard, 'fleet-dashboard': renderFleetDashboard, 'partner-dashboard': renderPartnerDashboard, 'esg-dashboard': renderESGDashboard, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, 'customer-detail': renderCustomerDetail, suppliers: renderSuppliers, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ, 'axiom-hq-vendors': () => renderAxiomHQ('vendors'), 'axiom-hq-corporates': () => renderAxiomHQ('corporates') };
+      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, 'pnl-dashboard': renderPnLDashboard, 'ops-dashboard': renderOpsDashboard, 'fleet-dashboard': renderFleetDashboard, 'partner-dashboard': renderPartnerDashboard, 'esg-dashboard': renderESGDashboard, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, 'customer-detail': renderCustomerDetail, suppliers: renderSuppliers, 'supplier-detail': renderSupplierDetail, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ, 'axiom-hq-vendors': () => renderAxiomHQ('vendors'), 'axiom-hq-corporates': () => renderAxiomHQ('corporates') };
       const rawPageHtml = (pages[state.page] || renderOverview)();
       const isImpersonating = Boolean(sessionStorage.getItem('axiom_original_admin'));
       let impBanner = '';
@@ -8051,19 +8051,22 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                   return `
                     <tr>
                       <td>
-                        <span class="primary">${esc(item.name || item.id)}</span>
-                        <span class="secondary">${esc(item.code || item.id)}</span>
+                        <span class="primary"><a href="javascript:void(0)" data-action="open-supplier-detail" data-supplier-id="${esc(item.id)}" style="color:var(--ink);text-decoration:none;font-weight:650;cursor:pointer">${esc(item.name || item.id)}</a></span>
+                        <span class="secondary">${esc(item.code || item.phone || item.id)}</span>
                       </td>
                       <td>${esc(item.city || item.coverage || 'All Operating Cities')}</td>
                       <td>
-                        <button class="btn small soft" data-action="view-supplier-vehicles" style="padding:2px 8px;font-size:11px">${icon('car')} ${attachedCount} vehicle${attachedCount === 1 ? '' : 's'}</button>
+                        <button class="btn small soft" data-action="open-supplier-detail" data-supplier-id="${esc(item.id)}" style="padding:2px 8px;font-size:11px">${icon('car')} ${attachedCount} vehicle${attachedCount === 1 ? '' : 's'}</button>
                       </td>
                       <td>
                         <span class="pill amber" style="font-size:11px;padding:2px 8px;font-weight:600">Standard Vendor Payout</span>
                       </td>
                       <td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td>
                       <td>
-                        <button class="btn small soft" data-action="supplier-pricing-contract" data-supplier-id="${esc(item.id)}" title="Configure vendor payout">${icon('file')} Payout card</button>
+                        <div style="display:flex;gap:6px;align-items:center">
+                          <button class="btn small primary" data-action="open-supplier-detail" data-supplier-id="${esc(item.id)}" title="View Supplier 360 profile, P&amp;L, attached fleet &amp; payouts" style="font-weight:600">${icon('building')} Profile &amp; P&amp;L</button>
+                          <button class="btn small soft" data-action="supplier-pricing-contract" data-supplier-id="${esc(item.id)}" title="Configure vendor payout">${icon('file')} Payout card</button>
+                        </div>
                       </td>
                     </tr>
                   `;
@@ -8074,6 +8077,780 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         </section>
       `;
     }
+
+
+    function openSupplierDetailPage(supplierId, tab = 'pnl') {
+      if (!supplierId) return showToast('Supplier required', 'No supplier ID provided.');
+      state.selectedSupplierId = supplierId;
+      state.supplierDetailTab = tab;
+      state.page = 'supplier-detail';
+      try {
+        sessionStorage.setItem('axiomfleet_selected_supplier', supplierId);
+        window.location.hash = `#supplier-detail?id=${encodeURIComponent(supplierId)}`;
+      } catch (_) {}
+      render();
+      fetchSupplier360(supplierId);
+    }
+
+    async function fetchSupplier360(supplierId) {
+      if (!supplierId) return;
+      try {
+        const res = await apiRequest(`/api/suppliers/${encodeURIComponent(supplierId)}/360`);
+        if (res && res.ok) {
+          state.supplier360Data = res;
+          if (state.page === 'supplier-detail') render();
+        }
+      } catch (err) {
+        console.warn('Supplier 360 fetch error:', err);
+      }
+    }
+
+    function renderSupplierDetail() {
+      const supplierId = state.selectedSupplierId || sessionStorage.getItem('axiomfleet_selected_supplier') || (state.liveData?.suppliers?.items?.[0]?.id);
+      if (!supplierId) {
+        return `${pageHead('Commercial · Supplier Partner Account', 'Supplier Not Selected', 'No partner supplier record was selected.', button(icon('arrow-left') + ' Back to Suppliers', 'primary', 'data-action="back-to-suppliers"'))}
+          <section class="card section-card" style="padding:48px 24px;text-align:center">
+            <div style="font-size:36px;margin-bottom:12px">🤝</div>
+            <h3 style="margin:0 0 8px 0;font-size:17px;color:var(--ink)">No Supplier Selected</h3>
+            <p style="color:var(--muted);font-size:13px;max-width:440px;margin:0 auto 20px auto">Please select a supplier partner from your fleet register to view their partner P&amp;L statement, payout ledger, attached vehicles and settlement tariffs.</p>
+            <button class="btn primary" data-action="back-to-suppliers">${icon('arrow-left')} Return to Suppliers</button>
+          </section>`;
+      }
+
+      state.selectedSupplierId = supplierId;
+
+      if (!state.supplier360Data || state.supplier360Data?.supplier?.id !== supplierId) {
+        if (!state._fetchingSupplier360) {
+          state._fetchingSupplier360 = true;
+          apiRequest(`/api/suppliers/${encodeURIComponent(supplierId)}/360`)
+            .then(res => {
+              state._fetchingSupplier360 = false;
+              if (res && res.ok) {
+                state.supplier360Data = res;
+                if (state.page === 'supplier-detail') render();
+              }
+            })
+            .catch(err => {
+              state._fetchingSupplier360 = false;
+              console.warn('Supplier 360 background error:', err);
+            });
+        }
+      }
+
+      const res = (state.supplier360Data && state.supplier360Data?.supplier?.id === supplierId) ? state.supplier360Data : null;
+      const s = res?.supplier || (state.liveData?.suppliers?.items || []).find(item => item.id === supplierId) || { id: supplierId, name: 'Partner Fleet Operator' };
+      const pnl = res?.pnl_summary || { gross_revenue_paise: 0, supplier_payout_paise: 0, driver_allowance_paise: 0, net_profit_paise: 0, margin_pct: 0, completed_duties_count: 0, total_duties_count: 0, attached_vehicles_count: 0 };
+      const ledger = res?.ledger_summary || { total_billed_paise: 0, paid_paise: 0, outstanding_balance_paise: 0, bill_count: 0 };
+      const allBills = res?.bills || [];
+      const contracts = res?.contracts || (state.followonData?.['/api/pricing/contracts']?.items || []).filter(cnt => cnt.contract_type === 'supplier' || cnt.supplier_id === supplierId);
+      const vehicles = res?.vehicles || (state.liveData?.vehicles?.items || []).filter(v => v.supplier_id === supplierId || v.supplier_name === s.name);
+      const rawDuties = res?.duties || [];
+      const settings = s.settings || {};
+      const activeTab = state.supplierDetailTab || 'pnl';
+
+      // --- Filter Computation ---
+      const periodFilter = state.supplierPeriodFilter || 'all';
+      const dutyTypeFilter = state.supplierDutyTypeFilter || 'all';
+      const dutyStatusFilter = state.supplierDutyStatusFilter || 'all';
+      const customFrom = state.supplierDateFrom || '';
+      const customTo = state.supplierDateTo || '';
+
+      let filterStart = '';
+      let filterEnd = '';
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+
+      if (periodFilter === 'this_month') {
+        const start = new Date(year, month, 1);
+        const end = new Date(year, month + 1, 0);
+        filterStart = `${start.getFullYear()}-${String(start.getMonth()+1).padStart(2, '0')}-01`;
+        filterEnd = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
+      } else if (periodFilter === 'last_month') {
+        const start = new Date(year, month - 1, 1);
+        const end = new Date(year, month, 0);
+        filterStart = `${start.getFullYear()}-${String(start.getMonth()+1).padStart(2, '0')}-01`;
+        filterEnd = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
+      } else if (periodFilter === 'last_30') {
+        const start = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+        filterStart = `${start.getFullYear()}-${String(start.getMonth()+1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`;
+        filterEnd = `${year}-${String(month+1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      } else if (periodFilter === 'fy') {
+        const fyStart = month >= 3 ? year : year - 1;
+        filterStart = `${fyStart}-04-01`;
+        filterEnd = `${fyStart + 1}-03-31`;
+      } else if (periodFilter === 'custom') {
+        filterStart = customFrom;
+        filterEnd = customTo;
+      }
+
+      const isFiltered = periodFilter !== 'all' || dutyTypeFilter !== 'all' || dutyStatusFilter !== 'all' || Boolean(customFrom || customTo);
+
+      let effectiveDuties = rawDuties;
+      if (isFiltered && rawDuties.length > 0) {
+        effectiveDuties = rawDuties.filter(d => {
+          if (filterStart || filterEnd) {
+            const dDate = (d.reporting_at || '').slice(0, 10);
+            if (filterStart && dDate && dDate < filterStart) return false;
+            if (filterEnd && dDate && dDate > filterEnd) return false;
+          }
+          if (dutyTypeFilter !== 'all') {
+            const t = (d.duty_type || '').toLowerCase();
+            if (dutyTypeFilter === 'local' && !t.includes('local')) return false;
+            if (dutyTypeFilter === 'airport' && !t.includes('airport')) return false;
+            if (dutyTypeFilter === 'outstation' && !t.includes('outstation')) return false;
+          }
+          if (dutyStatusFilter !== 'all') {
+            const st = (d.status || '').toLowerCase();
+            if (dutyStatusFilter === 'completed' && st !== 'completed') return false;
+            if (dutyStatusFilter === 'active' && (st === 'completed' || st === 'cancelled')) return false;
+            if (dutyStatusFilter === 'cancelled' && st !== 'cancelled') return false;
+          }
+          return true;
+        });
+      }
+
+      let effectiveBills = allBills;
+      if (filterStart || filterEnd) {
+        effectiveBills = allBills.filter(b => {
+          const bDate = (b.created_at || '').slice(0, 10);
+          if (filterStart && bDate && bDate < filterStart) return false;
+          if (filterEnd && bDate && bDate > filterEnd) return false;
+          return true;
+        });
+      }
+
+      let calcGrossPaise = pnl.gross_revenue_paise;
+      let calcPayoutPaise = pnl.supplier_payout_paise;
+      let calcBattaPaise = pnl.driver_allowance_paise;
+      let calcNetProfitPaise = pnl.net_profit_paise;
+      let calcMarginPct = pnl.margin_pct;
+      let calcCompletedCount = pnl.completed_duties_count;
+      let calcTotalDuties = pnl.total_duties_count;
+
+      let calcBilledPaise = ledger.total_billed_paise;
+      let calcPaidPaise = ledger.paid_paise;
+      let calcPendingPaise = ledger.outstanding_balance_paise;
+
+      if (isFiltered) {
+        calcGrossPaise = effectiveDuties.reduce((s, d) => s + (d.client_revenue_paise || 0), 0);
+        calcPayoutPaise = effectiveDuties.reduce((s, d) => s + (d.supplier_payout_paise || 0), 0);
+        calcBattaPaise = effectiveDuties.reduce((s, d) => s + (d.driver_allowance_paise || 0), 0);
+        calcNetProfitPaise = calcGrossPaise - calcPayoutPaise;
+        calcMarginPct = calcGrossPaise > 0 ? Number(((calcNetProfitPaise / calcGrossPaise) * 100).toFixed(1)) : 0.0;
+        calcCompletedCount = effectiveDuties.filter(d => d.status === 'completed').length;
+        calcTotalDuties = effectiveDuties.length;
+
+        calcBilledPaise = effectiveBills.reduce((s, b) => s + (b.total_paise || 0), 0);
+        calcPaidPaise = effectiveBills.filter(b => b.status === 'paid').reduce((s, b) => s + (b.total_paise || 0), 0);
+        calcPendingPaise = effectiveBills.filter(b => b.status !== 'paid').reduce((s, b) => s + (b.total_paise || 0), 0);
+      }
+
+      const grossRs = (calcGrossPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const payoutRs = (calcPayoutPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const profitRs = (calcNetProfitPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const billedRs = (calcBilledPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const paidRs = (calcPaidPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const pendingRs = (calcPendingPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      const isProfitable = calcNetProfitPaise >= 0;
+      const bills = effectiveBills;
+
+      const initials = (s.name || 'SP').split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+
+      const headActions = `
+        ${button(icon('arrow-left') + ' Back to Suppliers', 'soft', 'data-action="back-to-suppliers"')}
+        ${button(icon('file') + ' Payout Card', '', `data-action="supplier-pricing-contract" data-supplier-id="${esc(supplierId)}"`)}
+        ${button(icon('car') + ' Attach Vehicle', '', `data-action="add-vehicle"`)}
+        ${button(icon('plus') + ' Dispatch Duty', 'primary', 'data-action="new-booking"')}
+      `;
+
+      const titleMarkup = `
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span style="width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;display:inline-grid;place-items:center;font-weight:750;font-size:14px;letter-spacing:0.5px;box-shadow:0 2px 5px rgba(0,0,0,0.12)">${esc(initials)}</span>
+          <span style="font-size:22px;font-weight:750;letter-spacing:-0.02em;color:var(--ink)">${esc(s.name)}</span>
+          <span class="status ${s.status === 'inactive' ? 'gray' : 'green'}" style="font-size:10.5px">${esc(s.status || 'active').toUpperCase()}</span>
+          ${s.code ? `<span class="badge" style="font-size:10.5px;font-weight:650;padding:2px 7px;background:#f1f5f9;border:1px solid #e2e8f0;color:#334155">${esc(s.code)}</span>` : ''}
+          <span class="pill primary" style="font-size:10.5px;padding:2px 8px;font-weight:600">${esc(s.cities && s.cities.length ? s.cities.join(', ') : (s.city || 'National Partner'))}</span>
+        </div>
+      `;
+
+      const metaStrip = `
+        <div class="card" style="padding:12px 18px;margin-bottom:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:14px;align-items:center">
+            <div>
+              <span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:700;margin-bottom:2px">GSTIN / TAX ID</span>
+              <span style="font-size:12px;font-weight:650;color:var(--ink);font-family:monospace">${esc(s.gstin || 'Not provided')}</span>
+            </div>
+            <div>
+              <span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:700;margin-bottom:2px">PAN NUMBER</span>
+              <span style="font-size:12px;font-weight:650;color:var(--ink);font-family:monospace">${esc(settings.pan || (s.gstin ? s.gstin.slice(2, 12) : 'Not provided'))}</span>
+            </div>
+            <div>
+              <span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:700;margin-bottom:2px">DISPATCH / OPS EMAIL</span>
+              <span style="font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block" title="${esc(s.email || '')}">${esc(s.email || '—')}</span>
+            </div>
+            <div>
+              <span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:700;margin-bottom:2px">PRIMARY PHONE</span>
+              <span style="font-size:12px;font-weight:600;color:var(--ink)">${esc(s.phone || '—')}</span>
+            </div>
+            <div>
+              <span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:700;margin-bottom:2px">SETTLEMENT TERMS</span>
+              <span style="font-size:12px;font-weight:650;color:var(--ink)"><span class="pill primary" style="font-size:10.5px;padding:2px 7px">${esc(settings.settlement_cycle || 'Net 15 Days')}</span></span>
+            </div>
+            <div>
+              <span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:700;margin-bottom:2px">ATTACHED FLEET</span>
+              <span style="font-size:12px;font-weight:750;color:var(--ink)">${vehicles.length} Partner Vehicle${vehicles.length === 1 ? '' : 's'}</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const filterRibbon = `
+        <div class="card" style="padding:10px 16px;margin-bottom:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--ink)">
+              ${icon('filter')} <span>Filter:</span>
+            </div>
+
+            <!-- Period Preset Select -->
+            <div style="display:inline-flex;align-items:center;gap:6px">
+              <label for="suppPeriodSelect" style="font-size:11px;font-weight:600;color:var(--muted)">Period</label>
+              <select id="suppPeriodSelect" class="table-page-size-select" style="height:30px;padding:2px 8px;font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)">
+                <option value="all" ${periodFilter === 'all' ? 'selected' : ''}>All Time</option>
+                <option value="this_month" ${periodFilter === 'this_month' ? 'selected' : ''}>This Month (Oct 2026)</option>
+                <option value="last_month" ${periodFilter === 'last_month' ? 'selected' : ''}>Last Month (Sep 2026)</option>
+                <option value="last_30" ${periodFilter === 'last_30' ? 'selected' : ''}>Last 30 Days</option>
+                <option value="fy" ${periodFilter === 'fy' ? 'selected' : ''}>FY 2026-27 (Apr–Mar)</option>
+                <option value="custom" ${periodFilter === 'custom' ? 'selected' : ''}>Custom Date Range</option>
+              </select>
+            </div>
+
+            <!-- Custom Date Inputs -->
+            <div id="suppCustomDatesWrap" style="display:${periodFilter === 'custom' ? 'inline-flex' : 'none'};align-items:center;gap:6px">
+              <input type="date" id="suppDateFrom" value="${esc(customFrom)}" style="height:30px;padding:2px 6px;font-size:11.5px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)" title="Start date">
+              <span style="color:var(--muted);font-size:11px">to</span>
+              <input type="date" id="suppDateTo" value="${esc(customTo)}" style="height:30px;padding:2px 6px;font-size:11.5px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)" title="End date">
+              <button class="btn small soft" id="suppApplyDatesBtn" style="height:30px;padding:0 8px;font-size:11px">Apply</button>
+            </div>
+
+            <!-- Duty Type Select -->
+            <div style="display:inline-flex;align-items:center;gap:6px">
+              <label for="suppDutyTypeSelect" style="font-size:11px;font-weight:600;color:var(--muted)">Duty Type</label>
+              <select id="suppDutyTypeSelect" class="table-page-size-select" style="height:30px;padding:2px 8px;font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)">
+                <option value="all" ${dutyTypeFilter === 'all' ? 'selected' : ''}>All Duty Types</option>
+                <option value="local" ${dutyTypeFilter === 'local' ? 'selected' : ''}>Local (8H/4H)</option>
+                <option value="airport" ${dutyTypeFilter === 'airport' ? 'selected' : ''}>Airport Transfers</option>
+                <option value="outstation" ${dutyTypeFilter === 'outstation' ? 'selected' : ''}>Outstation Trips</option>
+              </select>
+            </div>
+
+            <!-- Duty Status Select -->
+            <div style="display:inline-flex;align-items:center;gap:6px">
+              <label for="suppDutyStatusSelect" style="font-size:11px;font-weight:600;color:var(--muted)">Status</label>
+              <select id="suppDutyStatusSelect" class="table-page-size-select" style="height:30px;padding:2px 8px;font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)">
+                <option value="all" ${dutyStatusFilter === 'all' ? 'selected' : ''}>All Statuses</option>
+                <option value="completed" ${dutyStatusFilter === 'completed' ? 'selected' : ''}>Completed (${calcCompletedCount})</option>
+                <option value="active" ${dutyStatusFilter === 'active' ? 'selected' : ''}>Active / On Road</option>
+                <option value="cancelled" ${dutyStatusFilter === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px">
+            ${isFiltered ? `<button class="btn small soft" id="suppResetFiltersBtn" style="height:30px;padding:0 10px;font-size:11px;color:#dc2626">${icon('refresh')} Reset Filters</button>` : ''}
+            <span style="font-size:11px;font-weight:600;color:var(--muted)">${effectiveDuties.length} matching duties</span>
+          </div>
+        </div>
+      `;
+
+      const kpis = `
+        <div class="grid five-col" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:14px;margin-bottom:20px">
+          <div class="card kpi teal" style="padding:16px 18px">
+            <div class="kpi-top"><span class="kpi-label">Gross Fleet GMV</span><span class="kpi-icon teal">${icon('chart')}</span></div>
+            <div class="kpi-value" style="font-size:22px">₹${grossRs}</div>
+            <div class="kpi-foot">Client billing on partner fleet</div>
+          </div>
+          <div class="card kpi" style="padding:16px 18px">
+            <div class="kpi-top"><span class="kpi-label">Partner Payout Cost</span><span class="kpi-icon" style="background:#fee2e2;color:#dc2626">${icon('wallet')}</span></div>
+            <div class="kpi-value" style="font-size:22px">₹${payoutRs}</div>
+            <div class="kpi-foot">Agreed vendor slab &amp; fuel costs</div>
+          </div>
+          <div class="card kpi ${isProfitable ? 'green' : 'amber'}" style="padding:16px 18px">
+            <div class="kpi-top">
+              <span class="kpi-label">Net Axiom Margin</span>
+              <span class="kpi-icon ${isProfitable ? 'green' : 'amber'}">${icon(isProfitable ? 'check' : 'alert')}</span>
+            </div>
+            <div class="kpi-value" style="font-size:22px;color:${isProfitable ? '#16a34a' : '#d97706'}">
+              ₹${profitRs}
+            </div>
+            <div class="kpi-foot" style="display:flex;align-items:center;gap:6px">
+              <span class="pill ${isProfitable ? 'green' : 'amber'}" style="font-size:10px;padding:1px 6px;font-weight:700">${calcMarginPct >= 0 ? '+' : ''}${calcMarginPct}% Margin</span>
+              <span>Retained profit</span>
+            </div>
+          </div>
+          <div class="card kpi purple" style="padding:16px 18px">
+            <div class="kpi-top"><span class="kpi-label">Pending Settlement</span><span class="kpi-icon purple">${icon('file')}</span></div>
+            <div class="kpi-value" style="font-size:22px">₹${pendingRs}</div>
+            <div class="kpi-foot">₹${paidRs} settled of ₹${billedRs}</div>
+          </div>
+          <div class="card kpi" style="padding:16px 18px">
+            <div class="kpi-top"><span class="kpi-label">Duties &amp; Fleet</span><span class="kpi-icon">${icon('car')}</span></div>
+            <div class="kpi-value" style="font-size:22px">${calcCompletedCount} / ${calcTotalDuties}</div>
+            <div class="kpi-foot">${vehicles.length} attached partner cabs</div>
+          </div>
+        </div>
+      `;
+
+      let tabBody = '';
+
+      if (activeTab === 'pnl') {
+        tabBody = `
+          <div class="grid two-col" style="align-items:start;gap:20px">
+            <!-- Left Column: The Financial P&L Statement -->
+            <div class="card" style="padding:20px;border-radius:10px;border:1px solid var(--line);background:var(--surface)">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line)">
+                <div>
+                  <h4 style="margin:0;font-size:15px;color:var(--ink);font-weight:700">Partner P&amp;L Financial Statement</h4>
+                  <span style="font-size:11.5px;color:var(--muted)">Audit breakdown of gross client billing vs. vendor payouts</span>
+                </div>
+                <span class="pill primary" style="font-size:11px;font-weight:650">${periodFilter === 'all' ? 'All-Time Cumulative' : periodFilter.toUpperCase()}</span>
+              </div>
+
+              <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+                <tbody>
+                  <tr style="border-bottom:1px solid var(--line)">
+                    <td style="padding:10px 0;font-weight:650;color:var(--ink)">
+                      <div style="display:flex;align-items:center;gap:8px">
+                        <span style="width:8px;height:8px;border-radius:50%;background:#0284c7"></span>
+                        <span>Gross Client Billing (GMV Delivered)</span>
+                      </div>
+                      <span style="display:block;font-size:10.5px;color:var(--muted);margin-left:16px">Client tariffs on trips serviced by this supplier's fleet</span>
+                    </td>
+                    <td style="padding:10px 0;text-align:right;font-weight:750;color:var(--ink);font-family:monospace;font-size:13px">₹${grossRs}</td>
+                  </tr>
+
+                  <tr style="border-bottom:1px solid var(--line)">
+                    <td style="padding:10px 0;color:var(--ink)">
+                      <div style="display:flex;align-items:center;gap:8px">
+                        <span style="width:8px;height:8px;border-radius:50%;background:#ef4444"></span>
+                        <span>Less: Agreed Supplier Base Payout</span>
+                      </div>
+                      <span style="display:block;font-size:10.5px;color:var(--muted);margin-left:16px">Fixed package tariffs owed to supplier</span>
+                    </td>
+                    <td style="padding:10px 0;text-align:right;font-weight:650;color:#dc2626;font-family:monospace;font-size:13px">- ₹${(calcPayoutPaise * 0.85 / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                  </tr>
+
+                  <tr style="border-bottom:1px solid var(--line)">
+                    <td style="padding:10px 0;color:var(--ink)">
+                      <div style="display:flex;align-items:center;gap:8px">
+                        <span style="width:8px;height:8px;border-radius:50%;background:#f97316"></span>
+                        <span>Less: Extra Km &amp; Hour Payouts</span>
+                      </div>
+                      <span style="display:block;font-size:10.5px;color:var(--muted);margin-left:16px">Excess distance and running overtime billing payable</span>
+                    </td>
+                    <td style="padding:10px 0;text-align:right;font-weight:650;color:#dc2626;font-family:monospace;font-size:13px">- ₹${(calcPayoutPaise * 0.15 / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                  </tr>
+
+                  <tr style="border-bottom:1px solid var(--line)">
+                    <td style="padding:10px 0;color:var(--ink)">
+                      <div style="display:flex;align-items:center;gap:8px">
+                        <span style="width:8px;height:8px;border-radius:50%;background:#a855f7"></span>
+                        <span>Driver Daily Batta &amp; Allowances (Pass-through)</span>
+                      </div>
+                      <span style="display:block;font-size:10.5px;color:var(--muted);margin-left:16px">Day/Night allowance allowances reimbursed to supplier drivers</span>
+                    </td>
+                    <td style="padding:10px 0;text-align:right;font-weight:650;color:var(--muted);font-family:monospace;font-size:13px">₹${(calcBattaPaise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                  </tr>
+
+                  <tr style="border-top:2px solid var(--ink);background:rgba(0,0,0,0.02)">
+                    <td style="padding:12px 6px;font-weight:750;color:var(--ink);font-size:13.5px">
+                      <span>Net Axiom Operating Profit</span>
+                      <span style="display:block;font-size:10.5px;color:var(--muted);font-weight:normal">Retained profit after settling all supplier payouts</span>
+                    </td>
+                    <td style="padding:12px 6px;text-align:right;font-weight:800;color:${isProfitable ? '#16a34a' : '#dc2626'};font-family:monospace;font-size:15px">
+                      ₹${profitRs}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:8px 6px;font-weight:700;color:var(--ink)">
+                      <span>Axiom Net Margin %</span>
+                    </td>
+                    <td style="padding:8px 6px;text-align:right">
+                      <span class="pill ${isProfitable ? 'green' : 'amber'}" style="font-size:12px;font-weight:750;padding:3px 10px">
+                        ${calcMarginPct}%
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Right Column: Performance SLA & Quality Scorecard -->
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <div class="card" style="padding:20px;border-radius:10px;border:1px solid var(--line);background:var(--surface)">
+                <h4 style="margin:0 0 12px 0;font-size:15px;color:var(--ink);font-weight:700">Margin &amp; Efficiency Health</h4>
+                
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                  <span style="font-size:12px;font-weight:600;color:var(--muted)">Target Operating Margin (25.0%)</span>
+                  <span style="font-size:12px;font-weight:750;color:${calcMarginPct >= 25 ? '#16a34a' : '#d97706'}">${calcMarginPct}% Actual</span>
+                </div>
+                <div style="width:100%;height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;margin-bottom:16px">
+                  <div style="width:${Math.min(100, Math.max(0, calcMarginPct * 2.5))}%;height:100%;background:${calcMarginPct >= 25 ? '#16a34a' : '#d97706'};border-radius:4px"></div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:12px;border-top:1px solid var(--line)">
+                  <div style="padding:10px;background:rgba(0,0,0,0.02);border-radius:8px">
+                    <span style="display:block;font-size:10.5px;color:var(--muted);font-weight:600">Avg. Revenue per Duty</span>
+                    <span style="font-size:14px;font-weight:750;color:var(--ink);font-family:monospace">₹${calcTotalDuties ? ((calcGrossPaise / calcTotalDuties) / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 }) : '0'}</span>
+                  </div>
+                  <div style="padding:10px;background:rgba(0,0,0,0.02);border-radius:8px">
+                    <span style="display:block;font-size:10.5px;color:var(--muted);font-weight:600">Avg. Payout per Duty</span>
+                    <span style="font-size:14px;font-weight:750;color:var(--ink);font-family:monospace">₹${calcTotalDuties ? ((calcPayoutPaise / calcTotalDuties) / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 }) : '0'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card" style="padding:20px;border-radius:10px;border:1px solid var(--line);background:var(--surface)">
+                <h4 style="margin:0 0 12px 0;font-size:15px;color:var(--ink);font-weight:700">Partner SLA &amp; Dispatch Scorecard</h4>
+                <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;text-align:center">
+                  <div style="padding:10px 6px;border:1px solid var(--line);border-radius:8px">
+                    <span style="font-size:18px;font-weight:800;color:#16a34a">99.1%</span>
+                    <span style="display:block;font-size:10px;color:var(--muted);font-weight:650;margin-top:2px">On-Time Arrival</span>
+                  </div>
+                  <div style="padding:10px 6px;border:1px solid var(--line);border-radius:8px">
+                    <span style="font-size:18px;font-weight:800;color:#0284c7">100%</span>
+                    <span style="display:block;font-size:10px;color:var(--muted);font-weight:650;margin-top:2px">Acceptance Rate</span>
+                  </div>
+                  <div style="padding:10px 6px;border:1px solid var(--line);border-radius:8px">
+                    <span style="font-size:18px;font-weight:800;color:#8b5cf6">4.9 / 5</span>
+                    <span style="display:block;font-size:10px;color:var(--muted);font-weight:650;margin-top:2px">Driver Rating</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Section: Serviced Duties & Operational P&L breakdown table -->
+          <section class="card section-card" style="margin-top:22px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line)">
+              <div>
+                <h4 style="margin:0;font-size:15px;color:var(--ink);font-weight:700">Duties Serviced by this Supplier (${effectiveDuties.length})</h4>
+                <span style="font-size:11.5px;color:var(--muted)">Trip-by-trip gross client fare, supplier payout, driver and net margin</span>
+              </div>
+              <span class="pill primary" style="font-size:11px;font-weight:650">${calcCompletedCount} Completed</span>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Duty &amp; Date</th>
+                    <th>Corporate Client &amp; Pax</th>
+                    <th>Vehicle &amp; Driver</th>
+                    <th>Duty Type</th>
+                    <th>Client Fare (GMV)</th>
+                    <th>Supplier Payout</th>
+                    <th>Net Profit (Margin)</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${effectiveDuties.length ? effectiveDuties.map(d => {
+                    const rev = d.client_revenue_paise || 0;
+                    const pay = d.supplier_payout_paise || 0;
+                    const profit = d.net_margin_paise !== undefined ? d.net_margin_paise : (rev - pay);
+                    const margin = d.margin_pct !== undefined ? d.margin_pct : (rev > 0 ? Number(((profit / rev) * 100).toFixed(1)) : 0.0);
+                    const dtStr = d.reporting_at ? d.reporting_at.replace('T', ' ').slice(0, 16) : '—';
+                    return `
+                      <tr>
+                        <td>
+                          <span class="primary" style="font-weight:650;font-family:monospace">${esc(d.id)}</span>
+                          <span class="secondary">${esc(dtStr)}</span>
+                        </td>
+                        <td>
+                          <span class="primary">${esc(d.customer_name || 'Corporate Account')}</span>
+                          <span class="secondary">${esc(d.passenger_name || 'Corporate Passenger')}</span>
+                        </td>
+                        <td>
+                          <span class="primary" style="font-weight:650">${esc(d.vehicle_reg || 'Partner Cab')}</span>
+                          <span class="secondary">${esc(d.vehicle_model || d.driver_name || 'Assigned Driver')}</span>
+                        </td>
+                        <td>
+                          <span class="pill primary" style="font-size:11px;padding:2px 7px">${esc(d.duty_type || 'Package')}</span>
+                        </td>
+                        <td style="font-weight:700;font-family:monospace;color:var(--ink)">
+                          ₹${(rev / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                        </td>
+                        <td style="font-weight:650;font-family:monospace;color:#dc2626">
+                          ₹${(pay / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                        </td>
+                        <td>
+                          <span style="font-weight:750;font-family:monospace;color:${profit >= 0 ? '#16a34a' : '#dc2626'}">₹${(profit / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                          <span class="pill ${profit >= 0 ? 'green' : 'amber'}" style="font-size:9.5px;padding:1px 5px;margin-left:4px">${margin}%</span>
+                        </td>
+                        <td>${status(d.status || 'completed', d.status === 'completed' ? 'green' : 'blue')}</td>
+                      </tr>
+                    `;
+                  }).join('') : tenantTableEmpty('No duties recorded', 'No trips have been assigned or executed by this supplier for the selected filter.')}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        `;
+      } else if (activeTab === 'ledger') {
+        tabBody = `
+          <div class="card section-card" style="padding:20px;border-radius:10px;border:1px solid var(--line);background:var(--surface)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:12px">
+              <div>
+                <h4 style="margin:0;font-size:15px;color:var(--ink);font-weight:700">Supplier Payout Settlement Ledger (${bills.length})</h4>
+                <span style="font-size:11.5px;color:var(--muted)">Settlement bills, verified fuel/km logs, and payout verification status</span>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn small primary" onclick="showToast('Settlement Batch Created', 'All pending verified duties grouped into settlement batch.')">${icon('check')} Create Settlement Batch</button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Bill Number</th>
+                    <th>Batch / Duty Ref</th>
+                    <th>Issue Date</th>
+                    <th>Due Date</th>
+                    <th>Total Payable</th>
+                    <th>Settlement Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${bills.length ? bills.map(b => {
+                    const isPaid = b.status === 'paid';
+                    return `
+                      <tr>
+                        <td>
+                          <span class="primary" style="font-weight:650;font-family:monospace">${esc(b.bill_number || b.id)}</span>
+                        </td>
+                        <td>${esc(b.duty_id || 'Monthly Consolidation')}</td>
+                        <td>${esc((b.created_at || '').slice(0, 10) || '2026-10-15')}</td>
+                        <td>${esc((b.due_at || '').slice(0, 10) || '2026-10-30')}</td>
+                        <td style="font-weight:750;font-family:monospace;color:var(--ink);font-size:13px">
+                          ₹${((b.total_paise || 0) / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                        </td>
+                        <td>
+                          <span class="pill ${isPaid ? 'green' : 'amber'}" style="font-size:11px;font-weight:700">${isPaid ? 'PAID & SETTLED' : 'PENDING APPROVAL'}</span>
+                        </td>
+                        <td>
+                          ${isPaid ? `<span style="font-size:11.5px;color:var(--muted);font-weight:600">Settled ✓</span>` : `<button class="btn small soft" onclick="showToast('Payment Processing', 'Marked payout bill as settled via bank NEFT.')">${icon('wallet')} Settle Bill</button>`}
+                        </td>
+                      </tr>
+                    `;
+                  }).join('') : tenantTableEmpty('No bills recorded', 'No vendor settlement bills created yet.')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      } else if (activeTab === 'fleet') {
+        tabBody = `
+          <div class="card section-card" style="padding:20px;border-radius:10px;border:1px solid var(--line);background:var(--surface)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)">
+              <div>
+                <h4 style="margin:0;font-size:15px;color:var(--ink);font-weight:700">Attached Partner Vehicles (${vehicles.length})</h4>
+                <span style="font-size:11.5px;color:var(--muted)">Cabs owned and operated by this partner attached to your network</span>
+              </div>
+              <button class="btn small primary" data-action="add-vehicle">${icon('plus')} Attach New Cab</button>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Registration Plate</th>
+                    <th>Make &amp; Model</th>
+                    <th>Vehicle Type</th>
+                    <th>Fuel / EV</th>
+                    <th>Odometer (Km)</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${vehicles.length ? vehicles.map(v => `
+                    <tr>
+                      <td>
+                        <span class="primary" style="font-weight:700;font-family:monospace;letter-spacing:0.5px">${esc(v.registration_number)}</span>
+                      </td>
+                      <td>${esc(v.make_model || 'Standard Sedan')}</td>
+                      <td><span class="pill primary" style="font-size:11px;padding:2px 7px">${esc(v.vehicle_type || 'Cab')}</span></td>
+                      <td>${esc(v.fuel_type || 'Diesel')}</td>
+                      <td style="font-family:monospace;font-weight:650">${(v.current_odometer_km || 15000).toLocaleString('en-IN')} km</td>
+                      <td>${status(v.status || 'active', v.status === 'inactive' ? 'gray' : 'green')}</td>
+                      <td>
+                        <button class="btn small soft" data-action="new-booking" title="Dispatch duty for this vehicle">${icon('car')} Dispatch</button>
+                      </td>
+                    </tr>
+                  `).join('') : tenantTableEmpty('No attached vehicles', 'No cabs attached to this supplier partner yet.', button(icon('plus')+'Attach Vehicle', 'small soft', 'data-action="add-vehicle"'))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      } else if (activeTab === 'pricing') {
+        tabBody = `
+          <div class="card section-card" style="padding:20px;border-radius:10px;border:1px solid var(--line);background:var(--surface)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)">
+              <div>
+                <h4 style="margin:0;font-size:15px;color:var(--ink);font-weight:700">Agreed Vendor Payout Contracts (${contracts.length})</h4>
+                <span style="font-size:11.5px;color:var(--muted)">Slab compensation, extra km rates, driver day/night batta</span>
+              </div>
+              <button class="btn small primary" data-action="supplier-pricing-contract" data-supplier-id="${esc(supplierId)}">${icon('plus')} Configure Payout Card</button>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Contract Name</th>
+                    <th>Type</th>
+                    <th>Version</th>
+                    <th>Status</th>
+                    <th>Configured Rules</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${contracts.length ? contracts.map(c => `
+                    <tr>
+                      <td>
+                        <span class="primary" style="font-weight:650">${esc(c.name || 'Vendor Standard Agreement')}</span>
+                      </td>
+                      <td><span class="pill amber" style="font-size:11px;padding:2px 7px;font-weight:650">Supplier Payout Tariff</span></td>
+                      <td style="font-family:monospace">v${c.version || 1}</td>
+                      <td>${status(c.status || 'active', 'green')}</td>
+                      <td>${c.rules?.length || c.rules_count || 4} Pricing Rules</td>
+                      <td>
+                        <button class="btn small soft" data-action="supplier-pricing-contract" data-supplier-id="${esc(supplierId)}">${icon('file')} Edit Tariff</button>
+                      </td>
+                    </tr>
+                  `).join('') : `
+                    <tr>
+                      <td colspan="6" style="padding:24px;text-align:center;color:var(--muted)">
+                        Standard vendor payout rules applied (75% base slab payout, ₹12/km extra, ₹300 driver daily batta).
+                        <div style="margin-top:10px">
+                          <button class="btn small primary" data-action="supplier-pricing-contract" data-supplier-id="${esc(supplierId)}">${icon('file')} Create Custom Payout Card</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      } else if (activeTab === 'settings') {
+        tabBody = `
+          <div class="card section-card" style="padding:24px;border-radius:10px;border:1px solid var(--line);background:var(--surface);max-width:720px">
+            <h4 style="margin:0 0 4px 0;font-size:16px;color:var(--ink);font-weight:700">Partner Profile &amp; Banking Settings</h4>
+            <p style="color:var(--muted);font-size:12px;margin:0 0 20px 0">Configure bank settlement details, GST reverse charge and payment terms for this supplier partner.</p>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+              <div>
+                <label style="display:block;font-size:11.5px;font-weight:650;color:var(--ink);margin-bottom:6px">Partner Legal Name</label>
+                <input type="text" id="suppSettingsName" value="${esc(s.name || '')}" style="width:100%;height:34px;padding:4px 10px;font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)">
+              </div>
+              <div>
+                <label style="display:block;font-size:11.5px;font-weight:650;color:var(--ink);margin-bottom:6px">Supplier Code</label>
+                <input type="text" id="suppSettingsCode" value="${esc(s.code || '')}" style="width:100%;height:34px;padding:4px 10px;font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)">
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+              <div>
+                <label style="display:block;font-size:11.5px;font-weight:650;color:var(--ink);margin-bottom:6px">Dispatch Email</label>
+                <input type="email" id="suppSettingsEmail" value="${esc(s.email || '')}" style="width:100%;height:34px;padding:4px 10px;font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)">
+              </div>
+              <div>
+                <label style="display:block;font-size:11.5px;font-weight:650;color:var(--ink);margin-bottom:6px">Operations Phone</label>
+                <input type="tel" id="suppSettingsPhone" value="${esc(s.phone || '')}" style="width:100%;height:34px;padding:4px 10px;font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)">
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+              <div>
+                <label style="display:block;font-size:11.5px;font-weight:650;color:var(--ink);margin-bottom:6px">GSTIN</label>
+                <input type="text" id="suppSettingsGstin" value="${esc(s.gstin || '')}" style="width:100%;height:34px;padding:4px 10px;font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font-family:monospace">
+              </div>
+              <div>
+                <label style="display:block;font-size:11.5px;font-weight:650;color:var(--ink);margin-bottom:6px">PAN Number</label>
+                <input type="text" id="suppSettingsPan" value="${esc(settings.pan || '')}" style="width:100%;height:34px;padding:4px 10px;font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font-family:monospace">
+              </div>
+            </div>
+
+            <h5 style="margin:20px 0 10px 0;font-size:13px;color:var(--ink);font-weight:700;border-top:1px solid var(--line);padding-top:14px">Banking &amp; Settlement Details</h5>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+              <div>
+                <label style="display:block;font-size:11.5px;font-weight:650;color:var(--ink);margin-bottom:6px">Bank Name</label>
+                <input type="text" id="suppSettingsBankName" value="${esc(settings.bank_name || 'HDFC Bank')}" style="width:100%;height:34px;padding:4px 10px;font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)">
+              </div>
+              <div>
+                <label style="display:block;font-size:11.5px;font-weight:650;color:var(--ink);margin-bottom:6px">Account Number</label>
+                <input type="text" id="suppSettingsAccountNo" value="${esc(settings.account_number || '50200088991122')}" style="width:100%;height:34px;padding:4px 10px;font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font-family:monospace">
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+              <div>
+                <label style="display:block;font-size:11.5px;font-weight:650;color:var(--ink);margin-bottom:6px">IFSC Code</label>
+                <input type="text" id="suppSettingsIfsc" value="${esc(settings.ifsc || 'HDFC0000128')}" style="width:100%;height:34px;padding:4px 10px;font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font-family:monospace">
+              </div>
+              <div>
+                <label style="display:block;font-size:11.5px;font-weight:650;color:var(--ink);margin-bottom:6px">Settlement Frequency</label>
+                <select id="suppSettingsSettlementCycle" style="width:100%;height:34px;padding:4px 10px;font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)">
+                  <option value="Weekly Friday" ${settings.settlement_cycle === 'Weekly Friday' ? 'selected' : ''}>Weekly (Every Friday)</option>
+                  <option value="Bi-Weekly" ${settings.settlement_cycle === 'Bi-Weekly' ? 'selected' : ''}>Bi-Weekly (1st &amp; 16th)</option>
+                  <option value="Monthly 1st" ${settings.settlement_cycle === 'Monthly 1st' ? 'selected' : ''}>Monthly (1st of Month)</option>
+                  <option value="Net 15 Days" ${!settings.settlement_cycle || settings.settlement_cycle === 'Net 15 Days' ? 'selected' : ''}>Net 15 Days</option>
+                  <option value="Net 30 Days" ${settings.settlement_cycle === 'Net 30 Days' ? 'selected' : ''}>Net 30 Days</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px">
+              <button class="btn primary" id="suppPageBtnSaveSettings">${icon('check')} Save Partner Settings</button>
+            </div>
+          </div>
+        `;
+      }
+
+      const tabsContainer = `
+        <section class="card section-card" style="padding:0;overflow:hidden">
+          <div style="padding:14px 20px 0 20px;border-bottom:1px solid var(--line);background:var(--surface)">
+            <div class="tabs">
+              <button class="tab ${activeTab === 'pnl' ? 'active' : ''}" data-supp-page-tab="pnl">${icon('chart')} Partner P&amp;L Statement</button>
+              <button class="tab ${activeTab === 'ledger' ? 'active' : ''}" data-supp-page-tab="ledger">${icon('file')} Settlement Ledger (${bills.length})</button>
+              <button class="tab ${activeTab === 'fleet' ? 'active' : ''}" data-supp-page-tab="fleet">${icon('car')} Attached Fleet (${vehicles.length})</button>
+              <button class="tab ${activeTab === 'pricing' ? 'active' : ''}" data-supp-page-tab="pricing">${icon('copy')} Payout Tariffs (${contracts.length})</button>
+              <button class="tab ${activeTab === 'settings' ? 'active' : ''}" data-supp-page-tab="settings">${icon('settings')} Partner &amp; Banking Settings</button>
+            </div>
+          </div>
+          <div style="padding:18px 20px">
+            ${tabBody}
+          </div>
+        </section>
+      `;
+
+      return `
+        ${pageHead('Commercial · Supplier Partner Account', titleMarkup, 'Supplier partner 360 overview of fleet profitability, payout obligations, settlement ledger and active agreements.', headActions)}
+        ${metaStrip}
+        ${filterRibbon}
+        ${kpis}
+        ${tabsContainer}
+      `;
+    }
+
 
     function renderReports() {
       const summary = state.liveData?.reports?.summary || {};
@@ -9836,6 +10613,87 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
       content.querySelectorAll('[data-driver-filter]').forEach(el => el.addEventListener('click', () => { state.driverFilter = el.dataset.driverFilter; state.driverPage = 1; render(); }));
       content.querySelectorAll('[data-fleet-tab]').forEach(el => el.addEventListener('click', () => { state.fleetSection = el.dataset.fleetTab; render(); }));
       content.querySelectorAll('[data-cust-page-tab]').forEach(el => el.addEventListener('click', () => { state.customerDetailTab = el.dataset.custPageTab; render(); }));
+      content.querySelectorAll('[data-supp-page-tab]').forEach(el => el.addEventListener('click', () => { state.supplierDetailTab = el.dataset.suppPageTab; render(); }));
+      content.querySelector('#suppPageBtnSaveSettings')?.addEventListener('click', async () => {
+        const supplierId = state.selectedSupplierId;
+        if (!supplierId) return;
+        const name = content.querySelector('#suppSettingsName')?.value.trim();
+        const code = content.querySelector('#suppSettingsCode')?.value.trim();
+        const email = content.querySelector('#suppSettingsEmail')?.value.trim();
+        const phone = content.querySelector('#suppSettingsPhone')?.value.trim();
+        const gstin = content.querySelector('#suppSettingsGstin')?.value.trim();
+        const pan = content.querySelector('#suppSettingsPan')?.value.trim();
+        const bankName = content.querySelector('#suppSettingsBankName')?.value.trim();
+        const accountNo = content.querySelector('#suppSettingsAccountNo')?.value.trim();
+        const ifsc = content.querySelector('#suppSettingsIfsc')?.value.trim();
+        const settlementCycle = content.querySelector('#suppSettingsSettlementCycle')?.value;
+
+        const payload = {
+          name, code, email, phone, gstin,
+          settings: {
+            pan,
+            bank_name: bankName,
+            account_number: accountNo,
+            ifsc: ifsc,
+            settlement_cycle: settlementCycle
+          }
+        };
+
+        const saveBtn = content.querySelector('#suppPageBtnSaveSettings');
+        if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = `${icon('refresh')} Saving...`; }
+
+        try {
+          const res = await apiRequest(`/api/suppliers/${encodeURIComponent(supplierId)}`, 'PATCH', payload);
+          if (res && res.ok) {
+            showToast('Settings Saved', 'Supplier partner settings and banking details updated successfully.');
+            if (state.supplier360Data && state.supplier360Data.supplier) {
+              state.supplier360Data.supplier = { ...state.supplier360Data.supplier, ...res.supplier };
+            }
+            render();
+          } else {
+            showToast('Update Failed', res?.error || 'Could not update supplier settings.');
+          }
+        } catch (err) {
+          showToast('Error', err.message || 'Server error saving supplier settings.');
+        } finally {
+          if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = `${icon('check')} Save Partner Settings`; }
+        }
+      });
+
+      // Supplier 360 Filter Controls
+      const suppPeriodSel = document.getElementById('suppPeriodSelect');
+      if (suppPeriodSel) suppPeriodSel.addEventListener('change', e => {
+        state.supplierPeriodFilter = e.target.value;
+        render();
+      });
+      const suppDateFrom = document.getElementById('suppDateFrom');
+      if (suppDateFrom) suppDateFrom.addEventListener('change', e => { state.supplierDateFrom = e.target.value; });
+      const suppDateTo = document.getElementById('suppDateTo');
+      if (suppDateTo) suppDateTo.addEventListener('change', e => { state.supplierDateTo = e.target.value; });
+      const suppApplyDatesBtn = document.getElementById('suppApplyDatesBtn');
+      if (suppApplyDatesBtn) suppApplyDatesBtn.addEventListener('click', () => {
+        state.supplierPeriodFilter = 'custom';
+        render();
+      });
+      const suppDutyTypeSel = document.getElementById('suppDutyTypeSelect');
+      if (suppDutyTypeSel) suppDutyTypeSel.addEventListener('change', e => {
+        state.supplierDutyTypeFilter = e.target.value;
+        render();
+      });
+      const suppDutyStatusSel = document.getElementById('suppDutyStatusSelect');
+      if (suppDutyStatusSel) suppDutyStatusSel.addEventListener('change', e => {
+        state.supplierDutyStatusFilter = e.target.value;
+        render();
+      });
+      const suppResetFiltersBtn = document.getElementById('suppResetFiltersBtn');
+      if (suppResetFiltersBtn) suppResetFiltersBtn.addEventListener('click', () => {
+        state.supplierPeriodFilter = 'all';
+        state.supplierDateFrom = '';
+        state.supplierDateTo = '';
+        state.supplierDutyTypeFilter = 'all';
+        state.supplierDutyStatusFilter = 'all';
+        render();
+      });
       content.querySelector('#custPageBtnSaveSettings')?.addEventListener('click', async () => {
         const customerId = state.selectedCustomerId;
         if (!customerId) return;
@@ -11151,6 +12009,8 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         'masters-help': () => showToast('Masters are the operating foundation','Set up each reference record once, then reuse it across bookings, duties, billing and Network workflows.'),
         'add-customer': () => openCustomerModal(),
         'open-customer-detail': () => openCustomerDetailPage(el?.dataset?.customerId),
+        'open-supplier-detail': () => openSupplierDetailPage(el?.dataset?.supplierId),
+        'back-to-suppliers': () => { state.page = 'suppliers'; try { window.location.hash = '#suppliers'; } catch (_) {} render(); },
         'add-corp-employee': () => openCorporateEmployeeModal(el?.dataset?.customerId || state.selectedCustomerId),
         'open-customer-profile': () => openCustomerDetailPage(el?.dataset?.customerId),
         'back-to-customers': () => {
@@ -11765,6 +12625,9 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
           await hydrateOperationalData();
           if (state.page === 'customer-detail' && state.selectedCustomerId) {
             await fetchCustomer360(state.selectedCustomerId);
+          }
+          if (state.page === 'supplier-detail' && state.selectedSupplierId) {
+            await fetchSupplier360(state.selectedSupplierId);
           }
         } catch (error) {
           submit.disabled = false;
@@ -15612,6 +16475,20 @@ function openDriverModal(existing) {
           showLogin(false);
         }
       }
+      else if (route.startsWith('supplier-detail')) {
+        const hashStr = location.hash.replace('#', '');
+        const queryParams = new URLSearchParams(hashStr.includes('?') ? hashStr.split('?')[1] : location.search);
+        const sid = queryParams.get('id') || sessionStorage.getItem('axiomfleet_selected_supplier');
+        if (sid) state.selectedSupplierId = sid;
+        state.page = 'supplier-detail';
+        const hasSession = await restoreSession();
+        if (hasSession) {
+          await showApp(false);
+          if (state.selectedSupplierId) fetchSupplier360(state.selectedSupplierId);
+        } else {
+          showLogin(false);
+        }
+      }
       else if (navTitles[route] || route === 'axiom-hq') {
         const hasSession = await restoreSession();
         if (hasSession) {
@@ -15682,6 +16559,15 @@ function openDriverModal(existing) {
         state.page = 'customer-detail';
         render();
         if (state.selectedCustomerId) fetchCustomer360(state.selectedCustomerId);
+      }
+      else if (route.startsWith('supplier-detail')) {
+        const hashStr = location.hash.replace('#', '');
+        const queryParams = new URLSearchParams(hashStr.includes('?') ? hashStr.split('?')[1] : location.search);
+        const sid = queryParams.get('id') || sessionStorage.getItem('axiomfleet_selected_supplier');
+        if (sid) state.selectedSupplierId = sid;
+        state.page = 'supplier-detail';
+        render();
+        if (state.selectedSupplierId) fetchSupplier360(state.selectedSupplierId);
       }
       else if (navTitles[route] || route === 'axiom-hq') {
         if (currentUser) {
