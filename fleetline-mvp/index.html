@@ -2917,7 +2917,7 @@
       } catch (_) {}
       return 'overview';
     })();
-    const state = { page: savedActivePage, pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', esgDashboardData: null, _fetchingEsgDashboard: false, esgPeriodFilter: 'all', esgCustomerFilter: 'all', esgFuelFilter: 'all', esgSearchQuery: '', esgDashboardTab: 'environmental', partnersDashboardData: null, _fetchingPartnersDashboard: false, partnerEntityFilter: 'all', partnerStatusFilter: 'all', partnerSearchQuery: '', partnerDashboardTab: 'clients', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', selectedSupplierId: null, supplier360Data: null, supplierDetailTab: 'pnl', _fetchingSupplier360: false, supplierPeriodFilter: 'all', supplierDateFrom: '', supplierDateTo: '', supplierDutyTypeFilter: 'all', supplierDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const state = { page: savedActivePage, pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', esgDashboardData: null, _fetchingEsgDashboard: false, esgPeriodFilter: 'all', esgCustomerFilter: 'all', esgFuelFilter: 'all', esgSearchQuery: '', esgDashboardTab: 'environmental', partnersDashboardData: null, _fetchingPartnersDashboard: false, partnerEntityFilter: 'all', partnerStatusFilter: 'all', partnerSearchQuery: '', partnerDashboardTab: 'clients', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', selectedSupplierId: null, supplier360Data: null, supplierDetailTab: 'pnl', _fetchingSupplier360: false, supplierPeriodFilter: 'all', supplierDateFrom: '', supplierDateTo: '', supplierDutyTypeFilter: 'all', supplierDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehiclePage: 1, vehiclePageSize: 10, vehiclePnlPage: 1, vehiclePnlPageSize: 10, vehiclePnlFilter: 'all', vehiclePnlQuery: '', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
     const advancedPages = new Set(['customers','customer-detail','suppliers','supplier-detail','reports','phase3','finance','network','admin','security','driver','passenger','settings','enterprise','axiom-hq','axiom-hq-vendors','axiom-hq-corporates']);
@@ -6356,7 +6356,70 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
 
       const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px"><div class="tabs">${[['all','All vehicles'],['available',`Available (${availableVehicles})`],['on_duty',`On duty (${onDutyVehicles})`],['inactive',`Inactive (${inactiveVehicles})`]].map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-vehicle-filter="${key}">${label}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="vehicleQuery" placeholder="Search vehicles…" value="${esc(state.vehicleQuery || '')}"></label></div>`;
 
-      const vehiclesTable = `<section class="card section-card">${cardHead('Vehicles register','Registration number, make & model, capacity and compliance records',`${button(icon('upload')+'Import roster','small','data-action="import-master"')}${button(icon('plus')+'Add vehicle','small primary','data-action="add-vehicle"')}`)}<div class="table-wrap"><table><thead><tr><th>Vehicle</th><th>Make &amp; model</th><th>Group / fuel</th><th>Capacity</th><th>Status</th><th></th></tr></thead><tbody>${filteredVehicles.length ? filteredVehicles.map(item => `<tr><td><span class="primary">${esc(item.registration_number || item.id)}</span><span class="secondary">${esc(item.city || item.id)}</span></td><td>${esc(item.make_model || 'Model not specified')}</td><td>${esc(item.vehicle_group || item.vehicle_type || 'Standard')} · ${esc(item.fuel_type || 'Fuel not added')}</td><td>${item.seating_capacity ? `${item.seating_capacity} seats` : '—'}</td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="vehicle-edit" data-vehicle-id="${esc(item.id)}">${icon('edit', 13)}Edit</button></td></tr>`).join('') : tenantTableEmpty('No vehicles returned','Add the first vehicle or import a fleet roster via CSV.',button(icon('plus')+'Add vehicle','small soft','data-action="add-vehicle"'))}</tbody></table></div></section>`;
+      // Vehicles register pagination calculation
+      const totalVehiclesCount = filteredVehicles.length;
+      const vehPageSizeRaw = state.vehiclePageSize || 10;
+      const vehPageSize = vehPageSizeRaw === 'all' ? Math.max(totalVehiclesCount, 1) : Math.max(1, Number(vehPageSizeRaw) || 10);
+      const vehTotalPages = Math.max(1, Math.ceil(totalVehiclesCount / vehPageSize));
+      const vehCurrentPage = Math.min(Math.max(1, Number(state.vehiclePage) || 1), vehTotalPages);
+      state.vehiclePage = vehCurrentPage;
+
+      const vehStartIndex = (vehCurrentPage - 1) * vehPageSize;
+      const vehEndIndex = vehPageSizeRaw === 'all' ? totalVehiclesCount : Math.min(vehStartIndex + vehPageSize, totalVehiclesCount);
+      const pagedFleetVehicles = filteredVehicles.slice(vehStartIndex, vehEndIndex);
+
+      function generateFleetPageButtons() {
+        if (vehTotalPages <= 1) return `<button type="button" class="table-page-btn active" data-vehicle-page="1">1</button>`;
+        const pageNumbers = [];
+        const maxButtons = 5;
+        let left = Math.max(1, vehCurrentPage - 2);
+        let right = Math.min(vehTotalPages, left + maxButtons - 1);
+        if (right - left + 1 < maxButtons) {
+          left = Math.max(1, right - maxButtons + 1);
+        }
+        if (left > 1) {
+          pageNumbers.push(1);
+          if (left > 2) pageNumbers.push('...');
+        }
+        for (let i = left; i <= right; i++) pageNumbers.push(i);
+        if (right < vehTotalPages - 1) pageNumbers.push('...');
+        if (vehTotalPages > 1 && !pageNumbers.includes(vehTotalPages)) pageNumbers.push(vehTotalPages);
+
+        return pageNumbers.map(p => {
+          if (p === '...') return `<span class="table-page-ellipsis" style="padding:0 4px;color:var(--muted)">…</span>`;
+          const isActive = p === vehCurrentPage;
+          return `<button type="button" class="table-page-btn ${isActive ? 'active' : ''}" data-vehicle-page="${p}">${p}</button>`;
+        }).join('');
+      }
+
+      const vehicleRegisterPaginationMarkup = `
+        <div class="table-pagination">
+          <div class="table-pagination-left">
+            <div class="table-pagination-summary">
+              Showing <strong>${totalVehiclesCount === 0 ? 0 : vehStartIndex + 1}–${vehEndIndex}</strong> of <strong>${totalVehiclesCount}</strong> vehicles
+            </div>
+            <div class="table-page-size-wrap">
+              <label for="vehiclePageSizeSelect">Rows per page:</label>
+              <select id="vehiclePageSizeSelect" class="table-page-size-select" data-action="vehicle-page-size">
+                <option value="5" ${vehPageSizeRaw == 5 ? 'selected' : ''}>5</option>
+                <option value="10" ${vehPageSizeRaw == 10 ? 'selected' : ''}>10</option>
+                <option value="20" ${vehPageSizeRaw == 20 ? 'selected' : ''}>20</option>
+                <option value="50" ${vehPageSizeRaw == 50 ? 'selected' : ''}>50</option>
+                <option value="all" ${vehPageSizeRaw === 'all' ? 'selected' : ''}>All (${totalVehiclesCount})</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-pagination-right">
+            <button type="button" class="table-page-btn" data-action="vehicle-page-first" title="First page" aria-label="First page" ${vehCurrentPage <= 1 ? 'disabled' : ''}>«</button>
+            <button type="button" class="table-page-btn" data-action="vehicle-page-prev" title="Previous page" aria-label="Previous page" ${vehCurrentPage <= 1 ? 'disabled' : ''}>‹</button>
+            ${generateFleetPageButtons()}
+            <button type="button" class="table-page-btn" data-action="vehicle-page-next" title="Next page" aria-label="Next page" ${vehCurrentPage >= vehTotalPages ? 'disabled' : ''}>›</button>
+            <button type="button" class="table-page-btn" data-action="vehicle-page-last" title="Last page" aria-label="Last page" ${vehCurrentPage >= vehTotalPages ? 'disabled' : ''}>»</button>
+          </div>
+        </div>
+      `;
+
+      const vehiclesTable = `<section class="card section-card">${cardHead('Vehicles register','Registration number, make & model, capacity and compliance records',`${button(icon('upload')+'Import roster','small','data-action="import-master"')}${button(icon('plus')+'Add vehicle','small primary','data-action="add-vehicle"')}`)}<div class="table-wrap"><table><thead><tr><th>Vehicle</th><th>Make &amp; model</th><th>Group / fuel</th><th>Capacity</th><th>Status</th><th></th></tr></thead><tbody>${pagedFleetVehicles.length ? pagedFleetVehicles.map(item => `<tr><td><span class="primary">${esc(item.registration_number || item.id)}</span><span class="secondary">${esc(item.city || item.id)}</span></td><td>${esc(item.make_model || 'Model not specified')}</td><td>${esc(item.vehicle_group || item.vehicle_type || 'Standard')} · ${esc(item.fuel_type || 'Fuel not added')}</td><td>${item.seating_capacity ? `${item.seating_capacity} seats` : '—'}</td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="vehicle-edit" data-vehicle-id="${esc(item.id)}">${icon('edit', 13)}Edit</button></td></tr>`).join('') : tenantTableEmpty('No vehicles returned','Add the first vehicle or import a fleet roster via CSV.',button(icon('plus')+'Add vehicle','small soft','data-action="add-vehicle"'))}</tbody></table></div>${vehicleRegisterPaginationMarkup}</section>`;
 
       const vehicleSubmenu = `
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;border-bottom:1px solid var(--line,#e2e8f0);padding-bottom:10px">
@@ -6457,7 +6520,70 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         </div>
       `;
 
-      const rows = filtered.map(v => {
+      // Vehicle P&L pagination calculation
+      const totalVehicles = filtered.length;
+      const pageSizeRaw = state.vehiclePnlPageSize || 10;
+      const pageSize = pageSizeRaw === 'all' ? Math.max(totalVehicles, 1) : Math.max(1, Number(pageSizeRaw) || 10);
+      const totalPages = Math.max(1, Math.ceil(totalVehicles / pageSize));
+      const currentPage = Math.min(Math.max(1, Number(state.vehiclePnlPage) || 1), totalPages);
+      state.vehiclePnlPage = currentPage;
+
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = pageSizeRaw === 'all' ? totalVehicles : Math.min(startIndex + pageSize, totalVehicles);
+      const pagedVehicles = filtered.slice(startIndex, endIndex);
+
+      function generateVehiclePnlPageButtons() {
+        if (totalPages <= 1) return `<button type="button" class="table-page-btn active" data-vehicle-pnl-page="1">1</button>`;
+        const pageNumbers = [];
+        const maxButtons = 5;
+        let left = Math.max(1, currentPage - 2);
+        let right = Math.min(totalPages, left + maxButtons - 1);
+        if (right - left + 1 < maxButtons) {
+          left = Math.max(1, right - maxButtons + 1);
+        }
+        if (left > 1) {
+          pageNumbers.push(1);
+          if (left > 2) pageNumbers.push('...');
+        }
+        for (let i = left; i <= right; i++) pageNumbers.push(i);
+        if (right < totalPages - 1) pageNumbers.push('...');
+        if (totalPages > 1 && !pageNumbers.includes(totalPages)) pageNumbers.push(totalPages);
+
+        return pageNumbers.map(p => {
+          if (p === '...') return `<span class="table-page-ellipsis" style="padding:0 4px;color:var(--muted)">…</span>`;
+          const isActive = p === currentPage;
+          return `<button type="button" class="table-page-btn ${isActive ? 'active' : ''}" data-vehicle-pnl-page="${p}">${p}</button>`;
+        }).join('');
+      }
+
+      const vehiclePnlPaginationMarkup = `
+        <div class="table-pagination">
+          <div class="table-pagination-left">
+            <div class="table-pagination-summary">
+              Showing <strong>${totalVehicles === 0 ? 0 : startIndex + 1}–${endIndex}</strong> of <strong>${totalVehicles}</strong> vehicles
+            </div>
+            <div class="table-page-size-wrap">
+              <label for="vehiclePnlPageSizeSelect">Rows per page:</label>
+              <select id="vehiclePnlPageSizeSelect" class="table-page-size-select" data-action="vehicle-pnl-page-size">
+                <option value="5" ${pageSizeRaw == 5 ? 'selected' : ''}>5</option>
+                <option value="10" ${pageSizeRaw == 10 ? 'selected' : ''}>10</option>
+                <option value="20" ${pageSizeRaw == 20 ? 'selected' : ''}>20</option>
+                <option value="50" ${pageSizeRaw == 50 ? 'selected' : ''}>50</option>
+                <option value="all" ${pageSizeRaw === 'all' ? 'selected' : ''}>All (${totalVehicles})</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-pagination-right">
+            <button type="button" class="table-page-btn" data-action="vehicle-pnl-page-first" title="First page" aria-label="First page" ${currentPage <= 1 ? 'disabled' : ''}>«</button>
+            <button type="button" class="table-page-btn" data-action="vehicle-pnl-page-prev" title="Previous page" aria-label="Previous page" ${currentPage <= 1 ? 'disabled' : ''}>‹</button>
+            ${generateVehiclePnlPageButtons()}
+            <button type="button" class="table-page-btn" data-action="vehicle-pnl-page-next" title="Next page" aria-label="Next page" ${currentPage >= totalPages ? 'disabled' : ''}>›</button>
+            <button type="button" class="table-page-btn" data-action="vehicle-pnl-page-last" title="Last page" aria-label="Last page" ${currentPage >= totalPages ? 'disabled' : ''}>»</button>
+          </div>
+        </div>
+      `;
+
+      const rows = pagedVehicles.map(v => {
         const rev = v.revenue_paise / 100;
         const cost = v.cost_paise / 100;
         const profit = v.profit_paise / 100;
@@ -6545,6 +6671,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
               </tbody>
             </table>
           </div>
+          ${vehiclePnlPaginationMarkup}
         </section>
       `;
 
@@ -10742,8 +10869,17 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
       content.querySelectorAll('[data-pagination]').forEach(el => el.addEventListener('click', () => showToast('Pagination', 'All records returned by the current tenant query are shown on this page.')));
       content.querySelectorAll('[data-invoice-filter]').forEach(el => el.addEventListener('click', () => { state.invoiceFilter = el.dataset.invoiceFilter; render(); }));
       content.querySelectorAll('[data-driver-payout-filter]').forEach(el => el.addEventListener('click', () => { state.driverPayoutFilter = el.dataset.driverPayoutFilter; render(); }));
-      content.querySelectorAll('[data-vehicle-pnl-filter]').forEach(el => el.addEventListener('click', () => { state.vehiclePnlFilter = el.dataset.vehiclePnlFilter; render(); }));
-      content.querySelector('#vehiclePnlQuery')?.addEventListener('input', e => { state.vehiclePnlQuery = e.target.value; render(); });
+      content.querySelectorAll('[data-vehicle-pnl-filter]').forEach(el => el.addEventListener('click', () => { state.vehiclePnlFilter = el.dataset.vehiclePnlFilter; state.vehiclePnlPage = 1; render(); }));
+      content.querySelector('#vehiclePnlQuery')?.addEventListener('input', e => { state.vehiclePnlQuery = e.target.value; state.vehiclePnlPage = 1; render(); requestAnimationFrame(() => { const next=document.getElementById('vehiclePnlQuery'); if(next){ next.focus(); next.setSelectionRange(next.value.length,next.value.length); } }); });
+
+      // Vehicle P&L pagination controls
+      content.querySelectorAll('[data-action="vehicle-pnl-page-first"]').forEach(el => el.addEventListener('click', () => { state.vehiclePnlPage = 1; render(); }));
+      content.querySelectorAll('[data-action="vehicle-pnl-page-prev"]').forEach(el => el.addEventListener('click', () => { state.vehiclePnlPage = Math.max(1, (Number(state.vehiclePnlPage) || 1) - 1); render(); }));
+      content.querySelectorAll('[data-action="vehicle-pnl-page-next"]').forEach(el => el.addEventListener('click', () => { state.vehiclePnlPage = (Number(state.vehiclePnlPage) || 1) + 1; render(); }));
+      content.querySelectorAll('[data-action="vehicle-pnl-page-last"]').forEach(el => el.addEventListener('click', () => { state.vehiclePnlPage = 999999; render(); }));
+      content.querySelectorAll('[data-vehicle-pnl-page]').forEach(el => el.addEventListener('click', () => { const p = Number(el.dataset.vehiclePnlPage); if (!isNaN(p)) { state.vehiclePnlPage = p; render(); } }));
+      const vehPnlPageSize = document.getElementById('vehiclePnlPageSizeSelect');
+      if (vehPnlPageSize) vehPnlPageSize.addEventListener('change', e => { state.vehiclePnlPageSize = e.target.value; state.vehiclePnlPage = 1; render(); });
       content.querySelectorAll('[data-action="view-vehicle-lifecycle"]').forEach(el => el.addEventListener('click', () => openVehicleLifecycleDrawer(el.dataset.vehicle, el.dataset.reg)));
       content.querySelectorAll('[data-action="log-vehicle-cost"]').forEach(el => el.addEventListener('click', () => openLogVehicleCostModal(el.dataset.vehicleId, el.dataset.reg)));
       content.querySelector('#driverPayoutQuery')?.addEventListener('input', e => { state.driverPayoutQuery = e.target.value; render(); });
