@@ -13162,7 +13162,11 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
       menu.id = 'tripSettingsMenu';
       menu.className = 'trip-settings-dropdown-menu';
 
-      // 10 exact options from reference UI
+      const dutyRec = (state.liveData?.duties?.items || []).find(d => d.booking_id === item.id || d.booking_id === item.booking_reference);
+      const rawStatusRec = String(dutyRec?.status || item.status || '').toLowerCase();
+      const isCompletedTrip = ['completed', 'billed', 'invoiced', 'closed'].includes(rawStatusRec) || (state.liveData?.invoices?.items || []).some(inv => inv.duty_id === dutyRec?.id || inv.duty_id === item.trip_id || inv.booking_id === item.id);
+
+      // Options from reference UI (Print duty slip shown for completed trips only)
       const menuItems = [
         { label: 'Details', action: () => openDutyDetailsModal(bookingId) },
         { label: 'View duty slip', action: () => openViewDutySlipModal(bookingId) },
@@ -13170,7 +13174,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         { label: 'Clear duty slip', action: () => openClearDutySlipModal(bookingId) },
         { label: 'Add/Remove labels', action: () => openLabelsModal(bookingId) },
         { label: 'Allot supporters', action: () => openAllotSupportersModal(bookingId) },
-        { label: 'Print duty slip', action: () => printDutySlip(bookingId) },
+        ...(isCompletedTrip ? [{ label: 'Print duty slip', action: () => printDutySlip(bookingId) }] : []),
         { label: 'Approve Duty Slip', action: () => handleApproveDutySlip(bookingId) },
         { label: 'Add Advance Purchase Payment', action: () => openAdvancePurchaseModal(bookingId) },
         { label: 'Request customer feedback', action: () => openFeedbackRequestModal(bookingId) },
@@ -14007,9 +14011,11 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
             <a href="https://wa.me/?text=${waText}" target="_blank" rel="noopener" class="btn" style="background:#25d366;color:#ffffff;font-weight:700;font-size:12px;padding:7px 16px;border-radius:4px;text-decoration:none;display:inline-flex;align-items:center;gap:5px">
               💬 WhatsApp Duty Slip
             </a>
-            <button type="button" class="btn" id="modalBtnPrintSlip" style="background:#475569;color:#ffffff;font-weight:700;font-size:12px;padding:7px 16px;border-radius:4px;border:none;cursor:pointer">
+            ${isCompleted ? `
+            <button type="button" class="btn" id="modalBtnPrintSlip" style="background:#475569;color:#ffffff;font-weight:700;font-size:12px;padding:7px 16px;border-radius:4px;border:none;cursor:pointer" title="Print audited operational duty slip">
               🖨️ Print Duty Slip
             </button>
+            ` : ''}
           </div>
           <div>
             <button type="button" class="btn" data-close-modal style="background:#dc2626;color:#ffffff;font-weight:700;font-size:12px;letter-spacing:0.5px;padding:7px 22px;border-radius:4px;border:none;cursor:pointer;text-transform:uppercase">CLOSE</button>
@@ -14390,7 +14396,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         </div>`,
         `<button class="btn soft" data-close-modal>Close</button>
          <button class="btn soft" id="slipRecalcFareBtn" style="color:#0284c7;border-color:#bae6fd">⚡ Recalculate Fare</button>
-         <button class="btn primary" id="printDutySlipBtn">Print duty slip</button>`
+         ${(['completed', 'billed', 'invoiced', 'closed'].includes(String(duty?.status || item?.status || '').toLowerCase()) || (state.liveData?.invoices?.items || []).some(inv => (duty && inv.duty_id === duty.id) || inv.duty_id === item.trip_id || inv.booking_id === item.id)) ? `<button class="btn primary" id="printDutySlipBtn">Print duty slip</button>` : `<button class="btn" id="printDutySlipBtn" disabled style="opacity:0.45;cursor:not-allowed;background:#94a3b8;color:#ffffff" title="Print duty slip is available for completed trips only">Print duty slip (Completed trips only)</button>`}`
       );
 
       modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
@@ -14636,6 +14642,16 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
     }
 
     function printDutySlip(bookingId) {
+      const item = (state.liveData?.bookings?.items || []).find(row => row.id === bookingId || row.booking_reference === bookingId || row.trip_id === bookingId);
+      const duty = (state.liveData?.duties?.items || []).find(d => (item && d.booking_id === item.id) || (item && d.booking_id === item.booking_reference) || d.id === bookingId);
+      const matchingInvoice = (state.liveData?.invoices?.items || []).find(inv => (duty && inv.duty_id === duty.id) || (item && inv.duty_id === item.trip_id) || (item && inv.duty_id === item.id) || (item && inv.booking_id === item.id));
+      const rawStatus = String((duty && duty.status) || (item && item.status) || '').toLowerCase();
+      const isCompleted = ['completed', 'billed', 'invoiced', 'closed'].includes(rawStatus) || Boolean(matchingInvoice);
+
+      if (!isCompleted) {
+        showToast('Duty Slip Unavailable', 'Print duty slip is available for completed trips only.');
+        return;
+      }
       openViewDutySlipModal(bookingId);
       setTimeout(() => {
         window.print();
