@@ -8943,9 +8943,9 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                     </td>
                     <td style="padding:16px 20px;text-align:right;">
                       <button class="btn btn-xs" onclick="impersonateTarget('corporate', '${c.id}', '${esc(c.corporate_name)}')" 
-                        title="Login as corporate travel admin to view ride requests and policy rules" 
-                        style="background:linear-gradient(135deg, #0d9488, #0f766e);color:#fff;font-weight:700;border:none;padding:6px 12px;border-radius:6px;box-shadow:0 2px 8px rgba(13,148,136,0.25);cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
-                        <span>🔑</span> <span>Login As</span>
+                        title="Login as ${esc(c.corporate_name)} to inspect corporate travel desk, employee roster & policies" 
+                        style="background:linear-gradient(135deg, #d97706, #b45309);color:#fff;font-weight:700;border:none;padding:6px 14px;border-radius:6px;box-shadow:0 2px 8px rgba(217,119,6,0.3);cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:12px;">
+                        <span>🔑</span> <span>Login As Corporate</span>
                       </button>
                     </td>
                   </tr>`;
@@ -9095,7 +9095,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         // Save original admin state if not already impersonating
         if (!sessionStorage.getItem('axiom_original_admin')) {
           sessionStorage.setItem('axiom_original_admin', JSON.stringify(currentUser));
-          sessionStorage.setItem('axiom_impersonation_return_page', state.page || 'axiom-hq-vendors');
+          sessionStorage.setItem('axiom_impersonation_return_page', state.page || (targetType === 'corporate' ? 'axiom-hq-corporates' : 'axiom-hq-vendors'));
         }
 
         // Apply target shadow user and reload workspace
