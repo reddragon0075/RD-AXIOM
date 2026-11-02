@@ -1426,7 +1426,7 @@
     .booking-clear-btn:hover { background: #e2e8f0; color: #1e293b; }
     .booking-total-view { font-size: 11px; font-weight: 700; color: var(--muted, #64748b); white-space: nowrap; margin-left: 4px; }
     .booking-table-wrap { overflow-x: auto; position: relative; }
-    .booking-table { width: 100%; min-width: 1260px; border-collapse: collapse; }
+    .booking-table { width: 100%; min-width: 1580px; border-collapse: collapse; }
     .booking-table th { padding: 11px 10px; font-size: 9.5px; font-weight: 750; color: #64748b; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid #e2e8f0; background: #f8fafc; text-align: left; white-space: nowrap; }
     .booking-table th.sortable:hover { color: var(--blue, #2563eb); background: #f1f5f9; }
     .booking-table td { padding: 11px 10px; font-size: 11px; border-bottom: 1px solid #f1f5f9; color: #334155; vertical-align: middle; }
@@ -3077,6 +3077,56 @@
           rawStatus = 'assigned';
         }
 
+        // Fare & Economics Resolution (Estimated vs Final Billed)
+        const matchingInvoice = (state.liveData?.invoices?.items || []).find(inv => 
+          (duty.id && inv.duty_id === duty.id) || 
+          (b.trip_id && inv.duty_id === b.trip_id) || 
+          inv.duty_id === b.id || 
+          inv.booking_id === b.id || 
+          inv.booking_id === b.booking_reference
+        );
+
+        const rawDutyType = String(b.duty_type || duty.duty_type || 'local').toLowerCase();
+        const vehGroup = String(b.vehicle_group_code || b.vehicle_group || (duty && duty.vehicle_group) || (vehicle.make_model || 'Sedan')).toLowerCase();
+        const isSuv = vehGroup.includes('suv') || vehGroup.includes('innova') || vehGroup.includes('crysta') || vehGroup.includes('ertiga');
+
+        let estBaseFare = isSuv ? (rawDutyType.includes('airport') ? 3000 : (rawDutyType.includes('outstation') ? 4200 : 2400)) : (rawDutyType.includes('airport') ? 2200 : (rawDutyType.includes('outstation') ? 3500 : 1800));
+        if (b.flat_rate_paise > 0) estBaseFare = Math.round(b.flat_rate_paise / 100);
+        const estTolls = rawDutyType.includes('airport') ? 150 : (rawDutyType.includes('outstation') ? 400 : 0);
+        const estSubtotal = estBaseFare + estTolls;
+        const estGst = Math.round(estSubtotal * 0.18);
+        const estCustomerFare = estSubtotal + estGst;
+
+        const payoutRatio = isSupplierAssigned ? 0.80 : 0.75;
+        const estSupplierCost = Math.round(estCustomerFare * payoutRatio);
+        const estProfit = estCustomerFare - estSupplierCost;
+        const estMarginPct = estCustomerFare > 0 ? ((estProfit / estCustomerFare) * 100).toFixed(1) : '20.0';
+
+        const isCompletedOrBilled = ['completed', 'billed', 'closed', 'invoiced'].includes(rawStatus) || Boolean(matchingInvoice);
+        let finalCustomerFare = null;
+        let finalSupplierCost = null;
+        let finalProfit = null;
+        let finalMarginPct = null;
+
+        if (isCompletedOrBilled) {
+          if (matchingInvoice && (matchingInvoice.total_paise || matchingInvoice.total_amount_inr)) {
+            finalCustomerFare = Math.round(matchingInvoice.total_paise ? matchingInvoice.total_paise / 100 : (Number(matchingInvoice.total_amount_inr) || estCustomerFare));
+          } else if (duty && (duty.calculation_snapshot?.total_paise || duty.calculation_snapshot_json)) {
+            try {
+              const snap = duty.calculation_snapshot || (typeof duty.calculation_snapshot_json === 'string' ? JSON.parse(duty.calculation_snapshot_json) : duty.calculation_snapshot_json);
+              if (snap?.total_paise) finalCustomerFare = Math.round(snap.total_paise / 100);
+            } catch (_) {}
+          }
+          if (!finalCustomerFare) {
+            finalCustomerFare = estCustomerFare;
+          }
+          finalSupplierCost = Math.round(finalCustomerFare * payoutRatio);
+          finalProfit = finalCustomerFare - finalSupplierCost;
+          finalMarginPct = finalCustomerFare > 0 ? ((finalProfit / finalCustomerFare) * 100).toFixed(1) : '20.0';
+        }
+
+        const supplierPayoutTarget = isSupplierAssigned ? (supplierName || 'Partner Supplier') : (driverName ? `${driverName} (Own)` : 'Own Fleet');
+
         let displayStatus = 'Requested';
         let tone = 'amber';
         let attentionNeeded = false;
@@ -3158,7 +3208,17 @@
           source: b.source || 'Tenant API',
           route: `${repAddress} → ${dropAddress}`,
           type: dutyType,
-          created_at: b.created_at
+          created_at: b.created_at,
+          estCustomerFare,
+          estSupplierCost,
+          estProfit,
+          estMarginPct,
+          isCompletedOrBilled,
+          finalCustomerFare,
+          finalSupplierCost,
+          finalProfit,
+          finalMarginPct,
+          supplierPayoutTarget
         };
       });
     }
@@ -6012,6 +6072,16 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
           const comp = String(a.tripId || '').localeCompare(String(b.tripId || ''), undefined, { numeric: true });
           return sortDir === 'asc' ? comp : -comp;
         }
+        if (sortCol === 'fare') {
+          const fareA = a.isCompletedOrBilled && a.finalCustomerFare ? a.finalCustomerFare : a.estCustomerFare;
+          const fareB = b.isCompletedOrBilled && b.finalCustomerFare ? b.finalCustomerFare : b.estCustomerFare;
+          return sortDir === 'asc' ? fareA - fareB : fareB - fareA;
+        }
+        if (sortCol === 'profit') {
+          const profitA = a.isCompletedOrBilled && a.finalProfit !== null ? a.finalProfit : a.estProfit;
+          const profitB = b.isCompletedOrBilled && b.finalProfit !== null ? b.finalProfit : b.estProfit;
+          return sortDir === 'asc' ? profitA - profitB : profitB - profitA;
+        }
         const timeA = a.date ? a.date.getTime() : 0;
         const timeB = b.date ? b.date.getTime() : 0;
         return sortDir === 'asc' ? timeA - timeB : timeB - timeA;
@@ -6200,7 +6270,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
   const isAmber = tab === 'Incoming' && tabCounts[tab];
   const countClass = isAlert ? 'alert' : (isAmber ? 'amber' : '');
   return `<button class="tab ${activeTab === tab ? 'active' : ''}" data-booking-tab="${esc(tab)}">${tab} <span class="booking-tab-count ${countClass}">${tabCounts[tab]}</span></button>`;
-}).join('')}</div></div><div class="booking-filter-bar"><label class="booking-search-label"><span>${icon('search')}</span><input id="bookingQuery" class="booking-search-input" placeholder="Type here to filter by name, number, city, duty type, company name or booking ID" value="${esc(state.bookingQuery || '')}">${state.bookingQuery ? `<button type="button" class="booking-search-clear" data-action="clear-booking-search" title="Clear search">×</button>` : ''}</label><div class="booking-date-controls"><button class="btn icon small" data-action="booking-date-prev" title="Previous 30 days" aria-label="Previous 30 days">‹</button><div class="booking-date-range"><input type="date" id="bookingDateFrom" class="booking-date-input" value="${esc(state.bookingDateFrom || '')}" title="From date"><span class="booking-date-sep">→</span><input type="date" id="bookingDateTo" class="booking-date-input" value="${esc(state.bookingDateTo || '')}" title="To date"></div><button class="btn icon small" data-action="booking-date-next" title="Next 30 days" aria-label="Next 30 days">›</button><button class="booking-clear-btn" id="clearBookingFilters" data-action="clear-booking-filters">CLEAR FILTERS</button><span class="booking-total-view">Page ${currentPage} of ${totalPages} · ${totalItems} view</span></div></div>${quickInsertMarkup}<div class="table-wrap booking-table-wrap"><table class="booking-table"><thead><tr><th class="sortable" data-action="sort-booking-tripid" title="Sort by Trip ID" style="cursor:pointer;white-space:nowrap">Trip ID <span style="font-size:9px">${(state.bookingSortCol || 'date') === 'tripid' ? (sortDir === 'asc' ? '▲' : '▼') : ''}</span></th><th class="sortable" data-action="sort-booking-date" title="Sort by date" style="cursor:pointer">Date <span style="font-size:9px">${(state.bookingSortCol || 'date') === 'date' ? (sortDir === 'asc' ? '▲' : '▼') : ''}</span></th><th>Customer</th><th>Passenger</th><th>Supplier</th><th>Driver</th><th>Vehicle</th><th>Duty Type</th><th>Rep. Address</th><th>Drop Address</th><th>Remarks</th><th>City</th><th>Rep.Time</th><th>Est.Drop</th><th>Status</th></tr></thead><tbody>${paginatedRows.length ? paginatedRows.map(row => `<tr class="clickable-booking-row ${row.attentionNeeded ? 'booking-row-attention' : ''}" data-booking-row-id="${esc(row.rawId || row.id)}" style="cursor:pointer" title="Click row to open trip details for ${esc(row.tripId || row.id)}"><td><span class="booking-trip-id" data-trip-id-click="${esc(row.rawId || row.id)}" style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11px;font-weight:750;letter-spacing:0.5px;color:#1e40af;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 7px;border-radius:5px;white-space:nowrap;user-select:all;cursor:pointer" title="Click to view trip details for #${esc(row.tripId)}">${esc(row.tripId)}</span></td><td><div style="display:flex;align-items:center;gap:6px;white-space:nowrap">${row.passengerPhone ? `<a href="tel:${esc(row.passengerPhone)}" title="Call ${esc(row.passengerPhone)}" style="color:#059669;display:inline-flex;align-items:center;text-decoration:none">${icon('phone', 13)}</a>` : `<span style="color:#10b981;display:inline-flex;align-items:center">${icon('phone', 13)}</span>`}<span style="font-weight:600;color:var(--ink)">${esc(row.displayDate)}</span></div></td><td><div class="booking-cell-truncate" title="${esc(row.customer)}" style="max-width:140px;font-weight:600;color:var(--ink)">${esc(row.customer)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.passenger)}" style="max-width:120px;font-weight:500;color:#334155">${esc(row.passenger)}</div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="supplier"><select class="booking-inline-select has-value" data-inline-assign="supplier" data-booking-id="${esc(row.rawId || row.id)}" title="Fleet source: Own Fleet (Default) or external partner"><option value="OWN" ${(row.supplierId === 'OWN' || !row.supplierId || row.supplier === 'Own Fleet') ? 'selected' : ''}>Own Fleet (Default)</option>${supplierList.map(s => `<option value="${esc(s.id)}" ${(row.supplierId === s.id || row.supplier === s.name) ? 'selected' : ''}>${esc(s.name || s.id)}</option>`).join('')}<option value="__new__">+ Type new supplier...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="supplier" data-booking-id="${esc(row.rawId || row.id)}" title="Type supplier name directly without popup">+</button></div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="driver"><select class="booking-inline-select ${row.hasDriver ? 'has-value' : 'empty'}" data-inline-assign="driver" data-booking-id="${esc(row.rawId || row.id)}" title="Select driver or click + to type"><option value="" ${!row.hasDriver ? 'selected' : ''}>To be assigned</option>${driverList.map(d => `<option value="${esc(d.id)}" ${(row.driverId === d.id || row.driver === d.full_name) ? 'selected' : ''}>${esc(d.full_name || d.id)}${d.phone ? ` (${esc(d.phone)})` : ''}</option>`).join('')}<option value="__new__">+ Type new driver...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="driver" data-booking-id="${esc(row.rawId || row.id)}" title="Type driver name directly without popup">+</button></div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="vehicle"><select class="booking-inline-select vehicle-pill ${row.hasVehicle ? 'has-value' : 'empty'}" data-inline-assign="vehicle" data-booking-id="${esc(row.rawId || row.id)}" title="Select vehicle or click + to type"><option value="" ${!row.hasVehicle ? 'selected' : ''}>To be assigned</option>${vehicleList.map(v => `<option value="${esc(v.id)}" ${(row.vehicleId === v.id || row.vehicle === v.registration_number) ? 'selected' : ''}>${esc(v.registration_number)}${v.make_model ? ` (${esc(v.make_model)})` : ''}</option>`).join('')}<option value="__new__">+ Type new vehicle...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="vehicle" data-booking-id="${esc(row.rawId || row.id)}" title="Type vehicle number directly without popup">+</button></div></td><td><span class="booking-duty-type-pill">${esc(row.dutyType)}</span></td><td><div class="booking-cell-truncate" title="${esc(row.repAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.repAddress)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.dropAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.dropAddress)}</div></td><td><span style="color:var(--muted);font-size:11px">${esc(row.remarks)}</span></td><td><span style="font-weight:500">${esc(row.city)}</span></td><td><span style="font-weight:600;font-family:var(--font-mono, monospace)">${esc(row.repTime)}</span></td><td><span style="font-family:var(--font-mono, monospace);color:var(--muted)">${esc(row.estDrop)}</span></td><td><div style="display:flex;align-items:center;justify-content:space-between;gap:8px">${status(row.status, row.tone)}<button class="btn small icon" data-open-booking-actions="${esc(row.rawId || row.id)}" aria-label="Open booking actions for ${esc(row.id)}" title="Booking settings / actions">${icon('settings', 13)}</button></div></td></tr>`).join('') : tenantTableEmpty('No booking records match this view','Try clearing filters or changing status tabs.',button(icon('plus')+'New booking','small soft','data-action="new-booking"'))}</tbody></table></div>${paginationMarkup}</section>`;
+}).join('')}</div></div><div class="booking-filter-bar"><label class="booking-search-label"><span>${icon('search')}</span><input id="bookingQuery" class="booking-search-input" placeholder="Type here to filter by name, number, city, duty type, company name or booking ID" value="${esc(state.bookingQuery || '')}">${state.bookingQuery ? `<button type="button" class="booking-search-clear" data-action="clear-booking-search" title="Clear search">×</button>` : ''}</label><div class="booking-date-controls"><button class="btn icon small" data-action="booking-date-prev" title="Previous 30 days" aria-label="Previous 30 days">‹</button><div class="booking-date-range"><input type="date" id="bookingDateFrom" class="booking-date-input" value="${esc(state.bookingDateFrom || '')}" title="From date"><span class="booking-date-sep">→</span><input type="date" id="bookingDateTo" class="booking-date-input" value="${esc(state.bookingDateTo || '')}" title="To date"></div><button class="btn icon small" data-action="booking-date-next" title="Next 30 days" aria-label="Next 30 days">›</button><button class="booking-clear-btn" id="clearBookingFilters" data-action="clear-booking-filters">CLEAR FILTERS</button><span class="booking-total-view">Page ${currentPage} of ${totalPages} · ${totalItems} view</span></div></div>${quickInsertMarkup}<div class="table-wrap booking-table-wrap"><table class="booking-table"><thead><tr><th class="sortable" data-action="sort-booking-tripid" title="Sort by Trip ID" style="cursor:pointer;white-space:nowrap">Trip ID <span style="font-size:9px">${(state.bookingSortCol || 'date') === 'tripid' ? (sortDir === 'asc' ? '▲' : '▼') : ''}</span></th><th class="sortable" data-action="sort-booking-date" title="Sort by date" style="cursor:pointer">Date <span style="font-size:9px">${(state.bookingSortCol || 'date') === 'date' ? (sortDir === 'asc' ? '▲' : '▼') : ''}</span></th><th>Customer</th><th>Passenger</th><th>Supplier</th><th>Driver</th><th>Vehicle</th><th>Duty Type</th><th class="sortable" data-action="sort-booking-fare" title="Sort by Customer Fare" style="cursor:pointer;white-space:nowrap">Customer Fare <span style="font-size:9px">${(state.bookingSortCol === 'fare') ? (sortDir === 'asc' ? '▲' : '▼') : ''}</span></th><th style="white-space:nowrap">Supplier / Driver</th><th class="sortable" data-action="sort-booking-profit" title="Sort by Gross Profit" style="cursor:pointer;white-space:nowrap">Gross Profit <span style="font-size:9px">${(state.bookingSortCol === 'profit') ? (sortDir === 'asc' ? '▲' : '▼') : ''}</span></th><th>Status</th><th>Rep. Address</th><th>Drop Address</th><th>Remarks</th><th>City</th><th>Rep.Time</th><th>Est.Drop</th></tr></thead><tbody>${paginatedRows.length ? paginatedRows.map(row => `<tr class="clickable-booking-row ${row.attentionNeeded ? 'booking-row-attention' : ''}" data-booking-row-id="${esc(row.rawId || row.id)}" style="cursor:pointer" title="Click row to open trip details for ${esc(row.tripId || row.id)}"><td><span class="booking-trip-id" data-trip-id-click="${esc(row.rawId || row.id)}" style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11px;font-weight:750;letter-spacing:0.5px;color:#1e40af;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 7px;border-radius:5px;white-space:nowrap;user-select:all;cursor:pointer" title="Click to view trip details for #${esc(row.tripId)}">${esc(row.tripId)}</span></td><td><div style="display:flex;align-items:center;gap:6px;white-space:nowrap">${row.passengerPhone ? `<a href="tel:${esc(row.passengerPhone)}" title="Call ${esc(row.passengerPhone)}" style="color:#059669;display:inline-flex;align-items:center;text-decoration:none">${icon('phone', 13)}</a>` : `<span style="color:#10b981;display:inline-flex;align-items:center">${icon('phone', 13)}</span>`}<span style="font-weight:600;color:var(--ink)">${esc(row.displayDate)}</span></div></td><td><div class="booking-cell-truncate" title="${esc(row.customer)}" style="max-width:140px;font-weight:600;color:var(--ink)">${esc(row.customer)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.passenger)}" style="max-width:120px;font-weight:500;color:#334155">${esc(row.passenger)}</div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="supplier"><select class="booking-inline-select has-value" data-inline-assign="supplier" data-booking-id="${esc(row.rawId || row.id)}" title="Fleet source: Own Fleet (Default) or external partner"><option value="OWN" ${(row.supplierId === 'OWN' || !row.supplierId || row.supplier === 'Own Fleet') ? 'selected' : ''}>Own Fleet (Default)</option>${supplierList.map(s => `<option value="${esc(s.id)}" ${(row.supplierId === s.id || row.supplier === s.name) ? 'selected' : ''}>${esc(s.name || s.id)}</option>`).join('')}<option value="__new__">+ Type new supplier...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="supplier" data-booking-id="${esc(row.rawId || row.id)}" title="Type supplier name directly without popup">+</button></div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="driver"><select class="booking-inline-select ${row.hasDriver ? 'has-value' : 'empty'}" data-inline-assign="driver" data-booking-id="${esc(row.rawId || row.id)}" title="Select driver or click + to type"><option value="" ${!row.hasDriver ? 'selected' : ''}>To be assigned</option>${driverList.map(d => `<option value="${esc(d.id)}" ${(row.driverId === d.id || row.driver === d.full_name) ? 'selected' : ''}>${esc(d.full_name || d.id)}${d.phone ? ` (${esc(d.phone)})` : ''}</option>`).join('')}<option value="__new__">+ Type new driver...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="driver" data-booking-id="${esc(row.rawId || row.id)}" title="Type driver name directly without popup">+</button></div></td><td><div class="booking-inline-cell" data-booking-id="${esc(row.rawId || row.id)}" data-field="vehicle"><select class="booking-inline-select vehicle-pill ${row.hasVehicle ? 'has-value' : 'empty'}" data-inline-assign="vehicle" data-booking-id="${esc(row.rawId || row.id)}" title="Select vehicle or click + to type"><option value="" ${!row.hasVehicle ? 'selected' : ''}>To be assigned</option>${vehicleList.map(v => `<option value="${esc(v.id)}" ${(row.vehicleId === v.id || row.vehicle === v.registration_number) ? 'selected' : ''}>${esc(v.registration_number)}${v.make_model ? ` (${esc(v.make_model)})` : ''}</option>`).join('')}<option value="__new__">+ Type new vehicle...</option></select><button type="button" class="booking-inline-type-btn" data-inline-type="vehicle" data-booking-id="${esc(row.rawId || row.id)}" title="Type vehicle number directly without popup">+</button></div></td><td><span class="booking-duty-type-pill">${esc(row.dutyType)}</span></td><td>${row.isCompletedOrBilled && row.finalCustomerFare ? `<div><div style="display:flex;align-items:center;gap:4px"><span style="font-weight:750;color:#0f172a;font-size:12px;font-family:var(--font-mono, monospace)">₹${row.finalCustomerFare.toLocaleString('en-IN')}</span><span style="font-size:8.5px;font-weight:750;padding:1px 5px;border-radius:4px;background:#dcfce7;color:#166534;letter-spacing:0.03em;text-transform:uppercase">Final</span></div><div style="font-size:10px;color:#64748b;margin-top:1px">Est: ₹${row.estCustomerFare.toLocaleString('en-IN')}</div></div>` : `<div><div style="display:flex;align-items:center;gap:4px"><span style="font-weight:750;color:#1e40af;font-size:12px;font-family:var(--font-mono, monospace)">₹${row.estCustomerFare.toLocaleString('en-IN')}</span><span style="font-size:8.5px;font-weight:700;padding:1px 4px;border-radius:3px;background:#eff6ff;border:1px solid #bfdbfe;color:#2563eb;letter-spacing:0.02em">Est.</span></div><div style="font-size:9.5px;color:#94a3b8;margin-top:1px">Contracted slab</div></div>`}</td><td>${row.isCompletedOrBilled && row.finalSupplierCost ? `<div><div style="display:flex;align-items:center;gap:4px"><span style="font-weight:700;color:#334155;font-size:11.5px;font-family:var(--font-mono, monospace)">₹${row.finalSupplierCost.toLocaleString('en-IN')}</span><span style="font-size:8.5px;font-weight:700;padding:1px 4px;border-radius:3px;background:#ede9fe;color:#7c3aed">Settled</span></div><div style="font-size:10px;color:#64748b;margin-top:1px">Est: ₹${row.estSupplierCost.toLocaleString('en-IN')} · <span style="color:#475569;font-weight:500">${esc(row.supplierPayoutTarget)}</span></div></div>` : `<div><div style="display:flex;align-items:center;gap:4px"><span style="font-weight:700;color:#334155;font-size:11.5px;font-family:var(--font-mono, monospace)">₹${row.estSupplierCost.toLocaleString('en-IN')}</span><span style="font-size:8.5px;font-weight:600;padding:1px 4px;border-radius:3px;background:#f8fafc;border:1px solid #e2e8f0;color:#64748b">Est. Payout</span></div><div style="font-size:9.5px;color:#94a3b8;margin-top:1px">${esc(row.supplierPayoutTarget)}</div></div>`}</td><td>${row.isCompletedOrBilled && row.finalProfit !== null ? `<div><div style="display:flex;align-items:center;gap:4px"><span style="font-weight:750;color:#15803d;font-size:12px;font-family:var(--font-mono, monospace)">+₹${row.finalProfit.toLocaleString('en-IN')}</span><span style="font-size:9px;font-weight:750;color:#15803d;background:#dcfce7;border:1px solid #bbf7d0;padding:1px 5px;border-radius:4px">${row.finalMarginPct}%</span></div><div style="font-size:10px;color:#64748b;margin-top:1px">Est: +₹${row.estProfit.toLocaleString('en-IN')} (${row.estMarginPct}%)</div></div>` : `<div><div style="display:flex;align-items:center;gap:4px"><span style="font-weight:750;color:#059669;font-size:12px;font-family:var(--font-mono, monospace)">+₹${row.estProfit.toLocaleString('en-IN')}</span><span style="font-size:9px;font-weight:700;color:#059669;background:#ecfdf5;border:1px solid #a7f3d0;padding:1px 4px;border-radius:3px">${row.estMarginPct}%</span></div><div style="font-size:9.5px;color:#94a3b8;margin-top:1px">Est. margin</div></div>`}</td><td><div style="display:flex;align-items:center;justify-content:space-between;gap:8px">${status(row.status, row.tone)}<button class="btn small icon" data-open-booking-actions="${esc(row.rawId || row.id)}" aria-label="Open booking actions for ${esc(row.id)}" title="Booking settings / actions">${icon('settings', 13)}</button></div></td><td><div class="booking-cell-truncate" title="${esc(row.repAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.repAddress)}</div></td><td><div class="booking-cell-truncate" title="${esc(row.dropAddress)}" style="max-width:140px;color:var(--muted)">${esc(row.dropAddress)}</div></td><td><span style="color:var(--muted);font-size:11px">${esc(row.remarks)}</span></td><td><span style="font-weight:500">${esc(row.city)}</span></td><td><span style="font-weight:600;font-family:var(--font-mono, monospace)">${esc(row.repTime)}</span></td><td><span style="font-family:var(--font-mono, monospace);color:var(--muted)">${esc(row.estDrop)}</span></td></tr>`).join('') : tenantTableEmpty('No booking records match this view','Try clearing filters or changing status tabs.',button(icon('plus')+'New booking','small soft','data-action="new-booking"'))}</tbody></table></div>${paginationMarkup}</section>`;
     }
 
     function renderBilling() {
@@ -10928,6 +10998,24 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         } else {
           state.bookingSortCol = 'date';
           state.bookingSortDir = state.bookingSortDir === 'asc' ? 'desc' : 'asc';
+        }
+        renderBookingsInPlace();
+      }));
+      content.querySelectorAll('[data-action="sort-booking-fare"]').forEach(el => el.addEventListener('click', () => {
+        if (state.bookingSortCol === 'fare') {
+          state.bookingSortDir = state.bookingSortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+          state.bookingSortCol = 'fare';
+          state.bookingSortDir = 'desc';
+        }
+        renderBookingsInPlace();
+      }));
+      content.querySelectorAll('[data-action="sort-booking-profit"]').forEach(el => el.addEventListener('click', () => {
+        if (state.bookingSortCol === 'profit') {
+          state.bookingSortDir = state.bookingSortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+          state.bookingSortCol = 'profit';
+          state.bookingSortDir = 'desc';
         }
         renderBookingsInPlace();
       }));
