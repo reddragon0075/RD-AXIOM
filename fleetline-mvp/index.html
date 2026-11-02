@@ -8264,9 +8264,15 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         </div>`;
       }
 
-      if (!state.axiomHqData && !state.axiomHqLoading) {
-        refreshAxiomHqData();
-        return `<div class="p-8 text-center" style="padding:60px;text-align:center;"><p style="color:var(--muted);margin-top:12px;">Loading Axiom HQ telemetry...</p></div>`;
+      if (!state.axiomHqData || state.axiomHqLoading) {
+        if (!state.axiomHqLoading) {
+          refreshAxiomHqData();
+        }
+        return `<div class="p-8 text-center" style="padding:80px 20px;text-align:center;">
+          <div class="spinner" style="margin:0 auto 16px;width:32px;height:32px;border:3px solid rgba(56,189,248,0.2);border-top-color:#38bdf8;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+          <h3 style="color:var(--text);font-size:16px;font-weight:600;margin-bottom:6px;">Loading Axiom HQ Telemetry...</h3>
+          <p style="color:var(--muted);font-size:12px;">Synchronizing SaaS subscribers, MRR metrics, recurring invoices, and corporate portals...</p>
+        </div>`;
       }
 
       const hq = state.axiomHqData || { vendors: [], corporates: [], kpis: {}, plans: [], invoices: [] };
@@ -9003,6 +9009,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                   <th>Monthly Duties</th>
                   <th>Monthly GMV</th>
                   <th>Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -9022,6 +9029,9 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                     <td><strong>${Number(c.monthly_duty_volume || 0).toLocaleString('en-IN')}</strong></td>
                     <td style="font-weight:600;">₹${Number(c.monthly_gross_gmv_inr || 0).toLocaleString('en-IN')}</td>
                     <td>${status(c.portal_status || 'LIVE', 'green')}</td>
+                    <td>
+                      <button class="btn btn-primary btn-xs" onclick="impersonateTarget('corporate', '${c.id}', '${esc(c.corporate_name)}')" title="Login as ${esc(c.corporate_name)}" style="background:#14b8a6;border-color:#0d9488;color:#000;font-weight:700;">🔑 Login As</button>
+                    </td>
                   </tr>`;
                 }).join('')}
               </tbody>
@@ -9090,21 +9100,23 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
       render();
       try {
         const [vRes, cRes, kRes, pRes, iRes] = await Promise.all([
-          apiRequest('/api/axiom-hq/vendors').catch(() => ({ items: [] })),
-          apiRequest('/api/axiom-hq/corporates').catch(() => ({ items: [] })),
-          apiRequest('/api/axiom-hq/kpis').catch(() => ({})),
-          apiRequest('/api/axiom-hq/plans').catch(() => ({ items: [] })),
-          apiRequest('/api/axiom-hq/invoices').catch(() => ({ items: [] })),
+          apiRequest('/api/axiom-hq/vendors'),
+          apiRequest('/api/axiom-hq/corporates'),
+          apiRequest('/api/axiom-hq/kpis'),
+          apiRequest('/api/axiom-hq/plans'),
+          apiRequest('/api/axiom-hq/invoices'),
         ]);
         state.axiomHqData = {
-          vendors: vRes.items || [],
-          corporates: cRes.items || [],
+          vendors: Array.isArray(vRes?.items) ? vRes.items : (Array.isArray(vRes) ? vRes : []),
+          corporates: Array.isArray(cRes?.items) ? cRes.items : (Array.isArray(cRes) ? cRes : []),
           kpis: kRes || {},
-          plans: pRes.items || [],
-          invoices: iRes.items || [],
+          plans: Array.isArray(pRes?.items) ? pRes.items : (Array.isArray(pRes) ? pRes : []),
+          invoices: Array.isArray(iRes?.items) ? iRes.items : (Array.isArray(iRes) ? iRes : []),
         };
       } catch (err) {
-        showToast('Telemetry Sync Failed', err.message, 'error');
+        console.error('Axiom HQ Telemetry Sync Failed:', err);
+        state.axiomHqData = null;
+        showToast('Telemetry Sync Error', err.message || 'Could not fetch Axiom HQ telemetry. Please refresh.', 'error');
       } finally {
         state.axiomHqLoading = false;
         render();
