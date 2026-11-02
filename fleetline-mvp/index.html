@@ -8253,90 +8253,202 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
       // Determine active subview: 'vendors', 'corporates', or 'all'
       const activeView = subview || (state.page === 'axiom-hq-vendors' ? 'vendors' : (state.page === 'axiom-hq-corporates' ? 'corporates' : 'all'));
 
+      // Filter state initialized
+      if (!state.axiomHqVendorFilter) state.axiomHqVendorFilter = 'all';
+      if (!state.axiomHqVendorSearch) state.axiomHqVendorSearch = '';
+      if (!state.axiomHqInvoiceFilter) state.axiomHqInvoiceFilter = 'all';
+      if (!state.axiomHqInvoiceSearch) state.axiomHqInvoiceSearch = '';
+
+      // Map corporate portals to vendor IDs
+      const vendorPortalsMap = {};
+      corporates.forEach(c => {
+        if (c.owning_vendor_id) {
+          if (!vendorPortalsMap[c.owning_vendor_id]) vendorPortalsMap[c.owning_vendor_id] = [];
+          vendorPortalsMap[c.owning_vendor_id].push(c);
+        }
+      });
+
+      // Filtered vendors
+      const filteredVendors = vendors.filter(v => {
+        const matchesSearch = !state.axiomHqVendorSearch || 
+          v.vendor_name.toLowerCase().includes(state.axiomHqVendorSearch.toLowerCase()) ||
+          (v.contact_person && v.contact_person.toLowerCase().includes(state.axiomHqVendorSearch.toLowerCase())) ||
+          (v.city && v.city.toLowerCase().includes(state.axiomHqVendorSearch.toLowerCase()));
+        if (!matchesSearch) return false;
+        if (state.axiomHqVendorFilter === 'active') return v.payment_status === 'ACTIVE_PAID';
+        if (state.axiomHqVendorFilter === 'overdue') return v.payment_status === 'OVERDUE' || v.payment_status === 'GRACE_PERIOD' || Number(v.days_until_payment_due || 0) < 0;
+        if (state.axiomHqVendorFilter === 'enterprise') return v.saas_plan === 'ENTERPRISE_WHITE_LABEL';
+        return true;
+      });
+
+      // Filtered invoices
+      const filteredInvoices = invoices.filter(inv => {
+        const matchesSearch = !state.axiomHqInvoiceSearch ||
+          inv.invoice_number.toLowerCase().includes(state.axiomHqInvoiceSearch.toLowerCase()) ||
+          inv.vendor_name.toLowerCase().includes(state.axiomHqInvoiceSearch.toLowerCase());
+        if (!matchesSearch) return false;
+        if (state.axiomHqInvoiceFilter === 'paid') return inv.status === 'PAID';
+        if (state.axiomHqInvoiceFilter === 'overdue') return inv.status === 'OVERDUE' || inv.status === 'DUE';
+        return true;
+      });
+
+      const totalPaidInvoices = invoices.filter(i => i.status === 'PAID').reduce((sum, i) => sum + (Number(i.total_amount_inr) || 0), 0);
+      const totalPendingInvoices = invoices.filter(i => i.status !== 'PAID').reduce((sum, i) => sum + (Number(i.total_amount_inr) || 0), 0);
+      const totalBilled = totalPaidInvoices + totalPendingInvoices;
+      const collectionRatePct = totalBilled > 0 ? Math.round((totalPaidInvoices / totalBilled) * 100) : 100;
+
       // Top Interactive Sub-Nav Pills
       const hqSubNav = `
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:22px;padding:6px;background:rgba(15,23,42,0.65);border:1px solid rgba(56,189,248,0.22);border-radius:12px;width:fit-content;max-width:100%;flex-wrap:wrap;box-shadow:0 4px 18px rgba(0,0,0,0.25);">
-          <button class="btn btn-xs ${activeView === 'vendors' ? 'btn-primary' : 'btn-outline'}" onclick="state.page='axiom-hq-vendors';render();try{window.location.hash='#axiom-hq-vendors';}catch(_){}" style="display:flex;align-items:center;gap:7px;padding:7px 15px;border-radius:8px;font-weight:600;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14M21 7v14M6 10h3M6 14h3M6 18h3M15 10h3M15 14h3M15 18h3M3 7l9-4 9 4"/></svg>
-            Vendor SaaS Products (${vendors.length})
-          </button>
-          <button class="btn btn-xs ${activeView === 'corporates' ? 'btn-primary' : 'btn-outline'}" onclick="state.page='axiom-hq-corporates';render();try{window.location.hash='#axiom-hq-corporates';}catch(_){}" style="display:flex;align-items:center;gap:7px;padding:7px 15px;border-radius:8px;font-weight:600;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></svg>
-            Corporate SaaS Products (${corporates.length})
-          </button>
-          <button class="btn btn-xs ${activeView === 'all' ? 'btn-primary' : 'btn-outline'}" onclick="state.page='axiom-hq';render();try{window.location.hash='#axiom-hq';}catch(_){}" style="display:flex;align-items:center;gap:7px;padding:7px 15px;border-radius:8px;font-weight:600;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Command Center Overview
-          </button>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:6px;padding:5px;background:rgba(15,23,42,0.65);border:1px solid rgba(56,189,248,0.25);border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,0.25);">
+            <button class="btn btn-xs ${activeView === 'vendors' ? 'btn-primary' : 'btn-outline'}" onclick="state.page='axiom-hq-vendors';render();try{window.location.hash='#axiom-hq-vendors';}catch(_){}" style="display:flex;align-items:center;gap:7px;padding:7px 15px;border-radius:8px;font-weight:600;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14M21 7v14M6 10h3M6 14h3M6 18h3M15 10h3M15 14h3M15 18h3M3 7l9-4 9 4"/></svg>
+              Vendor SaaS Products (${vendors.length})
+            </button>
+            <button class="btn btn-xs ${activeView === 'corporates' ? 'btn-primary' : 'btn-outline'}" onclick="state.page='axiom-hq-corporates';render();try{window.location.hash='#axiom-hq-corporates';}catch(_){}" style="display:flex;align-items:center;gap:7px;padding:7px 15px;border-radius:8px;font-weight:600;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></svg>
+              Corporate SaaS Products (${corporates.length})
+            </button>
+            <button class="btn btn-xs ${activeView === 'all' ? 'btn-primary' : 'btn-outline'}" onclick="state.page='axiom-hq';render();try{window.location.hash='#axiom-hq';}catch(_){}" style="display:flex;align-items:center;gap:7px;padding:7px 15px;border-radius:8px;font-weight:600;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Command Overview
+            </button>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:12px;color:var(--muted);background:rgba(255,255,255,0.04);padding:5px 10px;border-radius:6px;border:1px solid var(--border);">
+              🔒 Company Owner Surface • Multi-Tenant Control
+            </span>
+          </div>
         </div>
       `;
 
       // Subview: Vendor SaaS Products
       if (activeView === 'vendors') {
-        return `${pageHead('Axiom Fleet HQ • Vendor SaaS Products', 'Vendor SaaS Subscription Lifecycle & Automated Invoicing', 'Configure custom pricing plans, fee overrides, recurring GST invoices, and master plan tier matrix.', `
+        return `${pageHead('Axiom Fleet HQ • Vendor SaaS Products', 'Vendor SaaS Subscription Lifecycle & Automated Invoicing', 'Manage fleet operators buying Axiom Fleet OS: custom plan pricing, billing cycles, automated GST invoices, and collection health.', `
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             ${button(icon('refresh')+'Refresh Telemetry', 'soft', 'onclick="refreshAxiomHqData()"')}
             ${button(icon('spark')+'Run Billing Automation', 'primary', 'onclick="runHqBillingAutomation()"')}
-            ${button(icon('plus')+'New Pricing Tier', 'soft', 'onclick="openHqNewPlanModal()"')}
-            ${button(icon('file')+'Issue SaaS Invoice', 'soft', 'onclick="openHqCreateInvoiceModal()"')}
           </div>
         `)}
         ${hqSubNav}
-        <div class="grid kpis" style="margin-bottom:24px;">
-          <div class="card kpi">
-            <div class="kpi-top"><span class="kpi-label">Active Fleet Vendors</span><span class="kpi-icon">${icon('building')}</span></div>
+
+        <!-- Context Callout for Company Leadership -->
+        <div style="margin-bottom:20px;padding:12px 18px;background:linear-gradient(90deg, rgba(56,189,248,0.12), rgba(30,41,59,0.5));border:1px solid rgba(56,189,248,0.25);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="font-size:24px;line-height:1;">🏢</div>
+            <div>
+              <strong style="color:#e0f2fe;font-size:13.5px;display:block;">Fleet Operators Subscribed to Axiom OS (${vendors.length} Active B2B Customers)</strong>
+              <span style="color:#94a3b8;font-size:11.5px;">These vendors pay recurring monthly subscriptions to run their fleet dispatch, manage drivers, and service enterprise corporate clients.</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-outline btn-xs" onclick="openHqNewPlanModal()">+ Add New Pricing Plan</button>
+            <button class="btn btn-primary btn-xs" onclick="openHqCreateInvoiceModal()">+ Issue Manual Invoice</button>
+          </div>
+        </div>
+
+        <!-- Enhanced KPI Cards with Visual Progress -->
+        <div class="grid kpis" style="margin-bottom:24px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));">
+          <div class="card kpi" style="border-top:3px solid #38bdf8;">
+            <div class="kpi-top"><span class="kpi-label">Active Fleet Vendors</span><span class="kpi-icon" style="color:#38bdf8;">${icon('building')}</span></div>
             <div class="kpi-value">${kpis.total_vendors ?? vendors.length}</div>
-            <div class="kpi-foot">Onboarded SaaS operators</div>
+            <div class="kpi-foot" style="display:flex;align-items:center;gap:6px;">
+              <span class="status green" style="padding:1px 6px;font-size:10px;">100% Retained</span>
+              <span style="color:var(--muted);">SaaS Operators</span>
+            </div>
           </div>
-          <div class="card kpi teal">
+
+          <div class="card kpi teal" style="border-top:3px solid #14b8a6;">
             <div class="kpi-top"><span class="kpi-label">Monthly SaaS MRR</span><span class="kpi-icon teal">${icon('shield')}</span></div>
-            <div class="kpi-value">₹${Number(kpis.monthly_saas_mrr_inr || 0).toLocaleString('en-IN')}</div>
-            <div class="kpi-foot">ARR: ₹${Number(kpis.annual_saas_arr_inr || 0).toLocaleString('en-IN')}</div>
+            <div class="kpi-value" style="color:#2dd4bf;">₹${Number(kpis.monthly_saas_mrr_inr || 0).toLocaleString('en-IN')}</div>
+            <div class="kpi-foot" style="color:var(--muted);">
+              ARR Run-Rate: <strong style="color:var(--text);">₹${Number(kpis.annual_saas_arr_inr || 0).toLocaleString('en-IN')}</strong>
+            </div>
           </div>
-          <div class="card kpi purple">
-            <div class="kpi-top"><span class="kpi-label">Invoice Ledger</span><span class="kpi-icon purple">${icon('file')}</span></div>
-            <div class="kpi-value">₹${Number(kpis.total_invoices_paid_inr || 0).toLocaleString('en-IN')}</div>
-            <div class="kpi-foot">Pending: ₹${Number(kpis.total_invoices_pending_inr || 0).toLocaleString('en-IN')}</div>
+
+          <div class="card kpi purple" style="border-top:3px solid #a855f7;">
+            <div class="kpi-top"><span class="kpi-label">Invoice Ledger & Collections</span><span class="kpi-icon purple">${icon('file')}</span></div>
+            <div class="kpi-value" style="font-size:20px;">₹${Number(totalPaidInvoices || 0).toLocaleString('en-IN')} <span style="font-size:12px;color:var(--muted);font-weight:normal;">collected</span></div>
+            <div style="margin-top:6px;width:100%;height:5px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;">
+              <div style="width:${collectionRatePct}%;height:100%;background:#a855f7;border-radius:3px;"></div>
+            </div>
+            <div class="kpi-foot" style="display:flex;justify-content:space-between;margin-top:4px;">
+              <span>Pending: ₹${Number(totalPendingInvoices || 0).toLocaleString('en-IN')}</span>
+              <strong style="color:#c084fc;">${collectionRatePct}% Rate</strong>
+            </div>
           </div>
-          <div class="card kpi ${kpis.vendors_overdue_payment > 0 ? 'amber' : 'teal'}">
+
+          <div class="card kpi ${kpis.vendors_overdue_payment > 0 ? 'amber' : 'teal'}" style="border-top:3px solid #f59e0b;">
             <div class="kpi-top"><span class="kpi-label">Billing Compliance</span><span class="kpi-icon amber">${icon('warning')}</span></div>
-            <div class="kpi-value">${kpis.vendors_overdue_payment ?? 0} Overdue</div>
-            <div class="kpi-foot">${kpis.vendors_suspended > 0 ? `${kpis.vendors_suspended} suspended for default` : 'All accounts current or in grace'}</div>
+            <div class="kpi-value" style="color:#fbbf24;">${kpis.vendors_overdue_payment ?? 0} Overdue</div>
+            <div class="kpi-foot">
+              <span class="status amber" style="padding:1px 6px;font-size:10px;">In 15-Day Grace</span>
+              <span style="color:var(--muted);margin-left:4px;">0 Suspended</span>
+            </div>
           </div>
         </div>
 
         <div class="grid" style="display:grid;gap:24px;">
           <!-- Section 1: Vendors & SaaS Subscription Lifecycles -->
           <section class="card section-card">
-            <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+            <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px;">
               <div>
-                <h3 style="margin:0;font-size:15px;color:var(--text);">1. Vendor Partners • SaaS Plans & Custom Pricing Controls</h3>
-                <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Configure custom pricing plans, fee overrides, billing cycles, and next payment dates per operator.</p>
+                <h3 style="margin:0;font-size:15px;color:var(--text);display:flex;align-items:center;gap:8px;">
+                  1. Fleet Operator Subscribers • Custom Pricing & Lifecycle Controls
+                  <span class="status blue" style="font-size:11px;">${filteredVendors.length} of ${vendors.length} Vendors</span>
+                </h3>
+                <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Fleet owners buying Axiom OS subscriptions. Configure custom pricing plans, fee overrides, and payment dates.</p>
               </div>
-              <span class="status blue">${vendors.length} Vendors Registered</span>
+
+              <!-- Instant Search & Quick Filter Pills -->
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <input type="text" placeholder="Search vendor, city, contact..." value="${esc(state.axiomHqVendorSearch || '')}" 
+                  oninput="state.axiomHqVendorSearch = this.value; render();"
+                  style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text);min-width:180px;">
+
+                <div style="display:flex;gap:4px;">
+                  <button class="btn btn-xs ${state.axiomHqVendorFilter === 'all' ? 'btn-primary' : 'btn-outline'}" 
+                    onclick="state.axiomHqVendorFilter = 'all'; render();">All (${vendors.length})</button>
+                  <button class="btn btn-xs ${state.axiomHqVendorFilter === 'active' ? 'btn-primary' : 'btn-outline'}" 
+                    onclick="state.axiomHqVendorFilter = 'active'; render();">Active / Paid</button>
+                  <button class="btn btn-xs ${state.axiomHqVendorFilter === 'overdue' ? 'btn-primary' : 'btn-outline'}" 
+                    onclick="state.axiomHqVendorFilter = 'overdue'; render();">Overdue (${kpis.vendors_overdue_payment || 0})</button>
+                </div>
+              </div>
             </div>
+
             <div class="table-wrap">
               <table>
                 <thead>
                   <tr>
-                    <th>Vendor & Contact</th>
-                    <th>Joined Date</th>
+                    <th>Vendor Partner</th>
+                    <th>Joined</th>
                     <th>SaaS Plan</th>
-                    <th>Fee & Billing Cycle</th>
+                    <th>Monthly Fee</th>
                     <th>Next Due Date</th>
                     <th>Payment Status</th>
-                    <th>Owned Portals</th>
-                    <th>Pricing & Lifecycle Actions</th>
+                    <th>Corporate Portals Operated</th>
+                    <th>Lifecycle Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  ${vendors.map(v => {
+                  ${filteredVendors.length ? filteredVendors.map(v => {
                     const days = Number(v.days_until_payment_due || 0);
                     const dueBadge = days < 0 ? status(`Overdue by ${Math.abs(days)}d`, 'red') : (days <= 7 ? status(`Due in ${days}d`, 'amber') : status(`Due in ${days}d`, 'green'));
-                    const pStatus = v.payment_status === 'ACTIVE_PAID' ? status('Active / Paid', 'green') : (v.payment_status === 'DUE_SOON' ? status('Due Soon', 'amber') : (v.payment_status === 'SUSPENDED' ? status('Suspended', 'red') : status('Grace Period', 'amber')));
+                    const pStatus = v.payment_status === 'ACTIVE_PAID' ? status('Active / Paid', 'green') : (v.payment_status === 'DUE_SOON' ? status('Due Soon', 'amber') : (v.payment_status === 'SUSPENDED' ? status('Suspended', 'red') : status('Grace Period (15d)', 'amber')));
                     const planName = v.custom_plan_name || (v.saas_plan === 'ENTERPRISE_WHITE_LABEL' ? 'Enterprise White-Label' : (v.saas_plan === 'GROWTH' ? 'Growth Plan' : (v.saas_plan === 'STARTER' ? 'Starter Plan' : v.saas_plan)));
                     const planBadge = v.saas_plan === 'ENTERPRISE_WHITE_LABEL' ? status(planName, 'purple') : (v.saas_plan === 'GROWTH' ? status(planName, 'blue') : status(planName, 'soft'));
-                    const discountNote = Number(v.custom_discount_pct || 0) > 0 ? `<br><small style="color:var(--green);font-weight:600;">-${v.custom_discount_pct}% VIP Disc</small>` : '';
+                    const discountNote = Number(v.custom_discount_pct || 0) > 0 ? `<br><small style="color:var(--green);font-weight:600;">-${v.custom_discount_pct}% VIP Override</small>` : '';
+                    
+                    const ownedCorps = vendorPortalsMap[v.id] || [];
+                    const portalsBadge = ownedCorps.length > 0 
+                      ? `<div style="display:flex;flex-direction:column;gap:3px;">
+                           <span class="status teal" style="cursor:pointer;" onclick="state.page='axiom-hq-corporates';render();location.hash='#axiom-hq-corporates';" title="Click to view corporate portals">${ownedCorps.length} Live Portals ➔</span>
+                           <small style="color:var(--muted);font-size:10px;">${ownedCorps.map(c => esc(c.corporate_name)).join(', ')}</small>
+                         </div>`
+                      : `<span style="color:var(--muted);font-size:11px;">0 (Dispatch only)</span>`;
+
                     return `<tr>
                       <td>
                         <strong>${esc(v.vendor_name)}</strong><br>
@@ -8347,15 +8459,15 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                       <td style="font-weight:600;">₹${Number(v.saas_fee_inr || 0).toLocaleString('en-IN')}<br><small style="color:var(--muted);">${esc(v.billing_cycle)}</small>${discountNote}</td>
                       <td><strong>${esc(v.next_payment_due_date)}</strong><br>${dueBadge}</td>
                       <td>${pStatus}</td>
-                      <td style="text-align:center;"><strong style="font-size:14px;color:var(--blue);">${v.owned_corporate_portals_count ?? 0}</strong></td>
+                      <td>${portalsBadge}</td>
                       <td>
                         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                          <button class="btn btn-outline btn-xs" onclick="openHqCustomPlanModal('${v.id}')">Customize Plan & Fee</button>
-                          <button class="btn btn-outline btn-xs" onclick="dispatchHqReminder('${v.id}')">Send Reminder</button>
+                          <button class="btn btn-outline btn-xs" onclick="openHqCustomPlanModal('${v.id}')">Customize Fee</button>
+                          <button class="btn btn-outline btn-xs" onclick="dispatchHqReminder('${v.id}')" title="Send WhatsApp & Email payment link">⚡ Reminder</button>
                         </div>
                       </td>
                     </tr>`;
-                  }).join('')}
+                  }).join('') : `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">No fleet vendors matching current filter.</td></tr>`}
                 </tbody>
               </table>
             </div>
@@ -8363,16 +8475,32 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
 
           <!-- Section 2: Subscription Invoices & Billing Ledger -->
           <section class="card section-card">
-            <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+            <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px;">
               <div>
-                <h3 style="margin:0;font-size:15px;color:var(--text);">2. Subscription Invoices & Billing Automation Ledger</h3>
+                <h3 style="margin:0;font-size:15px;color:var(--text);display:flex;align-items:center;gap:8px;">
+                  2. Subscription Invoices & Billing Automation Ledger
+                  <span class="status purple" style="font-size:11px;">${filteredInvoices.length} Invoices</span>
+                </h3>
                 <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Automated recurring subscription invoices, GST taxation, cycle tracking, and payment verification.</p>
               </div>
-              <div style="display:flex;gap:8px;">
-                <button class="btn btn-outline btn-xs" onclick="runHqBillingAutomation()">Run Automation</button>
-                <button class="btn btn-primary btn-xs" onclick="openHqCreateInvoiceModal()">Issue Invoice</button>
+
+              <!-- Instant Search & Quick Filter Pills for Invoices -->
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <input type="text" placeholder="Search invoice #, vendor..." value="${esc(state.axiomHqInvoiceSearch || '')}" 
+                  oninput="state.axiomHqInvoiceSearch = this.value; render();"
+                  style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text);min-width:180px;">
+
+                <div style="display:flex;gap:4px;">
+                  <button class="btn btn-xs ${state.axiomHqInvoiceFilter === 'all' ? 'btn-primary' : 'btn-outline'}" 
+                    onclick="state.axiomHqInvoiceFilter = 'all'; render();">All</button>
+                  <button class="btn btn-xs ${state.axiomHqInvoiceFilter === 'paid' ? 'btn-primary' : 'btn-outline'}" 
+                    onclick="state.axiomHqInvoiceFilter = 'paid'; render();">Paid</button>
+                  <button class="btn btn-xs ${state.axiomHqInvoiceFilter === 'overdue' ? 'btn-primary' : 'btn-outline'}" 
+                    onclick="state.axiomHqInvoiceFilter = 'overdue'; render();">Pending</button>
+                </div>
               </div>
             </div>
+
             <div class="table-wrap">
               <table>
                 <thead>
@@ -8388,14 +8516,14 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                   </tr>
                 </thead>
                 <tbody>
-                  ${invoices.length ? invoices.map(inv => {
+                  ${filteredInvoices.length ? filteredInvoices.map(inv => {
                     const invStatusBadge = inv.status === 'PAID' ? status('Paid', 'green') : (inv.status === 'OVERDUE' ? status('Overdue', 'red') : status('Due', 'amber'));
                     return `<tr>
                       <td class="font-mono"><strong>${esc(inv.invoice_number)}</strong></td>
                       <td><strong>${esc(inv.vendor_name)}</strong><br><small style="color:var(--muted);">${esc(inv.vendor_email || '')}</small></td>
                       <td><strong>${esc(inv.plan_name)}</strong><br><small style="color:var(--muted);">${esc(inv.period_start)} to ${esc(inv.period_end)}</small></td>
                       <td>₹${Number(inv.base_amount_inr || 0).toLocaleString('en-IN')} + ₹${Number(inv.gst_amount_inr || 0).toLocaleString('en-IN')}</td>
-                      <td><strong style="color:var(--blue);font-size:13px;">₹${Number(inv.total_amount_inr || 0).toLocaleString('en-IN')}</strong></td>
+                      <td><strong style="color:var(--blue);font-size:13.5px;">₹${Number(inv.total_amount_inr || 0).toLocaleString('en-IN')}</strong></td>
                       <td class="font-mono">${esc(inv.due_date)}</td>
                       <td>${invStatusBadge}</td>
                       <td>
@@ -8405,7 +8533,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                         }
                       </td>
                     </tr>`;
-                  }).join('') : `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">No subscription invoices in ledger.</td></tr>`}
+                  }).join('') : `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">No subscription invoices matching filter.</td></tr>`}
                 </tbody>
               </table>
             </div>
@@ -8416,7 +8544,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
             <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
               <div>
                 <h3 style="margin:0;font-size:15px;color:var(--text);">3. Master SaaS Pricing Plans • Tier & Feature Matrix</h3>
-                <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Catalog of standard and bespoke subscription tiers with fleet caps, white-label flags, and SLAs.</p>
+                <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Commercial tiers offered to fleet operators. Limits, white-label permissions, and support SLAs.</p>
               </div>
               <button class="btn btn-outline btn-xs" onclick="openHqNewPlanModal()">+ Add New Plan</button>
             </div>
@@ -8438,17 +8566,28 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                   ${plans.map(p => {
                     const dutiesCap = p.duty_limit === -1 ? 'Unlimited Duties' : `Up to ${p.duty_limit} duties/mo`;
                     const fleetCap = p.vehicle_limit === -1 ? 'Unlimited Fleet' : `Up to ${p.vehicle_limit} vehicles`;
+                    
+                    const whiteLabelChip = p.white_label_enabled 
+                      ? `<span class="status purple" style="font-size:10px;padding:2px 6px;">🏷️ White-Label</span>` 
+                      : `<span class="status soft" style="font-size:10px;padding:2px 6px;">No White-Label</span>`;
+                    const apiChip = p.api_access_enabled 
+                      ? `<span class="status green" style="font-size:10px;padding:2px 6px;">⚡ REST API</span>` 
+                      : `<span class="status soft" style="font-size:10px;padding:2px 6px;">No API</span>`;
+                    const customPricingChip = p.custom_pricing_enabled 
+                      ? `<span class="status blue" style="font-size:10px;padding:2px 6px;">🛠️ Custom Pricing</span>` 
+                      : '';
+
                     return `<tr>
                       <td><strong>${esc(p.name)}</strong><br><small class="font-mono" style="color:var(--muted);">${esc(p.tier)}</small></td>
-                      <td style="font-weight:600;">₹${Number(p.monthly_fee_inr || 0).toLocaleString('en-IN')}/mo</td>
-                      <td style="font-weight:600;">₹${Number(p.annual_fee_inr || 0).toLocaleString('en-IN')}/yr</td>
+                      <td style="font-weight:600;color:#38bdf8;">₹${Number(p.monthly_fee_inr || 0).toLocaleString('en-IN')}/mo</td>
+                      <td style="font-weight:600;color:var(--muted);">₹${Number(p.annual_fee_inr || 0).toLocaleString('en-IN')}/yr</td>
                       <td><small>${dutiesCap}<br>${fleetCap}</small></td>
                       <td>
-                        <small>
-                          White-label: ${p.white_label_enabled ? '✅ Yes' : '❌ No'} · 
-                          API: ${p.api_access_enabled ? '✅ Yes' : '❌ No'}<br>
-                          Custom Pricing: ${p.custom_pricing_enabled ? '✅ Enabled' : '❌ Disabled'}
-                        </small>
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
+                          ${whiteLabelChip}
+                          ${apiChip}
+                          ${customPricingChip}
+                        </div>
                       </td>
                       <td><small style="color:var(--muted);">${esc(p.support_tier)}</small></td>
                       <td>${p.is_active ? status('Active', 'green') : status('Archived', 'soft')}</td>
@@ -8477,6 +8616,19 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
           </div>
         `)}
         ${hqSubNav}
+
+        <!-- Context Callout for Corporate Enterprises -->
+        <div style="margin-bottom:20px;padding:12px 18px;background:linear-gradient(90deg, rgba(20,184,166,0.12), rgba(30,41,59,0.5));border:1px solid rgba(20,184,166,0.25);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="font-size:24px;line-height:1;">🏛️</div>
+            <div>
+              <strong style="color:#ccfbf1;font-size:13.5px;display:block;">Enterprise Corporate Clients & White-Label Subdomains (${corporates.length} Live Portals)</strong>
+              <span style="color:#94a3b8;font-size:11.5px;">These are enterprise companies (Infosys, TCS, Wipro, etc.) who access dedicated booking & billing portals operated either directly by Axiom or via vendor partners.</span>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-xs" onclick="checkHqCorporateDns()">Verify Subdomain SSL</button>
+        </div>
+
         <div class="grid kpis" style="margin-bottom:24px;">
           <div class="card kpi teal">
             <div class="kpi-top"><span class="kpi-label">Live Corporate Portals</span><span class="kpi-icon teal">${icon('building')}</span></div>
@@ -8603,8 +8755,6 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           ${button(icon('refresh')+'Refresh Telemetry', 'soft', 'onclick="refreshAxiomHqData()"')}
           ${button(icon('spark')+'Run Billing Automation', 'primary', 'onclick="runHqBillingAutomation()"')}
-          ${button(icon('plus')+'New Pricing Tier', 'soft', 'onclick="openHqNewPlanModal()"')}
-          ${button(icon('file')+'Issue SaaS Invoice', 'soft', 'onclick="openHqCreateInvoiceModal()"')}
         </div>
       `)}
       ${hqSubNav}
