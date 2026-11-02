@@ -8258,6 +8258,8 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
       if (!state.axiomHqVendorSearch) state.axiomHqVendorSearch = '';
       if (!state.axiomHqInvoiceFilter) state.axiomHqInvoiceFilter = 'all';
       if (!state.axiomHqInvoiceSearch) state.axiomHqInvoiceSearch = '';
+      if (!state.axiomHqCorpFilter) state.axiomHqCorpFilter = 'all';
+      if (!state.axiomHqCorpSearch) state.axiomHqCorpSearch = '';
 
       // Map corporate portals to vendor IDs
       const vendorPortalsMap = {};
@@ -8605,6 +8607,19 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
 
       // Subview: Corporate SaaS Products
       if (activeView === 'corporates') {
+        const filteredCorps = corporates.filter(c => {
+          const s = (state.axiomHqCorpSearch || '').toLowerCase();
+          const matches = !s || 
+            c.corporate_name.toLowerCase().includes(s) ||
+            (c.city && c.city.toLowerCase().includes(s)) ||
+            (c.portal_subdomain && c.portal_subdomain.toLowerCase().includes(s)) ||
+            (c.owning_vendor_name && c.owning_vendor_name.toLowerCase().includes(s));
+          if (!matches) return false;
+          if (state.axiomHqCorpFilter === 'vendor_owned') return c.ownership_type === 'VENDOR_OWNED_PORTAL';
+          if (state.axiomHqCorpFilter === 'direct') return c.ownership_type !== 'VENDOR_OWNED_PORTAL';
+          return true;
+        });
+
         const totalGmv = corporates.reduce((acc, c) => acc + (Number(c.monthly_gross_gmv_inr) || 0), 0);
         const totalDuties = corporates.reduce((acc, c) => acc + (Number(c.monthly_duty_volume) || 0), 0);
         const totalEmployees = corporates.reduce((acc, c) => acc + (Number(c.active_employees_count) || 0), 0);
@@ -8655,12 +8670,30 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         <div class="grid" style="display:grid;gap:24px;">
           <!-- Section 1: Corporate Portals & Owning Vendor Mapping -->
           <section class="card section-card">
-            <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+            <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px;">
               <div>
-                <h3 style="margin:0;font-size:15px;color:var(--text);">1. Corporate Portals • Vendor Ownership Mapping</h3>
-                <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Full audit of which corporate portal is owned and operated by what vendor partner.</p>
+                <h3 style="margin:0;font-size:15px;color:var(--text);display:flex;align-items:center;gap:8px;">
+                  1. Corporate Portals • Vendor Ownership Mapping & Subdomain Directory
+                  <span class="status teal" style="font-size:11px;">${filteredCorps.length} of ${corporates.length} Portals</span>
+                </h3>
+                <p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Audit multi-tenant white-label subdomains, employee volumes, and vendor partner operational ownership.</p>
               </div>
-              <span class="status teal">${corporates.length} Portals Mapped</span>
+
+              <!-- Instant Search & Quick Filter Pills for Corporates -->
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <input type="text" placeholder="Search client, subdomain, vendor..." value="${esc(state.axiomHqCorpSearch || '')}" 
+                  oninput="state.axiomHqCorpSearch = this.value; render();"
+                  style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text);min-width:180px;">
+
+                <div style="display:flex;gap:4px;">
+                  <button class="btn btn-xs ${state.axiomHqCorpFilter === 'all' ? 'btn-primary' : 'btn-outline'}" 
+                    onclick="state.axiomHqCorpFilter = 'all'; render();">All (${corporates.length})</button>
+                  <button class="btn btn-xs ${state.axiomHqCorpFilter === 'vendor_owned' ? 'btn-primary' : 'btn-outline'}" 
+                    onclick="state.axiomHqCorpFilter = 'vendor_owned'; render();">Vendor Owned</button>
+                  <button class="btn btn-xs ${state.axiomHqCorpFilter === 'direct' ? 'btn-primary' : 'btn-outline'}" 
+                    onclick="state.axiomHqCorpFilter = 'direct'; render();">Axiom Direct</button>
+                </div>
+              </div>
             </div>
             <div class="table-wrap">
               <table>
@@ -8677,7 +8710,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                   </tr>
                 </thead>
                 <tbody>
-                  ${corporates.map(c => {
+                  ${filteredCorps.length ? filteredCorps.map(c => {
                     const isVendorOwned = c.ownership_type === 'VENDOR_OWNED_PORTAL';
                     const ownerBadge = isVendorOwned ? `<strong style="color:var(--blue);">${esc(c.owning_vendor_name)}</strong>` : `<strong style="color:var(--green);">${esc(c.owning_vendor_name)}</strong>`;
                     const modelBadge = isVendorOwned ? status('Vendor Owned', 'blue') : status('Axiom Direct', 'green');
@@ -8694,7 +8727,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
                       <td style="font-weight:600;">₹${Number(c.monthly_gross_gmv_inr || 0).toLocaleString('en-IN')}</td>
                       <td>${status(c.portal_status || 'LIVE', 'green')}</td>
                     </tr>`;
-                  }).join('')}
+                  }).join('') : `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">No corporate portals matching filter.</td></tr>`}
                 </tbody>
               </table>
             </div>
