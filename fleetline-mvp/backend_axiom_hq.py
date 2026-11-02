@@ -12,8 +12,10 @@ REST API Controller for Axiom HQ Staff:
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import json
 import sqlite3
+import uuid
 from typing import Any, Dict, List, Optional
 from urllib.parse import parse_qs, urlsplit
 
