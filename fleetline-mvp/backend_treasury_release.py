@@ -36,6 +36,15 @@ def initialize_treasury_release_schema(conn: sqlite3.Connection) -> None:
     """Initializes tables for platform treasury settings, supplier payable ledger, and audit logs."""
     conn.executescript(
         """
+        CREATE TABLE IF NOT EXISTS axiom_treasury_global_holds (
+            id TEXT PRIMARY KEY,
+            tenant_id TEXT NOT NULL DEFAULT 'GLOBAL',
+            is_active INTEGER NOT NULL DEFAULT 1,
+            reason TEXT,
+            set_by TEXT,
+            created_at TEXT NOT NULL
+        );
+
         CREATE TABLE IF NOT EXISTS platform_settings (
             id TEXT PRIMARY KEY DEFAULT 'global_default',
             global_payout_release_enabled INTEGER NOT NULL DEFAULT 0,
@@ -676,3 +685,42 @@ def handle_treasury_release(
         return get_vendor_payout_balance(conn, user)
 
     raise DomainError(f"Treasury endpoint not found: {method} {path}", 404)
+
+
+def set_global_treasury_payout_hold(
+    conn: sqlite3.Connection,
+    staff_user: Dict[str, Any],
+    is_held: bool,
+    reason: str = "",
+    ip: str = "127.0.0.1",
+) -> Dict[str, Any]:
+    """Sets the global Axiom treasury payout hold toggle and records audit log."""
+    if not _is_staff(staff_user):
+        raise DomainError("Unauthorized: Axiom Staff or Super-Admin role required", 403)
+    now = now_iso()
+    # 1. Update platform_settings (global_payout_release_enabled is False when is_held is True)
+    conn.execute(
+        """UPDATE platform_settings
+           SET global_payout_release_enabled = ?, updated_at = ?
+           WHERE id = 'global_default'""",
+        (0 if is_held else 1, now),
+    )
+    # 2. Maintain axiom_treasury_global_holds table for hyper network / factoring queries
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS axiom_treasury_global_holds (
+            id TEXT PRIMARY KEY,
+            tenant_id TEXT NOT NULL DEFAULT 'GLOBAL',
+            is_active INTEGER NOT NULL DEFAULT 1,
+            reason TEXT,
+            set_by TEXT,
+            created_at TEXT NOT NULL
+        )"""
+    )
+    hold_id = f"hold_{uuid.uuid4().hex[:10]}"
+    conn.execute(
+        """INSERT INTO axiom_treasury_global_holds (id, tenant_id, is_active, reason, set_by, created_at)
+           VALUES (?, 'GLOBAL', ?, ?, ?, ?)""",
+        (hold_id, 1 if is_held else 0, reason, staff_user.get("id", "staff_admin"), now),
+    )
+    conn.commit()
+    return {"ok": True, "is_held": is_held, "reason": reason}

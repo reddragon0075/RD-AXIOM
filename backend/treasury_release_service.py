@@ -20,6 +20,7 @@ from backend_treasury_release import (
     initialize_treasury_release_schema,
     record_duty_completion_payable,
     release_batch,
+    set_global_treasury_payout_hold,
     toggle_global_hold,
     toggle_vendor_hold,
 )
@@ -32,6 +33,7 @@ __all__ = [
     "toggle_global_hold",
     "toggle_vendor_hold",
     "release_batch",
+    "set_global_treasury_payout_hold",
     "get_treasury_summary",
     "get_vendor_payout_balance",
     "handle_treasury_release",

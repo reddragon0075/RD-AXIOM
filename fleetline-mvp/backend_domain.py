@@ -256,6 +256,7 @@ def initialize_domain_schema(conn) -> None:
             customer_id TEXT,
             duty_id TEXT,
             invoice_number TEXT NOT NULL,
+            invoice_type TEXT NOT NULL DEFAULT 'tax_invoice',
             status TEXT NOT NULL DEFAULT 'draft',
             subtotal_paise INTEGER NOT NULL DEFAULT 0,
             tax_paise INTEGER NOT NULL DEFAULT 0,
@@ -290,6 +291,29 @@ def initialize_domain_schema(conn) -> None:
             received_at TEXT,
             created_at TEXT NOT NULL,
             UNIQUE(organization_id, idempotency_key)
+        );
+        CREATE TABLE IF NOT EXISTS domain_price_book_items (
+            id TEXT PRIMARY KEY,
+            price_book_id TEXT NOT NULL,
+            duty_type TEXT NOT NULL,
+            vehicle_group TEXT NOT NULL DEFAULT '',
+            base_paise INTEGER NOT NULL DEFAULT 0,
+            per_km_paise INTEGER NOT NULL DEFAULT 0,
+            per_hour_paise INTEGER NOT NULL DEFAULT 0,
+            waiting_paise INTEGER NOT NULL DEFAULT 0,
+            tax_rate_bps INTEGER NOT NULL DEFAULT 0,
+            rules_json TEXT NOT NULL DEFAULT '{}',
+            created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS audit_events (
+            id TEXT PRIMARY KEY,
+            user_id TEXT,
+            action TEXT NOT NULL,
+            entity_type TEXT NOT NULL,
+            entity_id TEXT,
+            metadata_json TEXT NOT NULL DEFAULT '{}',
+            ip_address TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL
         );
         CREATE INDEX IF NOT EXISTS idx_domain_customers_org ON domain_customers(organization_id, status);
         CREATE INDEX IF NOT EXISTS idx_domain_drivers_org ON domain_drivers(organization_id, status);
@@ -1281,6 +1305,13 @@ def _create_invoice(conn, user, payload, ip):
         booking = _assert_owned(conn, "domain_bookings", duty["booking_id"], org) if duty["booking_id"] else None
         if not resolved_customer_id and booking and booking["customer_id"]:
             resolved_customer_id = booking["customer_id"]
+
+        try:
+            audit = conn.execute("SELECT audit_status, trust_score FROM domain_duty_trust_audits WHERE duty_id = ? AND organization_id = ?", (tid, org)).fetchone()
+            if audit and audit["audit_status"] == "NEEDS_AUDIT":
+                raise DomainError(422, f"Duty {tid} has unresolved audit flags (Trust Score: {audit['trust_score']}). Resolve discrepancy before generating invoice.", "audit_resolution_required")
+        except sqlite3.OperationalError:
+            pass
 
         snapshot = _json(duty["calculation_snapshot_json"], {})
         if not snapshot or not snapshot.get("total_paise"):

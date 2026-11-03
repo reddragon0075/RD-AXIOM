@@ -48,7 +48,7 @@ def mint_shadow_jwt(
     header = {"alg": "HS256", "typ": "JWT"}
     payload = {
       "sub": vendor_user_id,
-      "tenant_id": int(tenant_id),
+      "tenant_id": str(tenant_id),
       "tenant_name": tenant_name,
       "actor_admin_id": actor_admin_id,
       "impersonation_mode": impersonation_mode,
@@ -194,15 +194,39 @@ def check_read_only_mutation_guard(
 ) -> Optional[Tuple[int, Dict[str, Any]]]:
     """Inspects HTTP mutations during a shadow session.
     
-    If in READ_ONLY shadow mode, returns HTTP 403 Forbidden on any write attempt.
+    1. Blocks privilege escalation (cannot mint nested Shadow JWTs).
+    2. Blocks critical destructive mutations (cannot delete workspaces, modify master banking).
+    3. If in READ_ONLY shadow mode, returns HTTP 403 Forbidden on any write attempt.
     """
     if not shadow_payload:
         return None
 
+    norm_path = path.lower().rstrip("/")
+    method_upper = method.upper()
+
+    # 1. Strict Privilege Escalation Guard: Cannot start nested shadow sessions
+    if "/admin/impersonate/start" in norm_path or "/admin/shadow/mint" in norm_path:
+        return (403, {
+            "error": "PRIVILEGE_ESCALATION_FORBIDDEN",
+            "message": "Nested impersonation is strictly forbidden. End your active shadow session first.",
+            "tenant_id": shadow_payload.get("tenant_id"),
+            "actor_admin_id": shadow_payload.get("actor_admin_id"),
+        })
+
+    # 2. Critical Mutation Guard: Cannot delete workspaces or modify platform bank accounts
+    if (method_upper == "DELETE" and "organization" in norm_path) or "master-bank" in norm_path or "platform-billing" in norm_path:
+        return (403, {
+            "error": "CRITICAL_MUTATION_BLOCKED",
+            "message": "Destructive platform actions are strictly prohibited during shadow impersonation.",
+            "tenant_id": shadow_payload.get("tenant_id"),
+            "actor_admin_id": shadow_payload.get("actor_admin_id"),
+        })
+
+    # 3. Read-Only Mode Guard
     if shadow_payload.get("impersonation_mode") == "READ_ONLY":
-        if method.upper() in ("POST", "PUT", "DELETE", "PATCH"):
+        if method_upper in ("POST", "PUT", "DELETE", "PATCH"):
             # Exclude session termination / mode update routes
-            if path in ("/api/v1/admin/impersonate/end", "/api/v1/admin/impersonate/mode"):
+            if norm_path.endswith("/admin/impersonate/end") or norm_path.endswith("/admin/impersonate/mode"):
                 return None
             return (403, {
                 "error": "READ_ONLY_SHADOW_MODE",

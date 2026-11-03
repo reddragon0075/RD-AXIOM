@@ -1,7 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import type { ApiResponse, Duty, MobileHome, Phase3PredictiveAlert, Phase3SustainabilitySummary, QueueOperation, SessionUser } from './types';
 
-const API_BASE = (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4173').replace(/\/$/, '');
+const API_BASE = (process.env.EXPO_PUBLIC_API_URL || '').replace(/\/$/, '');
 const TOKEN_KEY = 'axiom_driver_access_token';
 const REQUEST_TIMEOUT_MS = 15000;
 const REPLAY_BATCH_SIZE = 100;

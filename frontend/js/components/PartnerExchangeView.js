@@ -101,6 +101,14 @@ export class PartnerExchangeView {
     });
   }
 
+  mount() {
+    this.init();
+  }
+
+  unmount() {
+    this.destroy();
+  }
+
   init() {
     this.render();
     this.bindEvents();

@@ -157,27 +157,32 @@ def check_tenant_killswitch(conn: sqlite3.Connection, organization_id: Optional[
         return
 
     row = conn.execute(
-        "SELECT tenant_id, tenant_name, account_status, block_reason, outstanding_balance_paise FROM tenant_billing_accounts WHERE tenant_id = ?",
+        "SELECT * FROM tenant_billing_accounts WHERE tenant_id = ?",
         (organization_id,),
     ).fetchone()
 
     if not row:
         return
 
-    status = row["account_status"]
-    if status == "HARD_BLOCKED":
+    r_dict = dict(row)
+    status = r_dict.get("account_status")
+    access_state = r_dict.get("access_control_state")
+    bal = float(r_dict.get("saas_balance_owed_inr") or (r_dict.get("outstanding_balance_paise", 0) / 100))
+
+    if status == "HARD_BLOCKED" or access_state == "HARD_BLOCKED_NON_PAYMENT":
         raise DomainError(
             402,
-            f"Account Suspended: Access blocked for {row['tenant_name']} due to overdue balance of ₹{row['outstanding_balance_paise'] / 100:,.2f}. {row['block_reason']}".strip(),
+            f"Account Suspended: Access blocked for {r_dict.get('tenant_name', organization_id)} due to overdue balance of ₹{bal:,.2f}. {r_dict.get('block_reason', 'Account hard-blocked')}".strip(),
             "TENANT_BLOCKED_NON_PAYMENT",
             {
-                "tenant_id": row["tenant_id"],
+                "tenant_id": r_dict.get("tenant_id"),
                 "account_status": status,
-                "amount_owed_paise": row["outstanding_balance_paise"],
-                "block_reason": row["block_reason"],
+                "access_control_state": access_state,
+                "amount_owed_inr": bal,
+                "block_reason": r_dict.get("block_reason"),
             },
         )
-    elif status == "SOFT_BLOCKED":
+    elif status == "SOFT_BLOCKED" or access_state == "SOFT_LOCKED_OVERDUE":
         # Disallow new booking or duty creations; allow active duty closings, telemetry, and reads
         norm_route = route.replace("/api/v1", "/api") if route.startswith("/api/v1") else route
         is_new_trip_action = (method == "POST" and norm_route in {"/api/bookings", "/api/duties", "/api/trips"}) or (
@@ -186,13 +191,14 @@ def check_tenant_killswitch(conn: sqlite3.Connection, organization_id: Optional[
         if is_new_trip_action:
             raise DomainError(
                 402,
-                f"Account Restricted: New bookings and dispatches are blocked due to overdue balance of ₹{row['outstanding_balance_paise'] / 100:,.2f}. Active in-flight trips may still be completed.",
+                f"Account Restricted: New bookings and dispatches are blocked due to overdue balance of ₹{bal:,.2f}. Active in-flight trips may still be completed.",
                 "TENANT_BLOCKED_NON_PAYMENT",
                 {
-                    "tenant_id": row["tenant_id"],
+                    "tenant_id": r_dict.get("tenant_id"),
                     "account_status": status,
-                    "amount_owed_paise": row["outstanding_balance_paise"],
-                    "block_reason": row["block_reason"],
+                    "access_control_state": access_state,
+                    "amount_owed_inr": bal,
+                    "block_reason": r_dict.get("block_reason"),
                 },
             )
 

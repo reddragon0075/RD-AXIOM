@@ -88,6 +88,41 @@ from backend_treasury_release import (
     handle_treasury_release,
     initialize_treasury_release_schema,
 )
+from backend_practical_pricing import (
+    handle_practical_pricing_api,
+    initialize_practical_pricing_schema,
+)
+from backend_osm_spatial import (
+    handle_osm_spatial_api,
+    initialize_osm_spatial_schema,
+)
+from backend_completed_trips_importer import (
+    handle_completed_trips_api,
+    initialize_bulk_importer_schema,
+)
+from backend_odometer_and_adjustment import (
+    handle_odometer_and_adjustment_api,
+    initialize_odometer_and_adjustment_schema,
+)
+from backend_timesfm_forecast import (
+    handle_timesfm_forecast_api,
+    initialize_timesfm_forecast_schema,
+)
+from backend_booking_ai_parser import (
+    handle_booking_ai_parser_api,
+)
+from backend_prospect_crm import (
+    handle_prospect_crm_api,
+    initialize_prospect_crm_schema,
+)
+from backend_native_crm import (
+    handle_native_crm_api,
+    initialize_native_crm_schema,
+)
+from backend_workspace_bootstrap import (
+    handle_workspace_bootstrap_api,
+    initialize_performance_indexes,
+)
 
 
 ROOT = Path(__file__).resolve().parent
@@ -403,6 +438,14 @@ def initialize_database() -> None:
         initialize_autonomous_schema(conn)
         initialize_hyper_network_schema(conn)
         initialize_treasury_release_schema(conn)
+        initialize_practical_pricing_schema(conn)
+        initialize_osm_spatial_schema(conn)
+        initialize_bulk_importer_schema(conn)
+        initialize_odometer_and_adjustment_schema(conn)
+        initialize_timesfm_forecast_schema(conn)
+        initialize_prospect_crm_schema(conn)
+        initialize_native_crm_schema(conn)
+        initialize_performance_indexes(conn)
         if not test_fixtures_enabled():
             purge_demo_records(conn)
             try:
@@ -858,10 +901,21 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
         self.wfile.write(raw)
 
     def _error(self, error: APIError) -> None:
-        payload = {"ok": False, "error": error.message, "code": error.code}
+        payload = {
+            "ok": False,
+            "status": "error",
+            "code": error.code,
+            "message": error.message,
+            "error": error.message,
+            "field_errors": [],
+        }
         details = getattr(error, "details", None)
         if details is not None:
             payload["details"] = details
+            if isinstance(details, list):
+                payload["field_errors"] = details
+            elif isinstance(details, dict) and "field_errors" in details:
+                payload["field_errors"] = details["field_errors"]
         self._json(error.status, payload)
 
     def _require_user(self, conn: sqlite3.Connection) -> UserRecord:
@@ -1240,14 +1294,42 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
         except Exception:
             self._error(APIError(500, "The public feedback workflow could not be completed", "server_error"))
 
+    def _api_public_crm_prospect(self, method: str) -> None:
+        payload = self._read_json() if method in {"POST", "PATCH"} else {}
+        try:
+            with db_connection() as conn:
+                result = handle_native_crm_api(conn, None, method, self.path, payload, self.client_address[0])
+                if result is None:
+                    raise APIError(404, "CRM prospect route not found", "not_found")
+                self._json(201 if not result.get("deduplicated") else 200, result)
+        except (APIError, DomainError) as error:
+            self._error(error)
+        except Exception as exc:
+            self._error(APIError(500, f"The CRM prospect capture could not be completed: {exc}", "server_error"))
+
+    def _api_public_corporate_review(self, method: str) -> None:
+        payload = self._read_json() if method in {"POST", "PATCH"} else {}
+        try:
+            with db_connection() as conn:
+                result = handle_prospect_crm_api(conn, None, method, self.path, payload, self.client_address[0])
+                if result is None:
+                    raise APIError(404, "Corporate review not found", "not_found")
+                self._json(200, result)
+        except (APIError, DomainError) as error:
+            self._error(error)
+        except Exception as exc:
+            self._error(APIError(500, f"The corporate review could not be completed: {exc}", "server_error"))
+
     def _api_public_prospects(self, method: str) -> None:
         payload = self._read_json() if method in {"POST", "PATCH"} else {}
         try:
             with db_connection() as conn:
-                result = handle_public_prospects(conn, method, self.path, payload, self.client_address[0])
+                result = handle_prospect_crm_api(conn, None, method, self.path, payload, self.client_address[0])
+                if result is None:
+                    result = handle_public_prospects(conn, method, self.path, payload, self.client_address[0])
                 if result is None:
                     raise APIError(404, "Public prospects route not found", "not_found")
-                self._json(201 if result.get("status") == "NEW" and not result.get("deduplicated") else 200, result)
+                self._json(201 if result.get("status") in {"NEW", "NEW_PROSPECT"} and not result.get("deduplicated") else 200, result)
         except (APIError, DomainError) as error:
             self._error(error)
         except Exception as exc:
@@ -1267,12 +1349,22 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             # Delinquent Tenant Kill-Switch Check
             check_tenant_killswitch(conn, user.get("organization_id"), method, route)
 
-            shadow_token = self.headers.get("X-Axiom-Shadow-Token") or (self.headers.get("Authorization", "").split("Bearer ")[-1].strip() if "Bearer " in self.headers.get("Authorization", "") else None)
-            if shadow_token and "." in shadow_token:
-                shadow_payload = verify_shadow_jwt(shadow_token)
+            shadow_header = self.headers.get("X-Axiom-Shadow-Token")
+            if shadow_header:
+                shadow_payload = verify_shadow_jwt(shadow_header.strip())
+                if not shadow_payload:
+                    raise APIError(401, "Invalid, tampered or expired Shadow Token", "invalid_shadow_token")
                 guard_err = check_read_only_mutation_guard(method, route, shadow_payload)
                 if guard_err:
                     raise DomainError(guard_err[0], guard_err[1]["message"], guard_err[1]["error"])
+            elif "Bearer " in self.headers.get("Authorization", ""):
+                bearer_tok = self.headers.get("Authorization", "").split("Bearer ")[-1].strip()
+                if bearer_tok.count(".") == 2:
+                    shadow_payload = verify_shadow_jwt(bearer_tok)
+                    if shadow_payload:
+                        guard_err = check_read_only_mutation_guard(method, route, shadow_payload)
+                        if guard_err:
+                            raise DomainError(guard_err[0], guard_err[1]["message"], guard_err[1]["error"])
             before_audit = conn.execute("SELECT id FROM audit_events WHERE user_id = ? ORDER BY rowid DESC LIMIT 1", (user["id"],)).fetchone() if mutation else None
             corporate_evaluation = None
             if method == "POST" and route == "/api/bookings":
@@ -1307,6 +1399,60 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             # Network owns its role guard before generic domain handlers. This
             # keeps a driver account from being misreported as organization-
             # missing when it attempts a closed Network route.
+            if (
+                route.startswith("/api/system/workspace-bootstrap")
+                or route.startswith("/api/v1/system/workspace-bootstrap")
+            ):
+                result = handle_workspace_bootstrap_api(conn, user, method, self.path, payload, self.client_address[0])
+            if (
+                route.startswith("/api/v1/vendor-pocket")
+                or route.startswith("/api/vendor-pocket")
+                or (route.startswith("/api/duties/") and (route.endswith("/close-practical") or route.endswith("/express-assign") or route.endswith("/trip-details")))
+                or (route.startswith("/api/v1/duties/") and (route.endswith("/close-practical") or route.endswith("/express-assign") or route.endswith("/trip-details")))
+            ):
+                result = handle_practical_pricing_api(conn, user, method, self.path, payload, self.client_address[0])
+            if (
+                route.startswith("/api/osm/")
+                or route.startswith("/api/v1/osm/")
+                or route.startswith("/api/ets/")
+                or route.startswith("/api/v1/ets/")
+            ):
+                result = handle_osm_spatial_api(conn, user, method, self.path, payload, self.client_address[0])
+            if (
+                route.startswith("/api/imports/completed-trips")
+                or route.startswith("/api/v1/imports/completed-trips")
+                or route in ("/api/duties/bulk-correct", "/api/v1/duties/bulk-correct")
+                or (route.startswith("/api/duties/") and (route.endswith("/post-invoice-adjustment") or route.endswith("/bulk-correct")))
+                or (route.startswith("/api/v1/duties/") and (route.endswith("/post-invoice-adjustment") or route.endswith("/bulk-correct")))
+            ):
+                result = handle_odometer_and_adjustment_api(conn, user, method, self.path, payload, self.client_address[0])
+                if result is None:
+                    result = handle_completed_trips_api(conn, user, method, self.path, payload, self.client_address[0])
+            if (
+                route.startswith("/api/forecasts")
+                or route.startswith("/api/v1/forecasts")
+                or route in ("/api/corporate/budgets", "/api/v1/corporate/budgets", "/api/corporate-travel-budgets", "/api/v1/corporate-travel-budgets")
+            ):
+                result = handle_timesfm_forecast_api(conn, user, method, self.path, payload, self.client_address[0])
+            if (
+                route.startswith("/api/bookings/parse-unstructured")
+                or route.startswith("/api/v1/bookings/parse-unstructured")
+            ):
+                result = handle_booking_ai_parser_api(conn, user, method, self.path, payload, self.client_address[0])
+            if (
+                route.startswith("/api/admin/prospects")
+                or route.startswith("/api/v1/admin/prospects")
+                or (route.startswith("/api/admin/tenants/") and any(k in route for k in ("/billing-overview", "/platform-invoices", "/access-control")))
+                or (route.startswith("/api/v1/admin/tenants/") and any(k in route for k in ("/billing-overview", "/platform-invoices", "/access-control")))
+                or (route.startswith("/api/billing/proforma/") and route.endswith("/share-link"))
+                or (route.startswith("/api/v1/billing/proforma/") and route.endswith("/share-link"))
+            ):
+                result = handle_prospect_crm_api(conn, user, method, self.path, payload, self.client_address[0])
+            if (
+                route.startswith("/api/crm")
+                or route.startswith("/api/v1/crm")
+            ):
+                result = handle_native_crm_api(conn, user, method, self.path, payload, self.client_address[0])
             if (
                 route.startswith("/api/admin/treasury")
                 or route.startswith("/api/v1/admin/treasury")
@@ -1385,6 +1531,18 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                     audit(conn, user["id"], "mutation.completed", "http_mutation", route, self.client_address[0], {"method": method})
                     latest = conn.execute("SELECT id FROM audit_events WHERE user_id = ? ORDER BY rowid DESC LIMIT 1", (user["id"],)).fetchone()
                 result = {**result, "audit_reference": result.get("audit_reference") or (latest["id"] if latest else None), "request_reference": self.headers.get("X-Request-ID") or new_id("req")}
+            if isinstance(result, dict) and "_raw_body" in result:
+                raw_bytes = result["_raw_body"].encode("utf-8") if isinstance(result["_raw_body"], str) else result["_raw_body"]
+                self.send_response(200)
+                self.send_header("Content-Type", result.get("_content_type", "text/csv; charset=utf-8"))
+                if "_disposition" in result:
+                    self.send_header("Content-Disposition", result["_disposition"])
+                self.send_header("Content-Length", str(len(raw_bytes)))
+                self.send_header("Cache-Control", "no-store")
+                self._common_headers()
+                self.end_headers()
+                self.wfile.write(raw_bytes)
+                return
             created = method == "POST" and not route.startswith("/api/network/v1") and (route in {"/api/customers", "/api/pricing/contracts", "/api/drivers", "/api/vehicles", "/api/manufacturers", "/api/bookings", "/api/bookings/batches", "/api/duties", "/api/invoices", "/api/payments", "/api/branches", "/api/suppliers", "/api/price-books", "/api/fare/rules", "/api/employees", "/api/policies", "/api/documents", "/api/invitations", "/api/notifications", "/api/tickets", "/api/privacy/requests", "/api/bill-intelligence", "/api/availability", "/api/corporate/account", "/api/corporate/account/setup", "/api/corporate/account/activate", "/api/corporate/users", "/api/corporate/policies", "/api/corporate/duty-slip-approvals", "/api/corporate/masters", "/api/corporate/allotment/rules", "/api/supplier-payment-requests", "/api/supplier-advances", "/api/supplier-settlement-approvals", "/api/driver-payouts/requests", "/api/payroll/exports", "/api/payroll/compliance", "/api/fuel-stations", "/api/fuel-prices", "/api/petty-cash/reconciliations", "/api/finance/reconciliations", "/api/reports/builder", "/api/reports/favorites", "/api/reports/exports", "/api/reporting/import-templates", "/api/imports/preview", "/api/feedback/public-links", "/api/feedback/notifications", "/api/feedback/corrective-actions"} or route.endswith(("/proof", "/track", "/expenses", "/items", "/allot", "/rules")) or (route.startswith("/api/duties/") and route.endswith("/close")) or booking_approval_created)
             self._json(201 if created else 200, result)
 
@@ -1437,9 +1595,13 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 self._api_public_gap(method)
             elif re.match(r"^/api/feedback/v1/[^/]+$", route):
                 self._api_public_feedback(method)
-            elif route in {"/api/public/prospects", "/api/v1/public/prospects"} and method == "POST":
+            elif route in {"/api/public/prospects", "/api/v1/public/prospects", "/api/public/prospect-capture", "/api/v1/public/prospect-capture"} and method == "POST":
                 self._api_public_prospects(method)
-            elif route.startswith(("/api/pricing", "/api/dashboards", "/api/overview",  "/api/customers", "/api/drivers", "/api/vehicles", "/api/manufacturers", "/api/bookings", "/api/duties", "/api/invoices", "/api/payments", "/api/sync", "/api/branches", "/api/suppliers", "/api/price-books", "/api/fare", "/api/documents", "/api/invitations", "/api/employees", "/api/policies", "/api/approvals", "/api/notifications", "/api/reports", "/api/audit", "/api/tickets", "/api/privacy", "/api/integrations", "/api/organization", "/api/settings", "/api/onboarding", "/api/setup", "/api/duplicates", "/api/receipts", "/api/supplier-bills", "/api/costs", "/api/vehicle-costs", "/api/supplier-payouts", "/api/driver-payouts", "/api/financial-actions", "/api/reconciliations", "/api/approval-steps", "/api/admin", "/api/network", "/api/alerts", "/api/geofences", "/api/passenger", "/api/devices", "/api/practice-duties", "/api/webhooks", "/api/trips", "/api/updates", "/api/sla", "/api/tax", "/api/capacity", "/api/availability", "/api/allotment", "/api/billing-notes", "/api/payment-links", "/api/payment-authorizations", "/api/auto-collect", "/api/invoice-automation", "/api/provider-connections", "/api/maps", "/api/driver", "/api/driver-alert-policies", "/api/jobs", "/api/security", "/api/masters", "/api/operations", "/api/safety", "/api/permissions", "/api/mobile", "/api/views", "/api/bill-intelligence", "/api/corporate", "/api/enterprise", "/api/duty-closure-jobs", "/api/phase3", "/api/invoice-runs", "/api/collections", "/api/export-profiles", "/api/workspace", "/api/finance", "/api/communications", "/api/supplier-purchases", "/api/supplier-ageing", "/api/supplier-settlements", "/api/supplier-payment-requests", "/api/supplier-advances", "/api/supplier-settlement-approvals", "/api/fuel-entries", "/api/fuel-stations", "/api/fuel-prices", "/api/fuel-analytics", "/api/petty-cash", "/api/driver-allowances", "/api/payroll", "/api/reporting", "/api/imports", "/api/feedback", "/api/axiom-hq", "/api/legal-entities", "/api/tri-stack", "/api/v1/admin", "/api/ops", "/api/v1/ops", "/api/tenant", "/api/v1/tenant", "/api/v1/network", "/api/vendor", "/api/v1/vendor")):
+            elif route in {"/api/crm/public/prospect", "/api/v1/crm/public/prospect"} and method == "POST":
+                self._api_public_crm_prospect(method)
+            elif re.match(r"^/api(?:/v1)?/billing/corporate-review/[^/]+(?:/decide)?$", route):
+                self._api_public_corporate_review(method)
+            elif route.startswith(("/api/crm", "/api/v1/crm", "/api/billing", "/api/v1/billing", "/api/v1/bookings", "/api/pricing", "/api/dashboards", "/api/overview",  "/api/customers", "/api/drivers", "/api/vehicles", "/api/manufacturers", "/api/bookings", "/api/duties", "/api/invoices", "/api/payments", "/api/sync", "/api/branches", "/api/suppliers", "/api/price-books", "/api/fare", "/api/documents", "/api/invitations", "/api/employees", "/api/policies", "/api/approvals", "/api/notifications", "/api/reports", "/api/audit", "/api/tickets", "/api/privacy", "/api/integrations", "/api/organization", "/api/settings", "/api/onboarding", "/api/setup", "/api/duplicates", "/api/receipts", "/api/supplier-bills", "/api/costs", "/api/vehicle-costs", "/api/supplier-payouts", "/api/driver-payouts", "/api/financial-actions", "/api/reconciliations", "/api/approval-steps", "/api/admin", "/api/network", "/api/alerts", "/api/geofences", "/api/passenger", "/api/devices", "/api/practice-duties", "/api/webhooks", "/api/trips", "/api/updates", "/api/sla", "/api/tax", "/api/capacity", "/api/availability", "/api/allotment", "/api/billing-notes", "/api/payment-links", "/api/payment-authorizations", "/api/auto-collect", "/api/invoice-automation", "/api/provider-connections", "/api/maps", "/api/driver", "/api/driver-alert-policies", "/api/jobs", "/api/security", "/api/masters", "/api/operations", "/api/safety", "/api/permissions", "/api/mobile", "/api/views", "/api/bill-intelligence", "/api/corporate", "/api/enterprise", "/api/duty-closure-jobs", "/api/phase3", "/api/invoice-runs", "/api/collections", "/api/export-profiles", "/api/workspace", "/api/finance", "/api/communications", "/api/supplier-purchases", "/api/supplier-ageing", "/api/supplier-settlements", "/api/supplier-payment-requests", "/api/supplier-advances", "/api/supplier-settlement-approvals", "/api/fuel-entries", "/api/fuel-stations", "/api/fuel-prices", "/api/fuel-analytics", "/api/petty-cash", "/api/driver-allowances", "/api/payroll", "/api/reporting", "/api/imports", "/api/feedback", "/api/axiom-hq", "/api/legal-entities", "/api/tri-stack", "/api/v1/admin", "/api/ops", "/api/v1/ops", "/api/tenant", "/api/v1/tenant", "/api/v1/network", "/api/vendor", "/api/v1/vendor")):
                 self._api_domain(method)
             else:
                 raise APIError(404, "API route not found", "not_found")
@@ -1505,7 +1667,8 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
 
         body = static_body(str(path), mtime_ns, size, use_gzip)
         self.send_response(200)
-        self.send_header("Content-Type", self.guess_type(str(path)))
+        ctype = "application/javascript; charset=utf-8" if path.suffix.lower() == ".js" else self.guess_type(str(path))
+        self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
         self.send_header("ETag", etag)
         self.send_header("Last-Modified", last_modified)

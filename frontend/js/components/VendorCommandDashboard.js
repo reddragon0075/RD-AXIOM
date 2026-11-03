@@ -16,6 +16,8 @@ export class VendorCommandDashboard {
 
     this.state = {
       isLocked: false,
+      workspaceTab: "LIVE_COMMAND", // "LIVE_COMMAND" | "TRIP_CLOSURE_BULK" | "DUAL_LEDGER" | "PARTNER_NETWORK"
+      tableDensity: "COMFORTABLE", // "COMPACT" | "COMFORTABLE"
       dashboardLens: "OPERATIONAL", // "OPERATIONAL" | "REVENUE"
       businessLine: "RAC", // "RAC" | "ETS"
       dateRange: "TODAY",
@@ -135,6 +137,14 @@ export class VendorCommandDashboard {
     if (this.state.auditLogs.length > 500) {
       this.state.auditLogs = this.state.auditLogs.slice(0, 500);
     }
+  }
+
+  mount() {
+    this.init();
+  }
+
+  unmount() {
+    this.destroy();
   }
 
   init() {
@@ -327,8 +337,18 @@ export class VendorCommandDashboard {
               <button class="mode-btn ${!isETS ? 'active' : ''}" id="btn-mode-rac">RAC SPOT RENTALS</button>
               <button class="mode-btn ${isETS ? 'active' : ''}" id="btn-mode-ets">ETS EMPLOYEE TRANSPORT</button>
             </div>
+            <!-- Workspace Mode Switcher (4 Unified Pre-Launch Tabs) -->
+            <nav class="workspace-tabs-group" style="display:flex; gap:4px; margin-left:12px;">
+              <button class="ws-tab-btn ${this.state.workspaceTab === 'LIVE_COMMAND' ? 'active' : ''}" id="btn-ws-live" style="background:${this.state.workspaceTab === 'LIVE_COMMAND' ? '#2563eb' : '#1e293b'}; color:#fff; border:none; border-radius:6px; font-size:11px; font-weight:700; padding:4px 8px; cursor:pointer;">⚡ Live Command & OSM Map</button>
+              <button class="ws-tab-btn ${this.state.workspaceTab === 'TRIP_CLOSURE_BULK' ? 'active' : ''}" id="btn-ws-closure" style="background:${this.state.workspaceTab === 'TRIP_CLOSURE_BULK' ? '#2563eb' : '#1e293b'}; color:#fff; border:none; border-radius:6px; font-size:11px; font-weight:700; padding:4px 8px; cursor:pointer;">📥 Trip Closure & Bulk Import</button>
+              <button class="ws-tab-btn ${this.state.workspaceTab === 'DUAL_LEDGER' ? 'active' : ''}" id="btn-ws-finance" style="background:${this.state.workspaceTab === 'DUAL_LEDGER' ? '#2563eb' : '#1e293b'}; color:#fff; border:none; border-radius:6px; font-size:11px; font-weight:700; padding:4px 8px; cursor:pointer;">💰 Dual-Ledger Finance & Treasury</button>
+              <button class="ws-tab-btn ${this.state.workspaceTab === 'PARTNER_NETWORK' ? 'active' : ''}" id="btn-ws-partner" style="background:${this.state.workspaceTab === 'PARTNER_NETWORK' ? '#2563eb' : '#1e293b'}; color:#fff; border:none; border-radius:6px; font-size:11px; font-weight:700; padding:4px 8px; cursor:pointer;">🌐 Partner Network & Admin</button>
+            </nav>
           </div>
           <div class="lens-switcher-wrap">
+            <button class="density-toggle-btn" id="btn-density-toggle" style="background:#334155; border:none; color:#f8fafc; font-size:11px; font-weight:700; padding:4px 8px; border-radius:6px; cursor:pointer; margin-right:8px;" title="Toggle Table Density">
+              ${this.state.tableDensity === 'COMPACT' ? '🗜️ Compact (25+ Trips)' : '🛋️ Comfortable'}
+            </button>
             <span style="font-size:11px; font-weight:700; color:var(--text-subtle); margin-right:8px;">COMMAND LENS:</span>
             <div class="lens-segmented">
               <button class="lens-btn ${this.state.dashboardLens === 'OPERATIONAL' ? 'active' : ''}" id="btn-lens-ops">
@@ -663,6 +683,33 @@ export class VendorCommandDashboard {
       }
       if (target.closest("#btn-lens-rev")) {
         this.mutateState((draft) => { draft.dashboardLens = "REVENUE"; });
+        this.render();
+        return;
+      }
+
+      // Workspace Tabs Switchers
+      if (target.closest("#btn-ws-live")) {
+        this.mutateState((draft) => { draft.workspaceTab = "LIVE_COMMAND"; });
+        this.render();
+        return;
+      }
+      if (target.closest("#btn-ws-closure")) {
+        this.mutateState((draft) => { draft.workspaceTab = "TRIP_CLOSURE_BULK"; });
+        this.render();
+        return;
+      }
+      if (target.closest("#btn-ws-finance")) {
+        this.mutateState((draft) => { draft.workspaceTab = "DUAL_LEDGER"; });
+        this.render();
+        return;
+      }
+      if (target.closest("#btn-ws-partner")) {
+        this.mutateState((draft) => { draft.workspaceTab = "PARTNER_NETWORK"; });
+        this.render();
+        return;
+      }
+      if (target.closest("#btn-density-toggle")) {
+        this.mutateState((draft) => { draft.tableDensity = draft.tableDensity === "COMPACT" ? "COMFORTABLE" : "COMPACT"; });
         this.render();
         return;
       }

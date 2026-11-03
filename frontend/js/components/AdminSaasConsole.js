@@ -1,3 +1,4 @@
+import { NativeCrmWorkspace } from "./NativeCrmWorkspace.js";
 /**
  * Axiom Mobility (Fleetline) 10/10 Super-Admin SaaS & Revenue Control Plane Component.
  * Zero-Build Vanilla ES6+ State & Sticky Table Module.
@@ -138,6 +139,14 @@ export class AdminSaasConsole {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
+  }
+
+  mount() {
+    return this.init();
+  }
+
+  unmount() {
+    this.destroy();
   }
 
   destroy() {
@@ -321,6 +330,9 @@ export class AdminSaasConsole {
             <button class="tab-btn ${this.state.activeView === 'PROSPECTS' ? 'active' : ''}" data-view="PROSPECTS">
               📋 Website Prospects & Sales CRM (${this.state.prospects.length})
             </button>
+            <button class="tab-btn ${this.state.activeView === 'NATIVE_CRM' ? 'active' : ''}" data-view="NATIVE_CRM">
+              ⚡ Native-Link CRM v2.0
+            </button>
             <button class="tab-btn ${this.state.activeView === 'SIMULATOR' ? 'active' : ''}" data-view="SIMULATOR">
               📊 What-If Tariff Simulator
             </button>
@@ -335,9 +347,11 @@ export class AdminSaasConsole {
           ? this.renderReceivablesView()
           : (this.state.activeView === 'PROSPECTS'
               ? this.renderProspectsView()
-              : (this.state.activeView === 'SIMULATOR'
-                  ? this.renderSimulatorView()
-                  : this.renderTenantsView()))}
+              : (this.state.activeView === 'NATIVE_CRM'
+                  ? this.renderNativeCrmView()
+                  : (this.state.activeView === 'SIMULATOR'
+                      ? this.renderSimulatorView()
+                      : this.renderTenantsView())))}
       </div>
 
       <!-- Modals -->
@@ -437,6 +451,22 @@ export class AdminSaasConsole {
   renderReceivablesView() {
     const ovTenants = (this.state.overview && this.state.overview.tenants) || [];
     return `
+      <div class="saas-dues-radar-banner" style="background:var(--card-bg, #1e293b); border:1px solid var(--border-line, #334155); border-radius:10px; padding:16px 20px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div>
+          <div style="font-size:11px; text-transform:uppercase; color:var(--primary, #38bdf8); font-weight:750;">SaaS Subscription Receivables & Dunning Radar</div>
+          <div style="font-size:22px; font-weight:800; color:var(--text-primary, #f8fafc); margin-top:2px;">
+            Total Outstanding SaaS Dues: <span style="color:var(--danger-rose, #f87171);">${this.inrFormatter.format((this.state.overview?.total_receivables_outstanding_paise || 38420000) / 100)}</span>
+          </div>
+          <div style="font-size:11.5px; color:var(--text-subtle, #94a3b8); margin-top:4px;">
+            Delinquent Vendors in Dunning | Automated Payout-Hold Enforced on Soft-Lock
+          </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <span class="status-pill status-active" style="padding:5px 9px;">🟢 Good Standing</span>
+          <span class="status-pill status-probation" style="padding:5px 9px;">🟠 Soft-Lock (Payout Freeze)</span>
+          <span class="status-pill status-pastdue" style="padding:5px 9px;">🛑 Hard-Block (402 Lock)</span>
+        </div>
+      </div>
       <div class="saas-table-container">
         <table class="saas-table">
           <thead>
@@ -477,6 +507,11 @@ export class AdminSaasConsole {
                   </td>
                   <td>
                     ${t.account_status === 'ACTIVE' ? `<span class="status-pill status-active">ACTIVE</span>` : (t.account_status === 'SOFT_BLOCKED' ? `<span class="status-pill status-probation">SOFT BLOCKED</span>` : `<span class="status-pill status-pastdue">HARD BLOCKED</span>`)}
+                    <div style="margin-top:6px; display:flex; gap:4px;">
+                      <button class="tab-btn" data-action="toggle-3state-access" data-tid="${t.tenant_id}" data-state="ACTIVE_GOOD_STANDING" style="padding:2px 6px; font-size:9.5px; font-weight:750; background:${t.account_status === 'ACTIVE' ? '#065f46' : 'transparent'}; color:${t.account_status === 'ACTIVE' ? '#a7f3d0' : 'var(--text-subtle)'}; border:1px solid #059669;" title="Good Standing">🟢 Act</button>
+                      <button class="tab-btn" data-action="toggle-3state-access" data-tid="${t.tenant_id}" data-state="SOFT_LOCKED_OVERDUE" style="padding:2px 6px; font-size:9.5px; font-weight:750; background:${t.account_status === 'SOFT_BLOCKED' ? '#78350f' : 'transparent'}; color:${t.account_status === 'SOFT_BLOCKED' ? '#fde68a' : 'var(--text-subtle)'}; border:1px solid #d97706;" title="Soft-Lock: Payout Hold">🟠 Soft</button>
+                      <button class="tab-btn" data-action="toggle-3state-access" data-tid="${t.tenant_id}" data-state="HARD_BLOCKED_NON_PAYMENT" style="padding:2px 6px; font-size:9.5px; font-weight:750; background:${t.account_status === 'HARD_BLOCKED' ? '#7f1d1d' : 'transparent'}; color:${t.account_status === 'HARD_BLOCKED' ? '#fecaca' : 'var(--text-subtle)'}; border:1px solid #dc2626;" title="Hard-Block: 402 Block">🛑 Blk</button>
+                    </div>
                     ${t.block_reason ? `<div style="font-size:9.5px; color:var(--danger-rose); margin-top:2px;">${t.block_reason}</div>` : ''}
                   </td>
                   <td>
@@ -568,6 +603,28 @@ export class AdminSaasConsole {
         </table>
       </div>
     `;
+  }
+
+  renderNativeCrmView() {
+    return `<div id="native-crm-mount-point" style="margin-top: 10px;"></div>`;
+  }
+
+  mountNativeCrmWorkspace() {
+    if (typeof document === "undefined") return;
+    const mountPt = this.container?.querySelector("#native-crm-mount-point") || document.getElementById("native-crm-mount-point");
+    if (mountPt) {
+      if (this.crmWorkspaceInstance) {
+        this.crmWorkspaceInstance.unmount();
+      }
+      this.crmWorkspaceInstance = new NativeCrmWorkspace({
+        container: mountPt,
+        onTenantConverted: async () => {
+          await this.fetchData();
+          this.render();
+        },
+      });
+      this.crmWorkspaceInstance.mount();
+    }
   }
 
   renderSimulatorView() {
@@ -830,6 +887,15 @@ export class AdminSaasConsole {
       if (blockBtn) {
         const tid = blockBtn.dataset.tid;
         this.openBlockModal(tid);
+        return;
+      }
+
+      // Commercial: 3-Stage Access Control Toggle
+      const accessBtn = target.closest("[data-action='toggle-3state-access']");
+      if (accessBtn) {
+        const tid = accessBtn.dataset.tid;
+        const state = accessBtn.dataset.state;
+        await this.setTenantAccessControl(tid, state);
         return;
       }
 

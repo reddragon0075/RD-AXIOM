@@ -352,19 +352,33 @@ def get_masked_exchange_feed(
             if d["current_wave"] == 2 and my_tier not in ("TIER_1_PLATINUM", "TIER_2_GOLD"):
                 continue
 
-        # Double-Blind Anti-Poaching Masking
+        # Double-Blind Anti-Poaching Masking & Type Normalization
+        d["prefer_ev_green_corridor"] = bool(d.get("prefer_ev_green_corridor"))
         if not is_my_listing:
-            # Strip all corporate identity and client pricing!
+            # Server-side strip all confidential corporate identity, PII and client pricing!
             d.pop("client_receivable_paise", None)
+            d.pop("client_brand_display_name", None)
+            d.pop("client_support_phone", None)
+            d.pop("passenger_name", None)
+            d.pop("passenger_phone", None)
+            d.pop("client_sell_rate", None)
+            d.pop("zk_compliance_seal_hash", None)
+            d["corporate_client_name"] = "Confidential Enterprise Client"
+            d["client_brand_display_name"] = "Axiom Partner Network"
             d["originating_partner"] = d["origin_vendor_name"]
             d["client_display_name"] = f"Originating Partner: {d['origin_vendor_name']}"
             d["is_white_labeled"] = True
+            d["is_owner"] = False
             d["supplier_payout_inr"] = round(d["boosted_supplier_payable_paise"] / 100, 2)
+            # Mask pickup door numbers to preserve privacy before reveal
+            raw_addr = d.get("pickup_address", "")
+            d["pickup_address"] = re.sub(r"^(Flat|Door|Unit|Plot|#)?\s*\d+[^,]+,\s*", "", raw_addr, flags=re.IGNORECASE) if raw_addr else "Bengaluru"
         else:
             # Origin vendor sees full margin metrics
             d["is_owner"] = True
-            client_rec = d["client_receivable_paise"]
-            sup_pay = d["boosted_supplier_payable_paise"]
+            d["is_white_labeled"] = False
+            client_rec = d.get("client_receivable_paise", 0)
+            sup_pay = d.get("boosted_supplier_payable_paise", 0)
             d["net_margin_inr"] = round((client_rec - sup_pay) / 100, 2)
             d["net_margin_pct"] = round(((client_rec - sup_pay) / client_rec) * 100, 1) if client_rec else 0.0
 
@@ -405,6 +419,16 @@ def claim_network_duty(
     org_row = conn.execute("SELECT name FROM organizations WHERE id = ?", (org,)).fetchone()
     claimer_name = org_row["name"] if org_row else "Fulfilling Partner Fleet"
 
+    # Check partner tier wave eligibility before claiming
+    my_tier = _get_vendor_tier(conn, org)
+    if listing["current_wave"] == 1 and my_tier != "TIER_1_PLATINUM":
+        raise DomainError(409, "Offer expired or not available to your partner tier.", "offer_expired")
+    if listing["current_wave"] == 2 and my_tier not in ("TIER_1_PLATINUM", "TIER_2_GOLD"):
+        raise DomainError(409, "Offer expired or not available to your partner tier.", "offer_expired")
+
+    if listing["status"] != "BROADCASTING":
+        raise DomainError(409, "Duty has already been claimed by another partner.", "duty_already_claimed")
+
     # Atomic Concurrency Claim: Only succeeds if status is still BROADCASTING
     cursor = conn.execute(
         """UPDATE network_listings SET
@@ -417,7 +441,7 @@ def claim_network_duty(
         (org, claimer_name, now, now, listing_id),
     )
     if cursor.rowcount == 0:
-        raise DomainError(409, "Duty has already been claimed by another partner or is no longer available.", "duty_already_claimed")
+        raise DomainError(409, "Duty has already been claimed by another partner.", "duty_already_claimed")
 
     # Link fulfilling partner to escrow hold
     conn.execute(
@@ -638,28 +662,65 @@ def instant_t0_factoring_cashout(
     conn: sqlite3.Connection,
     user: Dict[str, Any],
     duty_id: str,
-    ip: str,
+    ip: str = "127.0.0.1",
 ) -> Dict[str, Any]:
     """Provides T+0 Instant Factoring Cash-Out on verified completed network duties for a 1.75% fee."""
     org = _org(user)
     _require_role(user)
 
+    # 1. Delinquent Tenant Kill-Switch Check
+    try:
+        billing = conn.execute("SELECT * FROM tenant_billing_accounts WHERE tenant_id = ?", (org,)).fetchone()
+        if billing and billing["account_status"] in {"SOFT_BLOCKED", "HARD_BLOCKED"}:
+            raise DomainError(
+                402,
+                f"Delinquent tenant blocked: Cannot cash out while account is {billing['account_status']}.",
+                "PAYMENT_REQUIRED_BLOCK"
+            )
+    except DomainError:
+        raise
+    except Exception:
+        pass
+
+    # 2. Axiom Treasury Global Hold Check (Payout Escrow Toggle)
+    try:
+        hold_row = conn.execute(
+            "SELECT is_active FROM axiom_treasury_global_holds WHERE tenant_id = ? OR tenant_id = 'GLOBAL' ORDER BY created_at DESC LIMIT 1",
+            (org,),
+        ).fetchone()
+        if hold_row and bool(hold_row["is_active"]):
+            raise DomainError(423, "Payout disbursements currently held by Axiom Treasury.", "payout_held_by_axiom")
+    except DomainError:
+        raise
+    except Exception:
+        pass
+
+    # 3. Locate listing
     listing = conn.execute("SELECT * FROM network_listings WHERE duty_id = ? AND claimed_by_vendor_id = ?", (duty_id, org)).fetchone()
     if not listing:
         raise DomainError(404, f"Completed network duty {duty_id} not found for your organization.", "not_found")
 
-    escrow = conn.execute("SELECT * FROM wallet_escrow_holds WHERE listing_id = ?", (listing["id"],)).fetchone()
-    if not escrow:
-        raise DomainError(404, "Escrow hold not found.", "escrow_not_found")
+    # 4. Check for double-cashout in t0_factoring_transactions
+    existing_txn = conn.execute("SELECT id FROM t0_factoring_transactions WHERE duty_id = ?", (duty_id,)).fetchone()
+    if existing_txn:
+        raise DomainError(409, f"Duty {duty_id} has already been cashed out via T+0 factoring.", "already_cashed_out")
 
-    # Calculate Factoring Fee (1.75%)
+    # 5. Atomic state transition lock: update wallet_escrow_holds only if still ESCROW_HOLD
+    now = now_iso()
+    cursor = conn.execute(
+        "UPDATE wallet_escrow_holds SET status = 'SETTLED_PAYABLE', settled_at = ? WHERE listing_id = ? AND status = 'ESCROW_HOLD'",
+        (now, listing["id"]),
+    )
+    if cursor.rowcount == 0:
+        raise DomainError(409, "Escrow hold not found or already settled/disputed.", "escrow_not_available")
+
+    escrow = conn.execute("SELECT * FROM wallet_escrow_holds WHERE listing_id = ?", (listing["id"],)).fetchone()
     gross_paise = int(escrow["escrow_amount_paise"])
     gross_dec = Decimal(str(gross_paise))
     fee_pct = Decimal("0.0175")
     fee_paise = int((gross_dec * fee_pct).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
     net_paise = gross_paise - fee_paise
 
-    now = now_iso()
     txn_id = f"fact_{uuid.uuid4().hex[:10]}"
     conn.execute(
         """INSERT INTO t0_factoring_transactions (
@@ -670,18 +731,14 @@ def instant_t0_factoring_cashout(
         (txn_id, listing["id"], duty_id, org, gross_paise, fee_paise, net_paise, now, now),
     )
 
-    # Release escrow to settled
-    conn.execute(
-        "UPDATE wallet_escrow_holds SET status = 'SETTLED_PAYABLE', settled_at = ? WHERE listing_id = ?",
-        (now, listing["id"]),
-    )
-
-    # Credit platform factoring revenue ledger
-    conn.execute(
-        """INSERT INTO axiom_receivable_ledger (id, tenant_id, entry_type, reference_id, amount_paise, description, payment_method, created_by, created_at)
-           VALUES (?, 'org_axiom_hq', 'PAYMENT', ?, ?, 'T+0 Instant Factoring 1.75% Fee Revenue', 'ESCROW_DEDUCTION', 'SYSTEM_CLEARINGHOUSE', ?)""",
-        (f"rev_fact_{uuid.uuid4().hex[:10]}", txn_id, fee_paise, now),
-    )
+    try:
+        conn.execute(
+            """INSERT INTO axiom_receivable_ledger (id, tenant_id, entry_type, reference_id, amount_paise, description, payment_method, created_by, created_at)
+               VALUES (?, 'org_axiom_hq', 'PAYMENT', ?, ?, 'T+0 Instant Factoring 1.75% Fee Revenue', 'ESCROW_DEDUCTION', 'SYSTEM_CLEARINGHOUSE', ?)""",
+            (f"rev_fact_{uuid.uuid4().hex[:10]}", txn_id, fee_paise, now),
+        )
+    except Exception:
+        pass
 
     conn.commit()
     return {
