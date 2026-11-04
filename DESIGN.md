@@ -1,125 +1,156 @@
-# AXIOM MOBILITY DESIGN SYSTEM SPECIFICATION (`DESIGN.md`)
-*Refero + Scrolltide + Supahero Flagship Edition (v2.6 Enterprise)*
+# AXIOM FLEET ENTERPRISE DESIGN SYSTEM SPECIFICATION (`DESIGN.md`)
+*Indecab-Inspired Minimalist, High-Contrast Light & Brand-Navy Flagship Edition*
 
-This document defines the visual tokens, typography hierarchy, component architectures, and interaction physics for the public landing & marketing experience of **Axiom Mobility (Fleetline)** (`https://axiommobility.vercel.app/`).
+This document defines the visual design system, color tokens, typography hierarchy, component architectures, and responsive layout specifications for the public web experience of **Axiom Fleet** (`https://axiommobility.vercel.app/`), paired with the official **AXIOM FLEET** brand identity.
 
 ---
 
-## 1. DESIGN TOKENS (REFERO SPECIFICATION)
+## 1. BRAND IDENTITY & LOGO TOKENS
 
-### A. Color Palette ("Obsidian Mobility & FinTech Emerald/Amber")
+### A. Official Brand Logo
+- **Asset Path:** `fleetline-mvp/axiom-fleet-logo.png`
+- **Visual Composition:**
+  - **Road Icon (`A` Mark):** Electric Blue (`#0066FF`) fading into bright Teal (`#00A896`) along a white perspective road divider.
+  - **Wordmark (`AXIOM`):** Deep Navy-Black (`#0A1628`), bold geometric sans-serif with distinct chevron `A`.
+  - **Subtitle (`FLEET`):** Electric Blue (`#0066FF`), spaced uppercase tabular tracking.
+
+### B. Contrast Mandate (WCAG AAA Compliance)
+- **Zero Low-Contrast Text:** No white text on white/light backgrounds. All primary headlines on light sections are deep navy `#0A1628`.
+- **Canvas Decluttering:** 3D floating city coordinate canvas (`#axiom-network-globe`) is eliminated from behind text blocks, ensuring 100% legibility on all display densities.
+
+---
+
+## 2. STRICT COLOR & SURFACE TOKENS
+
 ```css
 :root {
-  /* Surface & Canvas Tokens */
-  --bg-canvas: #06080D;                /* Deep Obsidian Carbon base */
-  --bg-surface-1: #0D111A;             /* Elevated Bento Card Base */
-  --bg-surface-2: #141B27;             /* Elevated Interactive Elements & Insets */
-  --bg-surface-glass: rgba(17, 23, 36, 0.68); /* Frosted Glass Base */
-  --bg-surface-glass-heavy: rgba(10, 14, 23, 0.88); /* Heavy Frosted Layer */
+  /* Surfaces & Backgrounds */
+  --bg-page: #FFFFFF;                 /* Pure Crisp White base */
+  --bg-section-alt: #F4F7FB;          /* Soft Ice-Slate alternating bands */
+  --bg-navy-dark: #0A1628;            /* Deep Axiom Brand Navy (Dark Cockpit & Footer) */
+  --bg-card: #FFFFFF;                 /* Card Surface */
 
-  /* Hairlines & Specular Borders */
-  --border-subtle: rgba(255, 255, 255, 0.08); /* 1px Specular Hairline */
-  --border-medium: rgba(255, 255, 255, 0.14); /* Focused Element Border */
-  --border-highlight: rgba(16, 185, 129, 0.45); /* Emerald Hover Glow */
-  --border-indigo: rgba(99, 102, 241, 0.40);   /* TimesFM AI Accent Glow */
+  /* Text & Typography */
+  --text-heading: #0A1628;             /* Deep Axiom Navy-Black (Primary Headlines) */
+  --text-body: #334155;                /* High-Contrast Slate-700 for Body Copy */
+  --text-muted: #64748B;               /* Slate-500 for secondary captions */
 
-  /* Text & Readability Hierarchy */
-  --text-primary: #F8FAFC;              /* Crisp Alabaster (Headings, Active Data) */
-  --text-secondary: #94A3B8;            /* Muted Slate (Descriptions, Body) */
-  --text-tertiary: #64748B;             /* Sub-captions, Timestamps, Inactive Tabs */
+  /* Brand Accents */
+  --brand-blue: #0066FF;               /* Axiom Primary Electric Blue */
+  --brand-blue-hover: #0052CC;         /* Hover state */
+  --brand-teal: #00A896;               /* Road-Swoosh Teal */
+  --brand-gradient: linear-gradient(135deg, #0066FF 0%, #00B4B4 100%);
+  --brand-text-gradient: linear-gradient(90deg, #0052CC 0%, #008B8B 100%);
 
-  /* Semantic Accent Channels */
-  --accent-emerald: #10B981;            /* Dual-Ledger Profit / Live Active Fleet */
-  --accent-emerald-glow: rgba(16, 185, 129, 0.22);
-  --accent-indigo: #6366F1;             /* TimesFM AI / Partner Network Waterfall */
-  --accent-indigo-glow: rgba(99, 102, 241, 0.22);
-  --accent-amber: #F59E0B;              /* SLA Guardrail / Treasury Float Hold */
-  --accent-amber-glow: rgba(245, 158, 11, 0.22);
-  --accent-cyan: #06B6D4;               /* OSM Road Snapping / Odometer Audit */
-  --accent-rose: #F43F5E;               /* Variance Alerts / Night Shift Lock */
+  /* Borders & Shadows */
+  --border-clean: #E2E8F0;             /* Crisp 1px Card Border */
+  --border-subtle: #F1F5F9;            /* Hairline divider */
+  --shadow-minimal: 0 10px 30px -10px rgba(10, 22, 40, 0.07);
+  --shadow-hover: 0 20px 40px -12px rgba(10, 22, 40, 0.12);
 
-  /* Gradients */
-  --grad-emerald: linear-gradient(135deg, #10B981 0%, #059669 100%);
-  --grad-indigo: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
-  --grad-glass: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
-  --grad-metallic: linear-gradient(180deg, #FFFFFF 0%, #94A3B8 60%, #334155 100%);
+  /* Functional Status Colors */
+  --status-emerald: #059669;           /* Active / Settled / Profitable */
+  --status-emerald-bg: #ECFDF5;
+  --status-amber: #D97706;             /* Escrow Hold / Pending Audit */
+  --status-amber-bg: #FEF3C7;
+  --status-blue-bg: #EFF6FF;
 }
 ```
 
-### B. Typography Hierarchy
-- **Display Headlines:** `'Plus Jakarta Sans'`, `'Inter'`, -apple-system, sans-serif
-  - `font-weight: 700`, `letter-spacing: -0.035em`, `line-height: 1.06`
-  - Used for hero statement, section titles, and monumental impact copy.
-- **Editorial Accent Clauses (Scrolltide Style):** `'Instrument Serif'`, `'Playfair Display'`, Georgia, serif
-  - `font-style: italic`, `font-weight: 400`
-  - Used for emotional focal points within headlines (e.g., *"Built for the fleets that move *corporate India*."*).
-- **Financial & Telemetry Data:** `'JetBrains Mono'`, 'SF Mono', Consolas, monospace
-  - `font-variant-numeric: tabular-nums`
-  - Mandatory for all currency figures (`₹`), odometers (`84.0 km`), SLA percentages (`99.98%`), and GST IRN / hash tokens.
-- **Body & Microcopy:** `'Inter'`, system-ui, sans-serif
-  - `font-weight: 400` and `500`, `letter-spacing: -0.011em`, `line-height: 1.6`.
+---
+
+## 3. TYPOGRAPHY HIERARCHY
+
+- **Display & Section Headings (`h1`, `h2`, `h3`):**
+  - Font: `'Plus Jakarta Sans'`, `'Inter'`, system-ui, sans-serif
+  - Weight: `800` (Extra Bold)
+  - Tracking: `-0.03em`
+  - Color: `#0A1628`
+  - Highlighted Gradient Spans: `background: linear-gradient(90deg, #0052CC, #008B8B); -webkit-background-clip: text; -webkit-text-fill-color: transparent;`
+- **Body & Explanatory Copy:**
+  - Font: `'Plus Jakarta Sans'`, `'Inter'`, sans-serif
+  - Weight: `400` / `500`
+  - Line-Height: `1.6`
+  - Color: `#334155`
+- **Financial & Telemetry Data (ODOMETERS, GST IRN, ₹ AMOUNTS):**
+  - Font: `'JetBrains Mono'`, monospace
+  - Feature: `font-variant-numeric: tabular-nums`
 
 ---
 
-## 2. INTERACTION PHYSICS & MICRO-ANIMATIONS
+## 4. SECTION-BY-SECTION ARCHITECTURAL BREAKDOWN
 
-### A. 3D Perspective & Hardware Acceleration
-- **Stage Perspective:** `perspective: 1400px; transform-style: preserve-3d;`
-- **Hero Command Center Tilt:** Starts at `rotateX(14deg) scale(0.94)` and interpolates to `rotateX(0deg) scale(1.0)` between scroll delta `0px` and `400px` via a `requestAnimationFrame` damping curve.
-- **Specular Hover Tracking:** Bento cards track cursor `(clientX, clientY)` to compute dynamic radial sheen:
-  `background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.06), transparent 40%)`.
+### Section 1: Clean Minimalist Sticky Top Navbar
+- **Background:** Crisp White (`rgba(255, 255, 255, 0.95)`) with `backdrop-filter: blur(12px)` and 1px border (`#E2E8F0`).
+- **Brand:** Official `axiom-fleet-logo.png` (132x38px).
+- **Navigation Items:**
+  1. `For Corporates` -> `#for-corporates`
+  2. `For Car Rentals` -> `#for-car-rentals`
+  3. `Mobile Apps` -> `#driver-app`
+  4. `Partner Network` -> `#axiom-network`
+  5. `ROI & Fare Calculator` -> `#calculator`
+- **Actions:**
+  - `Sign In` -> Opens authentication screen `#auth-screen`.
+  - `Book Enterprise Demo` -> Smooth scrolls to `#contact`.
 
-### B. 60 FPS HTML5 `<canvas>` Corridors
-- The `<canvas id="axiom-network-globe">` renders a live particle/arc network representing the six core enterprise mobility corridors:
-  1. **Bengaluru** (`12.9716° N, 77.5946° E`)
-  2. **Mumbai** (`19.0760° N, 72.8777° E`)
-  3. **Delhi NCR** (`28.6139° N, 77.2090° E`)
-  4. **Hyderabad** (`17.3850° N, 78.4867° E`)
-  5. **Chennai** (`13.0827° N, 80.2707° E`)
-  6. **Pune** (`18.5204° N, 73.8567° E`)
-- Arcs pulse with glowing traveling photons (`--accent-emerald` for confirmed corporate charters, `--accent-indigo` for partner network exchange waterfall hops).
-- Micro-parallax responds to mouse movement with subtle gyro-damping.
+### Section 2: High-Contrast Hero & Cockpit Preview
+- **Eyebrow Pill:** `#EFF6FF` pill badge with `#0066FF` text: `"✨ NEW: AI WhatsApp Booking, Automated Odometer Audit & Margin Protection"`.
+- **Primary Headline:** `"The Operating System for Modern Fleet & Corporate Mobility."`
+- **Lead Subheading:** High-contrast slate copy covering automated dispatch, GPS route audit, dual-ledger billing, and instant partner waterfalls.
+- **Lead Quick-Input:** Mobile/Email capture pill that pre-fills the enterprise request form and smoothly scrolls to contact.
+- **Interactive Cockpit Preview:** Dark navy (`#0A1628`) container previewing live platform telemetry with 4 interactive tabs:
+  - *Tab 1: Live Dispatch & Telemetry* (Duty Slip #8831, MG Road -> KIAL route verification).
+  - *Tab 2: Billing & Escrow Release* (Completed trip #9041, interactive simulated escrow release toggle).
+  - *Tab 3: Partner Network Exchange* (Masked corporate identity, rate card protection).
+  - *Tab 4: Predictive Financial Intelligence* (30-day corporate spend & vendor revenue forecast).
+
+### Section 3: Powering Enterprises & Corporates (Bento Grid on `#F4F7FB`)
+- High-contrast 2x2 grid tailored for corporate travel desks, procurement heads, and HR admins:
+  1. Automated Employee Duty Allocation & Rostering.
+  2. 3-Way GPS, Toll & Odometer Audit (Zero Bill Inflation).
+  3. Strict SLA & Safety Guardrails (POSH, SOS, panic alerts).
+  4. Unified Corporate Invoicing & GST Compliance.
+
+### Section 4: Powering Car Rental Companies & Fleet Vendors (Grid on `#FFFFFF`)
+- 3x2 feature grid for fleet operators, dispatchers, and accountants:
+  1. Instant WhatsApp AI Booking & Smart Dispatch.
+  2. Dual-Ledger Financial Reconciliation (Client bill vs Vendor payout).
+  3. Timed Partner Waterfall Exchange (Zero-deadlock overflow handling).
+  4. Real-Time Vehicle Maintenance & Insurance Trackers.
+  5. Instant Driver Settlement & FASTag Toll Pass-Through.
+  6. Multi-City Corporate Contract Management.
+
+### Section 5: Dedicated Mobile App Showcase (Dual Phones on `#F4F7FB`)
+- Realistic CSS smartphone frames showcasing:
+  - **Phone 1 (Driver Mobile App):** Live turn-by-turn route, start/stop digital duty slip with odometer photograph verification and OTP release.
+  - **Phone 2 (Vendor Pocket App):** Real-time gross bookings counter (₹4,82,500), active vehicles on duty (42/48), and instant 1-tap partner dispatch.
+
+### Section 6: The Axiom Partner Network (3 Pillars on `#FFFFFF`)
+- High-contrast 3-column enterprise architecture:
+  1. *Trust-First Confidentiality:* Sub-vendors never see corporate client identity or contract rate cards.
+  2. *Escrow Payout Guarantee:* T+1 automated payouts directly into vendor bank accounts upon duty verification.
+  3. *Zero Lead Waste:* Overflow duties automatically route across verified peer operators across 40+ Indian airports.
+
+### Section 7: Calculate the Difference (Interactive Sliders on `#F4F7FB`)
+- **Part A (Monthly ROI Calculator):**
+  - Input: Average duties completed per month (100 to 10,000 via `#roi-duties-slider`).
+  - Output: Billing & odometer leakage saved (₹), dispatcher hours saved, paper duty slips eliminated, faster invoice turnaround days.
+- **Part B (Auto-Slab & Margin Guardrail Simulator):**
+  - Inputs: Practical trip distance (km) and trip duration (hrs).
+  - Output: Automated package selection (4Hr/40Km vs 8Hr/80Km), client receivable, vendor payout, and guaranteed profit margin badge.
+
+### Section 8: Enterprise Request & Indecab-Inspired Minimalist Footer
+- **Lead Capture Form:** 2-column clean card submitting directly to `POST /api/v1/public/prospect-capture`.
+- **Footer Architecture (`#0A1628` Dark Navy):**
+  - Official inverted brand logo (`axiom-fleet-logo.png`).
+  - Company value summary and contact email/phone.
+  - 4 structured navigation columns: *Solutions*, *Platform & Apps*, *Partner Network*, *Enterprise Support*.
+  - Bottom bar: Copyright, Made for Indian Corporate Mobility, and Legal links.
 
 ---
 
-## 3. COMPONENT ARCHITECTURES
+## 5. REVENUE & DISPATCH INVARIANTS
 
-### 1. Floating Glass Command Navbar
-- Centered container (`max-width: 1200px`), `position: fixed; top: 16px; border-radius: 9999px`.
-- Frosted glass: `backdrop-filter: blur(20px) saturate(160%)`, 1px top highlight border.
-- Clean executive links: `Billing & Margins`, `Partner Network`, `GPS & Odometer Audit`, `Cash-Flow Forecast`, `Live Calculator`.
-- Integrated Quick-Demo Role Switcher (`[Sign In / Demo Role ▾]`) allowing direct one-click authentication into:
-  - **Super-Admin / Axiom HQ Console** (`reddragon0075@gmail.com`)
-  - **Fleet Operator Command Deck** (`Zion Travels`)
-  - **Corporate Travel Desk** (`Zenith Aerospace`)
-  - **Mobile Driver / Pocket App**
-
-### 2. "Try It Live" Interactive Widget Strip
-- **Smart WhatsApp Booking Intake:** Instant AI extraction that transforms unstructured WhatsApp booking text into structured dispatch tokens (`Passenger`, `Corporate Account`, `Vehicle Class`, `Verified Route`, `Optimized Tariff Package`) in `<400ms`.
-- **Auto-Slab Optimizer & Margin Guardrail:** Real-time dual slider (`Distance: 20-160 km`, `Duration: 2-12 hrs`) calculating:
-  - Practical Client Receivable (`₹`)
-  - Sub-Vendor Payable (`₹`)
-  - Net Margin Protected (`₹` and `%`)
-  - Auto-upgrade threshold flag (`4Hr/40Km` vs `8Hr/80Km`).
-
-### 3. Scrolltide Ledger Bento (6 Cards)
-1. **Wide Card 1 (Span 8):** Dual-Ledger Billing with interactive `[Auto-Release] / [Hold Float]` toggle.
-2. **Tall Card 2 (Span 4):** 3-Way GPS & Odometer Route Auditor (`Driver Odometer 84 km` vs `GPS 71 km` vs `Verified Route 73.2 km`).
-3. **Card 3 (Span 4):** White-Label Partner Fleet Network (`Wave 1: Platinum` -> `Wave 2: Gold` -> `Spot Exchange`).
-4. **Card 4 (Span 4):** Mobile Dispatcher & 2-tap cab assignment with physical paper duty sheet scanner.
-5. **Card 5 (Span 4):** Axiom Cash-Flow & Demand Forecasting (`p10 / p50 / p90` revenue quantile chart).
-6. **Full-Width Card 6 (Span 12):** Enterprise Compliance (POSH 20:00-06:00 guard lock, Tally Prime XML, GST e-invoicing, 1-click historical Excel/CSV migration).
-
-### 4. Competitive Benchmark Matrix
-High-contrast glass comparison matrix comparing Axiom against Indecab, MoveInSync / Routematic, and Legacy Excel/Taski across Dual-Ledger margins, 3-way route audits, partner waterfalls, and predictive forecasts.
-
-### 5. Signal Form CTA Band & Monumental Footer
-- Integrated Prospect Onboarding Form wired to `POST /api/v1/public/prospect-capture`.
-- Full-width metallic gradient wordmark (`AXIOM MOBILITY`) reflecting cursor position.
-
----
-
-## 4. INVARIANTS & INTEGRITY RULES
-1. **Zero-Build Architecture:** All scripts must run natively in the browser without node build steps or transpilation.
-2. **Auth Isolation:** `#app-shell` and `#public-site` state switches via `document.documentElement.classList.toggle('is-app-mode')` and `showApp()` must remain strictly isolated. No modifications to authenticated business logic, database migrations, or test harnesses.
-3. **Accessibility:** All inputs must have associated labels, ARIA landmarks, keyboard navigation support, and fallbacks for `prefers-reduced-motion`.
+1. **Client Identity Anonymity:** When duties are broadcasted to the Partner Network, corporate identities are strictly masked.
+2. **Escrow Hold & Margin Protection:** Payouts remain in escrow hold until digital duty slip verification (GPS + Odometer + Toll audit).
+3. **Zero-Build Architecture:** Entire landing page runs with zero build step, zero npm bundles, vanilla ES6+, HTML5, and CSS3.
