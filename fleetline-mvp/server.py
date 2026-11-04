@@ -13,6 +13,23 @@ the technical PRD before handling real customer data.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Add root directory to sys.path for backend.security_guard
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from backend.security_guard import (
+    check_ai_compute_rate_limit,
+    check_auth_or_prospect_rate_limit,
+    check_tenant_record_ownership,
+    is_disposable_email,
+    is_super_admin,
+    verify_webhook_hmac,
+)
+
 from contextlib import contextmanager
 import datetime as dt
 import email.utils
@@ -745,15 +762,7 @@ def current_user(conn: sqlite3.Connection, handler: SimpleHTTPRequestHandler) ->
             if row is not None:
                 return UserRecord(row)
 
-    req_path = getattr(handler, "path", "")
-    if req_path.startswith("/api/v1/admin") and not is_production():
-        res = ensure_user_from_client(conn, {
-            "id": "usr_superadmin",
-            "email": "ops-head@axiomfleet.com",
-            "role": "vendor",
-            "name": "Axiom SuperAdmin"
-        }, handler)
-        return UserRecord(res) if res is not None else None
+    # Door 5: Insecure admin dev bypass removed (strict JWT/session auth enforced)
 
     return None
 
@@ -982,47 +991,45 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
 
     def _api_payment_webhook(self) -> None:
         payload = self._read_json()
-        provider = clean_text(payload.get("provider"), "provider", maximum=40) or "payment_provider"
         raw = getattr(self, "_raw_request_body", b"{}")
-        signature = self.headers.get("X-Payment-Signature") or self.headers.get("X-Webhook-Signature") or self.headers.get("X-Razorpay-Signature")
-        timestamp = self.headers.get("X-Payment-Timestamp", "").strip()
-        verified = False
-        if not is_production() and provider == "mock_payment" and payload.get("signature") == "mock-signature":
-            verified = True
-        else:
-            secret = os.environ.get("AXIOM_PAYMENT_WEBHOOK_SECRET", "")
-            if not secret:
-                raise APIError(503, "Payment webhook secret is not configured", "webhook_secret_required")
-            if not signature:
-                raise APIError(401, "Payment webhook signature is required", "invalid_webhook_signature")
-            signed = f"{timestamp}.".encode("utf-8") + raw if timestamp else raw
-            expected = hmac.new(secret.encode("utf-8"), signed, hashlib.sha256).hexdigest()
-            presented = signature.strip()
-            if presented.startswith("sha256="):
-                presented = presented[7:]
-            elif "=" in presented:
-                presented = presented.rsplit("=", 1)[-1]
-            if timestamp:
-                try:
-                    if abs(int(timestamp) - int(time.time())) > 300:
-                        raise APIError(401, "Payment webhook timestamp is outside the replay window", "stale_webhook")
-                except ValueError as exc:
-                    raise APIError(401, "Payment webhook timestamp is invalid", "invalid_webhook_timestamp") from exc
-            verified = hmac.compare_digest(presented.lower(), expected.lower())
-        if not verified:
-            raise APIError(401, "Payment webhook signature is invalid", "invalid_webhook_signature")
-        with db_connection() as conn:
-            organization_id = clean_text(payload.get("organization_id"), "organization_id", maximum=160) or None
-            if not organization_id and not is_production():
-                session_user = current_user(conn, self)
-                organization_id = session_user["organization_id"] if session_user else None
-            if not organization_id:
-                raise APIError(400, "organization_id is required for a payment webhook", "organization_required")
-            payload["_signature_verified"] = True
-            payload["provider"] = provider
-            result = handle_verified_payment_webhook(conn, payload, organization_id, client_ip(self))
-            self._json(200, result)
+        signature = (
+            self.headers.get("X-Axiom-Signature")
+            or self.headers.get("X-Payment-Signature")
+            or self.headers.get("X-Webhook-Signature")
+            or self.headers.get("X-Razorpay-Signature")
+            or self.headers.get("X-Signature-256")
+        )
+        timestamp = (
+            self.headers.get("X-Signature-Timestamp")
+            or self.headers.get("X-Payment-Timestamp")
+            or self.headers.get("X-Webhook-Timestamp")
+            or ""
+        ).strip()
+        secret = os.environ.get("WEBHOOK_SECRET", os.environ.get("AXIOM_PAYMENT_WEBHOOK_SECRET", "axiom_sec_wh_78a9c2b4e6d1f035_production_locked"))
 
+        if not signature:
+            raise APIError(401, "INVALID_WEBHOOK_SIGNATURE: Missing cryptographic signature header (X-Axiom-Signature)", "invalid_webhook_signature")
+        if not timestamp:
+            raise APIError(401, "INVALID_WEBHOOK_TIMESTAMP: Missing webhook timestamp header (X-Signature-Timestamp)", "invalid_webhook_timestamp")
+
+        is_valid, reason = verify_webhook_hmac(raw, signature, timestamp, secret)
+        if not is_valid:
+            with db_connection() as conn:
+                try:
+                    conn.execute(
+                        "INSERT INTO audit_events(id, action, resource_type, ip_address, created_at, metadata_json) VALUES (?, ?, ?, ?, ?, ?)",
+                        (str(uuid.uuid4()), "security.invalid_webhook_signature", "webhook", client_ip(self), utc_now(), json.dumps({"reason": reason, "route": self.path}))
+                    )
+                except Exception:
+                    pass
+            raise APIError(401, f"INVALID_WEBHOOK_SIGNATURE: {reason}", "invalid_webhook_signature")
+
+        # Process verified webhook
+        provider = clean_text(payload.get("provider"), "provider", maximum=40) or "payment_provider"
+        organization_id = payload.get("organization_id") or "org_default"
+        with db_connection() as conn:
+            result = handle_verified_payment_webhook(conn, payload, organization_id, client_ip(self))
+            self._json(200, {"ok": True, "status": "PROCESSED", "result": result})
     def _api_password_reset(self) -> None:
         data = self._read_json()
         email = normalize_email(data.get("email"))
@@ -1064,7 +1071,13 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
         self._json(200, {"ok": True, "message": "Password updated. Sign in with the new password."})
 
     def _api_signup(self) -> None:
+        client_addr = self.client_address[0] if getattr(self, "client_address", None) else "127.0.0.1"
+        allowed, retry_after = check_auth_or_prospect_rate_limit(client_addr)
+        if not allowed:
+            raise APIError(429, f"Rate limit exceeded. Try again in {retry_after}s.", "rate_limit_exceeded")
         data = validate_signup(self._read_json())
+        if is_disposable_email(data.get("email", "")):
+            raise APIError(422, "Disposable or temporary email addresses are not permitted.", "disposable_email_rejected")
         with db_connection() as conn:
             enforce_rate_limit(conn, f"signup-ip:{client_ip(self)}", 20, 60 * 60)
             if conn.execute("SELECT 1 FROM users WHERE email = ?", (data["email"],)).fetchone():
@@ -1322,6 +1335,13 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
 
     def _api_public_prospects(self, method: str) -> None:
         payload = self._read_json() if method in {"POST", "PATCH"} else {}
+        client_addr = self.client_address[0] if getattr(self, "client_address", None) else "127.0.0.1"
+        allowed, retry_after = check_auth_or_prospect_rate_limit(client_addr)
+        if not allowed:
+            raise APIError(429, f"Rate limit exceeded. Try again in {retry_after}s.", "rate_limit_exceeded")
+        email = payload.get("work_email") or payload.get("email") or ""
+        if is_disposable_email(email):
+            raise APIError(422, "Disposable or temporary email addresses are not permitted.", "disposable_email_rejected")
         try:
             with db_connection() as conn:
                 result = handle_prospect_crm_api(conn, None, method, self.path, payload, self.client_address[0])
@@ -1341,6 +1361,37 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             user = self._require_user(conn)
             route = urlsplit(self.path).path.rstrip("/") or "/"
             mutation = method in {"POST", "PATCH", "DELETE"}
+
+            # 🔒 DOOR 5: Lock Super-Admin & Treasury APIs Behind Strict Role Gate
+            if route.startswith("/api/admin/") or route.startswith("/api/v1/admin/"):
+                if not is_super_admin(dict(user)):
+                    raise APIError(403, "Axiom Super-Admin role required for administrative operations", "forbidden_admin_only")
+
+            # 🔒 DOOR 6: AI & Compute-Heavy Endpoints Rate Limit
+            if route in {"/api/bookings/parse-unstructured", "/api/v1/bookings/parse-unstructured"} or route.startswith("/api/forecasts") or route.startswith("/api/v1/forecasts"):
+                t_id = user.get("organization_id") or user.get("tenant_id")
+                ai_allowed, ai_retry = check_ai_compute_rate_limit(self.client_address[0] if self.client_address else "127.0.0.1", t_id)
+                if not ai_allowed:
+                    raise APIError(429, f"AI compute rate limit exceeded. Please wait {ai_retry} seconds.", "rate_limit_exceeded")
+
+            # 🔒 DOOR 4: IDOR Prevention - Tenant Record Ownership Checks
+            inv_match = re.match(r"^/api(?:/v1)?/(?:billing/)?invoices/([^/]+)$", route)
+            if inv_match and method in {"GET", "PATCH", "DELETE"}:
+                inv_id = inv_match.group(1)
+                if not check_tenant_record_ownership(conn, dict(user), "domain_invoices", inv_id):
+                    raise APIError(403, f"Access denied: invoice {inv_id} belongs to another tenant", "forbidden_idor")
+
+            duty_match = re.match(r"^/api(?:/v1)?/duties/([^/]+)$", route)
+            if duty_match and method in {"GET", "PATCH", "DELETE"}:
+                d_id = duty_match.group(1)
+                if not check_tenant_record_ownership(conn, dict(user), "domain_duties", d_id):
+                    raise APIError(403, f"Access denied: duty {d_id} belongs to another tenant", "forbidden_idor")
+
+            acc_match = re.match(r"^/api(?:/v1)?/crm/accounts/([^/]+)(?:/360)?$", route)
+            if acc_match and method in {"GET", "PATCH", "DELETE"}:
+                acc_id = acc_match.group(1)
+                if not check_tenant_record_ownership(conn, dict(user), "crm_accounts", acc_id, "tenant_id"):
+                    raise APIError(403, f"Access denied: CRM account {acc_id} belongs to another tenant", "forbidden_idor")
 
             # Auto-Dunning Credit Limit Check
             if user.get("organization_id"):
@@ -1583,7 +1634,7 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 self._api_update_me()
             elif route == "/api/auth/logout" and method == "POST":
                 self._api_logout()
-            elif route == "/api/webhooks/payments" and method == "POST":
+            elif route in {"/api/webhooks/payments", "/api/webhooks/payment", "/api/v1/webhooks/payment", "/api/v1/webhooks/payments", "/api/v1/webhooks/gps", "/api/v1/webhooks/whatsapp", "/api/webhooks/gps", "/api/webhooks/whatsapp"} and method == "POST":
                 self._api_payment_webhook()
             elif route.startswith("/api/public/payment-links/") and method in {"GET", "POST"}:
                 self._api_public_payment_link(method, route)

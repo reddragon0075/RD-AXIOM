@@ -8,6 +8,12 @@
 __pycache__/
 *.pyc
 .env
+.env.*
+.env.local
+.env.production
+*.env
+*.pem
+*.key
 .DS_Store
 Thumbs.db
 

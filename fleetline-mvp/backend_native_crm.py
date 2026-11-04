@@ -499,9 +499,14 @@ def convert_crm_deal_to_workspace(conn: sqlite3.Connection, deal_id: str) -> Dic
 # Module 4: Customer 360°, Aging Buckets & Treasury Bridge
 # -----------------------------------------------------------------------------
 
-def get_crm_account_360(conn: sqlite3.Connection, account_id: str) -> Dict[str, Any]:
+def get_crm_account_360(conn: sqlite3.Connection, account_id: str, user: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Single O(1) batched Customer 360 view with operational pulse, aging, and escrow."""
-    acc_row = conn.execute("SELECT * FROM crm_accounts WHERE id = ?", (account_id,)).fetchone()
+    user_role = str(user.get("role") or "").lower() if user else ""
+    user_org = user.get("organization_id") or user.get("tenant_id") if user else None
+    if user and user_role not in {"superadmin", "axiom_super_admin", "admin", "axiom_staff"}:
+        acc_row = conn.execute("SELECT * FROM crm_accounts WHERE id = ? AND (tenant_id = ? OR organization_id = ?)", (account_id, user_org, user_org)).fetchone()
+    else:
+        acc_row = conn.execute("SELECT * FROM crm_accounts WHERE id = ?", (account_id,)).fetchone()
     if not acc_row:
         raise DomainError(404, "CRM Account not found", "not_found")
     acc = dict(acc_row)
@@ -637,7 +642,7 @@ def handle_native_crm_api(
     # 5. Customer 360° View
     acc_360_match = re.match(r"^/api/crm/accounts/([^/]+)/360$", norm_route)
     if method == "GET" and acc_360_match:
-        return get_crm_account_360(conn, acc_360_match.group(1))
+        return get_crm_account_360(conn, acc_360_match.group(1), user)
 
     # 6. Accounts List & Creation
     if method == "GET" and norm_route in {"/api/crm/accounts"}:
