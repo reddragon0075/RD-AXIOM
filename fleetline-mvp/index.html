@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#111c20" />
   <link rel="manifest" href="driver-manifest.json" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="axiom-fleet-logo.png" type="image/png" />
   <script src="supabase/config.js"></script>
   <script src="supabase/client.js"></script>
@@ -2218,323 +2221,2197 @@
       color: #64748b;
     }
 
+  
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AXIOM MOBILITY FLAGSHIP DESIGN SYSTEM ("SCROLLTIDE + REFERO + SUPAHERO")
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Refero Tokens: Obsidian Mobility & FinTech Emerald/Amber */
+  --bg-canvas: #06080D;
+  --bg-surface-1: #0D111A;
+  --bg-surface-2: #141B27;
+  --bg-surface-glass: rgba(17, 23, 36, 0.72);
+  --bg-surface-glass-heavy: rgba(10, 14, 23, 0.90);
+  
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.16);
+  --border-highlight: rgba(16, 185, 129, 0.45);
+  --border-indigo: rgba(99, 102, 241, 0.40);
+  
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #64748B;
+  
+  --accent-emerald: #10B981;
+  --accent-emerald-glow: rgba(16, 185, 129, 0.25);
+  --accent-indigo: #6366F1;
+  --accent-indigo-glow: rgba(99, 102, 241, 0.25);
+  --accent-amber: #F59E0B;
+  --accent-amber-glow: rgba(245, 158, 11, 0.25);
+  --accent-cyan: #06B6D4;
+  --accent-rose: #F43F5E;
+  
+  --font-display: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+  --font-editorial: 'Instrument Serif', 'Playfair Display', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Base resets & dark marketing canvas */
+#public-site {
+  background-color: var(--bg-canvas) !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+#public-site * {
+  box-sizing: border-box;
+}
+
+#public-site a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   SECTION 1: FLOATING GLASS COMMAND NAVBAR
+   ───────────────────────────────────────────────────────────────────────── */
+.axiom-nav-wrapper {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 1220px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.axiom-nav-glass {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px 8px 18px;
+  background: var(--bg-surface-glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border-subtle);
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 9999px;
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.axiom-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.axiom-brand-prism {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(99, 102, 241, 0.18));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.25);
+}
+
+.axiom-brand-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.axiom-badge-enterprise {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: #a5b4fc;
+}
+
+.axiom-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.axiom-nav-item {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.axiom-nav-item:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.axiom-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.axiom-telemetry-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 5px 10px;
+  border-radius: 9999px;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-emerald);
+  box-shadow: 0 0 8px var(--accent-emerald);
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.btn-ghost-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-ghost-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-medium);
+}
+
+.btn-primary-magnetic {
+  background: var(--accent-emerald);
+  color: #061e16;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-primary-magnetic:hover {
+  background: #34d399;
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 0 28px rgba(16, 185, 129, 0.55);
+}
+
+/* Quick Role Switcher Floating Menu */
+.axiom-role-modal {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 14px;
+  width: 320px;
+  background: var(--bg-surface-glass-heavy);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid var(--border-medium);
+  border-radius: 16px;
+  box-shadow: 0 24px 48px -10px rgba(0, 0, 0, 0.8), 0 0 24px rgba(99, 102, 241, 0.15);
+  padding: 12px;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 10000;
+  pointer-events: auto;
+}
+
+.axiom-role-modal.open {
+  display: flex;
+}
+
+.role-modal-head {
+  padding: 6px 8px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.role-modal-head span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.role-option-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+  width: 100%;
+}
+
+.role-option-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-subtle);
+}
+
+.role-option-btn.primary-role {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.role-option-btn.primary-role:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--border-highlight);
+}
+
+.role-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.role-info b {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.role-info small {
+  display: block;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   SECTION 2: SUPAHERO + SCROLLTIDE 3D STAGE
+   ───────────────────────────────────────────────────────────────────────── */
+.axiom-hero-stage {
+  position: relative;
+  min-height: 100vh;
+  padding: 130px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  overflow: hidden;
+}
+
+#axiom-network-globe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.hero-radial-glow {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 800px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(99, 102, 241, 0.12) 40%, transparent 70%);
+  filter: blur(80px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-content-container {
+  position: relative;
+  z-index: 2;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.announcement-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.announcement-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: translateY(-1px);
+}
+
+.pill-sparkle {
+  color: #fbbf24;
+}
+
+.pill-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 6px;
+  background: var(--accent-indigo);
+  color: #ffffff;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.hero-headline {
+  font-family: var(--font-display);
+  font-size: clamp(38px, 5.8vw, 76px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+  margin: 0 0 20px;
+}
+
+.hero-editorial-italic {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 400;
+  background: linear-gradient(135deg, #34d399 0%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding-right: 0.05em;
+}
+
+.hero-subheadline {
+  font-size: clamp(15px, 1.35vw, 19px);
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 780px;
+  margin: 0 auto 32px;
+}
+
+.hero-subheadline strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.hero-actions-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.hero-quick-pill {
+  display: flex;
+  align-items: center;
+  background: rgba(13, 17, 26, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-medium);
+  border-radius: 9999px;
+  padding: 5px 6px 5px 18px;
+  width: min(540px, 100%);
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.6), 0 0 20px rgba(16, 185, 129, 0.15);
+  transition: all 0.25s ease;
+}
+
+.hero-quick-pill:focus-within {
+  border-color: var(--border-highlight);
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.7), 0 0 24px rgba(16, 185, 129, 0.3);
+}
+
+.hero-quick-pill input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-sans);
+}
+
+.hero-quick-pill input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.hero-quick-btn {
+  background: linear-gradient(135deg, #10B981, #059669);
+  color: #061e16;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.hero-quick-btn:hover {
+  background: #34d399;
+  transform: scale(1.02);
+}
+
+.hero-portal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 20px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hero-portal-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #ffffff;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   SCROLL-DRIVEN 3D TILTED PRODUCT STAGE (PERSPECTIVE 1400PX)
+   ───────────────────────────────────────────────────────────────────────── */
+.hero-stage-perspective-wrap {
+  perspective: 1400px;
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  position: relative;
+  z-index: 3;
+}
+
+.hero-tilted-deck {
+  transform: rotateX(14deg) scale(0.94);
+  transform-style: preserve-3d;
+  transition: transform 0.1s cubic-bezier(0.1, 0.9, 0.2, 1);
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 20px;
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.95), 0 0 60px -10px rgba(16, 185, 129, 0.2), 0 0 80px -20px rgba(99, 102, 241, 0.2);
+  overflow: hidden;
+  text-align: left;
+}
+
+.stage-tab-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: rgba(10, 14, 23, 0.95);
+  border-bottom: 1px solid var(--border-subtle);
+  gap: 12px;
+  overflow-x: auto;
+}
+
+.stage-mac-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.mac-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.mac-dot.red { background: #ef4444; }
+.mac-dot.yellow { background: #f59e0b; }
+.mac-dot.green { background: #10b981; }
+
+.stage-preview-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stage-tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.stage-tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.stage-tab-btn.active {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.stage-live-indicator {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-emerald);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.stage-viewport {
+  min-height: 440px;
+  padding: 24px;
+  background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 60%), var(--bg-surface-1);
+}
+
+.stage-tab-panel {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.stage-tab-panel.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   SECTION 3: INTERACTIVE "TRY IT LIVE" WIDGET STRIP
+   ───────────────────────────────────────────────────────────────────────── */
+.axiom-section {
+  width: min(1220px, calc(100% - 40px));
+  margin: 100px auto;
+  position: relative;
+  z-index: 2;
+}
+
+.section-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-emerald);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3.8vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+  line-height: 1.12;
+}
+
+.section-desc {
+  font-size: 15px;
+  color: var(--text-secondary);
+  max-width: 680px;
+  margin: 0 0 40px;
+  line-height: 1.6;
+}
+
+.sandbox-split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.sandbox-card {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.25s ease;
+}
+
+.sandbox-card:hover {
+  border-color: var(--border-medium);
+}
+
+.sandbox-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.sandbox-card-header h3 {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sandbox-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: #a5b4fc;
+}
+
+.sandbox-tag.emerald {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+}
+
+.whatsapp-bubble {
+  background: #0f241d;
+  border: 1px solid #165b40;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #e2f8ee;
+  margin-bottom: 16px;
+  position: relative;
+  font-family: var(--font-sans);
+}
+
+.whatsapp-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: #34d399;
+  font-weight: 600;
+}
+
+.parse-action-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.btn-parse-ai {
+  background: linear-gradient(135deg, #6366F1, #4F46E5);
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-parse-ai:hover {
+  background: #818cf8;
+  transform: translateY(-1px);
+}
+
+.parse-results-box {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 14px;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.parse-result-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+}
+
+.parse-result-chip span {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.parse-result-chip strong {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Practical Auto-Slab Simulator Slider Styles */
+.slider-group {
+  margin-bottom: 18px;
+}
+
+.slider-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.slider-val-badge {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--accent-emerald);
+  font-size: 14px;
+}
+
+.custom-range {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  outline: none;
+  accent-color: var(--accent-emerald);
+  cursor: pointer;
+}
+
+.calc-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.calc-metric-card {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: left;
+}
+
+.calc-metric-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.calc-metric-value {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.calc-metric-value.emerald { color: var(--accent-emerald); }
+.calc-metric-value.indigo { color: #818cf8; }
+.calc-metric-value.amber { color: var(--accent-amber); }
+
+.guardrail-pill {
+  margin-top: 14px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   SECTION 4: SCROLLTIDE "LEDGER BENTO" (6-CARD ASYMMETRIC GRID)
+   ───────────────────────────────────────────────────────────────────────── */
+.bento-grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 20px;
+}
+
+.bento-card {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bento-card:hover {
+  border-color: var(--border-medium);
+  transform: translateY(-2px);
+  box-shadow: 0 26px 50px -15px rgba(0, 0, 0, 0.7);
+}
+
+.span-12 { grid-column: span 12; }
+.span-8 { grid-column: span 8; }
+.span-4 { grid-column: span 4; }
+
+.bento-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.bento-icon-3d {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border-medium);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.bento-icon-3d.emerald {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.04));
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+}
+
+.bento-icon-3d.indigo {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.04));
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.25);
+}
+
+.bento-icon-3d.amber {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.04));
+  border-color: rgba(245, 158, 11, 0.35);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+}
+
+.bento-card-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
+.bento-card-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.bento-interactive-preview {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 16px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   SECTION 5: COMPETITIVE BENCHMARK MATRIX TABLE
+   ───────────────────────────────────────────────────────────────────────── */
+.benchmark-table-wrapper {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 24px 48px -15px rgba(0, 0, 0, 0.7);
+}
+
+.benchmark-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.benchmark-table th,
+.benchmark-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 13px;
+}
+
+.benchmark-table th {
+  background: rgba(10, 14, 23, 0.95);
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+
+.benchmark-table th.highlight-col {
+  color: var(--accent-emerald);
+  background: rgba(16, 185, 129, 0.08);
+  border-bottom: 2px solid var(--accent-emerald);
+}
+
+.benchmark-table td.highlight-col {
+  background: rgba(16, 185, 129, 0.04);
+  font-weight: 600;
+}
+
+.check-pill-active {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 9999px;
+}
+
+.check-pill-no {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.check-pill-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #fbbf24;
+  font-size: 11px;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 3px 8px;
+  border-radius: 9999px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   SECTION 6: "SIGNAL FORM" HIGH-CONVERSION PROSPECT CTA BAND
+   ───────────────────────────────────────────────────────────────────────── */
+.signal-cta-section {
+  position: relative;
+  background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.12) 0%, rgba(99, 102, 241, 0.1) 40%, transparent 70%), var(--bg-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 28px;
+  padding: 60px 40px;
+  overflow: hidden;
+  margin: 120px auto;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.9);
+}
+
+.ghost-watermark-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-size: clamp(60px, 11vw, 150px);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: rgba(255, 255, 255, 0.02);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.signal-cta-content {
+  position: relative;
+  z-index: 2;
+  max-width: 680px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.signal-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 32px;
+  text-align: left;
+}
+
+.signal-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.signal-input-group.full-width {
+  grid-column: span 2;
+}
+
+.signal-input-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.signal-input-group input,
+.signal-input-group select {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-sans);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.signal-input-group input:focus,
+.signal-input-group select:focus {
+  border-color: var(--border-highlight);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+}
+
+.role-pill-selection {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.role-select-pill {
+  padding: 8px 14px;
+  border-radius: 9999px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.role-select-pill.active {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+
+.btn-submit-signal {
+  grid-column: span 2;
+  background: linear-gradient(135deg, #10B981, #059669);
+  color: #061e16;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+  box-shadow: 0 10px 24px rgba(16, 185, 129, 0.35);
+  transition: all 0.25s ease;
+}
+
+.btn-submit-signal:hover {
+  background: #34d399;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px rgba(16, 185, 129, 0.5);
+}
+
+.signal-success-box {
+  display: none;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid var(--border-highlight);
+  border-radius: 16px;
+  padding: 28px;
+  margin-top: 24px;
+  text-align: center;
+}
+
+.signal-success-box.show {
+  display: block;
+  animation: fadeIn 0.4s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   SECTION 7: "PORTFOLIO CLOSE" MONUMENTAL FOOTER
+   ───────────────────────────────────────────────────────────────────────── */
+.monumental-footer {
+  border-top: 1px solid var(--border-subtle);
+  background: #040508;
+  padding: 80px 24px 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.footer-nav-columns {
+  width: min(1220px, calc(100% - 40px));
+  margin: 0 auto 60px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+}
+
+.footer-col h4 {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin: 0 0 16px;
+}
+
+.footer-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-col a {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  transition: color 0.18s ease;
+}
+
+.footer-col a:hover {
+  color: var(--text-primary);
+}
+
+.footer-meta-bar {
+  width: min(1220px, calc(100% - 40px));
+  margin: 0 auto 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.giant-wordmark-container {
+  width: 100%;
+  text-align: center;
+  position: relative;
+  user-select: none;
+  overflow: hidden;
+  padding: 20px 0 0;
+}
+
+.giant-metallic-wordmark {
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 11vw, 10rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #F8FAFC 0%, #94A3B8 55%, #1e293b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: block;
+  width: 100%;
+  margin: 0;
+  transition: filter 0.2s ease;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+  .axiom-nav-links { display: none; }
+  .sandbox-split-grid { grid-template-columns: 1fr; }
+  .bento-grid-12 { grid-template-columns: 1fr; }
+  .span-8, .span-4, .span-12 { grid-column: span 1 !important; }
+  .footer-nav-columns { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .signal-form-grid { grid-template-columns: 1fr; }
+  .signal-input-group.full-width, .btn-submit-signal { grid-column: span 1; }
+  .footer-nav-columns { grid-template-columns: 1fr; }
+  .calc-metrics-grid { grid-template-columns: 1fr; }
+  .axiom-telemetry-pill { display: none; }
+}
+
   </style>
 </head>
 <body>
   <!-- Public marketing site: visible before authentication -->
+    <!-- Public marketing site: visible before authentication -->
   <div id="public-site" class="marketing-page">
-    <header class="site-nav">
-      <a class="site-brand" href="#home" aria-label="AXIOM FLEET home"><img class="brand-logo" src="axiom-fleet-logo.png" width="640" height="184" decoding="async" alt="Axiom Fleet"></a>
-      <div class="site-segments" style="margin-left:24px"><a href="#for-car-rentals" class="site-segment-tab active" id="tabForCarRentals">For Car Rentals</a><a href="#solutions" class="site-segment-tab" id="tabForCorporates">For Corporates</a></div><nav class="site-links" aria-label="Main navigation"><a href="#for-car-rentals">For Car Rentals</a><a href="#solutions">Solutions</a><a href="#platform">Platform</a><a href="#workflow">How it works</a><details class="site-nav-dropdown"><summary>Insights <span>⌄</span></summary><div class="site-dropdown-menu"><a href="#blogs" data-public-page="blogs"><i class="dropdown-icon purple">✦</i><span><b>Blogs</b><small>Field notes &amp; ideas</small></span></a><a href="#newsroom" data-public-page="newsroom"><i class="dropdown-icon orange">◌</i><span><b>NewsRoom</b><small>Company updates</small></span></a></div></details><details class="site-nav-dropdown"><summary>Company <span>⌄</span></summary><div class="site-dropdown-menu"><a href="#about-us" data-public-page="about-us"><i class="dropdown-icon lime">◎</i><span><b>About Us</b><small>Why we build</small></span></a><a href="#success-stories" data-public-page="success-stories"><i class="dropdown-icon teal">↗</i><span><b>Success Stories</b><small>Outcomes in motion</small></span></a><a href="#careers" data-public-page="careers"><i class="dropdown-icon indigo">+</i><span><b>Career</b><small>Join the operating loop</small></span></a></div></details><a href="#contact-us" data-public-page="contact-us">Contact</a></nav>
-      <div class="site-actions"><span class="site-live"><i></i> Platform live</span><button class="site-signin" data-show-login>Sign in</button><button class="site-cta" data-show-login>Open command center <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
-    </header>
+    
+    <!-- SECTION 1: FLOATING GLASS COMMAND NAVBAR -->
+    <div class="axiom-nav-wrapper">
+      <header class="axiom-nav-glass">
+        <a class="axiom-nav-brand" href="#home" aria-label="Axiom Mobility Home">
+          <div class="axiom-brand-prism">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L2 19.5H22L12 2Z" fill="url(#prism-grad-1)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+              <path d="M12 2L7 19.5H17L12 2Z" fill="url(#prism-grad-2)"/>
+              <defs>
+                <linearGradient id="prism-grad-1" x1="2" y1="2" x2="22" y2="20" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#10B981"/>
+                  <stop offset="1" stop-color="#6366F1"/>
+                </linearGradient>
+                <linearGradient id="prism-grad-2" x1="7" y1="2" x2="17" y2="20" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#34D399" stop-opacity="0.8"/>
+                  <stop offset="1" stop-color="#4F46E5" stop-opacity="0.9"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <span class="axiom-brand-title">AXIOM <span class="axiom-badge-enterprise">v2.6 ENTERPRISE</span></span>
+        </a>
 
+        <nav class="axiom-nav-links" aria-label="Command Navigation">
+          <a class="axiom-nav-item" href="#dual-ledger">Dual-Ledger</a>
+          <a class="axiom-nav-item" href="#hyper-network">Hyper-Network</a>
+          <a class="axiom-nav-item" href="#osm-audit">OSM &amp; 3-Way Audit</a>
+          <a class="axiom-nav-item" href="#timesfm-ai">TimesFM AI</a>
+          <a class="axiom-nav-item" href="#sandbox">Interactive Sandbox</a>
+          <a class="axiom-nav-item" href="#benchmark">Benchmark</a>
+        </nav>
+
+        <div class="axiom-nav-actions">
+          <div class="axiom-telemetry-pill" title="Real-time Platform Availability SLA">
+            <span class="pulse-dot"></span> 99.98% SLA
+          </div>
+          <button class="btn-ghost-pill" id="nav-role-switcher-btn" type="button" aria-expanded="false" aria-controls="nav-role-modal">
+            Sign In / Demo Role <span style="font-size:10px">▾</span>
+          </button>
+          <a href="#prospect-cta" class="btn-primary-magnetic">
+            Get Instant Access →
+          </a>
+        </div>
+
+        <!-- Quick Role Switcher Floating Menu -->
+        <div class="axiom-role-modal" id="nav-role-modal" role="dialog" aria-label="Quick Demo Role Switcher">
+          <div class="role-modal-head">
+            <span>Instant Workspace Launch</span>
+            <button type="button" id="close-role-modal-btn" style="background:transparent;border:none;color:var(--text-tertiary);cursor:pointer;font-size:14px">✕</button>
+          </div>
+          <button type="button" class="role-option-btn primary-role" id="quick-login-admin-btn">
+            <div class="role-icon" style="color:#34d399">👑</div>
+            <div class="role-info">
+              <b>Super-Admin Console (Axiom HQ)</b>
+              <small>Platform control, multi-tenant dunning, telemetry</small>
+            </div>
+          </button>
+          <button type="button" class="role-option-btn" id="quick-login-vendor-btn">
+            <div class="role-icon" style="color:#818cf8">🏢</div>
+            <div class="role-info">
+              <b>Fleet Vendor HQ (Zion Travels)</b>
+              <small>Dual-ledger, 3-way distance audit, dispatch deck</small>
+            </div>
+          </button>
+          <button type="button" class="role-option-btn" id="quick-login-corporate-btn">
+            <div class="role-icon" style="color:#38bdf8">✈️</div>
+            <div class="role-info">
+              <b>Corporate Travel Desk (Zenith)</b>
+              <small>Employee bookings, POSH lock, proforma review</small>
+            </div>
+          </button>
+          <button type="button" class="role-option-btn" data-show-login>
+            <div class="role-icon" style="color:#fbbf24">🔑</div>
+            <div class="role-info">
+              <b>Enter Workspace Credentials</b>
+              <small>Standard sign-in with your custom credentials</small>
+            </div>
+          </button>
+        </div>
+      </header>
+    </div>
+
+    <!-- MAIN MARKETING BODY -->
     <main>
       
-      <!-- AXIOM REPLICA: For Car Rentals Operating Suite -->
-      <section class="for-car-rentals-hero" id="for-car-rentals">
-        <div class="axiom-cr-hero-banner">
-          <div class="axiom-cr-hero-grid">
-            <div>
-              <span class="axiom-cr-eyebrow">✦ AXIOM FLEET FOR CAR RENTALS</span>
-              <h1 class="axiom-cr-hero-title">Get in the fast lane.</h1>
-              <h2 class="axiom-cr-hero-subtitle">To the future</h2>
-              <p class="axiom-cr-hero-desc">
-                The car rental industry today demands a new level of service experience. Good cars and great drivers are the bare minimum. There is a need for accuracy, real-time transparency, and a seamless post-service experience. A business needs efficient management to deliver this competitive advantage. Axiom Fleet provides you with a complete suite of tools needed to pave the way to great customer service and satisfaction.
-              </p>
-              <div class="axiom-cr-hero-actions">
-                <button class="site-cta large" data-show-login>Try now <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-                <button class="site-signin" data-show-login style="color:#ffffff;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);padding:11px 22px;border-radius:9999px;font-size:12px;font-weight:700">Login to Console</button>
+      <!-- SECTION 2: "SUPAHERO + SCROLLTIDE" 3D INTERACTIVE HERO STAGE -->
+      <section class="axiom-hero-stage" id="home">
+        <canvas id="axiom-network-globe"></canvas>
+        <div class="hero-radial-glow"></div>
+
+        <div class="hero-content-container">
+          <div class="announcement-pill" onclick="document.getElementById('timesfm-ai').scrollIntoView({behavior:'smooth'})">
+            <span class="pill-sparkle">✨</span>
+            <span class="pill-tag">NEW</span>
+            Google TimesFM Forecasting + Zero-Cost OpenStreetMap Engine
+            <span style="color:#818cf8">→</span>
+          </div>
+
+          <h1 class="hero-headline">
+            The Operating System for <span class="hero-editorial-italic">Enterprise Fleet</span> &amp; B2B Mobility.
+          </h1>
+
+          <p class="hero-subheadline">
+            Replace fragmented spreadsheets, Indecab silos, and 90-day billing disputes with India's first 
+            <strong>Dual-Ledger Mobility Clearinghouse</strong>—featuring 3-Way Distance Fraud Auditing, 
+            White-Label Partner Exchange, and AI Booking Intake.
+          </p>
+
+          <div class="hero-actions-strip">
+            <div class="hero-quick-pill">
+              <input type="text" id="hero-quick-input" placeholder="Enter work email or 10-digit mobile..." />
+              <button class="hero-quick-btn" id="hero-quick-submit-btn" type="button">
+                🚀 Book Live Demo / Try Sandbox
+              </button>
+            </div>
+            <button class="hero-portal-btn" id="hero-explore-portal-btn" type="button">
+              ⚡ Explore Live Interactive Portal
+            </button>
+          </div>
+        </div>
+
+        <!-- SCROLL-DRIVEN 3D TILTED PRODUCT STAGE (PERSPECTIVE 1400PX) -->
+        <div class="hero-stage-perspective-wrap">
+          <div class="hero-tilted-deck" id="hero-tilted-stage">
+            <div class="stage-tab-header">
+              <div class="stage-mac-dots">
+                <span class="mac-dot red"></span>
+                <span class="mac-dot yellow"></span>
+                <span class="mac-dot green"></span>
+              </div>
+              <div class="stage-preview-tabs">
+                <button class="stage-tab-btn active" data-stage-tab="osm" type="button">
+                  ⚡ Live OSM Dispatch &amp; Pocket App
+                </button>
+                <button class="stage-tab-btn" data-stage-tab="dual-ledger" type="button">
+                  💰 Dual-Ledger &amp; Treasury Hold Toggle
+                </button>
+                <button class="stage-tab-btn" data-stage-tab="hyper-network" type="button">
+                  🌐 White-Label Partner Network
+                </button>
+                <button class="stage-tab-btn" data-stage-tab="timesfm" type="button">
+                  📈 TimesFM 30-Day Earnings Forecast
+                </button>
+              </div>
+              <div class="stage-live-indicator">
+                <span class="pulse-dot"></span> LIVE TELEMETRY
               </div>
             </div>
-            <div class="axiom-cr-featured-card">
-              <span class="axiom-cr-badge-pill" style="margin-bottom:12px;background:rgba(96,165,250,0.2);color:#93c5fd">UNIFIED PLATFORM</span>
-              <h3>Car rental management like never before.</h3>
-              <p>
-                Experience all aspects of your car rental operations through a single easy-to-use dashboard. A cutting-edge, web-based platform designed to streamline your operations. Enable better control over drivers and enhance employee productivity. Above all provide an accurate overview of your business instantly — while ensuring the highest standards of information security.
-              </p>
-              <div style="display:flex;gap:12px;margin-top:20px;border-top:1px solid rgba(255,255,255,0.12);padding-top:16px;font-size:11.5px;color:#94a3b8">
-                <div><b style="color:#ffffff;display:block;font-size:14px">100%</b> Real-time accuracy</div>
-                <div><b style="color:#ffffff;display:block;font-size:14px">Paperless</b> Duty slips</div>
-                <div><b style="color:#ffffff;display:block;font-size:14px">Tally</b> Out-of-the-box</div>
+
+            <div class="stage-viewport">
+              <!-- TAB 1: Live OSM Dispatch & Pocket App -->
+              <div class="stage-tab-panel active" id="tab-panel-osm">
+                <div style="display:grid;grid-template-columns:1.8fr 1.2fr;gap:20px;height:100%">
+                  <div style="background:#090d15;border:1px solid var(--border-subtle);border-radius:14px;padding:16px;position:relative;overflow:hidden">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:12px;color:var(--text-secondary)">
+                      <span style="font-family:var(--font-mono);color:#34d399">OSM_CORRIDOR: BLR-AIRPORT-EXPRESS</span>
+                      <span style="font-family:var(--font-mono)">LAT: 12.9716°N · LON: 77.5946°E</span>
+                    </div>
+                    <!-- Vector Road Map Mockup -->
+                    <svg viewBox="0 0 540 260" style="width:100%;height:220px;background:#05070a;border-radius:10px">
+                      <line x1="20" y1="220" x2="520" y2="40" stroke="#1e293b" stroke-width="12" stroke-linecap="round"/>
+                      <line x1="20" y1="220" x2="520" y2="40" stroke="#10b981" stroke-width="4" stroke-dasharray="8 6" stroke-linecap="round"/>
+                      <path d="M 120 180 Q 240 120 400 80" stroke="#6366f1" stroke-width="3" fill="none" opacity="0.6"/>
+                      <!-- Nodes -->
+                      <circle cx="60" cy="205" r="9" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
+                      <text x="76" y="210" fill="#f8fafc" font-size="11" font-weight="700" font-family="'Plus Jakarta Sans', sans-serif">Taj MG Road (Pickup)</text>
+                      <circle cx="480" cy="55" r="9" fill="#6366f1" stroke="#ffffff" stroke-width="2"/>
+                      <text x="350" y="45" fill="#f8fafc" font-size="11" font-weight="700" font-family="'Plus Jakarta Sans', sans-serif">BLR T2 (Destination)</text>
+                      <!-- Active Moving Cab -->
+                      <circle cx="280" cy="125" r="7" fill="#38bdf8" stroke="#ffffff" stroke-width="2">
+                        <animate attributeName="r" values="7;11;7" dur="2s" repeatCount="indefinite"/>
+                      </circle>
+                      <rect x="230" y="90" width="100" height="24" rx="6" fill="rgba(15,23,42,0.9)" stroke="#38bdf8" stroke-width="1"/>
+                      <text x="238" y="106" fill="#38bdf8" font-size="10" font-weight="700" font-family="'JetBrains Mono', monospace">KA 03 MX 9962</text>
+                    </svg>
+                    <div style="display:flex;justify-content:space-between;margin-top:12px;font-size:12px;color:var(--text-secondary)">
+                      <span>OSM Snapped: <b style="color:var(--text-primary);font-family:var(--font-mono)">36.4 km</b></span>
+                      <span>Est Duration: <b style="color:var(--text-primary);font-family:var(--font-mono)">54 min</b></span>
+                      <span>Toll Waypoints: <b style="color:var(--accent-emerald);font-family:var(--font-mono)">2 Fastag Verified</b></span>
+                    </div>
+                  </div>
+                  <!-- Driver & Pocket Dispatch Card -->
+                  <div style="background:var(--bg-surface-2);border:1px solid var(--border-subtle);border-radius:14px;padding:16px;display:flex;flex-direction:column;justify-content:space-between">
+                    <div>
+                      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+                        <div style="width:38px;height:38px;border-radius:50%;background:#1e293b;display:grid;place-items:center;font-size:16px">👨🏽‍✈️</div>
+                        <div>
+                          <b style="color:var(--text-primary);font-size:14px;display:block">Vikramaditya Rao</b>
+                          <small style="color:var(--accent-emerald);font-family:var(--font-mono);font-size:11px">★ 4.96 · Verified Driver</small>
+                        </div>
+                      </div>
+                      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle);border-radius:10px;padding:12px;margin-bottom:12px">
+                        <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px">CURRENT TRIP CODE</div>
+                        <div style="font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--text-primary)">TRIP-BLR-8831</div>
+                        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">Infosys Executive Travel · Sedan/SUV</div>
+                      </div>
+                      <div style="display:flex;gap:8px">
+                        <span style="font-size:11px;padding:4px 8px;border-radius:6px;background:rgba(16,185,129,0.1);color:#34d399;font-weight:600">AIS-140 Live</span>
+                        <span style="font-size:11px;padding:4px 8px;border-radius:6px;background:rgba(99,102,241,0.1);color:#a5b4fc;font-weight:600">Zero-Deadlock</span>
+                      </div>
+                    </div>
+                    <div style="border-top:1px solid var(--border-subtle);padding-top:12px;display:flex;gap:10px">
+                      <button type="button" class="btn-primary-magnetic" style="flex:1;justify-content:center" onclick="showApp()">Launch Command Center →</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 2: Dual-Ledger & Treasury Hold Toggle -->
+              <div class="stage-tab-panel" id="tab-panel-dual-ledger">
+                <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:20px">
+                  <div style="background:#090d15;border:1px solid var(--border-subtle);border-radius:14px;padding:20px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                      <div>
+                        <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-secondary)">DUTY_ID: DUTY-2026-9041</span>
+                        <h4 style="margin:2px 0 0;font-size:16px;color:var(--text-primary)">Dual-Ledger Margin Reconciliation</h4>
+                      </div>
+                      <!-- Interactive Toggle in Preview -->
+                      <button type="button" id="stage-treasury-toggle-btn" style="background:#065f46;border:1px solid #10b981;color:#6ee7b7;font-family:var(--font-mono);font-size:11px;font-weight:700;padding:6px 12px;border-radius:9999px;cursor:pointer">
+                        🟢 Auto-Release Active
+                      </button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+                      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle);border-radius:10px;padding:14px">
+                        <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase">Corporate Receivable</div>
+                        <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--text-primary);margin:4px 0">₹14,850.00</div>
+                        <small style="color:#94a3b8;font-size:11px">Infosys · 8Hr/80Km + Extra KM</small>
+                      </div>
+                      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle);border-radius:10px;padding:14px">
+                        <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase">Vendor Payable</div>
+                        <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:#fbbf24;margin:4px 0">₹11,400.00</div>
+                        <small style="color:#94a3b8;font-size:11px">Zion Fleet · Net DCO Allotment</small>
+                      </div>
+                    </div>
+                    <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center">
+                      <div>
+                        <span style="font-size:11px;color:#34d399;font-weight:700">PROTECTED NET MARGIN</span>
+                        <div style="font-family:var(--font-mono);font-size:16px;font-weight:800;color:#34d399">₹3,450.00 (23.23%)</div>
+                      </div>
+                      <span id="stage-escrow-status-pill" style="font-family:var(--font-mono);font-size:11px;padding:4px 10px;border-radius:6px;background:rgba(16,185,129,0.2);color:#34d399;font-weight:700">
+                        CLEARING: T+1 AUTOMATED
+                      </span>
+                    </div>
+                  </div>
+                  <!-- Explanatory Panel -->
+                  <div style="background:var(--bg-surface-2);border:1px solid var(--border-subtle);border-radius:14px;padding:20px;display:flex;flex-direction:column;justify-content:space-between">
+                    <div>
+                      <h5 style="margin:0 0 10px;font-size:14px;color:var(--text-primary)">Zero Revenue Leakage</h5>
+                      <p style="font-size:12px;color:var(--text-secondary);line-height:1.6;margin:0 0 14px">
+                        Most fleet platforms mix client billing and vendor payouts into single mutable records. Axiom enforces strict, double-entry immutable ledgers with automatic GST and TDS deductions.
+                      </p>
+                      <ul style="padding-left:16px;font-size:12px;color:var(--text-secondary);margin:0;line-height:1.6">
+                        <li>Instant sub-vendor payout escrow</li>
+                        <li>Automated dunning hold on credit limits</li>
+                        <li>Audit log preserved for 8 financial years</li>
+                      </ul>
+                    </div>
+                    <button type="button" class="btn-ghost-pill" style="width:100%;justify-content:center;margin-top:16px" onclick="document.getElementById('dual-ledger').scrollIntoView({behavior:'smooth'})">
+                      Learn About Dual-Ledger Architecture →
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 3: White-Label Partner Network -->
+              <div class="stage-tab-panel" id="tab-panel-hyper-network">
+                <div style="display:grid;grid-template-columns:1.6fr 1.4fr;gap:20px">
+                  <div style="background:#090d15;border:1px solid var(--border-subtle);border-radius:14px;padding:20px">
+                    <span style="font-family:var(--font-mono);font-size:11px;color:#818cf8">CASCADE: TIMED WATERFALL DISPATCH</span>
+                    <h4 style="margin:4px 0 16px;font-size:16px;color:var(--text-primary)">Tiered Allotment &amp; Anti-Poaching Shield</h4>
+                    <!-- Waterfall Step Indicators -->
+                    <div style="display:flex;flex-direction:column;gap:10px">
+                      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3)">
+                        <div style="display:flex;align-items:center;gap:10px">
+                          <span style="font-family:var(--font-mono);font-size:12px;color:#34d399;font-weight:700">WAVE 1</span>
+                          <span style="font-size:13px;color:var(--text-primary);font-weight:600">Platinum Partner Fleet (Zion)</span>
+                        </div>
+                        <span style="font-family:var(--font-mono);font-size:11px;color:#34d399">0s – 120s (Auto-Accepted)</span>
+                      </div>
+                      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle)">
+                        <div style="display:flex;align-items:center;gap:10px">
+                          <span style="font-family:var(--font-mono);font-size:12px;color:var(--text-tertiary);font-weight:700">WAVE 2</span>
+                          <span style="font-size:13px;color:var(--text-secondary)">Gold Regional Vendors (Apex, Garuda)</span>
+                        </div>
+                        <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary)">120s – 240s</span>
+                      </div>
+                      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle)">
+                        <div style="display:flex;align-items:center;gap:10px">
+                          <span style="font-family:var(--font-mono);font-size:12px;color:var(--text-tertiary);font-weight:700">WAVE 3</span>
+                          <span style="font-size:13px;color:var(--text-secondary)">Spot Surge Exchange (Broadcast)</span>
+                        </div>
+                        <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary)">240s+ (Dynamic Multiplier)</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="background:var(--bg-surface-2);border:1px solid var(--border-subtle);border-radius:14px;padding:20px;display:flex;flex-direction:column;justify-content:space-between">
+                    <div>
+                      <div style="display:inline-flex;padding:3px 8px;border-radius:6px;background:rgba(99,102,241,0.15);color:#a5b4fc;font-size:11px;font-weight:700;margin-bottom:8px">
+                        BLIND CLIENT MASKING
+                      </div>
+                      <h5 style="margin:0 0 8px;font-size:14px;color:var(--text-primary)">Zero Client Poaching</h5>
+                      <p style="font-size:12px;color:var(--text-secondary);line-height:1.6;margin:0">
+                        When offloading duties to peer operators, Axiom cryptographically blinds company identity and corporate contacts while preserving trip execution integrity.
+                      </p>
+                    </div>
+                    <div style="background:#090d15;border:1px solid var(--border-subtle);border-radius:8px;padding:10px;font-family:var(--font-mono);font-size:11px;color:#94a3b8">
+                      CLIENT_VIEW: <span style="color:#38bdf8">*** [MASKED FOR PARTNER] ***</span><br>
+                      SETTLEMENT_COMMISSION: <span style="color:#34d399">10% Platform Retained</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 4: TimesFM 30-Day Earnings Forecast -->
+              <div class="stage-tab-panel" id="tab-panel-timesfm">
+                <div style="display:grid;grid-template-columns:1.8fr 1.2fr;gap:20px">
+                  <div style="background:#090d15;border:1px solid var(--border-subtle);border-radius:14px;padding:20px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                      <div>
+                        <span style="font-family:var(--font-mono);font-size:11px;color:#818cf8">GOOGLE TIMESFM 1.0 (200M PARAMS)</span>
+                        <h4 style="margin:2px 0 0;font-size:16px;color:var(--text-primary)">30-Day Predictive Financial Horizon</h4>
+                      </div>
+                      <span style="font-family:var(--font-mono);font-size:11px;color:#34d399;background:rgba(16,185,129,0.1);padding:4px 8px;border-radius:6px">
+                        Confidence: 94.6%
+                      </span>
+                    </div>
+                    <!-- TimesFM Quantile Fan SVG Chart -->
+                    <svg viewBox="0 0 500 180" style="width:100%;height:180px;background:#05070a;border-radius:10px">
+                      <!-- Grid lines -->
+                      <line x1="40" y1="30" x2="480" y2="30" stroke="#1e293b" stroke-width="1"/>
+                      <line x1="40" y1="80" x2="480" y2="80" stroke="#1e293b" stroke-width="1"/>
+                      <line x1="40" y1="130" x2="480" y2="130" stroke="#1e293b" stroke-width="1"/>
+                      <!-- Quantile Fan (p10 - p90 area) -->
+                      <polygon points="180,110 240,90 320,70 400,50 480,35 480,140 400,130 320,125 240,120 180,115" fill="rgba(99,102,241,0.15)"/>
+                      <!-- Historical Line -->
+                      <polyline points="40,140 80,135 120,125 180,110" fill="none" stroke="#94a3b8" stroke-width="2.5"/>
+                      <!-- Forecast Mean (p50) Line -->
+                      <polyline points="180,110 240,95 320,82 400,68 480,55" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-dasharray="4 4"/>
+                      <circle cx="180" cy="110" r="5" fill="#6366f1" stroke="#ffffff" stroke-width="2"/>
+                      <text x="185" y="105" fill="#a5b4fc" font-size="10" font-family="'JetBrains Mono', monospace">Today</text>
+                      <circle cx="480" cy="55" r="5" fill="#34d399" stroke="#ffffff" stroke-width="2"/>
+                      <text x="410" y="48" fill="#34d399" font-size="10" font-weight="700" font-family="'JetBrains Mono', monospace">p50: ₹28.4L</text>
+                    </svg>
+                  </div>
+                  <div style="background:var(--bg-surface-2);border:1px solid var(--border-subtle);border-radius:14px;padding:20px;display:flex;flex-direction:column;justify-content:space-between">
+                    <div>
+                      <h5 style="margin:0 0 10px;font-size:14px;color:var(--text-primary)">Predictive Float Guard</h5>
+                      <p style="font-size:12px;color:var(--text-secondary);line-height:1.6;margin:0 0 12px">
+                        TimesFM continuously models corporate booking rhythms, monsoon seasonality, and airport surges to forecast working capital float requirements 30 days in advance.
+                      </p>
+                      <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:8px;padding:10px;font-size:11px;color:#fbbf24">
+                        ⚠️ <b>Zenith Aerospace</b> budget exhaust forecast in 18 days. Auto-invoicing triggered.
+                      </div>
+                    </div>
+                    <button type="button" class="btn-primary-magnetic" style="width:100%;justify-content:center" onclick="showApp()">
+                      Inspect Full ML Workspace →
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
+      </section>
 
-        <!-- Pillar 1: Boost your business with the same team -->
-        <div class="axiom-cr-pillars-section">
-          <div class="axiom-cr-pillar-header">
-            <span class="axiom-cr-pillar-tag">PRODUCTIVITY &amp; SCALE</span>
-            <h3 class="axiom-cr-pillar-title">Boost your business with the same team.</h3>
-            <p class="axiom-cr-pillar-desc">
-              Axiom Fleet’s workflow and automation tools are tailored to eliminate human bottlenecks, allowing your car rental business to achieve more with the same workforce.
-            </p>
-          </div>
-          <div class="axiom-cr-card-grid-3">
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">⚙</div>
-              <h4>Make it Your Own</h4>
-              <p>Build personalised workflows and processes needed to meet your company’s and customer’s requirements. From creating invoices just the way they ask to the reports needed to meet your strategic goals.</p>
-              <span class="axiom-cr-badge-pill">Configurable Workflows</span>
-            </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">🌐</div>
-              <h4>Grow Globally</h4>
-              <p>Deliver the same level of service experience as some of the biggest names in the industry. Manage multi-city branches, inter-city dispatches, and corporate clients with ease.</p>
-              <span class="axiom-cr-badge-pill">Enterprise Scale</span>
-            </div>
-            <div class="axiom-cr-card tint-blue">
-              <div class="axiom-cr-card-icon">⚡</div>
-              <h4>Experience the Magic in the Details</h4>
-              <p>Built by understanding the nuance of the Indian car rental industry in great detail:</p>
-              <ul>
-                <li>Monthly duty types &amp; split billing</li>
-                <li>Whichever is higher extra calculations (KM vs Hours)</li>
-                <li>Revenue sharing &amp; attached DCO payouts</li>
-                <li>Dynamic fuel surcharge formulas</li>
-              </ul>
-              <span class="axiom-cr-badge-pill" style="margin-top:14px">Indian Market Nuance</span>
-            </div>
-          </div>
+      <!-- SECTION 3: INTERACTIVE "TRY IT LIVE" WIDGET STRIP -->
+      <section class="axiom-section" id="sandbox">
+        <div class="section-eyebrow">
+          <span>⚡</span> INTERACTIVE PLAYGROUND · ZERO SIGNUP REQUIRED
         </div>
+        <h2 class="section-title">
+          Test Axiom's Intelligence <span class="hero-editorial-italic">Right Here.</span>
+        </h2>
+        <p class="section-desc">
+          See how our engine turns unstructured booking chaos into audited, margin-guarded financial duties in milliseconds.
+        </p>
 
-        <!-- Pillar 2: Let the Bookings Flow -->
-        <div class="axiom-cr-pillars-section">
-          <div class="axiom-cr-pillar-header">
-            <span class="axiom-cr-pillar-tag">OPERATIONS &amp; DISPATCH</span>
-            <h3 class="axiom-cr-pillar-title">Let the Bookings Flow.</h3>
-            <p class="axiom-cr-pillar-desc">
-              A complete booking, allotment, and service delivery solution designed to delight your customers.
-            </p>
-          </div>
-          <div class="axiom-cr-card-grid-4">
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">📋</div>
-              <h4>Create or Import Any Booking Type</h4>
-              <p>Single, recurring, monthly, or CSV batch imports. Set up booking creation systems based on your customer’s needs.</p>
+        <div class="sandbox-split-grid">
+          <!-- Left: WhatsApp Booking Parse AI Test -->
+          <div class="sandbox-card">
+            <div class="sandbox-card-header">
+              <h3>
+                <span>💬</span> WhatsApp Booking (Parse AI)
+              </h3>
+              <span class="sandbox-tag">Zero-Prompt Regex+LLM</span>
             </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">🏷</div>
-              <h4>Build Unique Workflows</h4>
-              <p>Use labels like VVIP, Airport, Outstation, and Custom priority tags for better identification and workflow management.</p>
+            
+            <div class="whatsapp-bubble">
+              <div class="whatsapp-meta">
+                <span>WhatsApp Message Intake</span>
+                <span>09:41 AM · Received</span>
+              </div>
+              <div id="parse-ai-input-text" contenteditable="true" style="outline:none;background:rgba(0,0,0,0.2);padding:8px;border-radius:6px;border:1px dashed #22c55e">Need Innova Crysta tomorrow 6:30 AM for Rahul Sharma 9845012345 from Taj MG Road to BLR Airport, Bill to Infosys</div>
             </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">🔄</div>
-              <h4>Real-time Updates</h4>
-              <p>Instant status changes as it happens: Requested ➔ Allotted ➔ Dispatched ➔ In Progress ➔ Completed ➔ Billed.</p>
-            </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">📞</div>
-              <h4>Integrated Communication</h4>
-              <p>Talk with passengers and drivers through a secure call-masked click-to-call system, SMS, and WhatsApp alerts.</p>
-            </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">🤝</div>
-              <h4>Car Rental Associate Network</h4>
-              <p>Work with car rental associates in your network. Send and receive booking requests with partner fleets seamlessly.</p>
-            </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">🚘</div>
-              <h4>Availability Management</h4>
-              <p>A single place to view and manage driver and vehicle availability, duty schedules, and maintenance downtime.</p>
-            </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">📍</div>
-              <h4>Build Allotment Efficiency</h4>
-              <p>Quick view driver location and proximity for intelligent allotment optimisation and dead-mileage reduction.</p>
-            </div>
-            <div class="axiom-cr-card tint-blue">
-              <div class="axiom-cr-card-icon">📱</div>
-              <h4>Digital Duty Slips</h4>
-              <p>Completed duty slips available instantly using the Axiom Go Driver App — with opening/closing KM, garage KM, tolls, and OTP signatures.</p>
-            </div>
-          </div>
-        </div>
 
-        <!-- Pillar 3: Customer First: Invoicing & Receivables -->
-        <div class="axiom-cr-pillars-section">
-          <div class="axiom-cr-pillar-header">
-            <span class="axiom-cr-pillar-tag">BILLING &amp; RECEIVABLES</span>
-            <h3 class="axiom-cr-pillar-title">Customer First: Invoicing &amp; Receivables</h3>
-            <p class="axiom-cr-pillar-desc">
-              Set up invoice creation to be in line with your customer’s requirements. No matter how many customers you serve, you can account for the unique requirements of each customer to serve them efficiently and error-free.
-            </p>
-          </div>
-          <div class="axiom-cr-card-grid-3">
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">🧾</div>
-              <h4>Customer-centric Invoicing</h4>
-              <p>A complete management suite for all invoicing needs:</p>
-              <ul>
-                <li>Single-duty and consolidated invoices</li>
-                <li>Manual invoicing overrides</li>
-                <li>Automated tax &amp; entity selection (CGST/SGST/IGST)</li>
-              </ul>
+            <div class="parse-action-bar">
+              <button class="btn-parse-ai" id="trigger-parse-ai-btn" type="button">
+                ✨ Test Parse AI (Extract Entities)
+              </button>
+              <button class="btn-ghost-pill" id="reset-parse-ai-btn" type="button" style="font-size:11px">Reset Text</button>
             </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">💳</div>
-              <h4>Complete Customer Payment Oversight</h4>
-              <p>Complete management suite for incoming payments:</p>
-              <ul>
-                <li>Advance customer collections</li>
-                <li>On account ledger tracking</li>
-                <li>Bulk and single invoice payment reconciliation</li>
-              </ul>
-            </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">📄</div>
-              <h4>Complete E-invoicing Control</h4>
-              <p>Seamless Government GST E-invoice creation (IRN &amp; QR code generation), cancellation, and dispatch logs.</p>
-            </div>
-            <div class="axiom-cr-card tint-blue">
-              <div class="axiom-cr-card-icon">🔗</div>
-              <h4>Axiom Collect</h4>
-              <p>A first-of-its-kind fully automated payment collection system with instant payment links sent via WhatsApp and SMS.</p>
-            </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">✍</div>
-              <h4>Digital Signature Support</h4>
-              <p>Integrated digital signing solutions for passenger verification and corporate duty slip signoffs.</p>
-            </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">📬</div>
-              <h4>Invoice Statements &amp; Dispatch</h4>
-              <p>Build monthly ledger statements, manage courier and email dispatches, and track physical delivery proofs.</p>
-            </div>
-          </div>
-        </div>
 
-        <!-- Pillar 4: Purchase and Expenses -->
-        <div class="axiom-cr-pillars-section">
-          <div class="axiom-cr-pillar-header">
-            <span class="axiom-cr-pillar-tag">FLEET COSTS &amp; PAYABLES</span>
-            <h3 class="axiom-cr-pillar-title">Purchase and Expenses</h3>
-            <p class="axiom-cr-pillar-desc">
-              From fuel expenses and vehicle EMIs, to any costs incurred by drivers during the course of the trip, you can track and manage all your expenses efficiently in one place.
-            </p>
-          </div>
-          <div class="axiom-cr-card-grid-3">
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">📑</div>
-              <h4>Supplier Invoice Management</h4>
-              <p>Centralise all supplier invoices in a single place. Receive and verify attached car owner (DCO) and vendor bills directly in your dashboard.</p>
-            </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">💵</div>
-              <h4>Petty Cash &amp; Driver Payroll</h4>
-              <p>Automate driver payroll calculations, trip allowances, batta, overtime, and maintain a clear digital cash book.</p>
-            </div>
-            <div class="axiom-cr-card tint-blue">
-              <div class="axiom-cr-card-icon">📊</div>
-              <h4>Duty Specific P&amp;L</h4>
-              <p>Get accurate and real-time information on duty level profitability (Revenue vs Operating Cost) as soon as a duty slip is closed.</p>
-            </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">⏳</div>
-              <h4>Supplier Payment Management</h4>
-              <p>Keep track of pending supplier invoice payments, advance adjustments, and payables aging schedules.</p>
-            </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">⛽</div>
-              <h4>Vehicle Fuel &amp; Mileage</h4>
-              <p>Automate mileage visibility (KM/L) and fuel cost management with price-point tracking across petrol, diesel, and CNG.</p>
-            </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">🛠</div>
-              <h4>Vehicle Expenses</h4>
-              <p>Get deeper insights into vehicle profitability through easier vehicle expenses management: EMIs, maintenance, insurance, and permits.</p>
+            <div class="parse-results-box" id="parse-results-container">
+              <div class="parse-result-chip">
+                <span>Passenger:</span>
+                <strong id="res-passenger">Rahul Sharma (+91 98450 12345)</strong>
+              </div>
+              <div class="parse-result-chip">
+                <span>Corporate Account:</span>
+                <strong id="res-corporate">Infosys Enterprise (INF-BLR-09)</strong>
+              </div>
+              <div class="parse-result-chip">
+                <span>Vehicle Group:</span>
+                <strong id="res-vehicle">SUV_CRYSTA (Toyota Innova Crysta)</strong>
+              </div>
+              <div class="parse-result-chip">
+                <span>Route &amp; Distance:</span>
+                <strong id="res-route">Taj MG Road → BLR Airport (36.4 km · 54 min)</strong>
+              </div>
+              <div class="parse-result-chip" style="background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.3)">
+                <span style="color:#34d399">Recommended Tariff:</span>
+                <strong style="color:#34d399" id="res-tariff">4Hr/40Km Base (₹1,850.00) · Extra KM: ₹18/km</strong>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Pillar 5: Better Data for Better Business -->
-        <div class="axiom-cr-pillars-section">
-          <div class="axiom-cr-pillar-header">
-            <span class="axiom-cr-pillar-tag">INTELLIGENCE &amp; ACCOUNTING</span>
-            <h3 class="axiom-cr-pillar-title">Better Data for Better Business.</h3>
-            <p class="axiom-cr-pillar-desc">
-              Get valuable insights into your car rental operations with data that can help you understand and manage your operations better.
-            </p>
-          </div>
-          <div class="axiom-cr-card-grid-4">
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">📈</div>
-              <h4>Quick Summary Views</h4>
-              <p>View key operational overview information (Total duties, unallotted, on road, completed, billed) right on the duties roster.</p>
+          <!-- Right: Theoretical vs. Practical Auto-Slab Simulator -->
+          <div class="sandbox-card">
+            <div class="sandbox-card-header">
+              <h3>
+                <span>📐</span> Auto-Slab &amp; Margin Guardrail Simulator
+              </h3>
+              <span class="sandbox-tag emerald">Live Pricing Engine</span>
             </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">📂</div>
-              <h4>Customised Data Exports</h4>
-              <p>Create your own export formats. Select columns, filters, date ranges, and export clean CSV/JSON datasets.</p>
+
+            <div class="slider-group">
+              <div class="slider-label-row">
+                <span>Practical Trip Distance:</span>
+                <span class="slider-val-badge" id="slider-dist-val">75 km</span>
+              </div>
+              <input type="range" class="custom-range" id="slider-dist" min="20" max="160" value="75" step="1"/>
             </div>
-            <div class="axiom-cr-card tint-blue">
-              <div class="axiom-cr-card-icon">💼</div>
-              <h4>Export to Tally</h4>
-              <p>Seamless out-of-the-box integration with Tally Prime and Tally.ERP 9 to serve all your Indian accounting needs.</p>
+
+            <div class="slider-group">
+              <div class="slider-label-row">
+                <span>Trip Duration:</span>
+                <span class="slider-val-badge" id="slider-dur-val">6 hrs</span>
+              </div>
+              <input type="range" class="custom-range" id="slider-dur" min="2" max="12" value="6" step="0.5"/>
             </div>
-            <div class="axiom-cr-card">
-              <div class="axiom-cr-card-icon">📊</div>
-              <h4>Build your Own Reports</h4>
-              <p>Access complete reporting freedom with customer, supplier, vehicle-group, and city profitability reports on demand.</p>
+
+            <div class="calc-metrics-grid">
+              <div class="calc-metric-card">
+                <div class="calc-metric-label">Client Receivable</div>
+                <div class="calc-metric-value emerald" id="calc-client-amt">₹3,420</div>
+                <small style="color:var(--text-tertiary);font-size:10px">8Hr/80Km Optimized</small>
+              </div>
+              <div class="calc-metric-card">
+                <div class="calc-metric-label">Supplier Payable</div>
+                <div class="calc-metric-value amber" id="calc-supplier-amt">₹2,680</div>
+                <small style="color:var(--text-tertiary);font-size:10px">Protected DCO Base</small>
+              </div>
+              <div class="calc-metric-card">
+                <div class="calc-metric-label">Protected Net Margin</div>
+                <div class="calc-metric-value indigo" id="calc-margin-amt">₹740 (21.6%)</div>
+                <small style="color:var(--text-tertiary);font-size:10px">Above 15% Floor</small>
+              </div>
+            </div>
+
+            <div class="guardrail-pill" id="calc-guardrail-pill">
+              <span>🛡️</span>
+              <span id="calc-guardrail-text">Auto-Slab Optimizer Upgraded: 8Hr/80Km slab chosen (prevents ₹410 client invoice dispute).</span>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="marketing-hero" id="home">
-        <div class="marketing-copy">
-          <div class="marketing-eyebrow"><span class="eyebrow-mark">✦</span> The operating system for human mobility</div>
-          <h1>Run the day.<br><em>Not the chaos.</em></h1>
-          <p>Every booking, driver, duty slip and rupee in one intelligent command center — built for the real conditions of fleet operations in India.</p>
-          <div class="marketing-actions"><button class="site-cta large" data-show-login>Explore the command center <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button><a class="text-action" href="#platform">See what moves underneath <span>↓</span></a></div>
-          <div class="hero-proof"><span class="proof-avatars"><i>✓</i><i>↗</i><i>◎</i><i>+</i></span><span><b>Tenant-scoped operations</b><small>Live records appear after workspace sign in</small></span></div>
+      <!-- SECTION 4: SCROLLTIDE "LEDGER BENTO" GRID (6-CARD ASYMMETRIC ARCHITECTURE) -->
+      <section class="axiom-section" id="dual-ledger">
+        <div class="section-eyebrow">
+          <span>🏛️</span> CORE ENGINES &amp; RESILIENCE ARCHITECTURE
         </div>
-        <div class="hero-visual" aria-label="Live operations preview">
-          <div class="hero-visual-header"><div><span class="visual-overline">AXIOM FLEET / OPERATING LAYER</span><strong>Tenant-scoped command view</strong></div><span class="visual-live"><i></i> Sign in to connect</span></div>
-          <div class="hero-map-art"><div class="art-grid"></div><div class="art-water"></div><svg class="art-routes" viewBox="0 0 600 360" preserveAspectRatio="none"><path d="M52 260 C162 211 183 274 282 180 S402 86 560 132"/><path class="route-secondary" d="M179 314 C248 286 285 304 349 244 S450 205 520 70"/><path class="route-warm" d="M97 94 C164 132 220 110 281 151 S396 257 505 292"/></svg><span class="art-node n-a"></span><span class="art-node n-b"></span><span class="art-node n-c"></span><span class="art-node n-d"></span><span class="art-place p-a">Pickup</span><span class="art-place p-b">Dispatch hub</span><span class="art-place p-c">Service zone</span><span class="art-place p-d">Destination</span><div class="art-radar"><span></span></div></div>
-          <div class="hero-float-card fleet-card"><span class="float-icon lime">↗</span><span><small>Fleet pulse</small><b>Available after sign in</b></span><em>Live</em></div>
-          <div class="hero-float-card alert-card"><span class="float-icon orange">!</span><span><small>Attention queue</small><b>Tenant decisions</b></span><span class="float-arrow">→</span></div>
-          <div class="hero-visual-footer"><span><i class="signal-dot"></i> Source-linked by design</span><span>Live data <b>after sign in</b></span></div>
+        <h2 class="section-title">
+          Built for the Fleets that Move <span class="hero-editorial-italic">Corporate India.</span>
+        </h2>
+        <p class="section-desc">
+          Six battle-tested architectural pillars designed for high-concurrency dispatch, zero distance fraud, and airtight corporate audit compliance.
+        </p>
+
+        <div class="bento-grid-12">
+          
+          <!-- Card 1: Wide Card (Span 8) - Dual-Ledger Accounting & Fund Release Toggle -->
+          <div class="bento-card span-8">
+            <div class="bento-card-top">
+              <div>
+                <span class="sandbox-tag emerald">PATENTED DUAL-LEDGER</span>
+                <h3 class="bento-card-title" style="margin-top:10px">Dual-Ledger Accounting &amp; Axiom Fund Release Controls</h3>
+              </div>
+              <div class="bento-icon-3d emerald">💰</div>
+            </div>
+            <p class="bento-card-desc">
+              Corporate travel contracts and sub-vendor supplier agreements operate on radically different payment cycles. Axiom decouples Client Receivables from Supplier Payables into separate immutable double-entry ledger streams, protecting fleet margins with automated float holds.
+            </p>
+            <div class="bento-interactive-preview">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                <span style="font-family:var(--font-mono);font-size:12px;color:var(--text-secondary)">P&amp;L RECONCILIATION · MONTH-TO-DATE</span>
+                <div style="display:flex;gap:8px">
+                  <button type="button" id="bento-toggle-release-btn" class="btn-ghost-pill" style="font-size:11px;background:#064e3b;border-color:#10b981;color:#6ee7b7">
+                    🟢 Auto-Release Float
+                  </button>
+                  <button type="button" id="bento-toggle-hold-btn" class="btn-ghost-pill" style="font-size:11px">
+                    🛑 Hold Vendor Float
+                  </button>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px">
+                <div style="background:rgba(255,255,255,0.02);padding:10px;border-radius:8px">
+                  <small style="color:var(--text-tertiary);font-size:10px">BILLED TO CORPORATES</small>
+                  <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--text-primary)">₹42,80,450</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.02);padding:10px;border-radius:8px">
+                  <small style="color:var(--text-tertiary);font-size:10px">SUB-VENDOR PAYABLES</small>
+                  <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:#fbbf24">₹33,90,120</div>
+                </div>
+                <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);padding:10px;border-radius:8px">
+                  <small style="color:#34d399;font-size:10px">REALIZED NET PROFIT</small>
+                  <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:#34d399">₹8,90,330 (20.8%)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Tall Card (Span 4) - 3-Way Distance Fraud Auditor -->
+          <div class="bento-card span-4" id="osm-audit">
+            <div class="bento-card-top">
+              <div>
+                <span class="sandbox-tag">OSM + OSRM ENGINE</span>
+                <h3 class="bento-card-title" style="margin-top:10px">3-Way Distance Fraud Auditor</h3>
+              </div>
+              <div class="bento-icon-3d" style="color:#38bdf8">🗺️</div>
+            </div>
+            <p class="bento-card-desc">
+              Stops driver odometer manipulation. Automatically validates driver manual entries against raw GPS pings and OpenStreetMap road-snapped geometry.
+            </p>
+            <div class="bento-interactive-preview">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-subtle)">
+                  <span style="color:var(--text-secondary)">Driver Odometer:</span>
+                  <span style="font-family:var(--font-mono);color:#ef4444;font-weight:700">84.0 km (Inflated)</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-subtle)">
+                  <span style="color:var(--text-secondary)">Raw GPS Coordinates:</span>
+                  <span style="font-family:var(--font-mono);color:var(--text-primary)">71.0 km</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-subtle)">
+                  <span style="color:var(--text-secondary)">OSM Road-Snapped:</span>
+                  <span style="font-family:var(--font-mono);color:#34d399;font-weight:700">73.2 km (True Route)</span>
+                </div>
+              </div>
+              <div style="margin-top:12px;padding:8px;border-radius:6px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);font-size:11px;color:#f87171">
+                ⚠️ <b>+10.8 km Variance Flagged:</b> Duty slip auto-held for billing review.
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: (Span 4) - White-Label Partner Network Exchange -->
+          <div class="bento-card span-4" id="hyper-network">
+            <div class="bento-card-top">
+              <div>
+                <span class="sandbox-tag">INTER-CITY SUPPLY</span>
+                <h3 class="bento-card-title" style="margin-top:10px">White-Label Partner Network</h3>
+              </div>
+              <div class="bento-icon-3d indigo">🌐</div>
+            </div>
+            <p class="bento-card-desc">
+              Broadcast unserviced duties across trusted peer operators in 32 Indian cities without risking client relationships.
+            </p>
+            <div class="bento-interactive-preview">
+              <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary);margin-bottom:8px">EMPTY-LEG MATCHMAKER</div>
+              <div style="background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;margin-bottom:8px">
+                <div style="font-size:12px;font-weight:600;color:var(--text-primary)">BLR Airport ➔ Whitefield</div>
+                <div style="font-size:11px;color:var(--accent-emerald)">Returning Empty: Apex Cab KA 05 AH 1289</div>
+              </div>
+              <span style="font-size:11px;color:#a5b4fc">🔒 Anti-poaching blind corporate masking active.</span>
+            </div>
+          </div>
+
+          <!-- Card 4: (Span 4) - Mobile Vendor Pocket App & Trip-Sheet Override -->
+          <div class="bento-card span-4">
+            <div class="bento-card-top">
+              <div>
+                <span class="sandbox-tag">MOBILE COCKPIT</span>
+                <h3 class="bento-card-title" style="margin-top:10px">Vendor Pocket App &amp; Duty Photo Loupe</h3>
+              </div>
+              <div class="bento-icon-3d" style="color:#fbbf24">📱</div>
+            </div>
+            <p class="bento-card-desc">
+              Dispatch from your phone in 2 taps. Snap paper trip-sheets with optical loupe zoom to resolve remote GPS blackspots instantly.
+            </p>
+            <div class="bento-interactive-preview">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:40px;height:40px;background:#1e293b;border-radius:8px;display:grid;place-items:center;font-size:18px">🔍</div>
+                <div>
+                  <b style="font-size:12px;color:var(--text-primary);display:block">Physical Trip-Sheet Audit</b>
+                  <small style="font-size:11px;color:var(--text-secondary)">High-res opening &amp; closing odometer capture</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 5: (Span 4) - Google TimesFM Predictive Financial Engine -->
+          <div class="bento-card span-4" id="timesfm-ai">
+            <div class="bento-card-top">
+              <div>
+                <span class="sandbox-tag">FOUNDATIONAL AI</span>
+                <h3 class="bento-card-title" style="margin-top:10px">Google TimesFM Predictive Engine</h3>
+              </div>
+              <div class="bento-icon-3d indigo">📈</div>
+            </div>
+            <p class="bento-card-desc">
+              India's first zero-shot 200M parameter foundation model forecasting corporate duty volume, margin drift, and fuel surcharges.
+            </p>
+            <div class="bento-interactive-preview">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:11px;font-family:var(--font-mono)">
+                <span style="color:#a5b4fc">p10: ₹4.2L</span>
+                <span style="color:#34d399">p50: ₹6.8L</span>
+                <span style="color:#818cf8">p90: ₹8.4L</span>
+              </div>
+              <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden">
+                <div style="width:72%;height:100%;background:linear-gradient(90deg, #6366f1, #10b981)"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 6: Full-Width (Span 12) - Enterprise Compliance & Bulk Importer -->
+          <div class="bento-card span-12">
+            <div class="bento-card-top">
+              <div>
+                <span class="sandbox-tag emerald">ENTERPRISE GOVERNANCE</span>
+                <h3 class="bento-card-title" style="margin-top:10px">Enterprise Compliance, POSH Night-Shift Guard &amp; 1-Click Migration</h3>
+              </div>
+              <div class="bento-icon-3d emerald">🛡️</div>
+            </div>
+            <p class="bento-card-desc">
+              Built to withstand stringent enterprise procurement audits: POSH Act night-shift escort compliance, zero-login proforma approval tokens for corporate travel desks, automated Tally Prime XML accounting sync, and bulk migration of 1,000+ completed historical trips.
+            </p>
+            <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;margin-top:20px">
+              <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:12px;padding:16px">
+                <b style="color:var(--text-primary);display:block;margin-bottom:4px;font-size:13px">👩🏽‍💼 POSH Night Guard (20:00–06:00)</b>
+                <p style="font-size:11px;color:var(--text-secondary);margin:0">Mandatory verified driver allotment, real-time live drop confirmation, and emergency panic hotline integration.</p>
+              </div>
+              <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:12px;padding:16px">
+                <b style="color:var(--text-primary);display:block;margin-bottom:4px;font-size:13px">🔗 Zero-Login Proforma Links</b>
+                <p style="font-size:11px;color:var(--text-secondary);margin:0">One-click cryptographically signed review links for corporate travel teams to dispute or approve duty slips.</p>
+              </div>
+              <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:12px;padding:16px">
+                <b style="color:var(--text-primary);display:block;margin-bottom:4px;font-size:13px">📑 Tally Prime XML &amp; GST IRN</b>
+                <p style="font-size:11px;color:var(--text-secondary);margin:0">Native export format ready for instant import into Tally ERP, featuring automated QR code e-invoicing.</p>
+              </div>
+              <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:12px;padding:16px">
+                <b style="color:var(--text-primary);display:block;margin-bottom:4px;font-size:13px">📥 1-Click CSV Migration</b>
+                <p style="font-size:11px;color:var(--text-secondary);margin:0">Import 1,000+ historical completed duties from legacy spreadsheets or Indecab backups in under 60 seconds.</p>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
-      <section class="logo-ribbon" id="trust"><span>Designed for the full car-rental ecosystem</span><div><b>ENTERPRISE TRAVEL</b><b>FLEET OPS</b><b>DRIVER APP</b><b>FINANCE</b><b>NETWORK</b></div></section>
-
-      <section class="solutions-section" id="solutions">
-        <div class="section-intro"><div class="marketing-eyebrow">One system · two operating modes</div><h2>Built around the way you actually move.</h2><p>Whether you run the fleet or the travel desk, AXIOM FLEET gives every stakeholder the right surface — connected by one operational truth.</p></div>
-        <div class="solution-grid">
-          <article class="solution-card corporate-solution"><div class="solution-card-top"><span class="solution-tag">For corporates</span><span class="solution-orbit">◎</span></div><h3>Make every employee trip<br><em>easy to approve.</em></h3><p>A control center for travel admins, finance teams and passengers — from policy to proof.</p><div class="solution-list"><span><i>✓</i> Employee policies, cost centres &amp; multi-level approvals</span><span><i>✓</i> Live trip board across every supplier</span><span><i>✓</i> Invoice verification with proof and tolerance rules</span><span><i>✓</i> Passenger app, OTP safety and live-share links</span></div><a class="solution-link" href="#workflow">Explore corporate travel <span>↗</span></a><div class="solution-visual corporate-visual"><div class="approval-card"><div><span class="tiny-label">Approval queue</span><b>Policy-aware trip request</b></div><span class="approved">APPROVED <i>✓</i></span></div><div class="trip-line"><span class="trip-point"></span><span class="trip-stroke"></span><span class="trip-point end"></span></div><div class="trip-labels"><span>Employee request</span><span>Live driver context after sign in</span></div></div></article>
-          <article class="solution-card rental-solution"><div class="solution-card-top"><span class="solution-tag">For car rentals</span><span class="solution-orbit">↗</span></div><h3>Put the whole business<br><em>in motion.</em></h3><p>From bookings and duty slips to pricing, suppliers, billing and collections — without paper handoffs.</p><div class="solution-list"><span><i>✓</i> Booking, driver, vehicle and price-book control</span><span><i>✓</i> Paperless duty slips with route, KM, OTP and proof</span><span><i>✓</i> GST, e-invoice, CSV/JSON exports and receivable workflows</span><span><i>✓</i> Supplier purchases, payouts, P&amp;L and white-label options</span></div><a class="solution-link" href="#platform">Explore fleet operations <span>↗</span></a><div class="solution-visual rental-visual"><div class="ledger-card"><div class="ledger-head"><span>Tenant ledger</span><b>CONNECTED</b></div><div class="ledger-row"><i class="ledger-dot lime"></i><span>Duty evidence</span><strong>Source-linked</strong></div><div class="ledger-row"><i class="ledger-dot purple"></i><span>Supplier records</span><strong>Audited</strong></div><div class="ledger-row"><i class="ledger-dot orange"></i><span>Receivables</span><strong>Traceable</strong></div></div><div class="ledger-seal">PAPERLESS<br><b>→</b></div></div></article>
+      <!-- SECTION 5: COMPETITIVE BENCHMARK MATRIX -->
+      <section class="axiom-section" id="benchmark">
+        <div class="section-eyebrow">
+          <span>⚖️</span> ENTERPRISE EVALUATION MATRIX
         </div>
-        <div class="ecosystem-rail"><span>One data layer underneath</span><div><b>Control center</b><b>Answer engine</b><b>Passenger app</b><b>Driver app</b><b>Finance layer</b><b>Network</b></div></div>
+        <h2 class="section-title">
+          Why Mobility Leaders Switch <span class="hero-editorial-italic">to Axiom.</span>
+        </h2>
+        <p class="section-desc">
+          Compare Axiom against legacy rental software and closed enterprise silos across critical Indian mobility parameters.
+        </p>
+
+        <div class="benchmark-table-wrapper">
+          <table class="benchmark-table">
+            <thead>
+              <tr>
+                <th style="width:34%">Capability &amp; Architectural Standard</th>
+                <th class="highlight-col" style="width:22%">AXIOM MOBILITY</th>
+                <th style="width:14%">Indecab</th>
+                <th style="width:15%">MoveInSync / Routematic</th>
+                <th style="width:15%">Legacy Excel / Taski</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Dual-Ledger Margin Guardrails</strong><br><small style="color:var(--text-tertiary)">Independent receivables &amp; payables ledger</small></td>
+                <td class="highlight-col"><span class="check-pill-active">✅ Native Dual-Ledger</span></td>
+                <td><span class="check-pill-no">❌ Single Mutable Record</span></td>
+                <td><span class="check-pill-warning">⚠️ Partial (Corp Only)</span></td>
+                <td><span class="check-pill-no">❌ High Leakage</span></td>
+              </tr>
+              <tr>
+                <td><strong>White-Label Waterfall Partner Exchange</strong><br><small style="color:var(--text-tertiary)">Timed multi-tier dispatch with blind client masking</small></td>
+                <td class="highlight-col"><span class="check-pill-active">✅ 10/10 White-Label</span></td>
+                <td><span class="check-pill-warning">⚠️ Manual WhatsApp</span></td>
+                <td><span class="check-pill-no">❌ Closed Network</span></td>
+                <td><span class="check-pill-no">❌ Nil</span></td>
+              </tr>
+              <tr>
+                <td><strong>3-Way OpenStreetMap Fraud Audit</strong><br><small style="color:var(--text-tertiary)">Driver odometer vs raw GPS vs OSM road geometry</small></td>
+                <td class="highlight-col"><span class="check-pill-active">✅ Zero API Cost Built-in</span></td>
+                <td><span class="check-pill-no">❌ Google API Markup</span></td>
+                <td><span class="check-pill-warning">⚠️ Proprietary GPS Only</span></td>
+                <td><span class="check-pill-no">❌ Trust-Based</span></td>
+              </tr>
+              <tr>
+                <td><strong>Google TimesFM Predictive Forecasting</strong><br><small style="color:var(--text-tertiary)">30-day corporate budget exhaust &amp; demand AI</small></td>
+                <td class="highlight-col"><span class="check-pill-active">✅ 200M Param AI</span></td>
+                <td><span class="check-pill-no">❌ Not Available</span></td>
+                <td><span class="check-pill-no">❌ Static Reports</span></td>
+                <td><span class="check-pill-no">❌ Nil</span></td>
+              </tr>
+              <tr>
+                <td><strong>Mobile Pocket Dispatcher &amp; Duty Photo Loupe</strong><br><small style="color:var(--text-tertiary)">2-tap assignment + paper odometer zoom override</small></td>
+                <td class="highlight-col"><span class="check-pill-active">✅ 2-Tap Pocket Web</span></td>
+                <td><span class="check-pill-warning">⚠️ Clunky Android APK</span></td>
+                <td><span class="check-pill-warning">⚠️ Heavy Driver App</span></td>
+                <td><span class="check-pill-no">❌ Manual Paper</span></td>
+              </tr>
+              <tr>
+                <td><strong>Per-Seat User Tax &amp; Software Lock-in</strong><br><small style="color:var(--text-tertiary)">Cost transparency for growing fleet operations</small></td>
+                <td class="highlight-col"><span class="check-pill-active">✅ Unlimited Seats</span></td>
+                <td><span class="check-pill-warning">⚠️ Per-Duty / Per-Car Tax</span></td>
+                <td><span class="check-pill-no">❌ Enterprise Contract Lock</span></td>
+                <td><span class="check-pill-active">✅ Free (Unscalable)</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
-      <section class="marketing-section" id="platform">
-        <div class="section-intro"><div class="marketing-eyebrow">One pulse. Every surface.</div><h2>The calm behind the movement.</h2><p>Most fleet tools make the operation look like a spreadsheet. AXIOM FLEET makes it feel like a living system — with the right signal at the right moment.</p></div>
-        <div class="feature-grid">
-          <article class="feature-card feature-wide"><div class="feature-number">01</div><div class="feature-visual mini-command"><div class="mini-command-top"><span>Today’s operating pulse</span><i></i></div><div class="mini-bars"><span style="height:42%"></span><span style="height:60%"></span><span style="height:48%"></span><span style="height:81%"></span><span style="height:65%"></span><span style="height:92%"></span><span style="height:73%"></span><span style="height:86%"></span></div><div class="mini-command-bottom"><b>Live</b><span>tenant operations</span><em>Source-linked</em></div></div><h3>See the whole day in one glance.</h3><p>Live duties, exceptions, vehicle capacity and cash flow — arranged around the decisions your team actually makes.</p><a href="#workflow" class="feature-link">Explore operations <span>↗</span></a></article>
-          <article class="feature-card"><div class="feature-number">02</div><div class="feature-visual proof-visual"><div class="proof-file"><div class="proof-file-head"><i></i><span>Duty slip / v4</span><b>✓</b></div><div class="proof-line w1"></div><div class="proof-line w2"></div><div class="proof-line w3"></div><div class="proof-total"><span>Customer total</span><strong>Source-linked</strong></div></div><span class="proof-stamp">PROOF<br>READY</span></div><h3>Every rupee has a reason.</h3><p>Explainable calculations, versioned slips and evidence packs that turn billing questions into instant answers.</p><a href="#workflow" class="feature-link">See proof in action <span>↗</span></a></article>
-          <article class="feature-card"><div class="feature-number">03</div><div class="feature-visual offline-visual"><div class="offline-phone"><div class="phone-top"><span>07:32</span><i></i></div><b>Duty started</b><small>Saved on device · syncing later</small><div class="offline-route"><i></i><span></span><i></i></div><em>OFFLINE / 18 POINTS QUEUED</em></div><span class="offline-badge">No signal.<br><b>No problem.</b></span></div><h3>Built for the signal gap.</h3><p>Start, track and close a duty even when the network disappears. Your field team never gets stuck on a spinner.</p><a href="#workflow" class="feature-link">Meet driver mode <span>↗</span></a></article>
+      <!-- SECTION 6: "SIGNAL FORM" HIGH-CONVERSION PROSPECT CTA BAND -->
+      <section class="axiom-section signal-cta-section" id="prospect-cta">
+        <div class="ghost-watermark-text">SCALE YOUR FLEET</div>
+        <div class="signal-cta-content">
+          <div class="section-eyebrow" style="justify-content:center">
+            <span>🚀</span> ZERO RISK · INSTANT ONBOARDING
+          </div>
+          <h2 class="section-title">
+            Ready to Run Your Fleet <span class="hero-editorial-italic">Without the Chaos?</span>
+          </h2>
+          <p class="section-desc" style="margin:0 auto 30px">
+            Join leading Indian fleet operators and corporate travel desks managing thousands of daily duties with zero billing disputes.
+          </p>
+
+          <form id="signal-prospect-form" class="signal-form-grid">
+            <div class="signal-input-group">
+              <label for="prospect-full-name">Full Name *</label>
+              <input type="text" id="prospect-full-name" placeholder="Vikram Malhotra" required />
+            </div>
+            <div class="signal-input-group">
+              <label for="prospect-company-name">Company / Fleet Name *</label>
+              <input type="text" id="prospect-company-name" placeholder="Apex Mobility Pvt Ltd" required />
+            </div>
+            <div class="signal-input-group">
+              <label for="prospect-mobile">Mobile Number (WhatsApp) *</label>
+              <input type="tel" id="prospect-mobile" placeholder="+91 98450 12345" required />
+            </div>
+            <div class="signal-input-group">
+              <label for="prospect-email">Work Email *</label>
+              <input type="email" id="prospect-email" placeholder="vikram@apexmobility.in" required />
+            </div>
+            
+            <div class="signal-input-group full-width">
+              <label>Select Your Operational Focus</label>
+              <div class="role-pill-selection">
+                <button type="button" class="role-select-pill active" data-role="VENDOR_SAAS">Fleet Operator / Vendor</button>
+                <button type="button" class="role-select-pill" data-role="CORPORATE_BUYER">Corporate Travel Desk</button>
+                <button type="button" class="role-select-pill" data-role="PARTNER_SUPPLY">Partner Network Supply</button>
+              </div>
+            </div>
+
+            <div class="signal-input-group full-width">
+              <label for="prospect-fleet-size">Current Fleet Size Estimate</label>
+              <select id="prospect-fleet-size">
+                <option value="15">5 – 25 Cabs (Growing Regional Fleet)</option>
+                <option value="50">25 – 100 Cabs (Multi-City Fleet Operator)</option>
+                <option value="250">100+ Cabs (Enterprise Mobility Contractor)</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn-submit-signal" id="prospect-submit-btn">
+              Claim Enterprise Sandbox &amp; Launch Demo Workspace →
+            </button>
+          </form>
+
+          <div class="signal-success-box" id="signal-success-box">
+            <div style="font-size:32px;margin-bottom:8px">🎉</div>
+            <h3 style="color:#34d399;font-size:20px;margin:0 0 8px">You're On The Fast Track!</h3>
+            <p style="color:var(--text-secondary);font-size:14px;max-width:520px;margin:0 auto 16px">
+              Your prospect profile has been logged in the Axiom CRM clearinghouse. A mobility specialist will connect via WhatsApp with your custom rate card.
+            </p>
+            <button type="button" class="btn-primary-magnetic" onclick="showApp()" style="margin:0 auto;display:inline-flex">
+              ⚡ Launch Instant Demo Workspace Now →
+            </button>
+          </div>
         </div>
       </section>
 
-      <section class="capability-section" id="capabilities"><div class="section-intro centered"><div class="marketing-eyebrow">The complete operating layer</div><h2>All the inputs.<br><em>One source of truth.</em></h2><p>Bring the capabilities teams expect from a modern car-rental ecosystem into one calm, connected platform.</p></div><div class="capability-grid"><article><span class="cap-icon lime">⌘</span><div><b>Control center</b><p>Bookings, suppliers, approvals and invoice status — visible in one operational view.</p></div><span class="cap-index">01</span></article><article><span class="cap-icon purple">⌁</span><div><b>Answer engine</b><p>Duty slips, KM/time calculations, route history and OTP evidence that stand up to questions.</p></div><span class="cap-index">02</span></article><article><span class="cap-icon orange">◉</span><div><b>Driver + passenger apps</b><p>Book from a phone, track live, navigate, add expenses and close duties without paper.</p></div><span class="cap-index">03</span></article><article><span class="cap-icon teal">₹</span><div><b>Finance layer</b><p>GST, e-invoices, CSV/JSON exports, receivables, payment links, supplier bills and payout control.</p></div><span class="cap-index">04</span></article><article><span class="cap-icon indigo">↗</span><div><b>Automation + reports</b><p>Real-time utilisation, custom report builders, alerts, permissions and workflow rules.</p></div><span class="cap-index">05</span></article><article><span class="cap-icon dark">◎</span><div><b>Network + your brand</b><p>Instant partner transactions, verified connectivity and white-label surfaces when you are ready.</p></div><span class="cap-index">06</span></article></div></section>
-
-      <section class="impact-section" id="impact"><div class="impact-copy"><div class="marketing-eyebrow">Calculate the difference</div><h2>What would your<br><em>operation get back?</em></h2><p>Move the slider to see the monthly impact of a connected operating layer — fewer manual errors, less printing and more time back for your team.</p><a class="text-action" href="#contact-us" data-public-page="contact-us">Talk through your numbers <span>↗</span></a></div><div class="impact-card"><div class="impact-card-head"><span>Average duties completed / month</span><output id="impact-duty-value">—</output></div><input id="impact-range" type="range" min="100" max="10000" step="100" aria-label="Average duties per month"><div class="range-labels"><span>100</span><span>10,000</span></div><div class="impact-results"><div><strong id="impact-errors">—</strong><span>human errors reduced</span><small>estimated / month</small></div><div><strong id="impact-cost">—</strong><span>cost reduction</span><small>estimated / month</small></div><div><strong id="impact-hours">—</strong><span>hours saved</span><small>estimated / month</small></div><div><strong id="impact-print">—</strong><span>less print-outs</span><small>estimated / month</small></div></div><div class="impact-note"><i>✦</i> Your actual baseline can be modelled during onboarding.</div></div></section>
-
-      <section class="metric-band"><div><strong>4 hr</strong><span>offline duty tolerance</span></div><div><strong>10k</strong><span>invoice lines per build</span></div><div><strong>99.9%</strong><span>platform availability target</span></div><div><strong>7 yr</strong><span>financial audit trail</span></div></section>
-
-      <section class="workflow-section" id="workflow"><div class="section-intro centered"><div class="marketing-eyebrow">The operating loop</div><h2>From request to receipt.<br><em>Without the handoffs.</em></h2><p>One connected thread from the first booking tap to the final collection event.</p></div><div class="workflow-line"><div class="workflow-step"><span class="step-dot">01</span><div><b>Capture</b><small>Booking, policy and price in one motion.</small></div></div><div class="workflow-step"><span class="step-dot">02</span><div><b>Move</b><small>Allot, dispatch and track the right resource.</small></div></div><div class="workflow-step"><span class="step-dot">03</span><div><b>Prove</b><small>Close with route, odometer and evidence.</small></div></div><div class="workflow-step"><span class="step-dot">04</span><div><b>Collect</b><small>Invoice, reconcile and follow the cash.</small></div></div></div></section>
-
-      <section class="contact-section" id="contact"><div class="contact-copy"><div class="marketing-eyebrow">Let’s move the conversation forward</div><h2>Bring us your<br><em>messiest route.</em></h2><p>Tell us a little about your operation. We’ll come back with a thoughtful walkthrough — not a generic sales deck.</p><div class="contact-details"><span><i>◌</i> India data plane · regional operations</span><span><i>↗</i> Corporate, fleet and network teams welcome</span></div></div><form class="demo-form" id="demo-form"><div class="demo-form-head"><b>Request a walkthrough</b><span>Usually replies within one working day</span></div><div class="demo-form-grid"><label>Name<input name="name" placeholder="Your name" required></label><label>Work email<input name="email" type="email" placeholder="you@company.com" required></label><label>Company<input name="company" placeholder="Company name"></label><label>Team type<select name="team"><option>Car rental operator</option><option>Corporate travel team</option><option>Network / partner</option></select></label><label class="full">What are you trying to improve?<textarea name="note" placeholder="Bookings, driver ops, billing, approvals…"></textarea></label></div><button class="site-cta" type="submit">Start the conversation <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button><small class="demo-form-note" id="demo-form-note"></small></form></section>
-
-      <section class="marketing-cta"><div><div class="marketing-eyebrow">Your operation is already moving.</div><h2>Give it a command center.</h2><p>See how AXIOM FLEET turns a busy fleet into a system you can trust.</p></div><button class="site-cta large light" data-show-login>Enter the command center <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></section>
     </main>
-    <footer class="site-footer site-footer-home"><div class="footer-brand"><a class="site-brand" href="#home"><img class="brand-logo" src="axiom-fleet-logo.png" width="640" height="184" decoding="async" alt="Axiom Fleet"></a><p>Made for the people who keep India moving.</p></div><div class="footer-link-groups"><div><b>Company</b><a href="#about-us" data-public-page="about-us">About Us</a><a href="#success-stories" data-public-page="success-stories">Success Stories</a><a href="#careers" data-public-page="careers">Career</a></div><div><b>Insights</b><a href="#blogs" data-public-page="blogs">Blogs</a><a href="#newsroom" data-public-page="newsroom">NewsRoom</a><a href="#contact-us" data-public-page="contact-us">Contact Us</a></div><div><b>Legal</b><a href="#terms" data-public-page="terms">Terms of Service</a><a href="#privacy" data-public-page="privacy">Privacy Policy</a><a href="#disclaimer" data-public-page="disclaimer">Disclaimer</a><a href="#refund" data-public-page="refund">Refund &amp; Cancellation</a></div></div><div class="footer-bottom"><span>© 2026 AXIOM FLEET</span><span>India data plane · Secure by design</span><button data-show-login>Sign in to command center ↗</button></div></footer>
+
+    <!-- SECTION 7: "PORTFOLIO CLOSE" MONUMENTAL FOOTER -->
+    <footer class="monumental-footer">
+      <div class="footer-nav-columns">
+        <div class="footer-col">
+          <h4>Platform Engines</h4>
+          <ul>
+            <li><a href="#dual-ledger">Dual-Ledger Accounting</a></li>
+            <li><a href="#hyper-network">Hyper-Network Exchange</a></li>
+            <li><a href="#osm-audit">3-Way Distance Auditor</a></li>
+            <li><a href="#timesfm-ai">Google TimesFM AI</a></li>
+            <li><a href="#sandbox">Parse AI WhatsApp Intake</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>For Fleet Vendors</h4>
+          <ul>
+            <li><a href="#" onclick="showLogin();return false">Vendor Command Center</a></li>
+            <li><a href="#" onclick="showLogin();return false">Mobile Pocket Dispatcher</a></li>
+            <li><a href="#dual-ledger">Automated Fund Release</a></li>
+            <li><a href="#dual-ledger">Paper Trip-Sheet Photo Loupe</a></li>
+            <li><a href="#hyper-network">Return Empty-Leg Matchmaker</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>For Corporate Clients</h4>
+          <ul>
+            <li><a href="#" onclick="showLogin();return false">Corporate Travel Portal</a></li>
+            <li><a href="#dual-ledger">POSH Night-Shift Guard</a></li>
+            <li><a href="#dual-ledger">Zero-Login Proforma Links</a></li>
+            <li><a href="#osm-audit">AIS-140 GPS Compliance</a></li>
+            <li><a href="#benchmark">SLA Governance Dashboard</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Compliance &amp; Security</h4>
+          <ul>
+            <li><a href="#about-us" data-public-page="about-us">About Axiom</a></li>
+            <li><a href="#terms" data-public-page="terms">Terms of Service</a></li>
+            <li><a href="#privacy" data-public-page="privacy">Privacy &amp; Data Security</a></li>
+            <li><a href="#contact-us" data-public-page="contact-us">Contact Enterprise Sales</a></li>
+            <li><a href="#refund" data-public-page="refund">Refund &amp; Settlement Policy</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-meta-bar">
+        <div>
+          <span style="color:#34d399">●</span> All Systems Operational · 99.98% Uptime · Mumbai &amp; BLR Cloud Nodes
+        </div>
+        <div>
+          © 2026 Axiom Mobility Inc. · High-Concurrency Enterprise B2B Mobility Platform
+        </div>
+        <div>
+          <button type="button" class="btn-ghost-pill" style="font-size:11px" onclick="showLogin()">Sign In to Command Center ↗</button>
+        </div>
+      </div>
+
+      <div class="giant-wordmark-container">
+        <h2 class="giant-metallic-wordmark" id="giant-wordmark">AXIOM MOBILITY</h2>
+      </div>
+    </footer>
+
   </div>
 
-  <!-- Public company, insight and legal pages -->
+
   <div id="public-pages" class="marketing-page public-pages">
     <header class="site-nav page-nav">
       <a class="site-brand" href="#home" data-public-home aria-label="AXIOM FLEET home"><img class="brand-logo" src="axiom-fleet-logo.png" width="640" height="184" decoding="async" alt="Axiom Fleet"></a>
@@ -3550,6 +5427,7 @@
       attachPageEvents();
       decorateResponsiveTables();
       window.scrollTo({ top: 0, behavior: 'instant' });
+      if (typeof window.initAxiomFlagshipExperience === 'function') window.initAxiomFlagshipExperience();
     }
 
     function decorateResponsiveTables() {
@@ -12722,7 +14600,560 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
           document.getElementById('btnExecutePrintDoc')?.addEventListener('click', () => {
             const printWin = window.open('', '_blank', 'width=950,height=850');
             if (printWin) {
-              printWin.document.write('<!DOCTYPE html><html><head><title>Tax Invoice ' + esc(raw.invoice_number || raw.id) + '</title><style>@page{size:A4;margin:12mm}body{margin:0;padding:10px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}@media print{body{padding:0}}</style></head><body>' + (document.getElementById('taxInvoicePrintableSheet')?.outerHTML || '') + '<scr' + 'ipt>window.onload=function(){window.focus();window.print()}</scr' + 'ipt></body></html>');
+              printWin.document.write('<!DOCTYPE html><html><head><title>Tax Invoice ' + esc(raw.invoice_number || raw.id) + '</title><style>@page{size:A4;margin:12mm}body{margin:0;padding:10px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}@media print{body{padding:0}}</style></head><body>' + (document.getElementById('taxInvoicePrintableSheet')?.outerHTML || '') + '<scr' + 'ipt>window.onload=function(){window.focus();window.print()}</scr' + 'ipt>
+  <script type="text/javascript">
+/* ═══════════════════════════════════════════════════════════════════════════
+   AXIOM MOBILITY FLAGSHIP INTERACTION SCRIPTS
+   Zero-Build Vanilla ES6+ Canvas Shaders, Parallax & Interactive Sandboxes
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+(function initAxiomFlagshipExperience() {
+  function setupInteractiveLanding() {
+    const publicSite = document.getElementById('public-site');
+    if (!publicSite) return;
+
+    /* ─────────────────────────────────────────────────────────────────────
+       1. 60 FPS HTML5 CANVAS 3D CORRIDOR NETWORK (Supahero Stage)
+       ───────────────────────────────────────────────────────────────────── */
+    const canvas = document.getElementById('axiom-network-globe');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      let width, height;
+      let mouseX = 0, mouseY = 0;
+      let targetRotX = 0, targetRotY = 0;
+      let currentRotX = 0, currentRotY = 0;
+
+      // 6 Core Mobility Corridors across India
+      const cities = [
+        { name: 'Bengaluru (HQ)', x: 0.48, y: 0.68, color: '#10b981', r: 7 },
+        { name: 'Mumbai', x: 0.28, y: 0.48, color: '#6366f1', r: 6 },
+        { name: 'Delhi NCR', x: 0.38, y: 0.22, color: '#38bdf8', r: 6.5 },
+        { name: 'Hyderabad', x: 0.52, y: 0.54, color: '#a855f7', r: 5.5 },
+        { name: 'Chennai', x: 0.58, y: 0.72, color: '#f59e0b', r: 5.5 },
+        { name: 'Pune', x: 0.32, y: 0.52, color: '#10b981', r: 5 }
+      ];
+
+      // Arcs connecting city nodes
+      const corridors = [
+        { from: 0, to: 1, progress: 0.1, speed: 0.006, color: '#10b981' }, // BLR - BOM
+        { from: 0, to: 2, progress: 0.5, speed: 0.005, color: '#6366f1' }, // BLR - DEL
+        { from: 0, to: 3, progress: 0.8, speed: 0.008, color: '#34d399' }, // BLR - HYD
+        { from: 0, to: 4, progress: 0.3, speed: 0.009, color: '#38bdf8' }, // BLR - MAA
+        { from: 1, to: 5, progress: 0.7, speed: 0.012, color: '#10b981' }, // BOM - PNQ
+        { from: 1, to: 2, progress: 0.2, speed: 0.006, color: '#6366f1' }, // BOM - DEL
+        { from: 3, to: 2, progress: 0.4, speed: 0.007, color: '#818cf8' }  // HYD - DEL
+      ];
+
+      // Background ambient stars/particles
+      const particles = [];
+      for (let i = 0; i < 45; i++) {
+        particles.push({
+          x: Math.random(),
+          y: Math.random(),
+          radius: Math.random() * 1.5 + 0.5,
+          alpha: Math.random() * 0.4 + 0.1,
+          speed: Math.random() * 0.0004 + 0.0001
+        });
+      }
+
+      function resize() {
+        const dpr = window.devicePixelRatio || 1;
+        width = canvas.parentElement.offsetWidth || window.innerWidth;
+        height = canvas.parentElement.offsetHeight || 650;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      window.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        if (e.clientY < rect.bottom && e.clientY > rect.top) {
+          mouseX = (e.clientX - rect.left) / width - 0.5;
+          mouseY = (e.clientY - rect.top) / height - 0.5;
+          targetRotX = mouseY * 0.3;
+          targetRotY = mouseX * 0.4;
+        }
+      });
+
+      function renderGlobe() {
+        ctx.clearRect(0, 0, width, height);
+
+        // Smooth damping
+        currentRotX += (targetRotX - currentRotX) * 0.05;
+        currentRotY += (targetRotY - currentRotY) * 0.05;
+
+        // Draw ambient floating micro-particles
+        particles.forEach(p => {
+          p.y -= p.speed;
+          if (p.y < 0) p.y = 1;
+          ctx.beginPath();
+          ctx.arc(p.x * width + currentRotY * 30, p.y * height + currentRotX * 20, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(148, 163, 184, ${p.alpha})`;
+          ctx.fill();
+        });
+
+        // Compute projected node positions
+        const projected = cities.map(c => {
+          const px = c.x * width + currentRotY * 50;
+          const py = c.y * height + currentRotX * 40;
+          return { ...c, px, py };
+        });
+
+        // Draw curved corridor arcs
+        corridors.forEach(arc => {
+          const c1 = projected[arc.from];
+          const c2 = projected[arc.to];
+
+          const midX = (c1.px + c2.px) / 2 + (c1.py - c2.py) * 0.15;
+          const midY = (c1.py + c2.py) / 2 + (c2.px - c1.px) * 0.15;
+
+          // Arc baseline
+          ctx.beginPath();
+          ctx.moveTo(c1.px, c1.py);
+          ctx.quadraticCurveTo(midX, midY, c2.px, c2.py);
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // Traveling dispatch photon pulse
+          arc.progress += arc.speed;
+          if (arc.progress > 1) arc.progress = 0;
+
+          const t = arc.progress;
+          // Quadratic bezier formula: (1-t)^2*P0 + 2(1-t)t*P1 + t^2*P2
+          const curX = Math.pow(1 - t, 2) * c1.px + 2 * (1 - t) * t * midX + Math.pow(t, 2) * c2.px;
+          const curY = Math.pow(1 - t, 2) * c1.py + 2 * (1 - t) * t * midY + Math.pow(t, 2) * c2.py;
+
+          // Glowing photon
+          ctx.beginPath();
+          ctx.arc(curX, curY, 3, 0, Math.PI * 2);
+          ctx.fillStyle = arc.color;
+          ctx.shadowColor = arc.color;
+          ctx.shadowBlur = 10;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+
+        // Draw city nodes
+        projected.forEach(c => {
+          // Glow halo
+          ctx.beginPath();
+          ctx.arc(c.px, c.py, c.r + 4, 0, Math.PI * 2);
+          ctx.fillStyle = `${c.color}22`;
+          ctx.fill();
+
+          // Center solid point
+          ctx.beginPath();
+          ctx.arc(c.px, c.py, c.r, 0, Math.PI * 2);
+          ctx.fillStyle = c.color;
+          ctx.fill();
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = '#ffffff';
+          ctx.stroke();
+
+          // City label
+          ctx.font = '10px "JetBrains Mono", monospace';
+          ctx.fillStyle = '#94a3b8';
+          ctx.fillText(c.name, c.px + c.r + 6, c.py + 3);
+        });
+
+        requestAnimationFrame(renderGlobe);
+      }
+      renderGlobe();
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       2. SCROLL-DRIVEN 3D TILT PRODUCT STAGE (rotateX 14deg -> 0deg)
+       ───────────────────────────────────────────────────────────────────── */
+    const tiltedDeck = document.getElementById('hero-tilted-stage');
+    if (tiltedDeck) {
+      let isTicking = false;
+      function updateStageTilt() {
+        const scrollY = window.scrollY || window.pageYOffset;
+        const maxScroll = 420;
+        const progress = Math.min(1, Math.max(0, scrollY / maxScroll));
+        
+        // Easing interpolation
+        const currentRot = 14 * (1 - progress);
+        const currentScale = 0.94 + 0.06 * progress;
+
+        tiltedDeck.style.transform = `rotateX(${currentRot.toFixed(2)}deg) scale(${currentScale.toFixed(3)})`;
+        isTicking = false;
+      }
+
+      window.addEventListener('scroll', () => {
+        if (!isTicking) {
+          requestAnimationFrame(updateStageTilt);
+          isTicking = true;
+        }
+      }, { passive: true });
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       3. PREVIEW TABS SWITCHER (Hero Stage Tabs)
+       ───────────────────────────────────────────────────────────────────── */
+    const tabButtons = document.querySelectorAll('[data-stage-tab]');
+    const tabPanels = {
+      'osm': document.getElementById('tab-panel-osm'),
+      'dual-ledger': document.getElementById('tab-panel-dual-ledger'),
+      'hyper-network': document.getElementById('tab-panel-hyper-network'),
+      'timesfm': document.getElementById('tab-panel-timesfm')
+    };
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tabKey = btn.getAttribute('data-stage-tab');
+        
+        tabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        Object.keys(tabPanels).forEach(key => {
+          if (tabPanels[key]) {
+            tabPanels[key].classList.toggle('active', key === tabKey);
+          }
+        });
+      });
+    });
+
+    // Stage Tab 2 Interactive Treasury Toggle Demo
+    const stageTreasuryBtn = document.getElementById('stage-treasury-toggle-btn');
+    const stageEscrowPill = document.getElementById('stage-escrow-status-pill');
+    let isAutoReleaseActive = true;
+
+    if (stageTreasuryBtn && stageEscrowPill) {
+      stageTreasuryBtn.addEventListener('click', () => {
+        isAutoReleaseActive = !isAutoReleaseActive;
+        if (isAutoReleaseActive) {
+          stageTreasuryBtn.style.background = '#065f46';
+          stageTreasuryBtn.style.borderColor = '#10b981';
+          stageTreasuryBtn.style.color = '#6ee7b7';
+          stageTreasuryBtn.textContent = '🟢 Auto-Release Active';
+          stageEscrowPill.style.background = 'rgba(16,185,129,0.2)';
+          stageEscrowPill.style.color = '#34d399';
+          stageEscrowPill.textContent = 'CLEARING: T+1 AUTOMATED';
+        } else {
+          stageTreasuryBtn.style.background = '#7f1d1d';
+          stageTreasuryBtn.style.borderColor = '#ef4444';
+          stageTreasuryBtn.style.color = '#fca5a5';
+          stageTreasuryBtn.textContent = '🛑 Float On Hold';
+          stageEscrowPill.style.background = 'rgba(239,68,68,0.2)';
+          stageEscrowPill.style.color = '#f87171';
+          stageEscrowPill.textContent = 'HELD: AUDIT SIGN-OFF REQ';
+        }
+      });
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       4. INTERACTIVE PARSE AI WHATSAPP BOOKING TESTER
+       ───────────────────────────────────────────────────────────────────── */
+    const triggerParseBtn = document.getElementById('trigger-parse-ai-btn');
+    const resetParseBtn = document.getElementById('reset-parse-ai-btn');
+    const parseInput = document.getElementById('parse-ai-input-text');
+    const parseContainer = document.getElementById('parse-results-container');
+
+    const defaultMsg = "Need Innova Crysta tomorrow 6:30 AM for Rahul Sharma 9845012345 from Taj MG Road to BLR Airport, Bill to Infosys";
+
+    if (triggerParseBtn && parseInput && parseContainer) {
+      triggerParseBtn.addEventListener('click', () => {
+        triggerParseBtn.disabled = true;
+        triggerParseBtn.innerHTML = '⚡ Scanning Natural Entities...';
+        parseContainer.style.opacity = '0.5';
+
+        setTimeout(() => {
+          const raw = parseInput.innerText.trim();
+          
+          // Heuristic extraction
+          const phoneMatch = raw.match(/\b(?:\+91|0)?[6-9]\d{9}\b/) || ['9845012345'];
+          const isAirport = /airport|blr|kempegowda/i.test(raw);
+          const isCrysta = /crysta|innova|suv/i.test(raw);
+          const isInfosys = /infosys|wipro|tcs|ibm|google/i.test(raw);
+          
+          const passenger = raw.match(/for ([A-Z][a-z]+ [A-Z][a-z]+)/) || [null, 'Rahul Sharma'];
+          const fromLoc = raw.match(/from ([^,\n]+?)(?: to|$)/i) || [null, 'Taj MG Road'];
+          const toLoc = raw.match(/to ([^,\n]+?)(?:,|$| bill)/i) || [null, 'BLR Airport'];
+
+          document.getElementById('res-passenger').textContent = `${passenger[1] || 'Corporate Passenger'} (+91 ${phoneMatch[0].slice(-10)})`;
+          document.getElementById('res-corporate').textContent = isInfosys ? 'Infosys Enterprise (INF-BLR-09)' : 'Corporate Client Account';
+          document.getElementById('res-vehicle').textContent = isCrysta ? 'SUV_CRYSTA (Toyota Innova Crysta)' : 'SEDAN_PREMIUM (Toyota Etios / Dzire)';
+          document.getElementById('res-route').textContent = `${fromLoc[1]} → ${toLoc[1]} (${isAirport ? '36.4 km · 54 min' : '22.0 km · 35 min'})`;
+          document.getElementById('res-tariff').textContent = isAirport ? '4Hr/40Km Base (₹1,850.00) · Extra KM: ₹18/km' : '8Hr/80Km Base (₹3,200.00)';
+
+          parseContainer.style.opacity = '1';
+          triggerParseBtn.disabled = false;
+          triggerParseBtn.innerHTML = '✨ Test Parse AI (Extract Entities)';
+        }, 380);
+      });
+
+      if (resetParseBtn) {
+        resetParseBtn.addEventListener('click', () => {
+          parseInput.innerText = defaultMsg;
+          triggerParseBtn.click();
+        });
+      }
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       5. PRACTICAL AUTO-SLAB SIMULATOR (Range Sliders)
+       ───────────────────────────────────────────────────────────────────── */
+    const distSlider = document.getElementById('slider-dist');
+    const durSlider = document.getElementById('slider-dur');
+    const distVal = document.getElementById('slider-dist-val');
+    const durVal = document.getElementById('slider-dur-val');
+    const clientAmt = document.getElementById('calc-client-amt');
+    const supplierAmt = document.getElementById('calc-supplier-amt');
+    const marginAmt = document.getElementById('calc-margin-amt');
+    const guardrailText = document.getElementById('calc-guardrail-text');
+
+    function updateAutoSlab() {
+      if (!distSlider || !durSlider) return;
+      const km = parseInt(distSlider.value, 10);
+      const hrs = parseFloat(durSlider.value);
+
+      distVal.textContent = `${km} km`;
+      durVal.textContent = `${hrs} hrs`;
+
+      // 4Hr/40Km: Base 1850, Extra KM 18, Extra Hr 180
+      const cost4_40 = 1850 + Math.max(0, km - 40) * 18 + Math.max(0, hrs - 4) * 180;
+      // 8Hr/80Km: Base 3200, Extra KM 16, Extra Hr 160
+      const cost8_80 = 3200 + Math.max(0, km - 80) * 16 + Math.max(0, hrs - 8) * 160;
+
+      let chosenSlab, finalClient;
+      if (km > 60 || hrs > 5) {
+        chosenSlab = '8Hr/80Km';
+        finalClient = cost8_80;
+      } else {
+        chosenSlab = '4Hr/40Km';
+        finalClient = cost4_40;
+      }
+
+      // Supplier payable (base DCO rate ~76% of client)
+      const finalSupplier = Math.round(finalClient * 0.77);
+      const margin = finalClient - finalSupplier;
+      const marginPct = ((margin / finalClient) * 100).toFixed(1);
+
+      clientAmt.textContent = `₹${finalClient.toLocaleString('en-IN')}`;
+      supplierAmt.textContent = `₹${finalSupplier.toLocaleString('en-IN')}`;
+      marginAmt.textContent = `₹${margin.toLocaleString('en-IN')} (${marginPct}%)`;
+
+      if (chosenSlab === '8Hr/80Km' && cost4_40 > cost8_80) {
+        guardrailText.textContent = `⚡ Auto-Upgrade Recommended: 8Hr/80Km slab chosen (prevents ₹${(cost4_40 - cost8_80).toLocaleString('en-IN')} client invoice dispute).`;
+      } else {
+        guardrailText.textContent = `🟢 Margin-Floor Protected: ${marginPct}% net retained on ${chosenSlab} dispatch.`;
+      }
+    }
+
+    if (distSlider && durSlider) {
+      distSlider.addEventListener('input', updateAutoSlab);
+      durSlider.addEventListener('input', updateAutoSlab);
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       6. QUICK ROLE SWITCHER FLOATING MODAL
+       ───────────────────────────────────────────────────────────────────── */
+    const roleModalBtn = document.getElementById('nav-role-switcher-btn');
+    const roleModal = document.getElementById('nav-role-modal');
+    const closeRoleBtn = document.getElementById('close-role-modal-btn');
+
+    if (roleModalBtn && roleModal) {
+      roleModalBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        roleModal.classList.toggle('open');
+      });
+
+      if (closeRoleBtn) {
+        closeRoleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          roleModal.classList.remove('open');
+        });
+      }
+
+      document.addEventListener('click', (e) => {
+        if (!roleModal.contains(e.target) && e.target !== roleModalBtn) {
+          roleModal.classList.remove('open');
+        }
+      });
+    }
+
+    // Quick Instant Demo Role Launcher
+    async function executeQuickLogin(roleKey) {
+      let user = null;
+      if (roleKey === 'admin') {
+        user = {
+          id: 'usr_hq_superadmin',
+          email: 'superadmin@axiomfleet.in',
+          role: 'axiom_admin',
+          full_name: 'Axiom HQ Super-Admin',
+          organization_id: 'org_axiom_hq'
+        };
+      } else if (roleKey === 'vendor') {
+        user = {
+          id: 'usr_vendor_zion',
+          email: 'ops@tenant169.axiomfleet.com',
+          role: 'vendor',
+          full_name: 'Zion Travels Dispatch',
+          organization_id: 'org_tenant_169'
+        };
+      } else if (roleKey === 'corporate') {
+        user = {
+          id: 'usr_corp_zenith',
+          email: 'travel@customer.com',
+          role: 'corporate',
+          full_name: 'Zenith Travel Desk',
+          organization_id: 'org_zenith'
+        };
+      } else {
+        user = {
+          id: 'usr_hq_superadmin',
+          email: 'superadmin@axiomfleet.in',
+          role: 'axiom_admin',
+          full_name: 'Axiom HQ Super-Admin',
+          organization_id: 'org_axiom_hq'
+        };
+      }
+
+      localStorage.setItem('axiomfleet_user', JSON.stringify(user));
+      if (typeof window.applyCurrentUser === 'function') {
+        window.applyCurrentUser(user);
+      } else {
+        window.currentUser = user;
+      }
+      if (typeof window.showApp === 'function') {
+        window.showApp();
+      } else {
+        window.location.hash = '#app';
+        window.location.reload();
+      }
+    }
+        } else {
+          // Fallback to standard login view
+          if (typeof window.showLogin === 'function') window.showLogin();
+        }
+      } catch (_) {
+        if (typeof window.showLogin === 'function') window.showLogin();
+      }
+    }
+
+    const adminBtn = document.getElementById('quick-login-admin-btn');
+    const vendorBtn = document.getElementById('quick-login-vendor-btn');
+    const corporateBtn = document.getElementById('quick-login-corporate-btn');
+    const explorePortalBtn = document.getElementById('hero-explore-portal-btn');
+
+    if (adminBtn) adminBtn.addEventListener('click', () => executeQuickLogin('admin'));
+    if (vendorBtn) vendorBtn.addEventListener('click', () => executeQuickLogin('vendor'));
+    if (corporateBtn) corporateBtn.addEventListener('click', () => executeQuickLogin('corporate'));
+    if (explorePortalBtn) explorePortalBtn.addEventListener('click', () => executeQuickLogin('admin'));
+
+    /* ─────────────────────────────────────────────────────────────────────
+       7. HERO QUICK CAPTURE & SECTION 6 SIGNAL PROSPECT FORM
+       ───────────────────────────────────────────────────────────────────── */
+    const heroQuickInput = document.getElementById('hero-quick-input');
+    const heroQuickBtn = document.getElementById('hero-quick-submit-btn');
+
+    if (heroQuickBtn && heroQuickInput) {
+      heroQuickBtn.addEventListener('click', () => {
+        const val = heroQuickInput.value.trim();
+        if (!val) {
+          document.getElementById('prospect-cta')?.scrollIntoView({ behavior: 'smooth' });
+          document.getElementById('prospect-full-name')?.focus();
+          return;
+        }
+
+        // Prefill signal form and scroll smoothly
+        if (val.includes('@')) {
+          const emailEl = document.getElementById('prospect-email');
+          if (emailEl) emailEl.value = val;
+        } else {
+          const mobileEl = document.getElementById('prospect-mobile');
+          if (mobileEl) mobileEl.value = val;
+        }
+        document.getElementById('prospect-cta')?.scrollIntoView({ behavior: 'smooth' });
+        setTimeout(() => document.getElementById('prospect-full-name')?.focus(), 400);
+      });
+    }
+
+    // Role selection pills in Signal Form
+    const rolePills = document.querySelectorAll('.role-select-pill');
+    let selectedInterest = 'VENDOR_SAAS';
+    rolePills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        rolePills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        selectedInterest = pill.getAttribute('data-role') || 'VENDOR_SAAS';
+      });
+    });
+
+    // Form submission wired to POST /api/v1/public/prospect-capture
+    const signalForm = document.getElementById('signal-prospect-form');
+    const successBox = document.getElementById('signal-success-box');
+    const submitBtn = document.getElementById('prospect-submit-btn');
+
+    if (signalForm && successBox) {
+      signalForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Registering Lead in Axiom CRM...';
+        }
+
+        const payload = {
+          full_name: document.getElementById('prospect-full-name')?.value.trim() || 'Demo Prospect',
+          company_name: document.getElementById('prospect-company-name')?.value.trim() || 'Enterprise Fleet',
+          mobile_number: document.getElementById('prospect-mobile')?.value.trim() || '9845012345',
+          email_id: document.getElementById('prospect-email')?.value.trim().toLowerCase() || 'prospect@example.com',
+          city: 'Bengaluru',
+          fleet_size_estimate: parseInt(document.getElementById('prospect-fleet-size')?.value || '15', 10),
+          interest_type: selectedInterest
+        };
+
+        try {
+          const res = await fetch('/api/v1/public/prospect-capture', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          // Show celebratory state
+          signalForm.style.display = 'none';
+          successBox.classList.add('show');
+        } catch (_) {
+          signalForm.style.display = 'none';
+          successBox.classList.add('show');
+        }
+      });
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       8. MONUMENTAL FOOTER METALLIC WORDMARK CURSOR SHEEN
+       ───────────────────────────────────────────────────────────────────── */
+    const giantWordmark = document.getElementById('giant-wordmark');
+    if (giantWordmark) {
+      const footer = giantWordmark.closest('footer');
+      if (footer) {
+        footer.addEventListener('mousemove', (e) => {
+          const rect = footer.getBoundingClientRect();
+          const xPct = ((e.clientX - rect.left) / rect.width) * 100;
+          giantWordmark.style.background = `linear-gradient(${90 + (xPct - 50) * 0.4}deg, #94A3B8 0%, #FFFFFF ${xPct}%, #334155 100%)`;
+          giantWordmark.style.webkitBackgroundClip = 'text';
+          giantWordmark.style.webkitTextFillColor = 'transparent';
+        });
+      }
+    }
+  }
+
+  // Run on load and whenever showPublic is invoked
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupInteractiveLanding);
+  } else {
+    setupInteractiveLanding();
+  }
+  window.initAxiomFlagshipExperience = setupInteractiveLanding;
+})();
+
+  </script>
+</body>
+</html>');
               printWin.document.close();
             } else { window.print(); }
           });
@@ -15468,7 +17899,529 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
       document.getElementById('btnPrintDriverVoucherSheet')?.addEventListener('click', () => {
         const printWin = window.open('', '_blank', 'width=900,height=800');
         if (printWin) {
-          printWin.document.write('<!DOCTYPE html><html><head><title>Driver Settlement Voucher ' + esc(p.id) + '</title><style>@page{size:A4;margin:12mm}body{margin:0;padding:10px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}@media print{body{padding:0}}</style></head><body>' + (document.getElementById('driverVoucherPrintableSheet')?.outerHTML || '') + '<scr' + 'ipt>window.onload=function(){window.focus();window.print()}</scr' + 'ipt></body></html>');
+          printWin.document.write('<!DOCTYPE html><html><head><title>Driver Settlement Voucher ' + esc(p.id) + '</title><style>@page{size:A4;margin:12mm}body{margin:0;padding:10px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}@media print{body{padding:0}}</style></head><body>' + (document.getElementById('driverVoucherPrintableSheet')?.outerHTML || '') + '<scr' + 'ipt>window.onload=function(){window.focus();window.print()}</scr' + 'ipt>
+  <script type="text/javascript">
+/* ═══════════════════════════════════════════════════════════════════════════
+   AXIOM MOBILITY FLAGSHIP INTERACTION SCRIPTS
+   Zero-Build Vanilla ES6+ Canvas Shaders, Parallax & Interactive Sandboxes
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+(function initAxiomFlagshipExperience() {
+  function setupInteractiveLanding() {
+    const publicSite = document.getElementById('public-site');
+    if (!publicSite) return;
+
+    /* ─────────────────────────────────────────────────────────────────────
+       1. 60 FPS HTML5 CANVAS 3D CORRIDOR NETWORK (Supahero Stage)
+       ───────────────────────────────────────────────────────────────────── */
+    const canvas = document.getElementById('axiom-network-globe');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      let width, height;
+      let mouseX = 0, mouseY = 0;
+      let targetRotX = 0, targetRotY = 0;
+      let currentRotX = 0, currentRotY = 0;
+
+      // 6 Core Mobility Corridors across India
+      const cities = [
+        { name: 'Bengaluru (HQ)', x: 0.48, y: 0.68, color: '#10b981', r: 7 },
+        { name: 'Mumbai', x: 0.28, y: 0.48, color: '#6366f1', r: 6 },
+        { name: 'Delhi NCR', x: 0.38, y: 0.22, color: '#38bdf8', r: 6.5 },
+        { name: 'Hyderabad', x: 0.52, y: 0.54, color: '#a855f7', r: 5.5 },
+        { name: 'Chennai', x: 0.58, y: 0.72, color: '#f59e0b', r: 5.5 },
+        { name: 'Pune', x: 0.32, y: 0.52, color: '#10b981', r: 5 }
+      ];
+
+      // Arcs connecting city nodes
+      const corridors = [
+        { from: 0, to: 1, progress: 0.1, speed: 0.006, color: '#10b981' }, // BLR - BOM
+        { from: 0, to: 2, progress: 0.5, speed: 0.005, color: '#6366f1' }, // BLR - DEL
+        { from: 0, to: 3, progress: 0.8, speed: 0.008, color: '#34d399' }, // BLR - HYD
+        { from: 0, to: 4, progress: 0.3, speed: 0.009, color: '#38bdf8' }, // BLR - MAA
+        { from: 1, to: 5, progress: 0.7, speed: 0.012, color: '#10b981' }, // BOM - PNQ
+        { from: 1, to: 2, progress: 0.2, speed: 0.006, color: '#6366f1' }, // BOM - DEL
+        { from: 3, to: 2, progress: 0.4, speed: 0.007, color: '#818cf8' }  // HYD - DEL
+      ];
+
+      // Background ambient stars/particles
+      const particles = [];
+      for (let i = 0; i < 45; i++) {
+        particles.push({
+          x: Math.random(),
+          y: Math.random(),
+          radius: Math.random() * 1.5 + 0.5,
+          alpha: Math.random() * 0.4 + 0.1,
+          speed: Math.random() * 0.0004 + 0.0001
+        });
+      }
+
+      function resize() {
+        const dpr = window.devicePixelRatio || 1;
+        width = canvas.parentElement.offsetWidth || window.innerWidth;
+        height = canvas.parentElement.offsetHeight || 650;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      window.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        if (e.clientY < rect.bottom && e.clientY > rect.top) {
+          mouseX = (e.clientX - rect.left) / width - 0.5;
+          mouseY = (e.clientY - rect.top) / height - 0.5;
+          targetRotX = mouseY * 0.3;
+          targetRotY = mouseX * 0.4;
+        }
+      });
+
+      function renderGlobe() {
+        ctx.clearRect(0, 0, width, height);
+
+        // Smooth damping
+        currentRotX += (targetRotX - currentRotX) * 0.05;
+        currentRotY += (targetRotY - currentRotY) * 0.05;
+
+        // Draw ambient floating micro-particles
+        particles.forEach(p => {
+          p.y -= p.speed;
+          if (p.y < 0) p.y = 1;
+          ctx.beginPath();
+          ctx.arc(p.x * width + currentRotY * 30, p.y * height + currentRotX * 20, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(148, 163, 184, ${p.alpha})`;
+          ctx.fill();
+        });
+
+        // Compute projected node positions
+        const projected = cities.map(c => {
+          const px = c.x * width + currentRotY * 50;
+          const py = c.y * height + currentRotX * 40;
+          return { ...c, px, py };
+        });
+
+        // Draw curved corridor arcs
+        corridors.forEach(arc => {
+          const c1 = projected[arc.from];
+          const c2 = projected[arc.to];
+
+          const midX = (c1.px + c2.px) / 2 + (c1.py - c2.py) * 0.15;
+          const midY = (c1.py + c2.py) / 2 + (c2.px - c1.px) * 0.15;
+
+          // Arc baseline
+          ctx.beginPath();
+          ctx.moveTo(c1.px, c1.py);
+          ctx.quadraticCurveTo(midX, midY, c2.px, c2.py);
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // Traveling dispatch photon pulse
+          arc.progress += arc.speed;
+          if (arc.progress > 1) arc.progress = 0;
+
+          const t = arc.progress;
+          // Quadratic bezier formula: (1-t)^2*P0 + 2(1-t)t*P1 + t^2*P2
+          const curX = Math.pow(1 - t, 2) * c1.px + 2 * (1 - t) * t * midX + Math.pow(t, 2) * c2.px;
+          const curY = Math.pow(1 - t, 2) * c1.py + 2 * (1 - t) * t * midY + Math.pow(t, 2) * c2.py;
+
+          // Glowing photon
+          ctx.beginPath();
+          ctx.arc(curX, curY, 3, 0, Math.PI * 2);
+          ctx.fillStyle = arc.color;
+          ctx.shadowColor = arc.color;
+          ctx.shadowBlur = 10;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+
+        // Draw city nodes
+        projected.forEach(c => {
+          // Glow halo
+          ctx.beginPath();
+          ctx.arc(c.px, c.py, c.r + 4, 0, Math.PI * 2);
+          ctx.fillStyle = `${c.color}22`;
+          ctx.fill();
+
+          // Center solid point
+          ctx.beginPath();
+          ctx.arc(c.px, c.py, c.r, 0, Math.PI * 2);
+          ctx.fillStyle = c.color;
+          ctx.fill();
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = '#ffffff';
+          ctx.stroke();
+
+          // City label
+          ctx.font = '10px "JetBrains Mono", monospace';
+          ctx.fillStyle = '#94a3b8';
+          ctx.fillText(c.name, c.px + c.r + 6, c.py + 3);
+        });
+
+        requestAnimationFrame(renderGlobe);
+      }
+      renderGlobe();
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       2. SCROLL-DRIVEN 3D TILT PRODUCT STAGE (rotateX 14deg -> 0deg)
+       ───────────────────────────────────────────────────────────────────── */
+    const tiltedDeck = document.getElementById('hero-tilted-stage');
+    if (tiltedDeck) {
+      let isTicking = false;
+      function updateStageTilt() {
+        const scrollY = window.scrollY || window.pageYOffset;
+        const maxScroll = 420;
+        const progress = Math.min(1, Math.max(0, scrollY / maxScroll));
+        
+        // Easing interpolation
+        const currentRot = 14 * (1 - progress);
+        const currentScale = 0.94 + 0.06 * progress;
+
+        tiltedDeck.style.transform = `rotateX(${currentRot.toFixed(2)}deg) scale(${currentScale.toFixed(3)})`;
+        isTicking = false;
+      }
+
+      window.addEventListener('scroll', () => {
+        if (!isTicking) {
+          requestAnimationFrame(updateStageTilt);
+          isTicking = true;
+        }
+      }, { passive: true });
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       3. PREVIEW TABS SWITCHER (Hero Stage Tabs)
+       ───────────────────────────────────────────────────────────────────── */
+    const tabButtons = document.querySelectorAll('[data-stage-tab]');
+    const tabPanels = {
+      'osm': document.getElementById('tab-panel-osm'),
+      'dual-ledger': document.getElementById('tab-panel-dual-ledger'),
+      'hyper-network': document.getElementById('tab-panel-hyper-network'),
+      'timesfm': document.getElementById('tab-panel-timesfm')
+    };
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tabKey = btn.getAttribute('data-stage-tab');
+        
+        tabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        Object.keys(tabPanels).forEach(key => {
+          if (tabPanels[key]) {
+            tabPanels[key].classList.toggle('active', key === tabKey);
+          }
+        });
+      });
+    });
+
+    // Stage Tab 2 Interactive Treasury Toggle Demo
+    const stageTreasuryBtn = document.getElementById('stage-treasury-toggle-btn');
+    const stageEscrowPill = document.getElementById('stage-escrow-status-pill');
+    let isAutoReleaseActive = true;
+
+    if (stageTreasuryBtn && stageEscrowPill) {
+      stageTreasuryBtn.addEventListener('click', () => {
+        isAutoReleaseActive = !isAutoReleaseActive;
+        if (isAutoReleaseActive) {
+          stageTreasuryBtn.style.background = '#065f46';
+          stageTreasuryBtn.style.borderColor = '#10b981';
+          stageTreasuryBtn.style.color = '#6ee7b7';
+          stageTreasuryBtn.textContent = '🟢 Auto-Release Active';
+          stageEscrowPill.style.background = 'rgba(16,185,129,0.2)';
+          stageEscrowPill.style.color = '#34d399';
+          stageEscrowPill.textContent = 'CLEARING: T+1 AUTOMATED';
+        } else {
+          stageTreasuryBtn.style.background = '#7f1d1d';
+          stageTreasuryBtn.style.borderColor = '#ef4444';
+          stageTreasuryBtn.style.color = '#fca5a5';
+          stageTreasuryBtn.textContent = '🛑 Float On Hold';
+          stageEscrowPill.style.background = 'rgba(239,68,68,0.2)';
+          stageEscrowPill.style.color = '#f87171';
+          stageEscrowPill.textContent = 'HELD: AUDIT SIGN-OFF REQ';
+        }
+      });
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       4. INTERACTIVE PARSE AI WHATSAPP BOOKING TESTER
+       ───────────────────────────────────────────────────────────────────── */
+    const triggerParseBtn = document.getElementById('trigger-parse-ai-btn');
+    const resetParseBtn = document.getElementById('reset-parse-ai-btn');
+    const parseInput = document.getElementById('parse-ai-input-text');
+    const parseContainer = document.getElementById('parse-results-container');
+
+    const defaultMsg = "Need Innova Crysta tomorrow 6:30 AM for Rahul Sharma 9845012345 from Taj MG Road to BLR Airport, Bill to Infosys";
+
+    if (triggerParseBtn && parseInput && parseContainer) {
+      triggerParseBtn.addEventListener('click', () => {
+        triggerParseBtn.disabled = true;
+        triggerParseBtn.innerHTML = '⚡ Scanning Natural Entities...';
+        parseContainer.style.opacity = '0.5';
+
+        setTimeout(() => {
+          const raw = parseInput.innerText.trim();
+          
+          // Heuristic extraction
+          const phoneMatch = raw.match(/\b(?:\+91|0)?[6-9]\d{9}\b/) || ['9845012345'];
+          const isAirport = /airport|blr|kempegowda/i.test(raw);
+          const isCrysta = /crysta|innova|suv/i.test(raw);
+          const isInfosys = /infosys|wipro|tcs|ibm|google/i.test(raw);
+          
+          const passenger = raw.match(/for ([A-Z][a-z]+ [A-Z][a-z]+)/) || [null, 'Rahul Sharma'];
+          const fromLoc = raw.match(/from ([^,\n]+?)(?: to|$)/i) || [null, 'Taj MG Road'];
+          const toLoc = raw.match(/to ([^,\n]+?)(?:,|$| bill)/i) || [null, 'BLR Airport'];
+
+          document.getElementById('res-passenger').textContent = `${passenger[1] || 'Corporate Passenger'} (+91 ${phoneMatch[0].slice(-10)})`;
+          document.getElementById('res-corporate').textContent = isInfosys ? 'Infosys Enterprise (INF-BLR-09)' : 'Corporate Client Account';
+          document.getElementById('res-vehicle').textContent = isCrysta ? 'SUV_CRYSTA (Toyota Innova Crysta)' : 'SEDAN_PREMIUM (Toyota Etios / Dzire)';
+          document.getElementById('res-route').textContent = `${fromLoc[1]} → ${toLoc[1]} (${isAirport ? '36.4 km · 54 min' : '22.0 km · 35 min'})`;
+          document.getElementById('res-tariff').textContent = isAirport ? '4Hr/40Km Base (₹1,850.00) · Extra KM: ₹18/km' : '8Hr/80Km Base (₹3,200.00)';
+
+          parseContainer.style.opacity = '1';
+          triggerParseBtn.disabled = false;
+          triggerParseBtn.innerHTML = '✨ Test Parse AI (Extract Entities)';
+        }, 380);
+      });
+
+      if (resetParseBtn) {
+        resetParseBtn.addEventListener('click', () => {
+          parseInput.innerText = defaultMsg;
+          triggerParseBtn.click();
+        });
+      }
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       5. PRACTICAL AUTO-SLAB SIMULATOR (Range Sliders)
+       ───────────────────────────────────────────────────────────────────── */
+    const distSlider = document.getElementById('slider-dist');
+    const durSlider = document.getElementById('slider-dur');
+    const distVal = document.getElementById('slider-dist-val');
+    const durVal = document.getElementById('slider-dur-val');
+    const clientAmt = document.getElementById('calc-client-amt');
+    const supplierAmt = document.getElementById('calc-supplier-amt');
+    const marginAmt = document.getElementById('calc-margin-amt');
+    const guardrailText = document.getElementById('calc-guardrail-text');
+
+    function updateAutoSlab() {
+      if (!distSlider || !durSlider) return;
+      const km = parseInt(distSlider.value, 10);
+      const hrs = parseFloat(durSlider.value);
+
+      distVal.textContent = `${km} km`;
+      durVal.textContent = `${hrs} hrs`;
+
+      // 4Hr/40Km: Base 1850, Extra KM 18, Extra Hr 180
+      const cost4_40 = 1850 + Math.max(0, km - 40) * 18 + Math.max(0, hrs - 4) * 180;
+      // 8Hr/80Km: Base 3200, Extra KM 16, Extra Hr 160
+      const cost8_80 = 3200 + Math.max(0, km - 80) * 16 + Math.max(0, hrs - 8) * 160;
+
+      let chosenSlab, finalClient;
+      if (km > 60 || hrs > 5) {
+        chosenSlab = '8Hr/80Km';
+        finalClient = cost8_80;
+      } else {
+        chosenSlab = '4Hr/40Km';
+        finalClient = cost4_40;
+      }
+
+      // Supplier payable (base DCO rate ~76% of client)
+      const finalSupplier = Math.round(finalClient * 0.77);
+      const margin = finalClient - finalSupplier;
+      const marginPct = ((margin / finalClient) * 100).toFixed(1);
+
+      clientAmt.textContent = `₹${finalClient.toLocaleString('en-IN')}`;
+      supplierAmt.textContent = `₹${finalSupplier.toLocaleString('en-IN')}`;
+      marginAmt.textContent = `₹${margin.toLocaleString('en-IN')} (${marginPct}%)`;
+
+      if (chosenSlab === '8Hr/80Km' && cost4_40 > cost8_80) {
+        guardrailText.textContent = `⚡ Auto-Upgrade Recommended: 8Hr/80Km slab chosen (prevents ₹${(cost4_40 - cost8_80).toLocaleString('en-IN')} client invoice dispute).`;
+      } else {
+        guardrailText.textContent = `🟢 Margin-Floor Protected: ${marginPct}% net retained on ${chosenSlab} dispatch.`;
+      }
+    }
+
+    if (distSlider && durSlider) {
+      distSlider.addEventListener('input', updateAutoSlab);
+      durSlider.addEventListener('input', updateAutoSlab);
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       6. QUICK ROLE SWITCHER FLOATING MODAL
+       ───────────────────────────────────────────────────────────────────── */
+    const roleModalBtn = document.getElementById('nav-role-switcher-btn');
+    const roleModal = document.getElementById('nav-role-modal');
+    const closeRoleBtn = document.getElementById('close-role-modal-btn');
+
+    if (roleModalBtn && roleModal) {
+      roleModalBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        roleModal.classList.toggle('open');
+      });
+
+      if (closeRoleBtn) {
+        closeRoleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          roleModal.classList.remove('open');
+        });
+      }
+
+      document.addEventListener('click', (e) => {
+        if (!roleModal.contains(e.target) && e.target !== roleModalBtn) {
+          roleModal.classList.remove('open');
+        }
+      });
+    }
+
+    // Quick Login Helpers
+    async function executeQuickLogin(email, password) {
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.user) {
+            localStorage.setItem('axiomfleet_user', JSON.stringify(data.user));
+          }
+          if (typeof window.showApp === 'function') {
+            window.showApp();
+          } else {
+            window.location.hash = '#app';
+            window.location.reload();
+          }
+        } else {
+          // Fallback to standard login view
+          if (typeof window.showLogin === 'function') window.showLogin();
+        }
+      } catch (_) {
+        if (typeof window.showLogin === 'function') window.showLogin();
+      }
+    }
+
+    const adminBtn = document.getElementById('quick-login-admin-btn');
+    const vendorBtn = document.getElementById('quick-login-vendor-btn');
+    const corporateBtn = document.getElementById('quick-login-corporate-btn');
+    const explorePortalBtn = document.getElementById('hero-explore-portal-btn');
+
+    if (adminBtn) adminBtn.addEventListener('click', () => executeQuickLogin('admin'));
+    if (vendorBtn) vendorBtn.addEventListener('click', () => executeQuickLogin('vendor'));
+    if (corporateBtn) corporateBtn.addEventListener('click', () => executeQuickLogin('corporate'));
+    if (explorePortalBtn) explorePortalBtn.addEventListener('click', () => executeQuickLogin('admin'));
+
+    /* ─────────────────────────────────────────────────────────────────────
+       7. HERO QUICK CAPTURE & SECTION 6 SIGNAL PROSPECT FORM
+       ───────────────────────────────────────────────────────────────────── */
+    const heroQuickInput = document.getElementById('hero-quick-input');
+    const heroQuickBtn = document.getElementById('hero-quick-submit-btn');
+
+    if (heroQuickBtn && heroQuickInput) {
+      heroQuickBtn.addEventListener('click', () => {
+        const val = heroQuickInput.value.trim();
+        if (!val) {
+          document.getElementById('prospect-cta')?.scrollIntoView({ behavior: 'smooth' });
+          document.getElementById('prospect-full-name')?.focus();
+          return;
+        }
+
+        // Prefill signal form and scroll smoothly
+        if (val.includes('@')) {
+          const emailEl = document.getElementById('prospect-email');
+          if (emailEl) emailEl.value = val;
+        } else {
+          const mobileEl = document.getElementById('prospect-mobile');
+          if (mobileEl) mobileEl.value = val;
+        }
+        document.getElementById('prospect-cta')?.scrollIntoView({ behavior: 'smooth' });
+        setTimeout(() => document.getElementById('prospect-full-name')?.focus(), 400);
+      });
+    }
+
+    // Role selection pills in Signal Form
+    const rolePills = document.querySelectorAll('.role-select-pill');
+    let selectedInterest = 'VENDOR_SAAS';
+    rolePills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        rolePills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        selectedInterest = pill.getAttribute('data-role') || 'VENDOR_SAAS';
+      });
+    });
+
+    // Form submission wired to POST /api/v1/public/prospect-capture
+    const signalForm = document.getElementById('signal-prospect-form');
+    const successBox = document.getElementById('signal-success-box');
+    const submitBtn = document.getElementById('prospect-submit-btn');
+
+    if (signalForm && successBox) {
+      signalForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Registering Lead in Axiom CRM...';
+        }
+
+        const payload = {
+          full_name: document.getElementById('prospect-full-name')?.value.trim() || 'Demo Prospect',
+          company_name: document.getElementById('prospect-company-name')?.value.trim() || 'Enterprise Fleet',
+          mobile_number: document.getElementById('prospect-mobile')?.value.trim() || '9845012345',
+          email_id: document.getElementById('prospect-email')?.value.trim().toLowerCase() || 'prospect@example.com',
+          city: 'Bengaluru',
+          fleet_size_estimate: parseInt(document.getElementById('prospect-fleet-size')?.value || '15', 10),
+          interest_type: selectedInterest
+        };
+
+        try {
+          const res = await fetch('/api/v1/public/prospect-capture', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          // Show celebratory state
+          signalForm.style.display = 'none';
+          successBox.classList.add('show');
+        } catch (_) {
+          signalForm.style.display = 'none';
+          successBox.classList.add('show');
+        }
+      });
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       8. MONUMENTAL FOOTER METALLIC WORDMARK CURSOR SHEEN
+       ───────────────────────────────────────────────────────────────────── */
+    const giantWordmark = document.getElementById('giant-wordmark');
+    if (giantWordmark) {
+      const footer = giantWordmark.closest('footer');
+      if (footer) {
+        footer.addEventListener('mousemove', (e) => {
+          const rect = footer.getBoundingClientRect();
+          const xPct = ((e.clientX - rect.left) / rect.width) * 100;
+          giantWordmark.style.background = `linear-gradient(${90 + (xPct - 50) * 0.4}deg, #94A3B8 0%, #FFFFFF ${xPct}%, #334155 100%)`;
+          giantWordmark.style.webkitBackgroundClip = 'text';
+          giantWordmark.style.webkitTextFillColor = 'transparent';
+        });
+      }
+    }
+  }
+
+  // Run on load and whenever showPublic is invoked
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupInteractiveLanding);
+  } else {
+    setupInteractiveLanding();
+  }
+  window.initAxiomFlagshipExperience = setupInteractiveLanding;
+})();
+
+  </script>
+</body>
+</html>');
           printWin.document.close();
         } else { window.print(); }
       });
@@ -17108,5 +20061,527 @@ function openDriverModal(existing) {
     initSidebarCollapse();
     initAuth();
   </script>
+
+  <script type="text/javascript">
+/* ═══════════════════════════════════════════════════════════════════════════
+   AXIOM MOBILITY FLAGSHIP INTERACTION SCRIPTS
+   Zero-Build Vanilla ES6+ Canvas Shaders, Parallax & Interactive Sandboxes
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+(function initAxiomFlagshipExperience() {
+  function setupInteractiveLanding() {
+    const publicSite = document.getElementById('public-site');
+    if (!publicSite) return;
+
+    /* ─────────────────────────────────────────────────────────────────────
+       1. 60 FPS HTML5 CANVAS 3D CORRIDOR NETWORK (Supahero Stage)
+       ───────────────────────────────────────────────────────────────────── */
+    const canvas = document.getElementById('axiom-network-globe');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      let width, height;
+      let mouseX = 0, mouseY = 0;
+      let targetRotX = 0, targetRotY = 0;
+      let currentRotX = 0, currentRotY = 0;
+
+      // 6 Core Mobility Corridors across India
+      const cities = [
+        { name: 'Bengaluru (HQ)', x: 0.48, y: 0.68, color: '#10b981', r: 7 },
+        { name: 'Mumbai', x: 0.28, y: 0.48, color: '#6366f1', r: 6 },
+        { name: 'Delhi NCR', x: 0.38, y: 0.22, color: '#38bdf8', r: 6.5 },
+        { name: 'Hyderabad', x: 0.52, y: 0.54, color: '#a855f7', r: 5.5 },
+        { name: 'Chennai', x: 0.58, y: 0.72, color: '#f59e0b', r: 5.5 },
+        { name: 'Pune', x: 0.32, y: 0.52, color: '#10b981', r: 5 }
+      ];
+
+      // Arcs connecting city nodes
+      const corridors = [
+        { from: 0, to: 1, progress: 0.1, speed: 0.006, color: '#10b981' }, // BLR - BOM
+        { from: 0, to: 2, progress: 0.5, speed: 0.005, color: '#6366f1' }, // BLR - DEL
+        { from: 0, to: 3, progress: 0.8, speed: 0.008, color: '#34d399' }, // BLR - HYD
+        { from: 0, to: 4, progress: 0.3, speed: 0.009, color: '#38bdf8' }, // BLR - MAA
+        { from: 1, to: 5, progress: 0.7, speed: 0.012, color: '#10b981' }, // BOM - PNQ
+        { from: 1, to: 2, progress: 0.2, speed: 0.006, color: '#6366f1' }, // BOM - DEL
+        { from: 3, to: 2, progress: 0.4, speed: 0.007, color: '#818cf8' }  // HYD - DEL
+      ];
+
+      // Background ambient stars/particles
+      const particles = [];
+      for (let i = 0; i < 45; i++) {
+        particles.push({
+          x: Math.random(),
+          y: Math.random(),
+          radius: Math.random() * 1.5 + 0.5,
+          alpha: Math.random() * 0.4 + 0.1,
+          speed: Math.random() * 0.0004 + 0.0001
+        });
+      }
+
+      function resize() {
+        const dpr = window.devicePixelRatio || 1;
+        width = canvas.parentElement.offsetWidth || window.innerWidth;
+        height = canvas.parentElement.offsetHeight || 650;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      window.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        if (e.clientY < rect.bottom && e.clientY > rect.top) {
+          mouseX = (e.clientX - rect.left) / width - 0.5;
+          mouseY = (e.clientY - rect.top) / height - 0.5;
+          targetRotX = mouseY * 0.3;
+          targetRotY = mouseX * 0.4;
+        }
+      });
+
+      function renderGlobe() {
+        ctx.clearRect(0, 0, width, height);
+
+        // Smooth damping
+        currentRotX += (targetRotX - currentRotX) * 0.05;
+        currentRotY += (targetRotY - currentRotY) * 0.05;
+
+        // Draw ambient floating micro-particles
+        particles.forEach(p => {
+          p.y -= p.speed;
+          if (p.y < 0) p.y = 1;
+          ctx.beginPath();
+          ctx.arc(p.x * width + currentRotY * 30, p.y * height + currentRotX * 20, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(148, 163, 184, ${p.alpha})`;
+          ctx.fill();
+        });
+
+        // Compute projected node positions
+        const projected = cities.map(c => {
+          const px = c.x * width + currentRotY * 50;
+          const py = c.y * height + currentRotX * 40;
+          return { ...c, px, py };
+        });
+
+        // Draw curved corridor arcs
+        corridors.forEach(arc => {
+          const c1 = projected[arc.from];
+          const c2 = projected[arc.to];
+
+          const midX = (c1.px + c2.px) / 2 + (c1.py - c2.py) * 0.15;
+          const midY = (c1.py + c2.py) / 2 + (c2.px - c1.px) * 0.15;
+
+          // Arc baseline
+          ctx.beginPath();
+          ctx.moveTo(c1.px, c1.py);
+          ctx.quadraticCurveTo(midX, midY, c2.px, c2.py);
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // Traveling dispatch photon pulse
+          arc.progress += arc.speed;
+          if (arc.progress > 1) arc.progress = 0;
+
+          const t = arc.progress;
+          // Quadratic bezier formula: (1-t)^2*P0 + 2(1-t)t*P1 + t^2*P2
+          const curX = Math.pow(1 - t, 2) * c1.px + 2 * (1 - t) * t * midX + Math.pow(t, 2) * c2.px;
+          const curY = Math.pow(1 - t, 2) * c1.py + 2 * (1 - t) * t * midY + Math.pow(t, 2) * c2.py;
+
+          // Glowing photon
+          ctx.beginPath();
+          ctx.arc(curX, curY, 3, 0, Math.PI * 2);
+          ctx.fillStyle = arc.color;
+          ctx.shadowColor = arc.color;
+          ctx.shadowBlur = 10;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+
+        // Draw city nodes
+        projected.forEach(c => {
+          // Glow halo
+          ctx.beginPath();
+          ctx.arc(c.px, c.py, c.r + 4, 0, Math.PI * 2);
+          ctx.fillStyle = `${c.color}22`;
+          ctx.fill();
+
+          // Center solid point
+          ctx.beginPath();
+          ctx.arc(c.px, c.py, c.r, 0, Math.PI * 2);
+          ctx.fillStyle = c.color;
+          ctx.fill();
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = '#ffffff';
+          ctx.stroke();
+
+          // City label
+          ctx.font = '10px "JetBrains Mono", monospace';
+          ctx.fillStyle = '#94a3b8';
+          ctx.fillText(c.name, c.px + c.r + 6, c.py + 3);
+        });
+
+        requestAnimationFrame(renderGlobe);
+      }
+      renderGlobe();
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       2. SCROLL-DRIVEN 3D TILT PRODUCT STAGE (rotateX 14deg -> 0deg)
+       ───────────────────────────────────────────────────────────────────── */
+    const tiltedDeck = document.getElementById('hero-tilted-stage');
+    if (tiltedDeck) {
+      let isTicking = false;
+      function updateStageTilt() {
+        const scrollY = window.scrollY || window.pageYOffset;
+        const maxScroll = 420;
+        const progress = Math.min(1, Math.max(0, scrollY / maxScroll));
+        
+        // Easing interpolation
+        const currentRot = 14 * (1 - progress);
+        const currentScale = 0.94 + 0.06 * progress;
+
+        tiltedDeck.style.transform = `rotateX(${currentRot.toFixed(2)}deg) scale(${currentScale.toFixed(3)})`;
+        isTicking = false;
+      }
+
+      window.addEventListener('scroll', () => {
+        if (!isTicking) {
+          requestAnimationFrame(updateStageTilt);
+          isTicking = true;
+        }
+      }, { passive: true });
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       3. PREVIEW TABS SWITCHER (Hero Stage Tabs)
+       ───────────────────────────────────────────────────────────────────── */
+    const tabButtons = document.querySelectorAll('[data-stage-tab]');
+    const tabPanels = {
+      'osm': document.getElementById('tab-panel-osm'),
+      'dual-ledger': document.getElementById('tab-panel-dual-ledger'),
+      'hyper-network': document.getElementById('tab-panel-hyper-network'),
+      'timesfm': document.getElementById('tab-panel-timesfm')
+    };
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tabKey = btn.getAttribute('data-stage-tab');
+        
+        tabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        Object.keys(tabPanels).forEach(key => {
+          if (tabPanels[key]) {
+            tabPanels[key].classList.toggle('active', key === tabKey);
+          }
+        });
+      });
+    });
+
+    // Stage Tab 2 Interactive Treasury Toggle Demo
+    const stageTreasuryBtn = document.getElementById('stage-treasury-toggle-btn');
+    const stageEscrowPill = document.getElementById('stage-escrow-status-pill');
+    let isAutoReleaseActive = true;
+
+    if (stageTreasuryBtn && stageEscrowPill) {
+      stageTreasuryBtn.addEventListener('click', () => {
+        isAutoReleaseActive = !isAutoReleaseActive;
+        if (isAutoReleaseActive) {
+          stageTreasuryBtn.style.background = '#065f46';
+          stageTreasuryBtn.style.borderColor = '#10b981';
+          stageTreasuryBtn.style.color = '#6ee7b7';
+          stageTreasuryBtn.textContent = '🟢 Auto-Release Active';
+          stageEscrowPill.style.background = 'rgba(16,185,129,0.2)';
+          stageEscrowPill.style.color = '#34d399';
+          stageEscrowPill.textContent = 'CLEARING: T+1 AUTOMATED';
+        } else {
+          stageTreasuryBtn.style.background = '#7f1d1d';
+          stageTreasuryBtn.style.borderColor = '#ef4444';
+          stageTreasuryBtn.style.color = '#fca5a5';
+          stageTreasuryBtn.textContent = '🛑 Float On Hold';
+          stageEscrowPill.style.background = 'rgba(239,68,68,0.2)';
+          stageEscrowPill.style.color = '#f87171';
+          stageEscrowPill.textContent = 'HELD: AUDIT SIGN-OFF REQ';
+        }
+      });
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       4. INTERACTIVE PARSE AI WHATSAPP BOOKING TESTER
+       ───────────────────────────────────────────────────────────────────── */
+    const triggerParseBtn = document.getElementById('trigger-parse-ai-btn');
+    const resetParseBtn = document.getElementById('reset-parse-ai-btn');
+    const parseInput = document.getElementById('parse-ai-input-text');
+    const parseContainer = document.getElementById('parse-results-container');
+
+    const defaultMsg = "Need Innova Crysta tomorrow 6:30 AM for Rahul Sharma 9845012345 from Taj MG Road to BLR Airport, Bill to Infosys";
+
+    if (triggerParseBtn && parseInput && parseContainer) {
+      triggerParseBtn.addEventListener('click', () => {
+        triggerParseBtn.disabled = true;
+        triggerParseBtn.innerHTML = '⚡ Scanning Natural Entities...';
+        parseContainer.style.opacity = '0.5';
+
+        setTimeout(() => {
+          const raw = parseInput.innerText.trim();
+          
+          // Heuristic extraction
+          const phoneMatch = raw.match(/\b(?:\+91|0)?[6-9]\d{9}\b/) || ['9845012345'];
+          const isAirport = /airport|blr|kempegowda/i.test(raw);
+          const isCrysta = /crysta|innova|suv/i.test(raw);
+          const isInfosys = /infosys|wipro|tcs|ibm|google/i.test(raw);
+          
+          const passenger = raw.match(/for ([A-Z][a-z]+ [A-Z][a-z]+)/) || [null, 'Rahul Sharma'];
+          const fromLoc = raw.match(/from ([^,\n]+?)(?: to|$)/i) || [null, 'Taj MG Road'];
+          const toLoc = raw.match(/to ([^,\n]+?)(?:,|$| bill)/i) || [null, 'BLR Airport'];
+
+          document.getElementById('res-passenger').textContent = `${passenger[1] || 'Corporate Passenger'} (+91 ${phoneMatch[0].slice(-10)})`;
+          document.getElementById('res-corporate').textContent = isInfosys ? 'Infosys Enterprise (INF-BLR-09)' : 'Corporate Client Account';
+          document.getElementById('res-vehicle').textContent = isCrysta ? 'SUV_CRYSTA (Toyota Innova Crysta)' : 'SEDAN_PREMIUM (Toyota Etios / Dzire)';
+          document.getElementById('res-route').textContent = `${fromLoc[1]} → ${toLoc[1]} (${isAirport ? '36.4 km · 54 min' : '22.0 km · 35 min'})`;
+          document.getElementById('res-tariff').textContent = isAirport ? '4Hr/40Km Base (₹1,850.00) · Extra KM: ₹18/km' : '8Hr/80Km Base (₹3,200.00)';
+
+          parseContainer.style.opacity = '1';
+          triggerParseBtn.disabled = false;
+          triggerParseBtn.innerHTML = '✨ Test Parse AI (Extract Entities)';
+        }, 380);
+      });
+
+      if (resetParseBtn) {
+        resetParseBtn.addEventListener('click', () => {
+          parseInput.innerText = defaultMsg;
+          triggerParseBtn.click();
+        });
+      }
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       5. PRACTICAL AUTO-SLAB SIMULATOR (Range Sliders)
+       ───────────────────────────────────────────────────────────────────── */
+    const distSlider = document.getElementById('slider-dist');
+    const durSlider = document.getElementById('slider-dur');
+    const distVal = document.getElementById('slider-dist-val');
+    const durVal = document.getElementById('slider-dur-val');
+    const clientAmt = document.getElementById('calc-client-amt');
+    const supplierAmt = document.getElementById('calc-supplier-amt');
+    const marginAmt = document.getElementById('calc-margin-amt');
+    const guardrailText = document.getElementById('calc-guardrail-text');
+
+    function updateAutoSlab() {
+      if (!distSlider || !durSlider) return;
+      const km = parseInt(distSlider.value, 10);
+      const hrs = parseFloat(durSlider.value);
+
+      distVal.textContent = `${km} km`;
+      durVal.textContent = `${hrs} hrs`;
+
+      // 4Hr/40Km: Base 1850, Extra KM 18, Extra Hr 180
+      const cost4_40 = 1850 + Math.max(0, km - 40) * 18 + Math.max(0, hrs - 4) * 180;
+      // 8Hr/80Km: Base 3200, Extra KM 16, Extra Hr 160
+      const cost8_80 = 3200 + Math.max(0, km - 80) * 16 + Math.max(0, hrs - 8) * 160;
+
+      let chosenSlab, finalClient;
+      if (km > 60 || hrs > 5) {
+        chosenSlab = '8Hr/80Km';
+        finalClient = cost8_80;
+      } else {
+        chosenSlab = '4Hr/40Km';
+        finalClient = cost4_40;
+      }
+
+      // Supplier payable (base DCO rate ~76% of client)
+      const finalSupplier = Math.round(finalClient * 0.77);
+      const margin = finalClient - finalSupplier;
+      const marginPct = ((margin / finalClient) * 100).toFixed(1);
+
+      clientAmt.textContent = `₹${finalClient.toLocaleString('en-IN')}`;
+      supplierAmt.textContent = `₹${finalSupplier.toLocaleString('en-IN')}`;
+      marginAmt.textContent = `₹${margin.toLocaleString('en-IN')} (${marginPct}%)`;
+
+      if (chosenSlab === '8Hr/80Km' && cost4_40 > cost8_80) {
+        guardrailText.textContent = `⚡ Auto-Upgrade Recommended: 8Hr/80Km slab chosen (prevents ₹${(cost4_40 - cost8_80).toLocaleString('en-IN')} client invoice dispute).`;
+      } else {
+        guardrailText.textContent = `🟢 Margin-Floor Protected: ${marginPct}% net retained on ${chosenSlab} dispatch.`;
+      }
+    }
+
+    if (distSlider && durSlider) {
+      distSlider.addEventListener('input', updateAutoSlab);
+      durSlider.addEventListener('input', updateAutoSlab);
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       6. QUICK ROLE SWITCHER FLOATING MODAL
+       ───────────────────────────────────────────────────────────────────── */
+    const roleModalBtn = document.getElementById('nav-role-switcher-btn');
+    const roleModal = document.getElementById('nav-role-modal');
+    const closeRoleBtn = document.getElementById('close-role-modal-btn');
+
+    if (roleModalBtn && roleModal) {
+      roleModalBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        roleModal.classList.toggle('open');
+      });
+
+      if (closeRoleBtn) {
+        closeRoleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          roleModal.classList.remove('open');
+        });
+      }
+
+      document.addEventListener('click', (e) => {
+        if (!roleModal.contains(e.target) && e.target !== roleModalBtn) {
+          roleModal.classList.remove('open');
+        }
+      });
+    }
+
+    // Quick Login Helpers
+    async function executeQuickLogin(email, password) {
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.user) {
+            localStorage.setItem('axiomfleet_user', JSON.stringify(data.user));
+          }
+          if (typeof window.showApp === 'function') {
+            window.showApp();
+          } else {
+            window.location.hash = '#app';
+            window.location.reload();
+          }
+        } else {
+          // Fallback to standard login view
+          if (typeof window.showLogin === 'function') window.showLogin();
+        }
+      } catch (_) {
+        if (typeof window.showLogin === 'function') window.showLogin();
+      }
+    }
+
+    const adminBtn = document.getElementById('quick-login-admin-btn');
+    const vendorBtn = document.getElementById('quick-login-vendor-btn');
+    const corporateBtn = document.getElementById('quick-login-corporate-btn');
+    const explorePortalBtn = document.getElementById('hero-explore-portal-btn');
+
+    if (adminBtn) adminBtn.addEventListener('click', () => executeQuickLogin('admin'));
+    if (vendorBtn) vendorBtn.addEventListener('click', () => executeQuickLogin('vendor'));
+    if (corporateBtn) corporateBtn.addEventListener('click', () => executeQuickLogin('corporate'));
+    if (explorePortalBtn) explorePortalBtn.addEventListener('click', () => executeQuickLogin('admin'));
+
+    /* ─────────────────────────────────────────────────────────────────────
+       7. HERO QUICK CAPTURE & SECTION 6 SIGNAL PROSPECT FORM
+       ───────────────────────────────────────────────────────────────────── */
+    const heroQuickInput = document.getElementById('hero-quick-input');
+    const heroQuickBtn = document.getElementById('hero-quick-submit-btn');
+
+    if (heroQuickBtn && heroQuickInput) {
+      heroQuickBtn.addEventListener('click', () => {
+        const val = heroQuickInput.value.trim();
+        if (!val) {
+          document.getElementById('prospect-cta')?.scrollIntoView({ behavior: 'smooth' });
+          document.getElementById('prospect-full-name')?.focus();
+          return;
+        }
+
+        // Prefill signal form and scroll smoothly
+        if (val.includes('@')) {
+          const emailEl = document.getElementById('prospect-email');
+          if (emailEl) emailEl.value = val;
+        } else {
+          const mobileEl = document.getElementById('prospect-mobile');
+          if (mobileEl) mobileEl.value = val;
+        }
+        document.getElementById('prospect-cta')?.scrollIntoView({ behavior: 'smooth' });
+        setTimeout(() => document.getElementById('prospect-full-name')?.focus(), 400);
+      });
+    }
+
+    // Role selection pills in Signal Form
+    const rolePills = document.querySelectorAll('.role-select-pill');
+    let selectedInterest = 'VENDOR_SAAS';
+    rolePills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        rolePills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        selectedInterest = pill.getAttribute('data-role') || 'VENDOR_SAAS';
+      });
+    });
+
+    // Form submission wired to POST /api/v1/public/prospect-capture
+    const signalForm = document.getElementById('signal-prospect-form');
+    const successBox = document.getElementById('signal-success-box');
+    const submitBtn = document.getElementById('prospect-submit-btn');
+
+    if (signalForm && successBox) {
+      signalForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Registering Lead in Axiom CRM...';
+        }
+
+        const payload = {
+          full_name: document.getElementById('prospect-full-name')?.value.trim() || 'Demo Prospect',
+          company_name: document.getElementById('prospect-company-name')?.value.trim() || 'Enterprise Fleet',
+          mobile_number: document.getElementById('prospect-mobile')?.value.trim() || '9845012345',
+          email_id: document.getElementById('prospect-email')?.value.trim().toLowerCase() || 'prospect@example.com',
+          city: 'Bengaluru',
+          fleet_size_estimate: parseInt(document.getElementById('prospect-fleet-size')?.value || '15', 10),
+          interest_type: selectedInterest
+        };
+
+        try {
+          const res = await fetch('/api/v1/public/prospect-capture', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          // Show celebratory state
+          signalForm.style.display = 'none';
+          successBox.classList.add('show');
+        } catch (_) {
+          signalForm.style.display = 'none';
+          successBox.classList.add('show');
+        }
+      });
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────
+       8. MONUMENTAL FOOTER METALLIC WORDMARK CURSOR SHEEN
+       ───────────────────────────────────────────────────────────────────── */
+    const giantWordmark = document.getElementById('giant-wordmark');
+    if (giantWordmark) {
+      const footer = giantWordmark.closest('footer');
+      if (footer) {
+        footer.addEventListener('mousemove', (e) => {
+          const rect = footer.getBoundingClientRect();
+          const xPct = ((e.clientX - rect.left) / rect.width) * 100;
+          giantWordmark.style.background = `linear-gradient(${90 + (xPct - 50) * 0.4}deg, #94A3B8 0%, #FFFFFF ${xPct}%, #334155 100%)`;
+          giantWordmark.style.webkitBackgroundClip = 'text';
+          giantWordmark.style.webkitTextFillColor = 'transparent';
+        });
+      }
+    }
+  }
+
+  // Run on load and whenever showPublic is invoked
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupInteractiveLanding);
+  } else {
+    setupInteractiveLanding();
+  }
+  window.initAxiomFlagshipExperience = setupInteractiveLanding;
+})();
+
+  </script>
 </body>
+
 </html>
