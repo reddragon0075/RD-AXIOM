@@ -18848,7 +18848,7 @@ function openDriverModal(existing) {
         else showPublic(false);
       }
     });
-    document.getElementById('login-form').addEventListener('submit', async e => {
+    document.getElementById('login-form')?.addEventListener('submit', async e => {
       e.preventDefault();
       const email = document.getElementById('login-email').value.trim().toLowerCase();
       const password = document.getElementById('login-password').value;
@@ -18867,7 +18867,7 @@ function openDriverModal(existing) {
         submit.disabled = false;
       }
     });
-    document.getElementById('signup-form').addEventListener('submit', async e => {
+    document.getElementById('signup-form')?.addEventListener('submit', async e => {
       e.preventDefault();
       const form = e.currentTarget;
       const error = document.getElementById('signup-error');
@@ -18896,13 +18896,13 @@ function openDriverModal(existing) {
         submit.disabled = false;
       }
     });
-    document.getElementById('toggle-password').addEventListener('click', e => {
+    document.getElementById('toggle-password')?.addEventListener('click', e => {
       const input = document.getElementById('login-password');
       const visible = input.type === 'text';
       input.type = visible ? 'password' : 'text';
       e.currentTarget.textContent = visible ? 'Show' : 'Hide';
     });
-    document.getElementById('forgot-password').addEventListener('click', async e => { e.preventDefault(); const email=document.getElementById('login-email').value.trim().toLowerCase(); if(!email){showToast('Enter your email first','We need the account email to send a reset link.');return;} try { await apiRequest('/api/auth/password-reset',{method:'POST',body:JSON.stringify({email})}); showToast('Password reset requested','If that address exists, a reset link will be sent shortly.'); } catch(error) { showToast('Password reset unavailable',error.message); } });
+    document.getElementById('forgot-password')?.addEventListener('click', async e => { e.preventDefault(); const email=document.getElementById('login-email').value.trim().toLowerCase(); if(!email){showToast('Enter your email first','We need the account email to send a reset link.');return;} try { await apiRequest('/api/auth/password-reset',{method:'POST',body:JSON.stringify({email})}); showToast('Password reset requested','If that address exists, a reset link will be sent shortly.'); } catch(error) { showToast('Password reset unavailable',error.message); } });
 
     const impactRange = document.getElementById('impact-range');
     function updateImpact() {
@@ -18919,7 +18919,7 @@ function openDriverModal(existing) {
     }
     if (impactRange) impactRange.addEventListener('input', updateImpact);
     updateImpact();
-    document.getElementById('demo-form').addEventListener('submit', e => {
+    document.getElementById('demo-form')?.addEventListener('submit', e => {
       e.preventDefault();
       const form = e.currentTarget; const data = Object.fromEntries(new FormData(form).entries());
       const subject = encodeURIComponent(`Axiom Fleet walkthrough · ${data.company || data.name || 'new contact'}`);
@@ -18939,14 +18939,14 @@ function openDriverModal(existing) {
       advancedNavOpen = !advancedNavOpen;
       syncAdvancedNavigation();
     });
-    document.getElementById('drawerBackdrop').addEventListener('click',closeDrawer); document.getElementById('modalBackdrop').addEventListener('click',e=>{if(e.target.id==='modalBackdrop')closeModal();});
-    document.getElementById('mobileMenu').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('open'));
-    document.getElementById('notificationsBtn').addEventListener('click',()=>{ const alerts=state.extendedData['/api/alerts']?.items || []; const open=alerts.filter(alert=>alert.status==='open').length; showToast('Notifications', open ? `${open} tenant alert${open===1?'':'s'} need acknowledgement.` : 'No open tenant notifications.'); });
-    document.getElementById('helpBtn').addEventListener('click',openProductTour);
-    document.getElementById('profileBtn').addEventListener('click',()=>{ state.page='settings'; render(); });
+    document.getElementById('drawerBackdrop')?.addEventListener('click',closeDrawer); document.getElementById('modalBackdrop')?.addEventListener('click',e=>{if(e.target.id==='modalBackdrop')closeModal();});
+    document.getElementById('mobileMenu')?.addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('open'));
+    document.getElementById('notificationsBtn')?.addEventListener('click',()=>{ const alerts=state.extendedData['/api/alerts']?.items || []; const open=alerts.filter(alert=>alert.status==='open').length; showToast('Notifications', open ? `${open} tenant alert${open===1?'':'s'} need acknowledgement.` : 'No open tenant notifications.'); });
+    document.getElementById('helpBtn')?.addEventListener('click',openProductTour);
+    document.getElementById('profileBtn')?.addEventListener('click',()=>{ state.page='settings'; render(); });
     document.getElementById('branchSelect')?.addEventListener('click',openBranchSelector);
-    document.getElementById('logoutBtn').addEventListener('click', logout);
-    document.getElementById('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter' && e.target.value.trim()){state.page='duties';state.dutyQuery=e.target.value.trim();render();}});
+    document.getElementById('logoutBtn')?.addEventListener('click', logout);
+    document.getElementById('globalSearch')?.addEventListener('keydown',e=>{if(e.key==='Enter' && e.target.value.trim()){state.page='duties';state.dutyQuery=e.target.value.trim();render();}});
     document.getElementById('commandPaletteClose')?.addEventListener('click', closeCommandPalette);
     document.getElementById('commandPaletteBackdrop')?.addEventListener('click', closeCommandPalette);
     document.getElementById('commandPaletteInput')?.addEventListener('input', e => { state.commandIndex=0; renderCommandResults(e.target.value); });
