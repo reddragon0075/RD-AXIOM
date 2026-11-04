@@ -1,0 +1,15 @@
+{
+  "name": "Axiom Fleet Driver",
+  "short_name": "Axiom Driver",
+  "description": "Offline-first duty, proof and safety tools for Axiom Fleet drivers.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f7f3",
+  "theme_color": "#142126",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

@@ -14,12 +14,9 @@
     }
   ],
   "rewrites": [
-    { "source": "/frontend/(.*)", "destination": "/frontend/$1" },
-    { "source": "/fleetline-mvp/(.*)", "destination": "/fleetline-mvp/$1" },
-    { "source": "/driver-app", "destination": "/fleetline-mvp/driver-app/index.html" },
-    { "source": "/driver-app/(.*)", "destination": "/fleetline-mvp/driver-app/$1" },
-    { "source": "/", "destination": "/fleetline-mvp/index.html" },
-    { "source": "/(.*)", "destination": "/fleetline-mvp/$1" }
+    { "source": "/fleetline-mvp/(.*)", "destination": "/$1" },
+    { "source": "/fleetline-mvp", "destination": "/index.html" },
+    { "source": "/driver-app", "destination": "/driver-app/index.html" },
+    { "source": "/driver-app/(.*)", "destination": "/driver-app/$1" }
   ]
 }
-
