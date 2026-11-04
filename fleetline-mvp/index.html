@@ -18391,6 +18391,27 @@ function openDriverModal(existing) {
         return { ok: true, access_token: 'tok_demo_' + Date.now(), user: user };
       }
 
+      if (path === '/api/auth/signup' && reqMethod === 'POST') {
+        let payload = {};
+        try { payload = JSON.parse(options.body || '{}'); } catch (_) {}
+        const email = (payload.email || 'reddragon0075@gmail.com').toLowerCase();
+        const role = payload.role || 'vendor';
+        const user = {
+          id: 'usr_' + Date.now(),
+          email: email,
+          full_name: payload.full_name || 'Abhijith Vijayan',
+          role: role,
+          phone: payload.phone || '+917829885737',
+          organization: {
+            id: 'org_' + Date.now(),
+            name: payload.organization_name || payload.company_name || 'goblr',
+            type: role
+          },
+          is_demo: true
+        };
+        return { ok: true, access_token: 'tok_demo_' + Date.now(), user: user, needs_confirmation: false };
+      }
+
       if (path === '/api/auth/me' && reqMethod === 'GET') {
         const u = currentUser || readStoredUser() || window.AXIOM_DEMO_DATA?.user;
         return { ok: true, user: u };

@@ -11,6 +11,12 @@
         { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
         { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" }
       ]
+    },
+    {
+      "source": "/(index.html|driver-sw.js|demo_fleet_data.js|driver-manifest.json)?",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
     }
   ],
   "rewrites": [
