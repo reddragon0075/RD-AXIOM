@@ -2224,48 +2224,53 @@
   
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   AXIOM FLEET ENTERPRISE DESIGN SYSTEM (INDECAB-INSPIRED HIGH-CONTRAST LIGHT)
+   AXIOM FLEET ENTERPRISE DESIGN SYSTEM — INDECAB MINIMALIST LIGHT ARCHITECTURE
+   Zero Dark Boxes · Zero Emojis · 100% Crisp WCAG AAA Light Surfaces
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Indecab-Inspired Strict High-Contrast Tokens */
+  /* Indecab-Grade Pure Light Surfaces */
   --bg-page: #FFFFFF;
-  --bg-section-alt: #F4F7FB;
-  --bg-navy-dark: #0A1628;
-  --bg-surface-white: #FFFFFF;
-  
-  --text-heading: #0A1628;
-  --text-body: #334155;
+  --bg-section-alt: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-soft-blue: #EFF6FF;
+  --bg-input: #F8FAFC;
+
+  /* High-Contrast Typography */
+  --text-heading: #0F172A;
+  --text-body: #475569;
   --text-muted: #64748B;
-  --text-light: #F8FAFC;
-  
+  --text-dark: #0A1628;
+
+  /* Brand Accents */
   --brand-blue: #0066FF;
   --brand-blue-hover: #0052CC;
   --brand-blue-light: #EFF6FF;
   --brand-teal: #00A896;
-  --brand-gradient: linear-gradient(135deg, #0066FF 0%, #00B4B4 100%);
-  --brand-gradient-text: linear-gradient(90deg, #0052CC 0%, #008B8B 100%);
-  
+
+  /* Clean Borders & Shadows */
   --border-clean: #E2E8F0;
-  --border-focus: #0066FF;
-  --shadow-minimal: 0 10px 30px -10px rgba(10, 22, 40, 0.07);
-  --shadow-card: 0 4px 20px -2px rgba(10, 22, 40, 0.05);
-  --shadow-hover: 0 16px 36px -6px rgba(10, 22, 40, 0.12);
-  
-  --font-main: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  --border-subtle: #F1F5F9;
+  --border-input: #CBD5E1;
+  --shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+  --shadow-hover: 0 12px 30px -4px rgba(15, 23, 42, 0.09);
+  --shadow-modal: 0 25px 60px -15px rgba(15, 23, 42, 0.25);
+
+  /* Fonts */
+  --font-main: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
-/* Page base resets */
+/* Base resets for marketing page */
 #public-site {
-  background-color: var(--bg-page) !important;
-  color: var(--text-body) !important;
+  background: var(--bg-page);
+  color: var(--text-body);
   font-family: var(--font-main);
-  min-height: 100vh;
-  position: relative;
-  overflow-x: hidden;
-  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
 }
 
 #public-site * {
@@ -2277,45 +2282,70 @@
   text-decoration: none;
 }
 
-/* Headings: WCAG AAA Contrast */
-#public-site h1,
-#public-site h2,
-#public-site h3,
-#public-site h4 {
-  color: var(--text-heading);
-  font-family: var(--font-main);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  margin-top: 0;
+/* SECTION CONTAINERS & SPACING */
+.axiom-section-clean {
+  padding: 96px 24px;
+  background: var(--bg-page);
 }
 
-.brand-gradient-text {
-  background: var(--brand-gradient-text);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.axiom-section-clean.alt-bg {
+  background: var(--bg-section-alt);
+}
+
+.section-container {
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+.section-eyebrow {
   display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-blue);
+  margin-bottom: 12px;
+}
+
+.section-heading-clean {
+  font-size: clamp(2rem, 3.2vw, 2.6rem);
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin: 0 0 16px 0;
+}
+
+.section-subtitle-clean {
+  font-size: 1.125rem;
+  color: var(--text-body);
+  max-width: 760px;
+  line-height: 1.65;
+  margin: 0 0 48px 0;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   SECTION 1: CLEAN MINIMALIST STICKY TOP NAVBAR (#FFFFFF BACKGROUND)
+   1. HEADER / NAVBAR
    ───────────────────────────────────────────────────────────────────────── */
-.axiom-top-navbar {
+.axiom-header-sticky {
   position: sticky;
   top: 0;
   left: 0;
-  width: 100%;
+  right: 0;
+  height: 76px;
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-clean);
-  z-index: 9999;
-  transition: all 0.2s ease;
+  border-bottom: 1px solid var(--border-subtle);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
 }
 
-.navbar-container {
-  max-width: 1240px;
+.axiom-header-inner {
+  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
-  padding: 12px 24px;
+  padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2324,96 +2354,71 @@
 .navbar-brand-link {
   display: flex;
   align-items: center;
-  gap: 12px;
 }
 
-.navbar-brand-logo {
-  height: 38px;
-  width: auto;
-  display: block;
-}
-
-.navbar-nav-links {
+.navbar-links-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 32px;
 }
 
-.navbar-nav-item {
-  color: var(--text-heading);
-  font-size: 14px;
-  font-weight: 600;
-  padding: 8px 14px;
-  border-radius: 8px;
-  transition: all 0.18s ease;
+.nav-link-clean {
+  font-size: 15px;
+  font-weight: 500;
+  color: #334155;
+  transition: color 0.15s ease;
 }
 
-.navbar-nav-item:hover {
+.nav-link-clean:hover {
   color: var(--brand-blue);
-  background: var(--brand-blue-light);
 }
 
-.navbar-actions {
+.navbar-actions-group {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .btn-nav-ghost {
-  background: #FFFFFF;
-  border: 1.5px solid #CBD5E1;
+  font-size: 14.5px;
+  font-weight: 600;
   color: var(--text-heading);
-  font-family: var(--font-main);
-  font-size: 13.5px;
-  font-weight: 700;
+  background: transparent;
+  border: 1px solid var(--border-input);
   padding: 8px 18px;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.18s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  transition: all 0.15s ease;
 }
 
 .btn-nav-ghost:hover {
-  border-color: var(--brand-blue);
-  color: var(--brand-blue);
-  background: var(--brand-blue-light);
+  background: #F1F5F9;
+  border-color: #94A3B8;
 }
 
-.btn-nav-solid {
+.btn-nav-primary {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #FFFFFF !important;
   background: var(--brand-blue);
-  color: #FFFFFF;
-  border: 1.5px solid var(--brand-blue);
-  font-family: var(--font-main);
-  font-size: 13.5px;
-  font-weight: 700;
-  padding: 8px 20px;
+  border: 1px solid var(--brand-blue);
+  padding: 8px 22px;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.18s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.25);
+  transition: background 0.15s ease;
 }
 
-.btn-nav-solid:hover {
+.btn-nav-primary:hover {
   background: var(--brand-blue-hover);
-  border-color: var(--brand-blue-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0, 102, 255, 0.35);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   SECTION 2: MINIMALIST HIGH-CONTRAST HERO SECTION
+   2. HERO SECTION
    ───────────────────────────────────────────────────────────────────────── */
 .axiom-hero-clean {
+  padding: 84px 24px 64px;
   background: var(--bg-page);
-  background-image: radial-gradient(circle at 85% 10%, rgba(0, 102, 255, 0.05) 0%, transparent 60%);
-  padding: 72px 24px 80px;
   text-align: center;
-  position: relative;
 }
 
 .hero-inner-wrap {
@@ -2425,736 +2430,972 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
-  color: #1D4ED8;
-  font-size: 13px;
-  font-weight: 700;
-  padding: 6px 18px;
+  padding: 7px 16px;
+  background: var(--brand-blue-light);
+  border: 1px solid #DBEAFE;
   border-radius: 9999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--brand-blue);
   margin-bottom: 24px;
 }
 
-.hero-clean-title {
-  font-size: clamp(2.4rem, 4.8vw, 4.2rem);
-  line-height: 1.1;
+.hero-main-title {
+  font-size: clamp(2.4rem, 4.8vw, 3.8rem);
+  font-weight: 800;
   color: var(--text-heading);
-  margin-bottom: 20px;
+  letter-spacing: -0.035em;
+  line-height: 1.14;
+  margin: 0 0 20px 0;
 }
 
-.hero-clean-subtitle {
-  font-size: clamp(16px, 1.3vw, 19px);
-  line-height: 1.65;
+.hero-main-title span.accent {
+  color: var(--brand-blue);
+}
+
+.hero-main-subtitle {
+  font-size: 1.15rem;
   color: var(--text-body);
-  max-width: 760px;
+  max-width: 720px;
+  line-height: 1.65;
   margin: 0 auto 36px;
 }
 
-.hero-clean-subtitle strong {
-  color: var(--text-heading);
-  font-weight: 700;
-}
-
-/* Hero Lead Capture Box */
-.hero-capture-card {
-  max-width: 580px;
-  margin: 0 auto 20px;
-  background: #FFFFFF;
-  border: 2px solid #CBD5E1;
-  border-radius: 12px;
-  padding: 6px 6px 6px 18px;
+.hero-cta-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  box-shadow: 0 12px 32px -8px rgba(10, 22, 40, 0.08);
-  transition: all 0.2s ease;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.hero-capture-card:focus-within {
-  border-color: var(--brand-blue);
-  box-shadow: 0 12px 36px -8px rgba(0, 102, 255, 0.18);
-}
-
-.hero-capture-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  font-size: 14.5px;
-  font-family: var(--font-main);
-  color: var(--text-heading);
-  background: transparent;
-}
-
-.hero-capture-input::placeholder {
-  color: var(--text-muted);
-}
-
-.hero-capture-btn {
+.btn-hero-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
   background: var(--brand-blue);
-  color: #FFFFFF;
-  border: none;
-  font-family: var(--font-main);
-  font-size: 14px;
-  font-weight: 700;
-  padding: 12px 22px;
-  border-radius: 8px;
+  color: #FFFFFF !important;
+  font-size: 15.5px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1px solid var(--brand-blue);
+  box-shadow: 0 4px 14px rgba(0, 102, 255, 0.25);
   cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
-.hero-capture-btn:hover {
+.btn-hero-primary:hover {
   background: var(--brand-blue-hover);
+  transform: translateY(-1px);
 }
 
-.hero-sublinks {
-  font-size: 13.5px;
-  color: var(--text-muted);
-  margin-bottom: 56px;
+.btn-hero-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: #FFFFFF;
+  color: var(--text-heading);
+  font-size: 15.5px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1px solid var(--border-input);
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.hero-sublinks a {
-  color: var(--brand-blue);
-  font-weight: 700;
+.btn-hero-secondary:hover {
+  background: #F8FAFC;
+  border-color: #94A3B8;
 }
 
-.hero-sublinks a:hover {
-  text-decoration: underline;
-}
-
-/* Product Preview Dark Frame */
+/* HERO PRODUCT SHOWCASE FRAME */
 .hero-product-frame {
-  max-width: 1140px;
-  margin: 0 auto;
-  background: var(--bg-navy-dark);
-  border: 1px solid #1E293B;
-  border-radius: 18px;
-  box-shadow: 0 25px 60px -15px rgba(10, 22, 40, 0.25);
+  margin: 56px auto 0;
+  max-width: 1080px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-clean);
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
   overflow: hidden;
   text-align: left;
 }
 
-.frame-top-bar {
+.browser-top-bar {
+  height: 44px;
+  background: #F8FAFC;
+  border-bottom: 1px solid var(--border-clean);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 20px;
-  background: #060E1A;
-  border-bottom: 1px solid #1E293B;
+  padding: 0 16px;
   gap: 12px;
+}
+
+.browser-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.browser-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #CBD5E1;
+}
+
+.browser-url-pill {
+  background: #FFFFFF;
+  border: 1px solid var(--border-clean);
+  border-radius: 6px;
+  padding: 3px 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.product-stage-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-clean);
+  background: #FFFFFF;
+  padding: 8px 16px 0;
+  gap: 6px;
   overflow-x: auto;
 }
 
-.frame-mac-dots {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.f-dot { width: 10px; height: 10px; border-radius: 50%; }
-.f-dot.red { background: #EF4444; }
-.f-dot.yellow { background: #F59E0B; }
-.f-dot.green { background: #10B981; }
-
-.frame-nav-tabs {
-  display: flex;
-  gap: 6px;
-}
-
-.frame-tab-btn {
+.stage-tab-btn {
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-body);
   background: transparent;
-  border: 1px solid transparent;
-  color: #94A3B8;
-  font-family: var(--font-main);
-  font-size: 12.5px;
-  font-weight: 600;
-  padding: 6px 14px;
-  border-radius: 8px;
+  border: none;
+  border-bottom: 2px solid transparent;
   cursor: pointer;
-  transition: all 0.18s ease;
   white-space: nowrap;
+  transition: all 0.15s ease;
 }
 
-.frame-tab-btn:hover {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.05);
+.stage-tab-btn:hover {
+  color: var(--brand-blue);
 }
 
-.frame-tab-btn.active {
-  background: #1E293B;
-  border-color: #38BDF8;
-  color: #FFFFFF;
+.stage-tab-btn.active {
+  color: var(--brand-blue);
+  font-weight: 600;
+  border-bottom-color: var(--brand-blue);
 }
 
-.frame-live-tag {
+.product-stage-content {
+  padding: 32px;
+  background: var(--bg-section-alt);
+  min-height: 280px;
+}
+
+.stage-panel {
+  display: none;
+}
+
+.stage-panel.active {
+  display: block;
+}
+
+/* Light Cockpit Metric Cards */
+.cockpit-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.cockpit-metric-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-clean);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.cockpit-metric-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.cockpit-metric-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-heading);
   font-family: var(--font-mono);
-  font-size: 11px;
-  color: #34D399;
+}
+
+.cockpit-metric-sub {
+  font-size: 12px;
+  color: #059669;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.cockpit-workflow-bar {
+  background: #FFFFFF;
+  border: 1px solid var(--border-clean);
+  border-radius: 12px;
+  padding: 20px 24px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-.frame-body {
-  padding: 24px;
-  background: #0A1628;
-  min-height: 400px;
+.workflow-step-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   SECTION COMMON WRAPPERS
-   ───────────────────────────────────────────────────────────────────────── */
-.axiom-section-clean {
-  padding: 96px 24px;
+.workflow-step-pill.green {
+  background: #ECFDF5;
+  color: #059669;
 }
 
-.axiom-section-clean.alt-bg {
-  background-color: var(--bg-section-alt);
+.workflow-step-pill.blue {
+  background: #EFF6FF;
+  color: #0066FF;
 }
 
-.section-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.section-badge-eyebrow {
-  display: inline-block;
-  font-family: var(--font-main);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--brand-blue);
-  margin-bottom: 12px;
-}
-
-.section-main-heading {
-  font-size: clamp(1.8rem, 3.2vw, 2.6rem);
-  line-height: 1.2;
-  color: var(--text-heading);
-  margin-bottom: 14px;
-}
-
-.section-lead-desc {
-  font-size: 16px;
-  color: var(--text-body);
-  max-width: 720px;
-  margin: 0 0 48px;
-  line-height: 1.6;
+.workflow-step-pill.amber {
+  background: #FFFBEB;
+  color: #D97706;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   SECTION 3 & 4: INDECAB-STYLE CARD GRIDS (HIGH CONTRAST)
+   3 & 4. INDECAB-STYLE CARD GRIDS WITH "VIEW MORE →"
    ───────────────────────────────────────────────────────────────────────── */
-.card-grid-2x2 {
+.cards-grid-2x2 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 24px;
 }
 
-.card-grid-3x2 {
+.cards-grid-3x2 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
 }
 
-.indecab-card {
-  background: #FFFFFF;
+.indecab-feature-card {
+  background: var(--bg-card);
   border: 1px solid var(--border-clean);
   border-radius: 16px;
-  padding: 28px;
+  padding: 36px 32px;
   box-shadow: var(--shadow-card);
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: space-between;
 }
 
-.indecab-card:hover {
+.indecab-feature-card:hover {
   transform: translateY(-3px);
-  border-color: #CBD5E1;
   box-shadow: var(--shadow-hover);
+  border-color: #CBD5E1;
 }
 
-.card-icon-box {
+.feature-icon-container {
   width: 48px;
   height: 48px;
   border-radius: 12px;
   background: var(--brand-blue-light);
-  color: var(--brand-blue);
-  display: grid;
-  place-items: center;
-  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 20px;
 }
 
-.card-icon-box.teal {
-  background: #E6FFFA;
-  color: var(--brand-teal);
-}
-
-.indecab-card h3 {
-  font-size: 19px;
+.feature-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
   color: var(--text-heading);
-  margin-bottom: 12px;
-  line-height: 1.3;
+  margin: 0 0 10px 0;
+  line-height: 1.35;
 }
 
-.indecab-card p {
-  font-size: 14.5px;
+.feature-card-summary {
+  font-size: 0.975rem;
   color: var(--text-body);
   line-height: 1.6;
-  margin: 0 0 16px;
+  margin: 0 0 16px 0;
 }
 
-.indecab-card ul {
-  padding-left: 20px;
+/* "View more →" Accordion Trigger */
+.btn-view-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--brand-blue);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: gap 0.15s ease;
+}
+
+.btn-view-more:hover {
+  gap: 10px;
+  color: var(--brand-blue-hover);
+}
+
+.feature-card-details {
+  display: none;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.feature-card-details.open {
+  display: block;
+}
+
+.details-bullet-list {
+  list-style: none;
+  padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
-.indecab-card li {
+.details-bullet-list li {
+  position: relative;
+  padding-left: 20px;
   font-size: 13.5px;
-  color: var(--text-body);
+  color: #334155;
+  margin-bottom: 8px;
   line-height: 1.5;
 }
 
-.card-tag-pill {
-  margin-top: auto;
-  padding-top: 18px;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.tag-label {
-  font-size: 11.5px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: #F1F5F9;
-  color: #475569;
-}
-
-.tag-label.blue {
-  background: var(--brand-blue-light);
-  color: var(--brand-blue);
-}
-
-.tag-label.teal {
-  background: #E6FFFA;
-  color: var(--brand-teal);
+.details-bullet-list li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 7px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand-blue);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   SECTION 5: DEDICATED APP SHOWCASE (DUAL PHONES)
+   5. DRIVER & VENDOR POCKET APP SHOWCASE
    ───────────────────────────────────────────────────────────────────────── */
-.apps-showcase-split {
+.app-showcase-columns {
   display: grid;
-  grid-template-columns: 1.1fr 1.3fr;
+  grid-template-columns: 1.1fr 0.9fr;
   gap: 48px;
   align-items: center;
 }
 
-.app-feature-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 28px;
-}
-
-.app-feature-item {
-  display: flex;
-  gap: 16px;
-  background: #FFFFFF;
-  border: 1px solid var(--border-clean);
-  border-radius: 12px;
-  padding: 16px 20px;
-  box-shadow: var(--shadow-card);
-}
-
-.app-feat-icon {
-  width: 40px;
-  height: 40px;
+.app-pill-switcher {
+  display: inline-flex;
+  background: #E2E8F0;
+  padding: 4px;
   border-radius: 10px;
-  background: var(--brand-blue-light);
+  margin-bottom: 28px;
+}
+
+.app-switch-btn {
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.app-switch-btn.active {
+  background: #FFFFFF;
   color: var(--brand-blue);
-  display: grid;
-  place-items: center;
-  font-size: 18px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.app-features-group {
+  display: none;
+}
+
+.app-features-group.active {
+  display: block;
+}
+
+.app-bullet-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.app-bullet-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #EFF6FF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
-.app-feat-content h4 {
-  font-size: 16px;
+.app-bullet-text b {
+  display: block;
+  font-size: 15px;
   color: var(--text-heading);
-  margin: 0 0 4px;
+  margin-bottom: 2px;
 }
 
-.app-feat-content p {
-  font-size: 13.5px;
+.app-bullet-text p {
+  font-size: 14px;
   color: var(--text-body);
   margin: 0;
+  line-height: 1.5;
 }
 
-.dual-phone-mockup {
+/* Clean CSS Phone Mockup */
+.phone-mockup-wrapper {
   display: flex;
-  gap: 20px;
   justify-content: center;
 }
 
-.phone-card {
-  width: 250px;
-  background: #0A1628;
-  border: 4px solid #1E293B;
-  border-radius: 28px;
-  padding: 16px;
-  box-shadow: 0 20px 40px -10px rgba(10, 22, 40, 0.3);
-  color: #FFFFFF;
+.css-phone-frame {
+  width: 100%;
+  max-width: 330px;
+  background: #FFFFFF;
+  border: 7px solid #0F172A;
+  border-radius: 40px;
+  padding: 16px 14px 20px;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.15);
+  position: relative;
 }
 
-.phone-screen-header {
-  border-bottom: 1px solid #1E293B;
-  padding-bottom: 10px;
-  margin-bottom: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: #94A3B8;
+.phone-top-notch {
+  width: 120px;
+  height: 18px;
+  background: #0F172A;
+  border-radius: 0 0 12px 12px;
+  margin: -16px auto 14px;
 }
 
-.phone-pill-badge {
-  display: inline-block;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--brand-blue);
-  color: #FFFFFF;
+.phone-screen-content {
+  display: none;
+}
+
+.phone-screen-content.active {
+  display: block;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   SECTION 6: PARTNER NETWORK CARD BAND
+   6. AXIOM PARTNER NETWORK
    ───────────────────────────────────────────────────────────────────────── */
-.network-card-band {
+.partner-columns-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-top: 36px;
+  gap: 32px;
 }
 
-.network-step-card {
+.partner-column-item {
+  padding: 24px 0;
+}
+
+.partner-column-item h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin: 16px 0 10px;
+}
+
+.partner-column-item p {
+  font-size: 0.975rem;
+  color: var(--text-body);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.trust-metrics-strip {
+  margin-top: 56px;
+  padding-top: 48px;
+  border-top: 1px solid var(--border-clean);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  text-align: center;
+}
+
+.trust-stat-num {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--brand-blue);
+  font-family: var(--font-mono);
+  letter-spacing: -0.03em;
+  margin-bottom: 4px;
+}
+
+.trust-stat-desc {
+  font-size: 14px;
+  color: var(--text-body);
+  font-weight: 500;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   7. CALCULATE THE DIFFERENCE
+   ───────────────────────────────────────────────────────────────────────── */
+.calculator-split-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 36px;
+  align-items: center;
+}
+
+.calc-input-box {
   background: #FFFFFF;
   border: 1px solid var(--border-clean);
-  border-top: 3px solid var(--brand-blue);
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: var(--shadow-card);
+}
+
+.calc-input-box h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin: 0 0 8px;
+}
+
+.calc-input-box p {
+  font-size: 14.5px;
+  color: var(--text-body);
+  margin: 0 0 24px;
+}
+
+.calc-field-group {
+  margin-bottom: 20px;
+}
+
+.calc-field-group label {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 8px;
+}
+
+.calc-input-styled {
+  width: 100%;
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: 12px 16px;
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  background: #F8FAFC;
+  font-family: var(--font-mono);
+  color: var(--text-heading);
+}
+
+.btn-calc-action {
+  width: 100%;
+  padding: 12px 24px;
+  background: var(--brand-blue);
+  color: #FFFFFF;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-calc-action:hover {
+  background: var(--brand-blue-hover);
+}
+
+.calc-stat-cards-2x2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.calc-output-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-clean);
   border-radius: 14px;
   padding: 24px;
   box-shadow: var(--shadow-card);
 }
 
-.step-number {
-  font-family: var(--font-mono);
-  font-size: 12px;
+.calc-output-num {
+  font-size: 1.9rem;
   font-weight: 800;
   color: var(--brand-blue);
-  margin-bottom: 8px;
-  display: block;
-}
-
-.network-step-card h4 {
-  font-size: 17px;
-  color: var(--text-heading);
-  margin: 0 0 10px;
-}
-
-.network-step-card p {
-  font-size: 13.5px;
-  color: var(--text-body);
-  line-height: 1.6;
-  margin: 0;
-}
-
-/* ─────────────────────────────────────────────────────────────────────────
-   SECTION 7: INTERACTIVE ROI & FARE CALCULATOR
-   ───────────────────────────────────────────────────────────────────────── */
-.calculator-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  margin-top: 40px;
-}
-
-.calc-box-card {
-  background: #FFFFFF;
-  border: 1px solid var(--border-clean);
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: var(--shadow-card);
-}
-
-.calc-slider-wrap {
-  margin: 24px 0 28px;
-}
-
-.calc-slider-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.calc-slider-header label {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-heading);
-}
-
-.calc-slider-val {
   font-family: var(--font-mono);
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--brand-blue);
-}
-
-.calc-range-input {
-  width: 100%;
-  height: 8px;
-  background: #E2E8F0;
-  border-radius: 4px;
-  outline: none;
-  accent-color: var(--brand-blue);
-  cursor: pointer;
-}
-
-.roi-metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
-
-.roi-metric-item {
-  background: var(--bg-section-alt);
-  border: 1px solid var(--border-clean);
-  border-radius: 12px;
-  padding: 16px;
-  text-align: left;
-}
-
-.roi-metric-val {
-  font-family: var(--font-mono);
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--brand-blue);
   margin-bottom: 4px;
 }
 
-.roi-metric-label {
-  font-size: 12px;
-  color: var(--text-body);
+.calc-output-label {
+  font-size: 13.5px;
   font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 4px;
+}
+
+.calc-output-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Optional live tariff simulation toggle */
+.calc-secondary-toggle {
+  margin-top: 18px;
+  font-size: 13.5px;
+  color: var(--brand-blue);
+  background: none;
+  border: none;
+  padding: 0;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tariff-simulator-expanded {
+  display: none;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.tariff-simulator-expanded.open {
+  display: block;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   SECTION 8: CLEAN CONTACT SECTION & INDECAB-INSPIRED FOOTER
+   8. CONTACT SPLIT SECTION & CLEAN LIGHT FOOTER
    ───────────────────────────────────────────────────────────────────────── */
-.contact-split-band {
+.contact-split-wrap {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 48px;
+  margin-bottom: 64px;
+}
+
+.contact-form-card {
   background: #FFFFFF;
-  border: 1px solid var(--border-clean);
-  border-radius: 20px;
-  overflow: hidden;
+}
+
+.form-grid-2col {
   display: grid;
-  grid-template-columns: 1fr 1.3fr;
-  box-shadow: var(--shadow-hover);
-  margin-bottom: 80px;
-}
-
-.contact-left-col {
-  background: var(--bg-section-alt);
-  padding: 44px;
-  border-right: 1px solid var(--border-clean);
-}
-
-.contact-detail-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-top: 20px;
-  font-size: 14px;
-  color: var(--text-body);
-}
-
-.contact-detail-icon {
-  color: var(--brand-blue);
-  font-size: 18px;
-  margin-top: 2px;
-}
-
-.contact-right-form {
-  padding: 44px;
-}
-
-.form-grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
-  margin-top: 20px;
+  margin-bottom: 16px;
 }
 
-.clean-input-group {
+.form-group-clean {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  text-align: left;
+  margin-bottom: 16px;
 }
 
-.clean-input-group.full {
-  grid-column: span 2;
-}
-
-.clean-input-group label {
-  font-size: 13px;
-  font-weight: 700;
+.form-group-clean label {
+  font-size: 13.5px;
+  font-weight: 600;
   color: var(--text-heading);
 }
 
-.clean-input-group input,
-.clean-input-group select {
-  background: #FFFFFF;
-  border: 1.5px solid #CBD5E1;
+.form-input-clean,
+.form-select-clean {
+  padding: 11px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
   border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 14px;
-  font-family: var(--font-main);
+  font-size: 14.5px;
   color: var(--text-heading);
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.form-input-clean:focus,
+.form-select-clean:focus {
   outline: none;
-  transition: border-color 0.18s ease;
-}
-
-.clean-input-group input:focus,
-.clean-input-group select:focus {
   border-color: var(--brand-blue);
-  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.12);
+  background: #FFFFFF;
 }
 
-.btn-submit-inquiry {
-  grid-column: span 2;
+.form-auth-consent {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  line-height: 1.45;
+}
+
+.btn-contact-submit {
+  padding: 13px 32px;
   background: var(--brand-blue);
   color: #FFFFFF;
+  font-size: 15.5px;
+  font-weight: 600;
   border: none;
-  font-family: var(--font-main);
-  font-size: 15px;
-  font-weight: 700;
-  padding: 14px 24px;
   border-radius: 8px;
   cursor: pointer;
-  margin-top: 8px;
-  box-shadow: 0 6px 18px rgba(0, 102, 255, 0.3);
-  transition: all 0.2s ease;
+  transition: background 0.15s ease;
 }
 
-.btn-submit-inquiry:hover {
+.btn-contact-submit:hover {
   background: var(--brand-blue-hover);
-  transform: translateY(-1px);
 }
 
-/* Indecab-Inspired Minimalist Dark Navy Footer */
-.indecab-clean-footer {
-  background: var(--bg-navy-dark);
-  color: #FFFFFF;
-  padding: 72px 24px 32px;
+.contact-reachout-card {
+  background: var(--bg-section-alt);
+  border: 1px solid var(--border-clean);
+  border-radius: 16px;
+  padding: 40px 32px;
 }
 
-.footer-nav-grid {
-  max-width: 1200px;
+.contact-reachout-card h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin: 0 0 24px;
+}
+
+.reachout-detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.reachout-detail-item b {
+  display: block;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+
+.reachout-detail-item span {
+  font-size: 15px;
+  color: var(--text-heading);
+  font-weight: 500;
+}
+
+/* MINIMALIST LIGHT FOOTER */
+.indecab-pure-footer {
+  background: var(--bg-section-alt);
+  border-top: 1px solid var(--border-clean);
+  padding: 56px 24px 36px;
+}
+
+.footer-top-columns {
+  max-width: 1160px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1.4fr 1fr 1fr 1fr;
   gap: 40px;
-  padding-bottom: 56px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.footer-col h5 {
-  color: #FFFFFF;
-  font-family: var(--font-main);
+.footer-brand-col p {
   font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  margin: 0 0 18px;
+  color: var(--text-muted);
+  max-width: 280px;
+  margin: 16px 0 0;
+  line-height: 1.5;
 }
 
-.footer-col ul {
+.footer-nav-col h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 16px;
+}
+
+.footer-nav-col ul {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
-.footer-col a {
-  font-size: 13.5px;
-  color: #94A3B8;
-  transition: color 0.18s ease;
+.footer-nav-col li {
+  margin-bottom: 10px;
 }
 
-.footer-col a:hover {
-  color: #FFFFFF;
+.footer-nav-col a {
+  font-size: 14px;
+  color: #334155;
+  transition: color 0.15s ease;
 }
 
-.footer-compliance-badges {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 18px;
-}
-
-.comp-pill {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #E2E8F0;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+.footer-nav-col a:hover {
+  color: var(--brand-blue);
 }
 
 .footer-bottom-bar {
-  max-width: 1200px;
-  margin: 32px auto 0;
+  max-width: 1160px;
+  margin: 40px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-clean);
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   font-size: 13px;
-  color: #64748B;
+  color: var(--text-muted);
   flex-wrap: wrap;
   gap: 12px;
 }
 
-/* Responsive Media Queries */
-@media (max-width: 1024px) {
-  .navbar-nav-links { display: none; }
-  .card-grid-2x2, .card-grid-3x2 { grid-template-columns: 1fr; }
-  .apps-showcase-split { grid-template-columns: 1fr; }
-  .network-card-band { grid-template-columns: 1fr; }
-  .calculator-container { grid-template-columns: 1fr; }
-  .contact-split-band { grid-template-columns: 1fr; }
-  .contact-left-col { border-right: none; border-bottom: 1px solid var(--border-clean); }
-  .footer-nav-grid { grid-template-columns: repeat(2, 1fr); }
+/* ─────────────────────────────────────────────────────────────────────────
+   9. ROLE SWITCHER & LOGIN MODAL
+   ───────────────────────────────────────────────────────────────────────── */
+.axiom-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.axiom-modal-backdrop.open {
+  display: flex;
+}
+
+.axiom-modal-dialog {
+  background: #FFFFFF;
+  border: 1px solid var(--border-clean);
+  border-radius: 16px;
+  max-width: 520px;
+  width: 100%;
+  padding: 32px;
+  box-shadow: var(--shadow-modal);
+  position: relative;
+}
+
+.modal-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin: 0;
+}
+
+.btn-close-modal {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.modal-roles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.modal-role-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 1px solid var(--border-clean);
+  border-radius: 10px;
+  background: var(--bg-section-alt);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.modal-role-item:hover {
+  border-color: var(--brand-blue);
+  background: #EFF6FF;
+  transform: translateX(2px);
+}
+
+.modal-role-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modal-role-text b {
+  display: block;
+  font-size: 14px;
+  color: var(--text-heading);
+  margin-bottom: 2px;
+}
+
+.modal-role-text span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.modal-footer-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 16px;
+}
+
+.modal-footer-hint a {
+  color: var(--brand-blue);
+  font-weight: 600;
+}
+
+/* RESPONSIVE BREAKPOINTS */
+@media (max-width: 960px) {
+  .navbar-links-group { display: none; }
+  .cards-grid-2x2, .cards-grid-3x2 { grid-template-columns: 1fr; }
+  .app-showcase-columns { grid-template-columns: 1fr; }
+  .partner-columns-3 { grid-template-columns: 1fr; }
+  .trust-metrics-strip { grid-template-columns: repeat(2, 1fr); }
+  .calculator-split-layout { grid-template-columns: 1fr; }
+  .contact-split-wrap { grid-template-columns: 1fr; }
+  .footer-top-columns { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 640px) {
-  .form-grid-2 { grid-template-columns: 1fr; }
-  .clean-input-group.full, .btn-submit-inquiry { grid-column: span 1; }
-  .footer-nav-grid { grid-template-columns: 1fr; }
-  .roi-metrics-grid { grid-template-columns: 1fr; }
-  .hero-capture-card { flex-direction: column; padding: 12px; }
-  .hero-capture-btn { width: 100%; }
+  .hero-main-title { font-size: 2.2rem; }
+  .form-grid-2col { grid-template-columns: 1fr; }
+  .calc-stat-cards-2x2 { grid-template-columns: 1fr; }
+  .footer-top-columns { grid-template-columns: 1fr; }
+  .cockpit-metrics-row { grid-template-columns: 1fr; }
 }
 
   </style>
@@ -3165,310 +3406,186 @@
   <!-- Public marketing site: visible before authentication -->
   <div id="public-site" class="marketing-page">
     
-    <!-- SECTION 1: CLEAN MINIMALIST STICKY TOP NAVBAR (#FFFFFF BACKGROUND) -->
-    <header class="axiom-top-navbar">
-      <div class="navbar-container">
+    <!-- 1. HEADER / NAVBAR -->
+    <header class="axiom-header-sticky">
+      <div class="axiom-header-inner">
         <a class="navbar-brand-link" href="#home" aria-label="Axiom Fleet Home">
-          <img class="navbar-brand-logo" src="axiom-fleet-logo.png" width="132" height="38" alt="Axiom Fleet">
+          <img src="axiom-fleet-logo.png" alt="Axiom Fleet" height="38" style="display:block">
         </a>
 
-        <nav class="navbar-nav-links" aria-label="Main Navigation">
-          <a class="navbar-nav-item" href="#for-corporates">For Corporates</a>
-          <a class="navbar-nav-item" href="#for-car-rentals">For Car Rentals</a>
-          <a class="navbar-nav-item" href="#driver-app">Driver &amp; Pocket App</a>
-          <a class="navbar-nav-item" href="#axiom-network">Axiom Network</a>
-          <a class="navbar-nav-item" href="#calculator">ROI &amp; Fare Calculator</a>
+        <nav class="navbar-links-group" aria-label="Primary Navigation">
+          <a class="nav-link-clean" href="#for-corporates">For Corporates</a>
+          <a class="nav-link-clean" href="#for-car-rentals">For Car Rentals</a>
+          <a class="nav-link-clean" href="#driver-app">Axiom App</a>
+          <a class="nav-link-clean" href="#axiom-network">Axiom Network</a>
+          <a class="nav-link-clean" href="#calculator">ROI Calculator</a>
         </nav>
 
-        <div class="navbar-actions">
-          <button class="btn-nav-ghost" id="nav-role-switcher-btn" type="button" aria-expanded="false" aria-controls="nav-role-modal">
-            Sign In / Demo Portal <span style="font-size:10px">▾</span>
+        <div class="navbar-actions-group">
+          <button type="button" class="btn-nav-ghost" id="btn-open-portal-modal">
+            Login / Live Portal
           </button>
-          <a href="#contact" class="btn-nav-solid">
-            Try Now / Book Demo →
-          </a>
-        </div>
-
-        <!-- Quick Role Switcher Floating Menu -->
-        <div class="axiom-role-modal" id="nav-role-modal" role="dialog" aria-label="Quick Demo Role Switcher" style="background:#FFFFFF;border:1px solid #CBD5E1;box-shadow:0 16px 36px -6px rgba(10,22,40,0.18)">
-          <div class="role-modal-head" style="border-bottom:1px solid #E2E8F0">
-            <span style="color:#0A1628;font-weight:700">Instant Workspace Launch</span>
-            <button type="button" id="close-role-modal-btn" style="background:transparent;border:none;color:#64748B;cursor:pointer;font-size:14px">✕</button>
-          </div>
-          <button type="button" class="role-option-btn primary-role" id="quick-login-admin-btn" style="color:#0A1628">
-            <div class="role-icon" style="color:#0066FF;background:#EFF6FF">👑</div>
-            <div class="role-info">
-              <b style="color:#0A1628">Super-Admin Console (Axiom HQ)</b>
-              <small style="color:#64748B">Platform control, multi-tenant dunning, telemetry</small>
-            </div>
-          </button>
-          <button type="button" class="role-option-btn" id="quick-login-vendor-btn" style="color:#0A1628">
-            <div class="role-icon" style="color:#00A896;background:#E6FFFA">🏢</div>
-            <div class="role-info">
-              <b style="color:#0A1628">Fleet Vendor HQ (Zion Travels)</b>
-              <small style="color:#64748B">Dual-ledger, 3-way distance audit, dispatch deck</small>
-            </div>
-          </button>
-          <button type="button" class="role-option-btn" id="quick-login-corporate-btn" style="color:#0A1628">
-            <div class="role-icon" style="color:#6366F1;background:#EEF2FF">✈️</div>
-            <div class="role-info">
-              <b style="color:#0A1628">Corporate Travel Desk (Zenith)</b>
-              <small style="color:#64748B">Employee bookings, POSH lock, proforma review</small>
-            </div>
-          </button>
-          <button type="button" class="role-option-btn" data-show-login style="color:#0A1628">
-            <div class="role-icon" style="color:#F59E0B;background:#FEF3C7">🔑</div>
-            <div class="role-info">
-              <b style="color:#0A1628">Enter Workspace Credentials</b>
-              <small style="color:#64748B">Standard sign-in with your custom credentials</small>
-            </div>
-          </button>
+          <a class="btn-nav-primary" href="#contact">Try Now</a>
         </div>
       </div>
     </header>
 
     <main>
 
-      <!-- SECTION 2: MINIMALIST HIGH-CONTRAST HERO SECTION -->
+      <!-- 2. HERO SECTION -->
       <section class="axiom-hero-clean" id="home">
         <div class="hero-inner-wrap">
           <div class="hero-pill-badge">
-            ✨ India's Complete Ecosystem for Automated Car-Rental &amp; Corporate Mobility
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <span>India's Modern Ecosystem for Automated Car Rental &amp; Corporate Travel</span>
           </div>
 
-          <h1 class="hero-clean-title">
-            Powering Enterprise &amp; Car-Rental Mobility With <span class="brand-gradient-text">Smarter Technology.</span>
+          <h1 class="hero-main-title">
+            Powering People &amp; Fleet Mobility With <span class="accent">Better Technology.</span>
           </h1>
 
-          <p class="hero-clean-subtitle">
-            Replace fragmented spreadsheets and 90-day billing disputes with one unified platform for <strong>Bookings, Live GPS Dispatch, Dual-Ledger Billing, Partner Network Sharing, and Predictive Cash-Flow</strong>.
+          <p class="hero-main-subtitle">
+            Axiom Fleet is an end-to-end ecosystem for automation of car-rental and corporate travel operations—unifying bookings, live GPS dispatch, dual-ledger billing, and partner networking in one place.
           </p>
 
-          <!-- Hero Lead Capture Pill -->
-          <div class="hero-capture-card">
-            <input type="text" id="hero-quick-input" class="hero-capture-input" placeholder="Enter work email or 10-digit mobile number..." />
-            <button class="hero-capture-btn" id="hero-quick-submit-btn" type="button">
-              Book Live Demo / Try Now
+          <div class="hero-cta-row">
+            <a class="btn-hero-primary" href="#contact">
+              <span>Try Now — Book a Demo</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </a>
+            <button type="button" class="btn-hero-secondary" id="btn-hero-demo">
+              <span>Launch Live Product Demo</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
             </button>
           </div>
 
-          <div class="hero-sublinks">
-            Or explore the live interactive workspace → <a href="#for-corporates">[For Corporates]</a> · <a href="#for-car-rentals">[For Fleet Vendors]</a>
-          </div>
-
-          <!-- Product Preview Dark Showcase Frame -->
+          <!-- Hero Product Showcase Frame -->
           <div class="hero-product-frame">
-            <div class="frame-top-bar">
-              <div class="frame-mac-dots">
-                <span class="f-dot red"></span>
-                <span class="f-dot yellow"></span>
-                <span class="f-dot green"></span>
+            <div class="browser-top-bar">
+              <div class="browser-dots">
+                <span class="browser-dot"></span>
+                <span class="browser-dot"></span>
+                <span class="browser-dot"></span>
               </div>
-              <div class="frame-nav-tabs">
-                <button class="frame-tab-btn active" data-stage-tab="osm" type="button">
-                  1. Central Dispatch &amp; OSM Map
-                </button>
-                <button class="frame-tab-btn" data-stage-tab="dual-ledger" type="button">
-                  2. Dual-Ledger Billing &amp; Margin Control
-                </button>
-                <button class="frame-tab-btn" data-stage-tab="hyper-network" type="button">
-                  3. White-Label Partner Network
-                </button>
-                <button class="frame-tab-btn" data-stage-tab="timesfm" type="button">
-                  4. 30-Day Cash-Flow &amp; Spend Forecast
-                </button>
-              </div>
-              <div class="frame-live-tag">
-                <span style="width:7px;height:7px;border-radius:50%;background:#10B981;box-shadow:0 0 8px #10B981"></span> LIVE TELEMETRY
-              </div>
+              <div class="browser-url-pill">axiomfleet.in/command-center</div>
             </div>
 
-            <div class="frame-body">
-              <!-- TAB 1: Live Dispatch & Map -->
-              <div class="stage-tab-panel active" id="tab-panel-osm">
-                <div style="display:grid;grid-template-columns:1.8fr 1.2fr;gap:20px">
-                  <div style="background:#060E1A;border:1px solid #1E293B;border-radius:14px;padding:18px">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:12px">
-                      <span style="font-family:var(--font-mono);color:#34D399;font-weight:700">Route: MG Road → Bengaluru Airport (KIAL)</span>
-                      <span style="font-family:var(--font-mono);color:#38BDF8">Live Status: On Time · En Route</span>
-                    </div>
-                    <svg viewBox="0 0 540 240" style="width:100%;height:200px;background:#05070a;border-radius:10px">
-                      <line x1="30" y1="200" x2="510" y2="40" stroke="#1E293B" stroke-width="12" stroke-linecap="round"/>
-                      <line x1="30" y1="200" x2="510" y2="40" stroke="#0066FF" stroke-width="4" stroke-dasharray="8 6" stroke-linecap="round"/>
-                      <circle cx="70" cy="185" r="9" fill="#0066FF" stroke="#FFFFFF" stroke-width="2"/>
-                      <text x="86" y="190" fill="#FFFFFF" font-size="11" font-weight="700">Taj MG Road (Pickup)</text>
-                      <circle cx="470" cy="55" r="9" fill="#00A896" stroke="#FFFFFF" stroke-width="2"/>
-                      <text x="350" y="45" fill="#FFFFFF" font-size="11" font-weight="700">BLR T2 (Destination)</text>
-                      <circle cx="280" cy="120" r="7" fill="#38BDF8" stroke="#FFFFFF" stroke-width="2">
-                        <animate attributeName="r" values="7;11;7" dur="2s" repeatCount="indefinite"/>
-                      </circle>
-                      <rect x="230" y="85" width="105" height="24" rx="6" fill="rgba(15,23,42,0.95)" stroke="#38BDF8" stroke-width="1"/>
-                      <text x="238" y="101" fill="#38BDF8" font-size="10" font-weight="700" font-family="'JetBrains Mono', monospace">KA 03 MX 9962</text>
-                    </svg>
-                    <div style="display:flex;justify-content:space-between;margin-top:12px;font-size:12px;color:#94A3B8">
-                      <span>Verified Route Distance: <b style="color:#FFFFFF;font-family:var(--font-mono)">36.4 km</b></span>
-                      <span>Est. Duration: <b style="color:#FFFFFF;font-family:var(--font-mono)">54 min</b></span>
-                      <span>Fastag Tolls: <b style="color:#34D399;font-family:var(--font-mono)">2 Verified</b></span>
-                    </div>
-                  </div>
+            <div class="product-stage-tabs">
+              <button type="button" class="stage-tab-btn active" data-tab-target="stage-panel-1">Central Dispatch &amp; Route Audit</button>
+              <button type="button" class="stage-tab-btn" data-tab-target="stage-panel-2">Dual-Ledger Billing &amp; Margin Guard</button>
+              <button type="button" class="stage-tab-btn" data-tab-target="stage-panel-3">White-Label Partner Network</button>
+              <button type="button" class="stage-tab-btn" data-tab-target="stage-panel-4">Predictive Cash-Flow &amp; Spend</button>
+            </div>
 
-                  <div style="background:#0F1A2E;border:1px solid #1E293B;border-radius:14px;padding:18px;display:flex;flex-direction:column;justify-content:space-between">
-                    <div>
-                      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-                        <div style="width:40px;height:40px;border-radius:50%;background:#1E293B;display:grid;place-items:center;font-size:18px">👨🏽‍✈️</div>
-                        <div>
-                          <b style="color:#FFFFFF;font-size:14px;display:block">Vikramaditya Rao</b>
-                          <small style="color:#34D399;font-family:var(--font-mono);font-size:11px">★ 4.96 · Commercial Badge Active</small>
-                        </div>
-                      </div>
-                      <div style="background:rgba(255,255,255,0.04);border:1px solid #1E293B;border-radius:8px;padding:12px;margin-bottom:12px">
-                        <div style="font-size:11px;color:#94A3B8;margin-bottom:4px">ACTIVE DUTY SLIP</div>
-                        <div style="font-family:var(--font-mono);font-size:15px;font-weight:700;color:#FFFFFF">Duty Slip #8831</div>
-                        <div style="font-size:12px;color:#CBD5E1;margin-top:4px">Infosys Executive Travel · Toyota Innova</div>
-                      </div>
-                      <div style="display:flex;gap:8px">
-                        <span style="font-size:11px;padding:4px 8px;border-radius:6px;background:rgba(0,102,255,0.15);color:#60A5FA;font-weight:600">AIS-140 Live</span>
-                        <span style="font-size:11px;padding:4px 8px;border-radius:6px;background:rgba(16,185,129,0.15);color:#34D399;font-weight:600">POSH &amp; Compliance Verified</span>
-                      </div>
-                    </div>
-                    <button type="button" class="btn-nav-solid" style="width:100%;justify-content:center;margin-top:16px" onclick="showApp()">Open Live Command Center →</button>
+            <div class="product-stage-content">
+              <!-- Panel 1: Dispatch & Route Audit -->
+              <div class="stage-panel active" id="stage-panel-1">
+                <div class="cockpit-metrics-row">
+                  <div class="cockpit-metric-card">
+                    <div class="cockpit-metric-label">Active Trip #8831</div>
+                    <div class="cockpit-metric-value">MG Road → KIAL</div>
+                    <div class="cockpit-metric-sub">En Route · Toyota Innova Crysta</div>
                   </div>
+                  <div class="cockpit-metric-card">
+                    <div class="cockpit-metric-label">3-Way Route Verification</div>
+                    <div class="cockpit-metric-value">36.4 km Snapped</div>
+                    <div class="cockpit-metric-sub">GPS Variance: 0.8% (Verified Clean)</div>
+                  </div>
+                  <div class="cockpit-metric-card">
+                    <div class="cockpit-metric-label">Duty Status &amp; Compliance</div>
+                    <div class="cockpit-metric-value">Start OTP Cleared</div>
+                    <div class="cockpit-metric-sub">Driver &amp; Vehicle Insurance Active</div>
+                  </div>
+                </div>
+                <div class="cockpit-workflow-bar">
+                  <span class="workflow-step-pill blue">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Booking Intake: WhatsApp AI
+                  </span>
+                  <span class="workflow-step-pill green">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Auto-Slab: 4Hr/40Km Applied
+                  </span>
+                  <span class="workflow-step-pill green">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Toll Pass-Through: FASTag Synced
+                  </span>
                 </div>
               </div>
 
-              <!-- TAB 2: Dual-Ledger Billing -->
-              <div class="stage-tab-panel" id="tab-panel-dual-ledger">
-                <div style="display:grid;grid-template-columns:1.6fr 1.1fr;gap:20px">
-                  <div style="background:#060E1A;border:1px solid #1E293B;border-radius:14px;padding:20px">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                      <div>
-                        <span style="font-family:var(--font-mono);font-size:11px;color:#38BDF8">Completed Trip #9041 · Infosys Executive Duty</span>
-                        <h4 style="margin:2px 0 0;font-size:16px;color:#FFFFFF">Dual-Ledger Margin Reconciliation</h4>
-                      </div>
-                      <button type="button" id="stage-treasury-toggle-btn" style="background:#065F46;border:1px solid #10B981;color:#6EE7B7;font-family:var(--font-mono);font-size:11px;font-weight:700;padding:6px 12px;border-radius:9999px;cursor:pointer">
-                        🟢 Auto-Release Active
-                      </button>
-                    </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
-                      <div style="background:rgba(255,255,255,0.03);border:1px solid #1E293B;border-radius:10px;padding:14px">
-                        <div style="font-size:11px;color:#94A3B8;text-transform:uppercase">Corporate Receivable</div>
-                        <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:#FFFFFF;margin:4px 0">₹14,850.00</div>
-                        <small style="color:#94A3B8;font-size:11px">Infosys · 8Hr/80Km + Extra KM</small>
-                      </div>
-                      <div style="background:rgba(255,255,255,0.03);border:1px solid #1E293B;border-radius:10px;padding:14px">
-                        <div style="font-size:11px;color:#94A3B8;text-transform:uppercase">Vendor Payable</div>
-                        <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:#FBBF24;margin:4px 0">₹11,400.00</div>
-                        <small style="color:#94A3B8;font-size:11px">Zion Fleet · Net DCO Allotment</small>
-                      </div>
-                    </div>
-                    <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center">
-                      <div>
-                        <span style="font-size:11px;color:#34D399;font-weight:700">PROTECTED NET MARGIN</span>
-                        <div style="font-family:var(--font-mono);font-size:16px;font-weight:800;color:#34D399">₹3,450.00 (23.23%)</div>
-                      </div>
-                      <span id="stage-escrow-status-pill" style="font-family:var(--font-mono);font-size:11px;padding:4px 10px;border-radius:6px;background:rgba(16,185,129,0.2);color:#34D399;font-weight:700">
-                        Payout Status: Verified &amp; Ready for Release
-                      </span>
-                    </div>
+              <!-- Panel 2: Dual-Ledger Billing -->
+              <div class="stage-panel" id="stage-panel-2">
+                <div class="cockpit-metrics-row">
+                  <div class="cockpit-metric-card">
+                    <div class="cockpit-metric-label">Client Receivable (Infosys)</div>
+                    <div class="cockpit-metric-value">₹2,840.00</div>
+                    <div class="cockpit-metric-sub">GST SAC 996601 Auto-Generated</div>
                   </div>
-                  <div style="background:#0F1A2E;border:1px solid #1E293B;border-radius:14px;padding:20px;display:flex;flex-direction:column;justify-content:space-between">
-                    <div>
-                      <h5 style="margin:0 0 10px;font-size:15px;color:#FFFFFF">Zero Revenue Leakage</h5>
-                      <p style="font-size:12.5px;color:#94A3B8;line-height:1.6;margin:0 0 14px">
-                        Axiom completely separates customer invoices from supplier payouts into distinct double-entry ledgers. Automatic GST calculation and TDS withholding eliminate manual errors.
-                      </p>
-                      <ul style="padding-left:16px;font-size:12px;color:#94A3B8;margin:0;line-height:1.6">
-                        <li>Instant sub-vendor payout escrow</li>
-                        <li>Automated credit-limit dunning guard</li>
-                        <li>Full audit trail preserved for 8 financial years</li>
-                      </ul>
-                    </div>
-                    <button type="button" class="btn-nav-ghost" style="width:100%;justify-content:center;color:#FFFFFF;border-color:#334155;background:#1E293B" onclick="document.getElementById('for-car-rentals').scrollIntoView({behavior:'smooth'})">
-                      Learn About Margin Protection →
-                    </button>
+                  <div class="cockpit-metric-card">
+                    <div class="cockpit-metric-label">Sub-Vendor Payable</div>
+                    <div class="cockpit-metric-value">₹2,280.00</div>
+                    <div class="cockpit-metric-sub">T+1 Escrow Ready For Payout</div>
                   </div>
+                  <div class="cockpit-metric-card">
+                    <div class="cockpit-metric-label">Net Gross Margin</div>
+                    <div class="cockpit-metric-value">₹560.00 (19.7%)</div>
+                    <div class="cockpit-metric-sub">Margin-Floor Guardrail Protected</div>
+                  </div>
+                </div>
+                <div class="cockpit-workflow-bar">
+                  <span class="workflow-step-pill green">Digital Duty Slip Verified</span>
+                  <span class="workflow-step-pill amber">Treasury Payout: Escrow Ready</span>
+                  <span class="workflow-step-pill blue">1-Click Tally Prime XML Export Ready</span>
                 </div>
               </div>
 
-              <!-- TAB 3: White-Label Partner Network -->
-              <div class="stage-tab-panel" id="tab-panel-hyper-network">
-                <div style="display:grid;grid-template-columns:1.6fr 1.4fr;gap:20px">
-                  <div style="background:#060E1A;border:1px solid #1E293B;border-radius:14px;padding:20px">
-                    <span style="font-family:var(--font-mono);font-size:11px;color:#38BDF8">Automated Partner Dispatch</span>
-                    <h4 style="margin:4px 0 16px;font-size:16px;color:#FFFFFF">Tiered Allotment &amp; Anti-Poaching Shield</h4>
-                    <div style="display:flex;flex-direction:column;gap:10px">
-                      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3)">
-                        <span style="font-size:13px;color:#FFFFFF;font-weight:600">Wave 1: Platinum Partner Fleets (0s–120s)</span>
-                        <span style="font-family:var(--font-mono);font-size:11px;color:#34D399">Auto-Accepted</span>
-                      </div>
-                      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid #1E293B">
-                        <span style="font-size:13px;color:#94A3B8">Wave 2: Gold Regional Fleets (120s–240s)</span>
-                        <span style="font-family:var(--font-mono);font-size:11px;color:#64748B">Standby</span>
-                      </div>
-                      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid #1E293B">
-                        <span style="font-size:13px;color:#94A3B8">Wave 3: Spot Exchange Broadcast (240s+)</span>
-                        <span style="font-family:var(--font-mono);font-size:11px;color:#64748B">Marketplace</span>
-                      </div>
-                    </div>
+              <!-- Panel 3: White-Label Partner Network -->
+              <div class="stage-panel" id="stage-panel-3">
+                <div class="cockpit-metrics-row">
+                  <div class="cockpit-metric-card">
+                    <div class="cockpit-metric-label">Network Dispatch Tier</div>
+                    <div class="cockpit-metric-value">Tier-1 Platinum</div>
+                    <div class="cockpit-metric-sub">40+ Indian Airport Corridors</div>
                   </div>
-                  <div style="background:#0F1A2E;border:1px solid #1E293B;border-radius:14px;padding:20px;display:flex;flex-direction:column;justify-content:space-between">
-                    <div>
-                      <div style="display:inline-flex;padding:3px 8px;border-radius:6px;background:rgba(0,102,255,0.15);color:#60A5FA;font-size:11px;font-weight:700;margin-bottom:8px">
-                        ZERO CLIENT POACHING
-                      </div>
-                      <h5 style="margin:0 0 8px;font-size:14px;color:#FFFFFF">100% White-Label Protection</h5>
-                      <p style="font-size:12px;color:#94A3B8;line-height:1.6;margin:0">
-                        When offloading trips to peer operators, Axiom automatically conceals corporate contact details while the passenger sees your company brand on duty slips.
-                      </p>
-                    </div>
-                    <div style="background:#060E1A;border:1px solid #1E293B;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:12px">
-                      <span style="color:#34D399;font-weight:600">🛡️ Client Identity Hidden from Sub-Vendor</span>
-                      <span style="color:#38BDF8;font-weight:600">✅ Corporate Rate Card Protected</span>
-                    </div>
+                  <div class="cockpit-metric-card">
+                    <div class="cockpit-metric-label">Anti-Poaching Protection</div>
+                    <div class="cockpit-metric-value">100% Masked</div>
+                    <div class="cockpit-metric-sub">Client identity hidden from partner</div>
                   </div>
+                  <div class="cockpit-metric-card">
+                    <div class="cockpit-metric-label">Empty-Leg Optimization</div>
+                    <div class="cockpit-metric-value">BLR → MAA Return</div>
+                    <div class="cockpit-metric-sub">Escrow Pre-Authorized</div>
+                  </div>
+                </div>
+                <div class="cockpit-workflow-bar">
+                  <span class="workflow-step-pill blue">Timed Waterfall: 45s Broadcast Cascade</span>
+                  <span class="workflow-step-pill green">White-Label SMS: Your Brand Sent to Passenger</span>
                 </div>
               </div>
 
-              <!-- TAB 4: Cash-Flow Forecast -->
-              <div class="stage-tab-panel" id="tab-panel-timesfm">
-                <div style="display:grid;grid-template-columns:1.8fr 1.2fr;gap:20px">
-                  <div style="background:#060E1A;border:1px solid #1E293B;border-radius:14px;padding:20px">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-                      <div>
-                        <span style="font-family:var(--font-mono);font-size:11px;color:#38BDF8">AXIOM PREDICTIVE INTELLIGENCE</span>
-                        <h4 style="margin:2px 0 0;font-size:16px;color:#FFFFFF">30-Day Vendor Earnings &amp; Corporate Spend Forecast</h4>
-                      </div>
-                      <span style="font-family:var(--font-mono);font-size:11px;color:#34D399;background:rgba(16,185,129,0.1);padding:4px 8px;border-radius:6px">
-                        Accuracy: 94.6%
-                      </span>
-                    </div>
-                    <svg viewBox="0 0 500 160" style="width:100%;height:160px;background:#05070a;border-radius:10px">
-                      <line x1="40" y1="30" x2="480" y2="30" stroke="#1E293B" stroke-width="1"/>
-                      <line x1="40" y1="80" x2="480" y2="80" stroke="#1E293B" stroke-width="1"/>
-                      <line x1="40" y1="130" x2="480" y2="130" stroke="#1E293B" stroke-width="1"/>
-                      <polygon points="180,105 240,85 320,65 400,45 480,30 480,135 400,125 320,120 240,115 180,110" fill="rgba(0,102,255,0.15)"/>
-                      <polyline points="40,135 80,130 120,120 180,105" fill="none" stroke="#94A3B8" stroke-width="2.5"/>
-                      <polyline points="180,105 240,90 320,78 400,64 480,50" fill="none" stroke="#0066FF" stroke-width="2.5" stroke-dasharray="4 4"/>
-                      <circle cx="180" cy="105" r="5" fill="#0066FF" stroke="#FFFFFF" stroke-width="2"/>
-                      <text x="185" y="100" fill="#60A5FA" font-size="10">Today</text>
-                      <circle cx="480" cy="50" r="5" fill="#34D399" stroke="#FFFFFF" stroke-width="2"/>
-                      <text x="400" y="44" fill="#34D399" font-size="11" font-weight="700">Target: ₹28.4L</text>
-                    </svg>
+              <!-- Panel 4: Predictive Cash-Flow -->
+              <div class="stage-panel" id="stage-panel-4">
+                <div class="cockpit-metrics-row">
+                  <div class="cockpit-metric-card">
+                    <div class="cockpit-metric-label">30-Day Inflow Forecast</div>
+                    <div class="cockpit-metric-value">₹14.8 Lakhs</div>
+                    <div class="cockpit-metric-sub">Based on verified duty patterns</div>
                   </div>
-                  <div style="background:#0F1A2E;border:1px solid #1E293B;border-radius:14px;padding:20px;display:flex;flex-direction:column;justify-content:space-between">
-                    <div>
-                      <h5 style="margin:0 0 10px;font-size:15px;color:#FFFFFF">Predictive Float Management</h5>
-                      <p style="font-size:12px;color:#94A3B8;line-height:1.6;margin:0 0 12px">
-                        Axiom Predictive Intelligence continuously models corporate booking rhythms, monsoon seasonality, and airport surges to forecast working capital float requirements 30 days in advance.
-                      </p>
-                      <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:10px;font-size:11.5px;color:#FBBF24">
-                        ⚠️ <b>Zenith Aerospace:</b> Monthly budget reached 82%. Automated proforma cycle triggered.
-                      </div>
-                    </div>
-                    <button type="button" class="btn-nav-solid" style="width:100%;justify-content:center" onclick="showApp()">
-                      Inspect Full Workspace →
-                    </button>
+                  <div class="cockpit-metric-card">
+                    <div class="cockpit-metric-label">Vendor EMI &amp; Chauffeur Outflow</div>
+                    <div class="cockpit-metric-value">₹11.2 Lakhs</div>
+                    <div class="cockpit-metric-sub">100% Cash-flow solvency ratio</div>
                   </div>
+                  <div class="cockpit-metric-card">
+                    <div class="cockpit-metric-label">Projected Net Retained</div>
+                    <div class="cockpit-metric-value">+ ₹3.6 Lakhs</div>
+                    <div class="cockpit-metric-sub">Healthy operational liquidity</div>
+                  </div>
+                </div>
+                <div class="cockpit-workflow-bar">
+                  <span class="workflow-step-pill green">Predictive Revenue Confidence: 94.2%</span>
+                  <span class="workflow-step-pill blue">Automated Corporate Dunning: Active</span>
                 </div>
               </div>
             </div>
@@ -3476,278 +3593,483 @@
         </div>
       </section>
 
-      <!-- SECTION 3: "POWERING ENTERPRISES & CORPORATES" (INDECA B-STYLE 4-CARD FEATURE GRID) -->
+      <!-- 3. POWERING ENTERPRISES & CORPORATES -->
       <section class="axiom-section-clean alt-bg" id="for-corporates">
         <div class="section-container">
-          <span class="section-badge-eyebrow">FOR ENTERPRISES &amp; CORPORATES</span>
-          <h2 class="section-main-heading">
-            Empower your organization with complete visibility, employee safety, and audit-ready billing.
+          <span class="section-eyebrow">POWERING ENTERPRISES &amp; CORPORATES</span>
+          <h2 class="section-heading-clean">
+            Empower your business with a one-stop solution to manage and monitor every facet of corporate travel.
           </h2>
-          <p class="section-lead-desc">
-            A comprehensive travel management control center for travel admins, finance teams, and employees—from booking policy to verified payment proof.
+          <p class="section-subtitle-clean">
+            Unify employee spot rentals, monthly transport rosters, and multi-vendor invoices under a centralized, tamper-proof policy engine.
           </p>
 
-          <div class="card-grid-2x2">
+          <div class="cards-grid-2x2">
             <!-- Card 1 -->
-            <div class="indecab-card">
-              <div class="card-icon-box">🏢</div>
-              <h3>A Control Center for Every Corporate Trip</h3>
-              <p>
-                Centralise spot rentals, airport transfers, and daily employee transport (ETS) shifts across multiple vendors into a single pane of glass.
-              </p>
-              <ul>
-                <li>Multi-level corporate approval workflows &amp; cost-center tagging</li>
-                <li>Live trip board tracking active corporate duties across all suppliers</li>
-                <li>One-Click Magic-Link Proforma Annexure Verification for finance desks</li>
-              </ul>
-              <div class="card-tag-pill">
-                <span class="tag-label blue">Multi-Vendor Control</span>
-                <span class="tag-label">Zero-Login Approval</span>
+            <div class="indecab-feature-card">
+              <div>
+                <div class="feature-icon-container">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                </div>
+                <h3 class="feature-card-title">A control center for everything.</h3>
+                <p class="feature-card-summary">
+                  A centralised dashboard for all your corporate car rental vendors, spot bookings, and employee transport shifts in an easy-to-use interface.
+                </p>
+              </div>
+              <div>
+                <button type="button" class="btn-view-more">
+                  <span>View more</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+                <div class="feature-card-details">
+                  <ul class="details-bullet-list">
+                    <li>Multi-vendor booking management with automated allocation</li>
+                    <li>Custom corporate approval workflows, cost centers &amp; project billing tags</li>
+                    <li>Real-time proforma annexure magic-link approvals for procurement teams</li>
+                    <li>Automated vendor SLA tier tracking with punctuality and vehicle compliance scoring</li>
+                  </ul>
+                </div>
               </div>
             </div>
 
             <!-- Card 2 -->
-            <div class="indecab-card">
-              <div class="card-icon-box teal">🗺️</div>
-              <h3>100% Audit Clarity on Kilometers, Routes &amp; Time</h3>
-              <p>
-                Eliminate billing disputes before they happen with automated 3-way route validation against OpenStreetMap road geometry.
-              </p>
-              <ul>
-                <li><strong>3-Way Distance Fraud Auditor:</strong> Validates driver odometer vs GPS vs true road distance</li>
-                <li><strong>Theoretical vs. Practical Reconciliation:</strong> Compare estimated tariffs against true execution</li>
-                <li>Digital duty slips with OTP authentication and uploaded physical trip-sheet photos</li>
-              </ul>
-              <div class="card-tag-pill">
-                <span class="tag-label teal">3-Way Route Audit</span>
-                <span class="tag-label">Zero Billing Disputes</span>
+            <div class="indecab-feature-card">
+              <div>
+                <div class="feature-icon-container">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+                </div>
+                <h3 class="feature-card-title">All the answers. With 100% route &amp; billing clarity.</h3>
+                <p class="feature-card-summary">
+                  Get accurate, tamper-proof information about kilometers, routes taken, and invoice calculations with a single click.
+                </p>
+              </div>
+              <div>
+                <button type="button" class="btn-view-more">
+                  <span>View more</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+                <div class="feature-card-details">
+                  <ul class="details-bullet-list">
+                    <li>3-Way Distance Fraud Auditor (Odometer vs GPS vs OpenStreetMap Road distance)</li>
+                    <li>Theoretical vs Practical fare reconciliation eliminating unverified extras</li>
+                    <li>OTP-authenticated digital duty slips signed directly on passenger phones</li>
+                    <li>Uploaded physical paper trip-sheet photo proof with high-res inspection loupe</li>
+                  </ul>
+                </div>
               </div>
             </div>
 
             <!-- Card 3 -->
-            <div class="indecab-card">
-              <div class="card-icon-box">🛡️</div>
-              <h3>Uncompromised Employee Safety &amp; Night-Shift POSH Compliance</h3>
-              <p>
-                Strict automated safety locks and route governance ensure complete compliance with corporate travel safety policies.
-              </p>
-              <ul>
-                <li><strong>Women's Night-Shift Hard Lock (20:00–06:00):</strong> Mandatory security escort if a female employee is First-Pickup or Last-Drop</li>
-                <li><strong>OSRM Smart Route Sequencer:</strong> Optimizes multi-stop employee pickups along the safest, fastest corridors</li>
-                <li>Integrated AIS-140 GPS tracking, geofencing, and SOS panic button alerts</li>
-              </ul>
-              <div class="card-tag-pill">
-                <span class="tag-label blue">POSH Night-Shift Guard</span>
-                <span class="tag-label">AIS-140 Certified</span>
+            <div class="indecab-feature-card">
+              <div>
+                <div class="feature-icon-container">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                </div>
+                <h3 class="feature-card-title">Safer, easier travel for every employee.</h3>
+                <p class="feature-card-summary">
+                  Keep teams moving safely with automated compliance locks, smart route sequencing, and real-time passenger tracking.
+                </p>
+              </div>
+              <div>
+                <button type="button" class="btn-view-more">
+                  <span>View more</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+                <div class="feature-card-details">
+                  <ul class="details-bullet-list">
+                    <li>Mandatory Women's Night-Shift Guard Lock (20:00–06:00 POSH compliance)</li>
+                    <li>OSRM multi-stop pickup and drop route sequencer minimizing total in-cab duration</li>
+                    <li>Live AIS-140 GPS tracking with instant SOS incident escalation matrix</li>
+                    <li>Corporate EV Green-Corridor priority matching for ESG fleet targets</li>
+                  </ul>
+                </div>
               </div>
             </div>
 
             <!-- Card 4 -->
-            <div class="indecab-card">
-              <div class="card-icon-box teal">📊</div>
-              <h3>Predictive Travel Budgets &amp; ESG Sustainability</h3>
-              <p>
-                Gain forward-looking financial visibility and track company sustainability targets with automated Scope-3 carbon accounting.
-              </p>
-              <ul>
-                <li><strong>30-Day Corporate Expenditure Forecast:</strong> Predicts monthly spend and alerts admins prior to budget breach</li>
-                <li><strong>EV Green-Corridor Priority:</strong> Automatically allots electric vehicles with verified battery range (SoC %)</li>
-                <li>Verified ESG carbon emission reduction certificates for annual corporate reporting</li>
-              </ul>
-              <div class="card-tag-pill">
-                <span class="tag-label teal">Predictive Spend AI</span>
-                <span class="tag-label">Scope-3 Carbon Tracking</span>
+            <div class="indecab-feature-card">
+              <div>
+                <div class="feature-icon-container">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                </div>
+                <h3 class="feature-card-title">Helps your finance team plan better.</h3>
+                <p class="feature-card-summary">
+                  Make the most of predictive spend analytics and enterprise-grade security to control your organization's travel budgets.
+                </p>
+              </div>
+              <div>
+                <button type="button" class="btn-view-more">
+                  <span>View more</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+                <div class="feature-card-details">
+                  <ul class="details-bullet-list">
+                    <li>30-Day Corporate Expenditure Forecast and automated budget breach alerts</li>
+                    <li>Scope-3 ESG carbon emission tracking and downloadable auditor certificates</li>
+                    <li>Granular role-based access permissions for travel desks, managers and CFOs</li>
+                    <li>Full 8-year immutable audit trail compliant with statutory corporate governance</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- SECTION 4: "POWERING CAR RENTAL COMPANIES & FLEET VENDORS" (INDECA B-STYLE 6-CARD GRID) -->
+      <!-- 4. POWERING CAR RENTAL COMPANIES -->
       <section class="axiom-section-clean" id="for-car-rentals">
         <div class="section-container">
-          <span class="section-badge-eyebrow">FOR CAR RENTAL COMPANIES</span>
-          <h2 class="section-main-heading">
-            An end-to-end operating system to manage bookings, drivers, sub-vendors, pricing, and accounting in one place.
+          <span class="section-eyebrow">POWERING CAR RENTAL COMPANIES</span>
+          <h2 class="section-heading-clean">
+            Better business with better technology.
           </h2>
-          <p class="section-lead-desc">
-            Built from the ground up for the nuances of Indian fleet operations: garage kilometers, dynamic fuel surcharges, DCO settlements, and split billing.
+          <p class="section-subtitle-clean">
+            An end-to-end operations management platform to manage your bookings, drivers, sub-vendors, pricing, and accounting from a single dashboard.
           </p>
 
-          <div class="card-grid-3x2">
+          <div class="cards-grid-3x2">
             <!-- Card 1 -->
-            <div class="indecab-card">
-              <div class="card-icon-box">💬</div>
-              <h3>Instant WhatsApp AI Booking &amp; Smart Dispatch</h3>
-              <p>
-                Paste unstructured booking emails or WhatsApp messages and let Axiom convert them into confirmed, priced duties in 3 seconds.
-              </p>
-              <ul>
-                <li>Automated driver compliance verification (Insurance, Fitness, PUC, Police Verification)</li>
-                <li>Driver fatigue management with mandatory 12-hour duty locks</li>
-              </ul>
-              <div class="card-tag-pill">
-                <span class="tag-label blue">WhatsApp Intake</span>
-                <span class="tag-label">Compliance Locks</span>
+            <div class="indecab-feature-card">
+              <div>
+                <div class="feature-icon-container">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </div>
+                <h3 class="feature-card-title">Instant booking intake &amp; dispatch.</h3>
+                <p class="feature-card-summary">
+                  Convert unstructured client WhatsApp messages and emails into priced, geocoded duties in seconds.
+                </p>
+              </div>
+              <div>
+                <button type="button" class="btn-view-more">
+                  <span>View more</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+                <div class="feature-card-details">
+                  <ul class="details-bullet-list">
+                    <li>Smart WhatsApp and email AI parser extracting pickup, drop and car category</li>
+                    <li>Automated vehicle Insurance, Fitness, PUC and driver commercial license checks</li>
+                    <li>12-hour driver fatigue safety locks preventing exhausted chauffeur dispatches</li>
+                    <li>1-click completed trips bulk CSV/Excel upload with sample template download</li>
+                  </ul>
+                </div>
               </div>
             </div>
 
             <!-- Card 2 -->
-            <div class="indecab-card">
-              <div class="card-icon-box teal">💰</div>
-              <h3>Dual-Ledger Accounting &amp; Margin Protection</h3>
-              <p>
-                Decouple Corporate Receivables from Sub-Vendor Payables to know your exact profit margin on every trip before dispatch.
-              </p>
-              <ul>
-                <li><strong>Auto-Slab Optimizer:</strong> Chooses best package (4Hr/40Km vs 8Hr/80Km) to prevent customer disputes</li>
-                <li><strong>Margin-Floor Guardrail:</strong> Guarantees driver/supplier payouts never eat below your minimum profit margin</li>
-              </ul>
-              <div class="card-tag-pill">
-                <span class="tag-label teal">Dual-Ledger P&amp;L</span>
-                <span class="tag-label">Margin Guardrails</span>
+            <div class="indecab-feature-card">
+              <div>
+                <div class="feature-icon-container">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <h3 class="feature-card-title">Everything you need. In one place.</h3>
+                <p class="feature-card-summary">
+                  Complete oversight on theoretical estimates, practical odometer readings, driver expenses, and trip corrections.
+                </p>
+              </div>
+              <div>
+                <button type="button" class="btn-view-more">
+                  <span>View more</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+                <div class="feature-card-details">
+                  <ul class="details-bullet-list">
+                    <li>Theoretical vs Practical pricing engine comparing estimates to ground reality</li>
+                    <li>Inline odometer, toll, parking and final price correction workbench</li>
+                    <li>Sequential vehicle odometer continuity checks flagging rollback and dead mileage</li>
+                    <li>Split-view physical trip-sheet photo loupe for zero-dispute invoice generation</li>
+                  </ul>
+                </div>
               </div>
             </div>
 
             <!-- Card 3 -->
-            <div class="indecab-card">
-              <div class="card-icon-box">📥</div>
-              <h3>1-Click Bulk Upload &amp; Inline Correction</h3>
-              <p>
-                Import hundreds of completed historical trips in seconds with automatic tariff calculation and duplicate duty detection.
-              </p>
-              <ul>
-                <li>Interactive Trip Correction Workbench for start/end odometer, extra hours, and tolls</li>
-                <li>Sequential Odometer Continuity Checks catching rollbacks and dead-mileage gaps</li>
-              </ul>
-              <div class="card-tag-pill">
-                <span class="tag-label blue">1-Click CSV Import</span>
-                <span class="tag-label">Odometer Audit</span>
+            <div class="indecab-feature-card">
+              <div>
+                <div class="feature-icon-container">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                <h3 class="feature-card-title">Dual-ledger accounting &amp; reports made easy.</h3>
+                <p class="feature-card-summary">
+                  Separate corporate receivables from sub-vendor payables with automatic GST compliance and Tally integration.
+                </p>
+              </div>
+              <div>
+                <button type="button" class="btn-view-more">
+                  <span>View more</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+                <div class="feature-card-details">
+                  <ul class="details-bullet-list">
+                    <li>Immutable Dual-Ledger P&amp;L reconciliation locking client and vendor margins</li>
+                    <li>Auto-Slab package optimizer (4Hr/40Km to 8Hr/80Km) with Margin-Floor Guardrail</li>
+                    <li>Instant GST e-invoicing with SAC 996601 codes and IRN QR generation</li>
+                    <li>1-click Tally Prime XML export and post-invoice Credit/Debit note adjustments</li>
+                  </ul>
+                </div>
               </div>
             </div>
 
             <!-- Card 4 -->
-            <div class="indecab-card">
-              <div class="card-icon-box teal">🧾</div>
-              <h3>GST E-Invoicing &amp; Tally Prime Bridge</h3>
-              <p>
-                Generate 1-click GST-compliant Tax Invoices with SAC 996601, IGST/CGST/SGST auto-split, and instant IRN/QR generation.
-              </p>
-              <ul>
-                <li>Direct Tally Prime XML Export for Sales and Purchase vouchers</li>
-                <li>Automated Credit &amp; Debit Notes for post-invoice odometer reconciliations</li>
-              </ul>
-              <div class="card-tag-pill">
-                <span class="tag-label teal">Tally XML Sync</span>
-                <span class="tag-label">GST E-Invoicing</span>
+            <div class="indecab-feature-card">
+              <div>
+                <div class="feature-icon-container">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
+                <h3 class="feature-card-title">Get paid faster. Control every payout.</h3>
+                <p class="feature-card-summary">
+                  Track corporate receivables, automate payment reminders, and control supplier fund releases with precision.
+                </p>
+              </div>
+              <div>
+                <button type="button" class="btn-view-more">
+                  <span>View more</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+                <div class="feature-card-details">
+                  <ul class="details-bullet-list">
+                    <li>Automated 3-stage SaaS and corporate dunning reminders for outstanding balances</li>
+                    <li>Axiom Treasury Fund Release Hold Toggle allowing 1-click vendor payout control</li>
+                    <li>30-Day Vendor Earnings &amp; EMI coverage forecast maintaining fleet owner loyalty</li>
+                    <li>Automated payment reconciliation matching bank UTR statements to duty invoices</li>
+                  </ul>
+                </div>
               </div>
             </div>
 
             <!-- Card 5 -->
-            <div class="indecab-card">
-              <div class="card-icon-box">⚡</div>
-              <h3>Get Paid Faster + Fund Release Controls</h3>
-              <p>
-                Maintain total control over cash flow with automated dunning reminders and configurable supplier payout windows.
-              </p>
-              <ul>
-                <li>Track corporate receivables, aging buckets, and vendor wallet balances</li>
-                <li><strong>Axiom Fund Release Hold Toggle:</strong> Control supplier payouts with instant status toggles</li>
-              </ul>
-              <div class="card-tag-pill">
-                <span class="tag-label blue">Float Controls</span>
-                <span class="tag-label">Automated Dunning</span>
+            <div class="indecab-feature-card">
+              <div>
+                <div class="feature-icon-container">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                </div>
+                <h3 class="feature-card-title">Build your own brand &amp; grow sales.</h3>
+                <p class="feature-card-summary">
+                  Elevate your company's perception with white-labeled duty slips and a built-in mobility CRM.
+                </p>
+              </div>
+              <div>
+                <button type="button" class="btn-view-more">
+                  <span>View more</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+                <div class="feature-card-details">
+                  <ul class="details-bullet-list">
+                    <li>Native Prospect-to-Tenant Sales CRM pipeline tracking inquiries to signed contracts</li>
+                    <li>Custom company branding on passenger WhatsApp dispatches and digital duty slips</li>
+                    <li>1-click master data migration from Indecab, legacy spreadsheets and custom ERPs</li>
+                    <li>Branded passenger feedback ratings and chauffeur performance leaderboards</li>
+                  </ul>
+                </div>
               </div>
             </div>
 
             <!-- Card 6 -->
-            <div class="indecab-card">
-              <div class="card-icon-box teal">📈</div>
-              <h3>Built-In Sales CRM &amp; Earnings Forecast</h3>
-              <p>
-                Capture website leads, track corporate contracts, and predict upcoming monthly cash flow to plan vehicle EMI coverage.
-              </p>
-              <ul>
-                <li>Native Mobility CRM tracking leads from initial inquiry to signed contract</li>
-                <li>Predictive cash flow modeling based on seasonal corporate demand</li>
-              </ul>
-              <div class="card-tag-pill">
-                <span class="tag-label teal">Mobility CRM</span>
-                <span class="tag-label">Cash-Flow Forecast</span>
+            <div class="indecab-feature-card">
+              <div>
+                <div class="feature-icon-container">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                </div>
+                <h3 class="feature-card-title">Zero distance fraud. Guaranteed margins.</h3>
+                <p class="feature-card-summary">
+                  Stop revenue leakage caused by inflated sub-vendor kilometers or unbilled extra hours.
+                </p>
+              </div>
+              <div>
+                <button type="button" class="btn-view-more">
+                  <span>View more</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+                <div class="feature-card-details">
+                  <ul class="details-bullet-list">
+                    <li>Automated 3-Way Distance Variance Hold (&gt;10% odometer delta locked before payout)</li>
+                    <li>Maker-Checker billing verification queue for multi-tier accounting sign-offs</li>
+                    <li>Complete vendor SLA performance scoring penalizing delayed or non-reporting cabs</li>
+                    <li>Real-time tariff engine catching unbilled toll, state tax and night allowance charges</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- SECTION 5: DEDICATED APP SHOWCASE (DRIVER APP + POCKET DISPATCH) -->
+      <!-- 5. DRIVER & VENDOR POCKET APP SHOWCASE -->
       <section class="axiom-section-clean alt-bg" id="driver-app">
         <div class="section-container">
-          <div class="apps-showcase-split">
+          <div class="app-showcase-columns">
+            <!-- Left Column: Controls & Text -->
             <div>
-              <span class="section-badge-eyebrow">MOBILE APPS</span>
-              <h2 class="section-main-heading">
-                Empower Drivers on the Road &amp; Dispatchers on the Move.
+              <span class="section-eyebrow">MOBILE OPERATIONS</span>
+              <h2 class="section-heading-clean">
+                The Axiom Driver App &amp; Vendor Pocket Dispatcher.
               </h2>
-              <p class="section-lead-desc" style="margin-bottom:28px">
-                Replace paper duty slips with streamlined mobile apps built specifically for real-world Indian road conditions.
+              <p class="section-subtitle-clean" style="margin-bottom:28px">
+                Replace paper duty slips on the road, and let fleet owners assign cabs right from their phone at home—no laptop required.
               </p>
 
-              <div class="app-feature-list">
-                <div class="app-feature-item">
-                  <div class="app-feat-icon">📱</div>
-                  <div class="app-feat-content">
-                    <h4>The Axiom Driver App</h4>
-                    <p>OTP trip start and end, camera photo odometer capture, offline GPS breadcrumb buffering, and digital customer signature.</p>
+              <!-- Pill Switcher -->
+              <div class="app-pill-switcher">
+                <button type="button" class="app-switch-btn active" data-app-target="driver-app-view">Driver App Features</button>
+                <button type="button" class="app-switch-btn" data-app-target="vendor-app-view">Vendor Pocket App Features</button>
+              </div>
+
+              <!-- Driver App Features List -->
+              <div class="app-features-group active" id="driver-app-view">
+                <div class="app-bullet-item">
+                  <div class="app-bullet-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  </div>
+                  <div class="app-bullet-text">
+                    <b>OTP-Based Duty Validation</b>
+                    <p>Chauffeurs start and end trips with secure passenger OTPs, completely eliminating unauthorized duties.</p>
                   </div>
                 </div>
-                <div class="app-feature-item">
-                  <div class="app-feat-icon" style="background:#E6FFFA;color:#00A896">⚡</div>
-                  <div class="app-feat-content">
-                    <h4>Vendor Mobile Pocket App ("Dispatch From Anywhere")</h4>
-                    <p>Designed for fleet owners at home or on the go. View unassigned cabs, running duties, and allocate drivers in 2 thumb taps.</p>
+                <div class="app-bullet-item">
+                  <div class="app-bullet-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19 4h-1.5L16 2H8L6.5 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path></svg>
+                  </div>
+                  <div class="app-bullet-text">
+                    <b>Camera Odometer &amp; Toll Receipt Capture</b>
+                    <p>Mandatory camera snap of physical vehicle dashboard and toll receipts stored directly on the duty slip.</p>
+                  </div>
+                </div>
+                <div class="app-bullet-item">
+                  <div class="app-bullet-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+                  </div>
+                  <div class="app-bullet-text">
+                    <b>Turn-by-Turn Navigation &amp; Offline Breadcrumbs</b>
+                    <p>Built-in route navigation that stores breadcrumbs locally during cellular drops and syncs once back online.</p>
+                  </div>
+                </div>
+                <div class="app-bullet-item">
+                  <div class="app-bullet-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                  </div>
+                  <div class="app-bullet-text">
+                    <b>Paper Trip-Sheet Photo Upload Fallback</b>
+                    <p>If corporate clients require physical paper signatures, drivers upload a clean picture for 1-click billing.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Vendor Pocket App Features List -->
+              <div class="app-features-group" id="vendor-app-view">
+                <div class="app-bullet-item">
+                  <div class="app-bullet-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  </div>
+                  <div class="app-bullet-text">
+                    <b>Built For Fleet Owners on the Move</b>
+                    <p>Manage fleet operations from home or while travelling without needing to carry a heavy laptop.</p>
+                  </div>
+                </div>
+                <div class="app-bullet-item">
+                  <div class="app-bullet-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                  </div>
+                  <div class="app-bullet-text">
+                    <b>Live Operational Pulse</b>
+                    <p>Track unassigned duties, running vehicles, completed jobs, and today's gross billed revenue in real-time.</p>
+                  </div>
+                </div>
+                <div class="app-bullet-item">
+                  <div class="app-bullet-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                  </div>
+                  <div class="app-bullet-text">
+                    <b>2-Tap Cab &amp; Chauffeur Assignment</b>
+                    <p>Select unassigned corporate duties and assign available vehicle and driver with two thumb taps.</p>
+                  </div>
+                </div>
+                <div class="app-bullet-item">
+                  <div class="app-bullet-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                  </div>
+                  <div class="app-bullet-text">
+                    <b>Instant WhatsApp Chauffeur Broadcast</b>
+                    <p>Automatically triggers vehicle number, chauffeur contact and reporting time to passenger via WhatsApp.</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="dual-phone-mockup">
-              <!-- Phone 1: Driver App -->
-              <div class="phone-card">
-                <div class="phone-screen-header">
-                  <span>AXIOM GO DRIVER</span>
-                  <span class="phone-pill-badge">DUTY ACTIVE</span>
-                </div>
-                <div style="font-size:11px;color:#94A3B8;margin-bottom:4px">CURRENT TRIP</div>
-                <b style="font-size:13px;display:block;margin-bottom:12px">BLR Airport Drop · ₹1,850</b>
-                <div style="background:#0F1A2E;padding:10px;border-radius:8px;margin-bottom:10px;font-size:11px">
-                  <div style="color:#94A3B8">Pickup: Taj MG Road</div>
-                  <div style="color:#FFFFFF;font-weight:700;margin-top:2px">Mr. Rahul Sharma</div>
-                </div>
-                <div style="background:#1E293B;padding:10px;border-radius:8px;font-size:11px;color:#34D399;text-align:center;font-weight:700">
-                  📸 Start Odo: 48,210 km [Verified]
-                </div>
-              </div>
+            <!-- Right Column: CSS Phone Mockup -->
+            <div class="phone-mockup-wrapper">
+              <div class="css-phone-frame">
+                <div class="phone-top-notch"></div>
 
-              <!-- Phone 2: Pocket Dispatcher -->
-              <div class="phone-card">
-                <div class="phone-screen-header">
-                  <span>POCKET DISPATCH</span>
-                  <span class="phone-pill-badge" style="background:#00A896">LIVE PULSE</span>
-                </div>
-                <div style="font-size:11px;color:#94A3B8;margin-bottom:4px">TODAY'S OPERATIONS</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-                  <div style="background:#0F1A2E;padding:8px;border-radius:6px;text-align:center">
-                    <b style="font-size:14px;color:#38BDF8">14</b>
-                    <div style="font-size:9.5px;color:#94A3B8">Active Trips</div>
+                <!-- Screen 1: Driver App Mockup -->
+                <div class="phone-screen-content active" id="phone-screen-driver">
+                  <div style="padding:10px 4px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                      <span style="font-size:11px;font-weight:700;color:#0066FF;text-transform:uppercase;letter-spacing:0.04em">DUTY #8831</span>
+                      <span style="background:#ECFDF5;color:#059669;font-size:10px;font-weight:700;padding:2px 8px;border-radius:9999px">EN ROUTE</span>
+                    </div>
+                    <div style="font-size:16px;font-weight:800;color:#0F172A;margin-bottom:4px">Rahul Verma</div>
+                    <div style="font-size:12px;color:#64748B;margin-bottom:14px">Infosys Ltd · Airport Transfer</div>
+
+                    <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:14px">
+                      <div style="font-size:11px;color:#64748B;margin-bottom:2px">PICKUP LOCATION</div>
+                      <div style="font-size:12px;font-weight:600;color:#0F172A;margin-bottom:8px">MG Road, Bengaluru</div>
+                      <div style="font-size:11px;color:#64748B;margin-bottom:2px">DROP DESTINATION</div>
+                      <div style="font-size:12px;font-weight:600;color:#0F172A">Kempegowda Int'l Airport (T2)</div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+                      <div style="background:#EFF6FF;border:1px solid #DBEAFE;border-radius:8px;padding:8px;text-align:center">
+                        <div style="font-size:10px;color:#0066FF;font-weight:600">START OTP</div>
+                        <div style="font-size:15px;font-weight:800;color:#0F172A;font-family:var(--font-mono)">445566</div>
+                      </div>
+                      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:8px;text-align:center">
+                        <div style="font-size:10px;color:#64748B;font-weight:600">START ODO</div>
+                        <div style="font-size:15px;font-weight:800;color:#0F172A;font-family:var(--font-mono)">42,108 km</div>
+                      </div>
+                    </div>
+
+                    <div style="background:#0066FF;color:#FFFFFF;text-align:center;padding:12px;border-radius:8px;font-size:13px;font-weight:700">
+                      End Duty &amp; Request OTP
+                    </div>
                   </div>
-                  <div style="background:#0F1A2E;padding:8px;border-radius:6px;text-align:center">
-                    <b style="font-size:14px;color:#34D399">₹42.8K</b>
-                    <div style="font-size:9.5px;color:#94A3B8">Revenue</div>
-                  </div>
                 </div>
-                <div style="background:#1E293B;padding:10px;border-radius:8px;font-size:11px;text-align:center;color:#FFFFFF;font-weight:600">
-                  ⚡ 2-Tap Cab Allotment
+
+                <!-- Screen 2: Vendor Pocket App Mockup -->
+                <div class="phone-screen-content" id="phone-screen-vendor">
+                  <div style="padding:10px 4px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                      <span style="font-size:11px;font-weight:700;color:#0F172A">TODAY'S FLEET PULSE</span>
+                      <span style="font-size:10px;color:#059669;font-weight:700">LIVE SYNC</span>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:6px;margin-bottom:14px">
+                      <div style="background:#EFF6FF;border-radius:8px;padding:8px;text-align:center">
+                        <div style="font-size:9px;color:#0066FF;font-weight:700">RUNNING</div>
+                        <div style="font-size:16px;font-weight:800;color:#0F172A">42</div>
+                      </div>
+                      <div style="background:#FFFBEB;border-radius:8px;padding:8px;text-align:center">
+                        <div style="font-size:9px;color:#D97706;font-weight:700">UNASSIGNED</div>
+                        <div style="font-size:16px;font-weight:800;color:#0F172A">3</div>
+                      </div>
+                      <div style="background:#ECFDF5;border-radius:8px;padding:8px;text-align:center">
+                        <div style="font-size:9px;color:#059669;font-weight:700">REVENUE</div>
+                        <div style="font-size:16px;font-weight:800;color:#0F172A">₹4.8L</div>
+                      </div>
+                    </div>
+
+                    <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:12px">
+                      <div style="font-size:11px;font-weight:700;color:#D97706;margin-bottom:4px">ACTION REQUIRED: UNASSIGNED</div>
+                      <div style="font-size:13px;font-weight:700;color:#0F172A">Amazon Dev Center Duty</div>
+                      <div style="font-size:11px;color:#64748B;margin-bottom:10px">Sedan (Dzire) · Reporting 18:30</div>
+
+                      <div style="font-size:11px;color:#334155;margin-bottom:4px">Assign Chauffeur &amp; Vehicle:</div>
+                      <div style="background:#FFFFFF;border:1px solid #CBD5E1;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:600;margin-bottom:8px">
+                        KA01-MJ-9921 · Suresh Kumar
+                      </div>
+                      <div style="background:#0066FF;color:#FFFFFF;text-align:center;padding:8px;border-radius:6px;font-size:12px;font-weight:700">
+                        Dispatch via WhatsApp
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -3755,289 +4077,318 @@
         </div>
       </section>
 
-      <!-- SECTION 6: "THE AXIOM PARTNER NETWORK" -->
+      <!-- 6. THE AXIOM PARTNER NETWORK -->
       <section class="axiom-section-clean" id="axiom-network">
-        <div class="section-container">
-          <span class="section-badge-eyebrow">INTER-CITY SUPPLY</span>
-          <h2 class="section-main-heading">
-            The Axiom Partner Network — Combine Strengths Without Risk.
+        <div class="section-container" style="text-align:center">
+          <span class="section-eyebrow">NATIONWIDE COLLABORATION</span>
+          <h2 class="section-heading-clean">
+            The Axiom Partner Network
           </h2>
-          <p class="section-lead-desc">
-            Never turn down a customer booking again. Outsource and receive overflow trips across 32 cities with complete brand and margin safety.
+          <p class="section-subtitle-clean" style="margin:0 auto 48px">
+            We empower car rental companies to combine their strengths nationwide—with automated waterfall dispatch, anti-poaching protection, and wallet escrow.
           </p>
 
-          <div class="network-card-band">
-            <div class="network-step-card">
-              <span class="step-number">PILLAR 01</span>
-              <h4>Timed Waterfall Dispatch</h4>
-              <p>Cascade unserviced duties automatically: first to your preferred Platinum vendors, then Gold regional partners, and finally to the verified spot exchange—without making dozens of phone calls.</p>
+          <div class="partner-columns-3" style="text-align:left">
+            <div class="partner-column-item">
+              <div class="feature-icon-container">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
+              </div>
+              <h3>Timed Waterfall Dispatch</h3>
+              <p>Broadcast overflow duties automatically from Tier-1 Platinum partners to Gold and city marketplace operators without phone calls or manual delays.</p>
             </div>
-            <div class="network-step-card">
-              <span class="step-number">PILLAR 02</span>
-              <h4>100% White-Label Protection</h4>
-              <p>Your corporate client identity and agreed rate cards remain confidential from the partner operator. The passenger receives digital duty slips and SMS alerts bearing exclusively your brand.</p>
+
+            <div class="partner-column-item">
+              <div class="feature-icon-container">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              </div>
+              <h3>100% White-Label Anti-Poaching</h3>
+              <p>Fulfilling sub-vendors never see your corporate client's identity or rate card, and passengers receive communications under your brand name and logo.</p>
             </div>
-            <div class="network-step-card">
-              <span class="step-number">PILLAR 03</span>
-              <h4>Empty-Leg Return Matchmaker</h4>
-              <p>Monetize empty return trips (e.g. Mysuru → Bengaluru or Pune → Mumbai). Match outbound corporate charters with inbound partner demand with pre-authorized escrow payments.</p>
+
+            <div class="partner-column-item">
+              <div class="feature-icon-container">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+              </div>
+              <h3>Empty-Leg Return Matchmaker</h3>
+              <p>Monetize empty returning outstation vehicles across major airport corridors with pre-authorized escrow payment security.</p>
+            </div>
+          </div>
+
+          <!-- Trust Metrics Strip -->
+          <div class="trust-metrics-strip">
+            <div>
+              <div class="trust-stat-num">100%</div>
+              <div class="trust-stat-desc">Double-Entry Billing Accuracy</div>
+            </div>
+            <div>
+              <div class="trust-stat-num">3-Way</div>
+              <div class="trust-stat-desc">GPS + Odometer + OSM Route Audit</div>
+            </div>
+            <div>
+              <div class="trust-stat-num">&lt; 3 Sec</div>
+              <div class="trust-stat-desc">WhatsApp AI Booking Extraction</div>
+            </div>
+            <div>
+              <div class="trust-stat-num">24/7</div>
+              <div class="trust-stat-desc">Automated POSH &amp; SLA Governance</div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- SECTION 7: "CALCULATE THE DIFFERENCE" (ROI & PLAYGROUND) -->
+      <!-- 7. CALCULATE THE DIFFERENCE -->
       <section class="axiom-section-clean alt-bg" id="calculator">
         <div class="section-container">
-          <span class="section-badge-eyebrow">ROI &amp; FARE CALCULATOR</span>
-          <h2 class="section-main-heading">
-            Calculate the Difference Axiom Makes.
-          </h2>
-          <p class="section-lead-desc">
-            See the exact operational hours and rupees your fleet saves every month with automated audit rules and margin guardrails.
-          </p>
+          <div class="calculator-split-layout">
+            <!-- Left Card: Input -->
+            <div class="calc-input-box">
+              <span class="section-eyebrow" style="margin-bottom:8px">EFFICIENCY CALCULATOR</span>
+              <h3>How Axiom Fleet benefits you</h3>
+              <p>Enter your average monthly duty volume to calculate operational savings and leakage prevention.</p>
 
-          <div class="calculator-container">
-            <!-- Part A: Monthly ROI Calculator -->
-            <div class="calc-box-card">
-              <h3 style="font-size:18px;margin-bottom:8px">Monthly Fleet Efficiency &amp; Savings</h3>
-              <p style="font-size:13.5px;color:var(--text-body);margin-bottom:20px">
-                Adjust the slider based on your average monthly duty volume:
-              </p>
-
-              <div class="calc-slider-wrap">
-                <div class="calc-slider-header">
-                  <label for="roi-duties-slider">Average Duties Completed Per Month:</label>
-                  <span class="calc-slider-val" id="roi-duties-val">1,500</span>
-                </div>
-                <input type="range" class="calc-range-input" id="roi-duties-slider" min="100" max="10000" step="50" value="1500" />
+              <div class="calc-field-group">
+                <label for="calc-duties-input">Average duties completed per month:</label>
+                <input type="number" id="calc-duties-input" class="calc-input-styled" value="1500" min="50" max="25000" step="50">
               </div>
 
-              <div class="roi-metrics-grid">
-                <div class="roi-metric-item">
-                  <div class="roi-metric-val" id="roi-leakage-val">₹82,500</div>
-                  <div class="roi-metric-label">Billing &amp; Odometer Leakage Saved / mo</div>
+              <button type="button" class="btn-calc-action" id="btn-calc-savings">
+                Check Savings
+              </button>
+
+              <button type="button" class="calc-secondary-toggle" id="btn-toggle-tariff-sim">
+                <span>Want to test live tariff math? Open Auto-Slab Simulator</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
+
+              <!-- Optional Collapsed Tariff Simulator -->
+              <div class="tariff-simulator-expanded" id="tariff-sim-wrap">
+                <div style="font-size:12px;font-weight:700;color:#0F172A;margin-bottom:8px">LIVE TARIFF TEST: 75 KM / 6 HRS</div>
+                <div style="font-size:13px;color:#475569;margin-bottom:12px">
+                  Automatic package selected: <strong>8Hr/80Km Package</strong>.
                 </div>
-                <div class="roi-metric-item">
-                  <div class="roi-metric-val" id="roi-hours-val">240 hrs</div>
-                  <div class="roi-metric-label">Dispatcher &amp; Accounting Time Saved / mo</div>
-                </div>
-                <div class="roi-metric-item">
-                  <div class="roi-metric-val" id="roi-paper-val">1,500</div>
-                  <div class="roi-metric-label">Paper Duty Slips Eliminated / mo</div>
-                </div>
-                <div class="roi-metric-item">
-                  <div class="roi-metric-val" id="roi-days-val">14 Days</div>
-                  <div class="roi-metric-label">Faster Invoice &amp; Payment Cycle</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+                  <div style="background:#F1F5F9;padding:8px;border-radius:6px">Client Bill: <strong>₹3,200</strong></div>
+                  <div style="background:#EFF6FF;padding:8px;border-radius:6px;color:#0066FF">Margin: <strong>+18.8%</strong></div>
                 </div>
               </div>
             </div>
 
-            <!-- Part B: Interactive Practical Auto-Slab Simulator -->
-            <div class="calc-box-card">
-              <h3 style="font-size:18px;margin-bottom:8px">Auto-Slab &amp; Margin Guardrail Simulator</h3>
-              <p style="font-size:13.5px;color:var(--text-body);margin-bottom:20px">
-                Simulate trip kilometers and duration to view real-time margin protection:
-              </p>
-
-              <div class="calc-slider-wrap" style="margin:16px 0">
-                <div class="calc-slider-header">
-                  <label for="slider-dist">Practical Trip Distance:</label>
-                  <span class="calc-slider-val" id="slider-dist-val">75 km</span>
-                </div>
-                <input type="range" class="calc-range-input" id="slider-dist" min="20" max="160" value="75" step="1" />
+            <!-- Right Grid: 4 Stat Cards -->
+            <div class="calc-stat-cards-2x2">
+              <div class="calc-output-card">
+                <div class="calc-output-num" id="stat-leakage">₹82,500</div>
+                <div class="calc-output-label">Billing Leakage Prevented</div>
+                <div class="calc-output-hint">via 3-Way Distance &amp; Auto-Slab Audit</div>
               </div>
 
-              <div class="calc-slider-wrap" style="margin:16px 0">
-                <div class="calc-slider-header">
-                  <label for="slider-dur">Trip Duration:</label>
-                  <span class="calc-slider-val" id="slider-dur-val">6 hrs</span>
-                </div>
-                <input type="range" class="calc-range-input" id="slider-dur" min="2" max="12" value="6" step="0.5" />
+              <div class="calc-output-card">
+                <div class="calc-output-num" id="stat-hours">210 hrs</div>
+                <div class="calc-output-label">Team Hours Saved Monthly</div>
+                <div class="calc-output-hint">via Bulk Upload &amp; WhatsApp AI Intake</div>
               </div>
 
-              <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;margin-top:20px">
-                <div style="background:#F1F5F9;border-radius:8px;padding:12px;text-align:left">
-                  <div style="font-size:10.5px;color:#64748B;font-weight:700">CLIENT RECEIVABLE</div>
-                  <div style="font-family:var(--font-mono);font-size:18px;font-weight:800;color:#0A1628" id="calc-client-amt">₹3,420</div>
-                  <small style="color:#64748B;font-size:10px">8Hr/80Km Best Value</small>
-                </div>
-                <div style="background:#F1F5F9;border-radius:8px;padding:12px;text-align:left">
-                  <div style="font-size:10.5px;color:#64748B;font-weight:700">SUPPLIER PAYABLE</div>
-                  <div style="font-family:var(--font-mono);font-size:18px;font-weight:800;color:#F59E0B" id="calc-supplier-amt">₹2,680</div>
-                  <small style="color:#64748B;font-size:10px">Sub-Vendor Agreed Base</small>
-                </div>
-                <div style="background:#EFF6FF;border-radius:8px;padding:12px;text-align:left;border:1px solid #BFDBFE">
-                  <div style="font-size:10.5px;color:#0066FF;font-weight:700">NET MARGIN</div>
-                  <div style="font-family:var(--font-mono);font-size:18px;font-weight:800;color:#0066FF" id="calc-margin-amt">₹740 (21.6%)</div>
-                  <small style="color:#0066FF;font-size:10px">Margin-Floor Protected</small>
-                </div>
+              <div class="calc-output-card">
+                <div class="calc-output-num" id="stat-extra-km">100%</div>
+                <div class="calc-output-label">Unbilled Extra KM Captured</div>
+                <div class="calc-output-hint">via Practical vs Theoretical Reconciliation</div>
               </div>
 
-              <div style="margin-top:14px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;background:#F0FDF4;border:1px solid #BBF7D0;color:#15803D" id="calc-guardrail-pill">
-                <span>🛡️</span>
-                <span id="calc-guardrail-text">Auto-Slab Optimizer Upgraded: 8Hr/80Km slab chosen (prevents ₹410 client invoice dispute).</span>
+              <div class="calc-output-card">
+                <div class="calc-output-num" id="stat-paper">1,500 / mo</div>
+                <div class="calc-output-label">Paper Duty Slips Eliminated</div>
+                <div class="calc-output-hint">via Digital OTP &amp; Trip-Sheet Loupe</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- SECTION 8: CLEAN CONTACT SECTION & INDECAB-INSPIRED FOOTER -->
-      <section class="axiom-section-clean" id="contact" style="padding-bottom:0">
+      <!-- 8. CONTACT SPLIT SECTION & CLEAN LIGHT FOOTER -->
+      <section class="axiom-section-clean" id="contact">
         <div class="section-container">
-          <div class="contact-split-band">
-            <!-- Left Info -->
-            <div class="contact-left-col">
-              <img src="axiom-fleet-logo.png" width="132" height="38" alt="Axiom Fleet" style="margin-bottom:18px">
-              <h3 style="font-size:22px;color:var(--text-heading);margin-bottom:12px">We'd love to hear from you.</h3>
-              <p style="font-size:14px;color:var(--text-body);line-height:1.6">
-                Whether you operate a 15-vehicle regional fleet or manage enterprise employee transport across multiple IT parks, our mobility team is ready to assist.
+          <div class="contact-split-wrap">
+            <!-- Left: Inquiry Form -->
+            <div class="contact-form-card">
+              <span class="section-eyebrow">GET IN TOUCH</span>
+              <h2 class="section-heading-clean" style="margin-bottom:8px">We'd love to hear from you!</h2>
+              <p class="section-subtitle-clean" style="margin-bottom:28px">
+                Please enter your details &amp; our team will set up your workspace right away.
               </p>
 
-              <div class="contact-detail-row">
-                <span class="contact-detail-icon">📞</span>
-                <div>
-                  <b style="color:var(--text-heading);display:block">Phone &amp; WhatsApp:</b>
-                  <span>+91 80 4568 2200 / +91 98450 12890</span>
-                </div>
-              </div>
-
-              <div class="contact-detail-row">
-                <span class="contact-detail-icon">✉️</span>
-                <div>
-                  <b style="color:var(--text-heading);display:block">Email Inquiries:</b>
-                  <span>contact@axiomfleet.in / enterprise@axiomfleet.in</span>
-                </div>
-              </div>
-
-              <div class="contact-detail-row">
-                <span class="contact-detail-icon">📍</span>
-                <div>
-                  <b style="color:var(--text-heading);display:block">Headquarters:</b>
-                  <span>Bengaluru, Karnataka, India</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Right Form -->
-            <div class="contact-right-form">
-              <h4 style="font-size:18px;color:var(--text-heading);margin-bottom:6px">Schedule a Live Demo</h4>
-              <p style="font-size:13.5px;color:var(--text-body);margin-bottom:20px">Fill out the quick form below and we'll set up your sandbox workspace:</p>
-
-              <form id="signal-prospect-form" class="form-grid-2">
-                <div class="clean-input-group">
-                  <label for="prospect-full-name">Full Name *</label>
-                  <input type="text" id="prospect-full-name" placeholder="Vikram Malhotra" required />
-                </div>
-                <div class="clean-input-group">
-                  <label for="prospect-company-name">Company / Fleet Name *</label>
-                  <input type="text" id="prospect-company-name" placeholder="Apex Mobility Pvt Ltd" required />
-                </div>
-                <div class="clean-input-group">
-                  <label for="prospect-mobile">Mobile Number (WhatsApp) *</label>
-                  <input type="tel" id="prospect-mobile" placeholder="+91 98450 12345" required />
-                </div>
-                <div class="clean-input-group">
-                  <label for="prospect-email">Work Email *</label>
-                  <input type="email" id="prospect-email" placeholder="vikram@apexmobility.in" required />
+              <form id="clean-prospect-form">
+                <div class="form-grid-2col">
+                  <div class="form-group-clean">
+                    <label for="clean-full-name">Full Name *</label>
+                    <input type="text" id="clean-full-name" class="form-input-clean" placeholder="e.g. Rajesh Sharma" required>
+                  </div>
+                  <div class="form-group-clean">
+                    <label for="clean-company-name">Company / Fleet Name *</label>
+                    <input type="text" id="clean-company-name" class="form-input-clean" placeholder="e.g. Apex Mobility Services" required>
+                  </div>
                 </div>
 
-                <div class="clean-input-group full">
-                  <label for="prospect-role-select">I am a:</label>
-                  <select id="prospect-role-select">
-                    <option value="VENDOR_SAAS">Car Rental Company / Fleet Operator</option>
-                    <option value="CORPORATE_BUYER">Corporate Enterprise Travel Desk</option>
-                    <option value="PARTNER_SUPPLY">Partner Network Supply Associate</option>
+                <div class="form-grid-2col">
+                  <div class="form-group-clean">
+                    <label for="clean-mobile">10-Digit Mobile Number *</label>
+                    <input type="tel" id="clean-mobile" class="form-input-clean" placeholder="+91 98450 12345" required>
+                  </div>
+                  <div class="form-group-clean">
+                    <label for="clean-email">Work Email *</label>
+                    <input type="email" id="clean-email" class="form-input-clean" placeholder="rajesh@apexmobility.in" required>
+                  </div>
+                </div>
+
+                <div class="form-group-clean">
+                  <label for="clean-role-select">I am a: *</label>
+                  <select id="clean-role-select" class="form-select-clean" required>
+                    <option value="Car Rental Company">Car Rental Company / Chauffeur Fleet</option>
+                    <option value="Corporate Enterprise">Corporate Enterprise / Employee Travel Desk</option>
                   </select>
                 </div>
 
-                <div class="clean-input-group full">
-                  <label for="prospect-fleet-size">Current Fleet Size / Monthly Trips:</label>
-                  <select id="prospect-fleet-size">
-                    <option value="15">5 – 25 Cabs (Growing Regional Fleet)</option>
-                    <option value="50">25 – 100 Cabs (Multi-City Fleet Operator)</option>
-                    <option value="250">100+ Cabs (Enterprise Mobility Contractor)</option>
-                  </select>
+                <div class="form-auth-consent">
+                  I authorize Axiom Fleet to contact me regarding product onboarding, pricing, and live interactive demos.
                 </div>
 
-                <button type="submit" class="btn-submit-inquiry" id="prospect-submit-btn">
-                  Submit Inquiry &amp; Launch Sandbox →
+                <button type="submit" class="btn-contact-submit" id="btn-clean-submit">
+                  Submit
                 </button>
               </form>
+            </div>
 
-              <div class="signal-success-box" id="signal-success-box" style="display:none;margin-top:20px;padding:20px;border-radius:10px;background:#F0FDF4;border:1px solid #BBF7D0;text-align:center">
-                <div style="font-size:28px;margin-bottom:6px">🎉</div>
-                <h4 style="color:#15803D;font-size:18px;margin:0 0 6px">Inquiry Received!</h4>
-                <p style="color:#334155;font-size:13.5px;margin:0 0 14px">
-                  Your details have been registered in our CRM. A mobility specialist will connect with your rate card.
-                </p>
-                <button type="button" class="btn-nav-solid" onclick="showApp()">Launch Instant Demo Portal →</button>
+            <!-- Right: Reach Out Card -->
+            <div class="contact-reachout-card">
+              <h3>Reach out to us</h3>
+
+              <div class="reachout-detail-item">
+                <div class="app-bullet-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                </div>
+                <div>
+                  <b>PHONE</b>
+                  <span>+91 80 4568 9100</span><br>
+                  <span style="color:#64748B;font-size:13.5px">+91 98450 11223 (Direct WhatsApp)</span>
+                </div>
+              </div>
+
+              <div class="reachout-detail-item">
+                <div class="app-bullet-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                </div>
+                <div>
+                  <b>EMAIL</b>
+                  <span>contact@axiomfleet.in</span>
+                </div>
+              </div>
+
+              <div class="reachout-detail-item">
+                <div class="app-bullet-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                </div>
+                <div>
+                  <b>HEADQUARTERS</b>
+                  <span>Axiom Fleet HQ, Outer Ring Road, Bengaluru, Karnataka 560103, India</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-
-        <!-- Indecab-Inspired Minimalist Dark Navy Footer -->
-        <footer class="indecab-clean-footer">
-          <div class="footer-nav-grid">
-            <div class="footer-col">
-              <img src="axiom-fleet-logo.png" width="124" height="36" alt="Axiom Fleet" style="filter:brightness(0) invert(1);margin-bottom:14px">
-              <p style="font-size:13.5px;color:#94A3B8;line-height:1.6;margin:0 0 16px">
-                India's operating system for car rental operators, corporate travel desks, and driver networks.
-              </p>
-              <div class="footer-compliance-badges">
-                <span class="comp-pill">ISO 27001 Ready</span>
-                <span class="comp-pill">AIS-140 GPS</span>
-                <span class="comp-pill">POSH Compliant</span>
-                <span class="comp-pill">GSTN IRN</span>
-              </div>
-            </div>
-
-            <div class="footer-col">
-              <h5>Platform</h5>
-              <ul>
-                <li><a href="#for-corporates">For Corporates</a></li>
-                <li><a href="#for-car-rentals">For Car Rentals</a></li>
-                <li><a href="#driver-app">Driver &amp; Pocket App</a></li>
-                <li><a href="#axiom-network">Axiom Partner Network</a></li>
-                <li><a href="#for-car-rentals">Bulk Trip Uploader</a></li>
-              </ul>
-            </div>
-
-            <div class="footer-col">
-              <h5>Capabilities</h5>
-              <ul>
-                <li><a href="#for-car-rentals">Dual-Ledger Billing</a></li>
-                <li><a href="#for-corporates">3-Way Route Audit</a></li>
-                <li><a href="#for-car-rentals">Smart WhatsApp Booking</a></li>
-                <li><a href="#for-corporates">30-Day Cash-Flow Forecast</a></li>
-                <li><a href="#for-car-rentals">Tally &amp; GST E-Invoicing</a></li>
-              </ul>
-            </div>
-
-            <div class="footer-col">
-              <h5>Company &amp; Legal</h5>
-              <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#calculator">ROI Calculator</a></li>
-                <li><a href="#" onclick="showLogin();return false">Sign In to Portal</a></li>
-                <li><a href="#contact">Book a Demo</a></li>
-                <li><a href="#privacy" data-public-page="privacy">Privacy Policy</a></li>
-                <li><a href="#terms" data-public-page="terms">Terms of Use</a></li>
-                <li><a href="#refund" data-public-page="refund">Refund Policy</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="footer-bottom-bar">
-            <span>© 2026 Axiom Fleet (Axiom Mobility). All rights reserved.</span>
-            <span>Made for the people who keep India moving.</span>
-          </div>
-        </footer>
       </section>
 
     </main>
+
+    <!-- MINIMALIST LIGHT FOOTER (100% INDECAB STYLE - ZERO DARK BOXES) -->
+    <footer class="indecab-pure-footer">
+      <div class="footer-top-columns">
+        <div class="footer-brand-col">
+          <img src="axiom-fleet-logo.png" alt="Axiom Fleet" height="36" style="display:block">
+          <p>
+            The comprehensive operating platform for modern car rental companies and corporate mobility.
+          </p>
+        </div>
+
+        <div class="footer-nav-col">
+          <h4>Home</h4>
+          <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#for-corporates">Axiom Benefits</a></li>
+            <li><a href="#calculator">ROI Calculator</a></li>
+            <li><a href="#contact">Contact Us</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-nav-col">
+          <h4>Solutions</h4>
+          <ul>
+            <li><a href="#for-corporates">For Corporates</a></li>
+            <li><a href="#for-car-rentals">For Car Rentals</a></li>
+            <li><a href="#driver-app">Driver &amp; Pocket App</a></li>
+            <li><a href="#axiom-network">Axiom Network</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-nav-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#home">Privacy Policy</a></li>
+            <li><a href="#home">Terms of Use</a></li>
+            <li><a href="#home">Refund Policy</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom-bar">
+        <div>&copy; 2026 Axiom Fleet. All rights reserved.</div>
+        <div>Built for Indian Enterprise Fleet &amp; Corporate Mobility.</div>
+      </div>
+    </footer>
+
+    <!-- ROLE SWITCHER & LOGIN MODAL -->
+    <div class="axiom-modal-backdrop" id="portal-modal" role="dialog" aria-modal="true" aria-labelledby="modal-portal-title">
+      <div class="axiom-modal-dialog">
+        <div class="modal-header-row">
+          <h3 class="modal-title" id="modal-portal-title">Launch Axiom Portal</h3>
+          <button type="button" class="btn-close-modal" id="btn-close-portal-modal" aria-label="Close dialog">&times;</button>
+        </div>
+
+        <div class="modal-roles-list">
+          <div class="modal-role-item" data-demo-role="superadmin">
+            <div class="modal-role-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+            </div>
+            <div class="modal-role-text">
+              <b>Super-Admin &amp; Operations Console</b>
+              <span>Dual-ledger audit, treasury hold release &amp; partner network</span>
+            </div>
+          </div>
+
+          <div class="modal-role-item" data-demo-role="vendor">
+            <div class="modal-role-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00A896" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            </div>
+            <div class="modal-role-text">
+              <b>Car Rental Vendor &amp; Chauffeur Operator</b>
+              <span>Duty dispatch, WhatsApp bookings &amp; digital duty slips</span>
+            </div>
+          </div>
+
+          <div class="modal-role-item" data-demo-role="corporate">
+            <div class="modal-role-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+            </div>
+            <div class="modal-role-text">
+              <b>Corporate Enterprise Client (Infosys)</b>
+              <span>Employee bookings, roster approvals &amp; proforma annexures</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer-hint">
+          Have existing credentials? <a href="#login" id="btn-open-direct-login">Open Account Login &rarr;</a>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <div id="public-pages" class="marketing-page public-pages">
@@ -18617,260 +18968,210 @@ function openDriverModal(existing) {
 
   <script type="text/javascript">
 /**
- * AXIOM FLEET ENTERPRISE INTERACTION CONTROLLER
- * High-Contrast Minimalist Engine inspired by Indecab
+ * AXIOM FLEET ENTERPRISE INTERACTION CONTROLLER (INDECAB LIGHT EDITION)
+ * Zero Emojis · Progressive Disclosure Accordions · Dynamic App & Calculator Simulators
  */
 
-(function initAxiomFleetEngine() {
-  function setupLanding() {
+(function initAxiomFleetCleanEngine() {
+  function setupCleanLanding() {
     const publicSite = document.getElementById('public-site');
     if (!publicSite) return;
 
-    // 1. Stage Tab Switching in Cockpit Preview
-    const tabButtons = publicSite.querySelectorAll('[data-stage-tab]');
-    const tabPanels = [
-      document.getElementById('tab-panel-osm'),
-      document.getElementById('tab-panel-dual-ledger'),
-      document.getElementById('tab-panel-hyper-network'),
-      document.getElementById('tab-panel-timesfm')
-    ].filter(Boolean);
+    // 1. Hero Product Showcase Segmented Tabs
+    const tabBtns = publicSite.querySelectorAll('.stage-tab-btn');
+    const stagePanels = publicSite.querySelectorAll('.stage-panel');
 
-    tabButtons.forEach(btn => {
+    tabBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        const targetId = btn.getAttribute('data-stage-tab');
-        tabButtons.forEach(b => b.classList.remove('active'));
+        const targetId = btn.getAttribute('data-tab-target');
+        tabBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
-        tabPanels.forEach(panel => {
-          if (panel.id === targetId) {
-            panel.style.display = 'block';
+        stagePanels.forEach(p => {
+          if (p.id === targetId) {
+            p.style.display = 'block';
+            p.classList.add('active');
           } else {
-            panel.style.display = 'none';
+            p.style.display = 'none';
+            p.classList.remove('active');
           }
         });
       });
     });
 
-    // 2. Treasury Toggle in Dual-Ledger Preview
-    const treasuryBtn = document.getElementById('stage-treasury-toggle-btn');
-    const escrowPill = document.getElementById('stage-escrow-status-pill');
-    let isReleased = false;
+    // 2. Indecab Progressive Disclosure "View more →" Accordions on Feature Cards
+    const viewMoreBtns = publicSite.querySelectorAll('.btn-view-more');
+    viewMoreBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const card = btn.closest('.indecab-feature-card');
+        if (!card) return;
+        const details = card.querySelector('.feature-card-details');
+        if (!details) return;
 
-    if (treasuryBtn && escrowPill) {
-      treasuryBtn.addEventListener('click', () => {
-        isReleased = !isReleased;
-        if (isReleased) {
-          escrowPill.textContent = 'RELEASED (T+1 SETTLED)';
-          escrowPill.style.background = '#ECFDF5';
-          escrowPill.style.color = '#059669';
-          treasuryBtn.textContent = 'Undo Hold (Simulate)';
+        const isOpen = details.classList.contains('open');
+        if (isOpen) {
+          details.classList.remove('open');
+          details.style.display = 'none';
+          btn.innerHTML = `<span>View more</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`;
         } else {
-          escrowPill.textContent = 'ESCROW HOLD (PENDING AUDIT)';
-          escrowPill.style.background = '#FEF3C7';
-          escrowPill.style.color = '#B45309';
-          treasuryBtn.textContent = 'Release Payout';
+          details.classList.add('open');
+          details.style.display = 'block';
+          btn.innerHTML = `<span>View less</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>`;
+        }
+      });
+    });
+
+    // 3. Driver App vs Vendor Pocket App Showcase Switcher
+    const appSwitchBtns = publicSite.querySelectorAll('.app-switch-btn');
+    const driverGroup = document.getElementById('driver-app-view');
+    const vendorGroup = document.getElementById('vendor-app-view');
+    const phoneDriver = document.getElementById('phone-screen-driver');
+    const phoneVendor = document.getElementById('phone-screen-vendor');
+
+    appSwitchBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.getAttribute('data-app-target');
+        appSwitchBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        if (target === 'driver-app-view') {
+          if (driverGroup) { driverGroup.style.display = 'block'; driverGroup.classList.add('active'); }
+          if (vendorGroup) { vendorGroup.style.display = 'none'; vendorGroup.classList.remove('active'); }
+          if (phoneDriver) { phoneDriver.style.display = 'block'; phoneDriver.classList.add('active'); }
+          if (phoneVendor) { phoneVendor.style.display = 'none'; phoneVendor.classList.remove('active'); }
+        } else {
+          if (driverGroup) { driverGroup.style.display = 'none'; driverGroup.classList.remove('active'); }
+          if (vendorGroup) { vendorGroup.style.display = 'block'; vendorGroup.classList.add('active'); }
+          if (phoneDriver) { phoneDriver.style.display = 'none'; phoneDriver.classList.remove('active'); }
+          if (phoneVendor) { phoneVendor.style.display = 'block'; phoneVendor.classList.add('active'); }
+        }
+      });
+    });
+
+    // 4. Monthly ROI & Efficiency Calculator
+    const dutiesInput = document.getElementById('calc-duties-input');
+    const btnCalc = document.getElementById('btn-calc-savings');
+    const statLeakage = document.getElementById('stat-leakage');
+    const statHours = document.getElementById('stat-hours');
+    const statExtraKm = document.getElementById('stat-extra-km');
+    const statPaper = document.getElementById('stat-paper');
+
+    function updateCalculator() {
+      if (!dutiesInput) return;
+      let duties = parseInt(dutiesInput.value, 10);
+      if (isNaN(duties) || duties <= 0) duties = 1500;
+
+      // Leakage saved: ~₹55 per trip in route mismatch + billing fraud prevented
+      const leakage = Math.round(duties * 55);
+      if (statLeakage) statLeakage.textContent = '₹' + leakage.toLocaleString('en-IN');
+
+      // Dispatcher/Accounting hours: ~8.4 minutes saved per trip
+      const hours = Math.round((duties * 8.4) / 60);
+      if (statHours) statHours.textContent = hours.toLocaleString('en-IN') + ' hrs';
+
+      // Extra KM captured
+      if (statExtraKm) statExtraKm.textContent = '100%';
+
+      // Paper duty slips eliminated
+      if (statPaper) statPaper.textContent = duties.toLocaleString('en-IN') + ' / mo';
+    }
+
+    if (btnCalc) btnCalc.addEventListener('click', updateCalculator);
+    if (dutiesInput) dutiesInput.addEventListener('input', updateCalculator);
+
+    // Toggle live tariff simulator
+    const btnToggleSim = document.getElementById('btn-toggle-tariff-sim');
+    const simWrap = document.getElementById('tariff-sim-wrap');
+    if (btnToggleSim && simWrap) {
+      btnToggleSim.addEventListener('click', () => {
+        const isOpen = simWrap.classList.contains('open');
+        if (isOpen) {
+          simWrap.classList.remove('open');
+          simWrap.style.display = 'none';
+        } else {
+          simWrap.classList.add('open');
+          simWrap.style.display = 'block';
         }
       });
     }
 
-    // 3. Monthly ROI Calculator
-    const roiSlider = document.getElementById('roi-duties-slider');
-    const roiDutiesVal = document.getElementById('roi-duties-val');
-    const roiLeakageVal = document.getElementById('roi-leakage-val');
-    const roiHoursVal = document.getElementById('roi-hours-val');
-    const roiPaperVal = document.getElementById('roi-paper-val');
-    const roiDaysVal = document.getElementById('roi-days-val');
+    // 5. Portal Modal & Role Switcher
+    const portalModal = document.getElementById('portal-modal');
+    const btnOpenPortal = document.getElementById('btn-open-portal-modal');
+    const btnHeroDemo = document.getElementById('btn-hero-demo');
+    const btnClosePortal = document.getElementById('btn-close-portal-modal');
+    const btnDirectLogin = document.getElementById('btn-open-direct-login');
 
-    function updateRoi() {
-      if (!roiSlider) return;
-      const duties = parseInt(roiSlider.value, 10);
-      if (roiDutiesVal) roiDutiesVal.textContent = duties.toLocaleString('en-IN');
-      
-      // ₹55 leakage saved per duty slip (audit mismatch, toll leakage, odometer discrepancy)
-      const leakageSaved = Math.round(duties * 55);
-      if (roiLeakageVal) roiLeakageVal.textContent = '₹' + leakageSaved.toLocaleString('en-IN');
-
-      // 10 minutes saved per duty slip (billing + assignment + dispatching)
-      const hoursSaved = Math.round((duties * 10) / 60);
-      if (roiHoursVal) roiHoursVal.textContent = hoursSaved.toLocaleString('en-IN') + ' hrs';
-
-      // 1 paper duty slip eliminated per duty
-      if (roiPaperVal) roiPaperVal.textContent = duties.toLocaleString('en-IN');
-
-      // Days to close invoice
-      const days = duties > 3000 ? '16 Days' : duties > 1000 ? '14 Days' : '10 Days';
-      if (roiDaysVal) roiDaysVal.textContent = days;
-    }
-
-    if (roiSlider) {
-      roiSlider.addEventListener('input', updateRoi);
-      updateRoi();
-    }
-
-    // 4. Auto-Slab Simulator
-    const distSlider = document.getElementById('slider-dist');
-    const durSlider = document.getElementById('slider-dur');
-    const distVal = document.getElementById('slider-dist-val');
-    const durVal = document.getElementById('slider-dur-val');
-    const clientAmt = document.getElementById('calc-client-amt');
-    const supplierAmt = document.getElementById('calc-supplier-amt');
-    const marginAmt = document.getElementById('calc-margin-amt');
-    const guardrailPill = document.getElementById('calc-guardrail-pill');
-    const guardrailText = document.getElementById('calc-guardrail-text');
-
-    function updateSlabCalc() {
-      if (!distSlider || !durSlider) return;
-      const dist = parseFloat(distSlider.value);
-      const dur = parseFloat(durSlider.value);
-
-      if (distVal) distVal.textContent = dist + ' km';
-      if (durVal) durVal.textContent = dur + (dur === 1 ? ' hr' : ' hrs');
-
-      let clientTotal = 0;
-      let vendorTotal = 0;
-
-      if (dist > 45 || dur > 4.5) {
-        const extraKm = Math.max(0, dist - 80);
-        const extraHr = Math.max(0, dur - 8);
-        clientTotal = 3200 + (extraKm * 18) + (extraHr * 180);
-        vendorTotal = 2600 + (extraKm * 14) + (extraHr * 140);
-      } else {
-        const extraKm = Math.max(0, dist - 40);
-        const extraHr = Math.max(0, dur - 4);
-        clientTotal = 1800 + (extraKm * 20) + (extraHr * 200);
-        vendorTotal = 1450 + (extraKm * 16) + (extraHr * 160);
-      }
-
-      const margin = clientTotal - vendorTotal;
-      const marginPct = ((margin / clientTotal) * 100).toFixed(1);
-
-      if (clientAmt) clientAmt.textContent = '₹' + Math.round(clientTotal).toLocaleString('en-IN');
-      if (supplierAmt) supplierAmt.textContent = '₹' + Math.round(vendorTotal).toLocaleString('en-IN');
-      if (marginAmt) marginAmt.textContent = '₹' + Math.round(margin).toLocaleString('en-IN') + ' (' + marginPct + '%)';
-
-      if (guardrailText) {
-        if (dist > 45 || dur > 4.5) {
-          guardrailText.textContent = `Auto-Slab Optimizer Active: 8Hr/80Km chosen for best margin (saved ₹${Math.round(dist * 5)} vs manual rate card).`;
-          if (guardrailPill) {
-            guardrailPill.textContent = 'PROTECTED (+18.8%)';
-            guardrailPill.style.background = '#ECFDF5';
-            guardrailPill.style.color = '#059669';
-          }
-        } else {
-          guardrailText.textContent = `Local 4Hr/40Km package applies. Margin buffer verified within corporate SLA guardrails.`;
-          if (guardrailPill) {
-            guardrailPill.textContent = 'VERIFIED (+19.4%)';
-            guardrailPill.style.background = '#EFF6FF';
-            guardrailPill.style.color = '#0066FF';
-          }
-        }
+    function openModal() {
+      if (portalModal) {
+        portalModal.classList.add('open');
+        portalModal.style.display = 'flex';
       }
     }
 
-    if (distSlider && durSlider) {
-      distSlider.addEventListener('input', updateSlabCalc);
-      durSlider.addEventListener('input', updateSlabCalc);
-      updateSlabCalc();
+    function closeModal() {
+      if (portalModal) {
+        portalModal.classList.remove('open');
+        portalModal.style.display = 'none';
+      }
     }
 
-    // 5. Role Switcher Modal
-    const roleModal = document.getElementById('nav-role-modal');
-    const openRoleBtn = document.getElementById('nav-role-switcher-btn');
-    const closeRoleBtn = document.getElementById('close-role-modal-btn');
+    if (btnOpenPortal) btnOpenPortal.addEventListener('click', openModal);
+    if (btnHeroDemo) btnHeroDemo.addEventListener('click', openModal);
+    if (btnClosePortal) btnClosePortal.addEventListener('click', closeModal);
 
-    if (openRoleBtn && roleModal) {
-      openRoleBtn.addEventListener('click', () => {
-        roleModal.classList.add('open');
+    if (portalModal) {
+      portalModal.addEventListener('click', (e) => {
+        if (e.target === portalModal) closeModal();
       });
     }
 
-    if (closeRoleBtn && roleModal) {
-      closeRoleBtn.addEventListener('click', () => {
-        roleModal.classList.remove('open');
-      });
-    }
-
-    if (roleModal) {
-      roleModal.addEventListener('click', (e) => {
-        if (e.target === roleModal) {
-          roleModal.classList.remove('open');
-        }
-      });
-    }
-
-    // Role switcher login helpers
-    function launchPortal(roleKey) {
-      if (roleModal) roleModal.classList.remove('open');
-      if (typeof window.showLogin === 'function') {
-        window.showLogin();
-        if (roleKey) {
+    // Modal role selections
+    publicSite.querySelectorAll('.modal-role-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const role = item.getAttribute('data-demo-role');
+        closeModal();
+        if (typeof window.showLogin === 'function') {
+          window.showLogin();
           setTimeout(() => {
-            const sel = document.querySelector(`[data-demo-role="${roleKey}"]`) || 
-                        document.querySelector(`.demo-btn[data-role="${roleKey}"]`) ||
-                        document.querySelector(`button[data-role="${roleKey}"]`);
-            if (sel) sel.click();
+            const roleBtn = document.querySelector(`[data-demo-role="${role}"]`) || 
+                            document.querySelector(`.demo-btn[data-role="${role}"]`) ||
+                            document.querySelector(`button[data-role="${role}"]`);
+            if (roleBtn) roleBtn.click();
           }, 150);
+        } else if (typeof window.showAuth === 'function') {
+          window.showAuth();
         }
-      } else if (typeof window.showAuth === 'function') {
-        window.showAuth();
-      }
-    }
+      });
+    });
 
-    const adminBtn = document.getElementById('quick-login-admin-btn');
-    const vendorBtn = document.getElementById('quick-login-vendor-btn');
-    const corpBtn = document.getElementById('quick-login-corporate-btn');
-
-    if (adminBtn) adminBtn.addEventListener('click', () => launchPortal('superadmin'));
-    if (vendorBtn) vendorBtn.addEventListener('click', () => launchPortal('vendor'));
-    if (corpBtn) corpBtn.addEventListener('click', () => launchPortal('corporate'));
-
-    // 6. Hero Quick Lead Input -> Smooth Scroll to Contact
-    const heroInput = document.getElementById('hero-quick-input');
-    const heroSubmit = document.getElementById('hero-quick-submit-btn');
-
-    if (heroSubmit && heroInput) {
-      heroSubmit.addEventListener('click', () => {
-        const val = heroInput.value.trim();
-        const contactForm = document.getElementById('signal-prospect-form');
-        const contactSec = document.getElementById('contact');
-        
-        if (val) {
-          const emailInput = document.getElementById('prospect-email');
-          const mobileInput = document.getElementById('prospect-mobile');
-          if (val.includes('@') && emailInput) {
-            emailInput.value = val;
-          } else if (mobileInput) {
-            mobileInput.value = val;
-          }
-        }
-
-        if (contactSec) {
-          contactSec.scrollIntoView({ behavior: 'smooth' });
-          if (contactForm) {
-            const firstInput = contactForm.querySelector('input:not([value=""])');
-            if (firstInput) setTimeout(() => firstInput.focus(), 600);
-          }
+    if (btnDirectLogin) {
+      btnDirectLogin.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeModal();
+        if (typeof window.showLogin === 'function') {
+          window.showLogin();
+        } else if (typeof window.showAuth === 'function') {
+          window.showAuth();
         }
       });
     }
 
-    // 7. Prospect Capture Form Submission
-    const prospectForm = document.getElementById('signal-prospect-form');
+    // 6. Clean Inquiry Form Submission
+    const prospectForm = document.getElementById('clean-prospect-form');
     if (prospectForm) {
       prospectForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const submitBtn = prospectForm.querySelector('button[type="submit"]');
+        const submitBtn = document.getElementById('btn-clean-submit');
         const originalText = submitBtn ? submitBtn.textContent : 'Submit';
 
         const payload = {
-          full_name: document.getElementById('prospect-full-name')?.value || '',
-          company_name: document.getElementById('prospect-company-name')?.value || '',
-          work_email: document.getElementById('prospect-email')?.value || '',
-          phone_number: document.getElementById('prospect-mobile')?.value || '',
-          fleet_size: document.getElementById('prospect-fleet-size')?.value || '10-50',
-          primary_interest: document.getElementById('prospect-interest')?.value || 'Car Rental Automation',
-          additional_notes: document.getElementById('prospect-notes')?.value || '',
-          source: 'Axiom Fleet Enterprise Indecab Landing'
+          full_name: document.getElementById('clean-full-name')?.value || '',
+          company_name: document.getElementById('clean-company-name')?.value || '',
+          phone_number: document.getElementById('clean-mobile')?.value || '',
+          work_email: document.getElementById('clean-email')?.value || '',
+          primary_interest: document.getElementById('clean-role-select')?.value || 'Car Rental Company',
+          source: 'Axiom Fleet Indecab Minimalist Landing'
         };
 
         if (submitBtn) {
@@ -18887,14 +19188,14 @@ function openDriverModal(existing) {
 
           if (res.ok) {
             prospectForm.innerHTML = `
-              <div style="text-align:center;padding:40px 20px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:12px;">
-                <div style="width:54px;height:54px;border-radius:50%;background:#059669;color:#FFFFFF;display:grid;place-items:center;font-size:26px;margin:0 auto 16px;">✓</div>
-                <h3 style="font-size:22px;color:#065F46;margin-bottom:8px;font-weight:800;">Thank You, ${payload.full_name || 'Fleet Leader'}!</h3>
-                <p style="font-size:15px;color:#047857;max-width:420px;margin:0 auto 16px;line-height:1.5;">
-                  Your enterprise trial request for <strong>${payload.company_name || 'your fleet'}</strong> has been registered. An Axiom mobility consultant will reach out via WhatsApp / Email within 4 business hours.
+              <div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:12px;padding:36px 24px;text-align:center;">
+                <div style="width:48px;height:48px;background:#059669;color:#FFFFFF;border-radius:50%;display:grid;place-items:center;font-size:22px;margin:0 auto 16px;font-weight:700;">✓</div>
+                <h3 style="font-size:20px;font-weight:700;color:#065F46;margin-bottom:8px;">Thank You, ${payload.full_name || 'Fleet Leader'}!</h3>
+                <p style="font-size:14.5px;color:#047857;margin:0 0 16px;line-height:1.5;max-width:440px;margin-left:auto;margin-right:auto;">
+                  Your inquiry for <strong>${payload.company_name || 'your organization'}</strong> has been registered. Our mobility operations team will reach out within 4 business hours.
                 </p>
-                <div style="font-size:13px;color:#059669;font-weight:600;">
-                  Reference ID: AXM-${Math.floor(100000 + Math.random() * 900000)}
+                <div style="font-size:12.5px;color:#059669;font-weight:600;">
+                  Reference: AXM-${Math.floor(100000 + Math.random() * 900000)}
                 </div>
               </div>
             `;
@@ -18911,8 +19212,8 @@ function openDriverModal(existing) {
       });
     }
 
-    // 8. Smooth scrolling for internal anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    // 7. Smooth Anchor Scrolling
+    publicSite.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function(e) {
         const href = this.getAttribute('href');
         if (href === '#' || href === '#home') {
@@ -18930,12 +19231,12 @@ function openDriverModal(existing) {
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupLanding);
+    document.addEventListener('DOMContentLoaded', setupCleanLanding);
   } else {
-    setupLanding();
+    setupCleanLanding();
   }
-  window.initAxiomFleetLanding = setupLanding;
-  window.initAxiomFlagshipExperience = setupLanding;
+  window.initAxiomFleetLanding = setupCleanLanding;
+  window.initAxiomFlagshipExperience = setupCleanLanding;
 })();
 
 </script>
