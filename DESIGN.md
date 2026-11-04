@@ -87,6 +87,7 @@ This document defines the visual tokens, typography hierarchy, component archite
 ### 1. Floating Glass Command Navbar
 - Centered container (`max-width: 1200px`), `position: fixed; top: 16px; border-radius: 9999px`.
 - Frosted glass: `backdrop-filter: blur(20px) saturate(160%)`, 1px top highlight border.
+- Clean executive links: `Billing & Margins`, `Partner Network`, `GPS & Odometer Audit`, `Cash-Flow Forecast`, `Live Calculator`.
 - Integrated Quick-Demo Role Switcher (`[Sign In / Demo Role ▾]`) allowing direct one-click authentication into:
   - **Super-Admin / Axiom HQ Console** (`reddragon0075@gmail.com`)
   - **Fleet Operator Command Deck** (`Zion Travels`)
@@ -94,7 +95,7 @@ This document defines the visual tokens, typography hierarchy, component archite
   - **Mobile Driver / Pocket App**
 
 ### 2. "Try It Live" Interactive Widget Strip
-- **Parse AI Booking Intake:** Instant regex + heuristic client simulator that transforms unstructured WhatsApp booking text into structured dispatch tokens (`Passenger`, `Corporate`, `Vehicle Group`, `OSM Route`, `Estimated Slab & Pricing`) in `<400ms`.
+- **Smart WhatsApp Booking Intake:** Instant AI extraction that transforms unstructured WhatsApp booking text into structured dispatch tokens (`Passenger`, `Corporate Account`, `Vehicle Class`, `Verified Route`, `Optimized Tariff Package`) in `<400ms`.
 - **Auto-Slab Optimizer & Margin Guardrail:** Real-time dual slider (`Distance: 20-160 km`, `Duration: 2-12 hrs`) calculating:
   - Practical Client Receivable (`₹`)
   - Sub-Vendor Payable (`₹`)
@@ -102,15 +103,15 @@ This document defines the visual tokens, typography hierarchy, component archite
   - Auto-upgrade threshold flag (`4Hr/40Km` vs `8Hr/80Km`).
 
 ### 3. Scrolltide Ledger Bento (6 Cards)
-1. **Wide Card 1 (Span 8):** Dual-Ledger Engine with interactive `[Auto-Release] / [Hold Float]` toggle.
-2. **Tall Card 2 (Span 4):** 3-Way Distance Fraud Auditor (`Odometer 84 km` vs `GPS 71 km` vs `OSM Road 73.2 km`).
-3. **Card 3 (Span 4):** White-Label Partner Network Waterfall (`Wave 1: Platinum` -> `Wave 2: Gold` -> `Spot Exchange`).
-4. **Card 4 (Span 4):** Mobile Vendor Pocket App & 2-tap cab assignment with physical trip-sheet photo loupe.
-5. **Card 5 (Span 4):** Google TimesFM Predictive Financial Engine (`p10 / p50 / p90` revenue quantile chart).
-6. **Full-Width Card 6 (Span 12):** Enterprise Compliance (POSH 20:00-06:00 guard lock, Tally Prime XML, GST e-invoicing, 1-click 1,000-row CSV migration).
+1. **Wide Card 1 (Span 8):** Dual-Ledger Billing with interactive `[Auto-Release] / [Hold Float]` toggle.
+2. **Tall Card 2 (Span 4):** 3-Way GPS & Odometer Route Auditor (`Driver Odometer 84 km` vs `GPS 71 km` vs `Verified Route 73.2 km`).
+3. **Card 3 (Span 4):** White-Label Partner Fleet Network (`Wave 1: Platinum` -> `Wave 2: Gold` -> `Spot Exchange`).
+4. **Card 4 (Span 4):** Mobile Dispatcher & 2-tap cab assignment with physical paper duty sheet scanner.
+5. **Card 5 (Span 4):** Axiom Cash-Flow & Demand Forecasting (`p10 / p50 / p90` revenue quantile chart).
+6. **Full-Width Card 6 (Span 12):** Enterprise Compliance (POSH 20:00-06:00 guard lock, Tally Prime XML, GST e-invoicing, 1-click historical Excel/CSV migration).
 
 ### 4. Competitive Benchmark Matrix
-High-contrast glass comparison matrix comparing Axiom against Indecab, MoveInSync / Routematic, and Legacy Excel/Taski.
+High-contrast glass comparison matrix comparing Axiom against Indecab, MoveInSync / Routematic, and Legacy Excel/Taski across Dual-Ledger margins, 3-way route audits, partner waterfalls, and predictive forecasts.
 
 ### 5. Signal Form CTA Band & Monumental Footer
 - Integrated Prospect Onboarding Form wired to `POST /api/v1/public/prospect-capture`.
