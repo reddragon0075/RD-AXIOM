@@ -18894,23 +18894,23 @@ function openDriverModal(existing) {
       }
     });
     function activateQuickDemo(role = 'vendor') {
-      let demoUser = window.AXIOM_DEMO_DATA?.user;
-      if (role === 'corporate') demoUser = window.AXIOM_DEMO_DATA?.corp_user;
-      else if (role === 'driver') demoUser = { id: 'usr_driver_1', email: 'driver@axiomfleet.com', full_name: 'Vikramaditya Rao', role: 'driver' };
-      if (!demoUser) {
-        demoUser = {
-          id: 'usr_demo_owner',
-          email: 'reddragon0075@gmail.com',
-          full_name: 'Abhijith Vijayan',
-          role: role,
-          organization: { id: 'org_axiom_logistics', name: 'Axiom Fleet Logistics', kind: role }
-        };
+      const emailInput = document.getElementById('login-email');
+      const passInput = document.getElementById('login-password');
+      if (emailInput && passInput) {
+        if (role === 'corporate') {
+          emailInput.value = 'suresh.mgr@zenith.in';
+        } else if (role === 'driver') {
+          emailInput.value = 'driver@axiomfleet.com';
+        } else {
+          emailInput.value = 'reddragon0075@gmail.com';
+        }
+        passInput.value = 'motion2026';
+        const form = document.getElementById('login-form');
+        if (form) {
+          if (typeof form.requestSubmit === 'function') form.requestSubmit();
+          else form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
       }
-      demoUser = JSON.parse(JSON.stringify(demoUser));
-      demoUser.is_demo = true;
-      applyCurrentUser(demoUser);
-      showApp();
-      showToast('Demo Workspace Loaded', 'Viewing as ' + (demoUser.full_name || 'Vendor Owner'));
     }
 
     document.getElementById('btn-quick-demo')?.addEventListener('click', (e) => {
