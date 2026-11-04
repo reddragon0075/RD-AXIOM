@@ -18367,6 +18367,35 @@ function openDriverModal(existing) {
     async function apiRequest(path, options = {}) {
       const isDemo = Boolean(currentUser?.is_demo || !isLocalHostEnv);
       const reqMethod = (options.method || 'GET').toUpperCase();
+
+      if (path === '/api/auth/login' && reqMethod === 'POST') {
+        let bodyObj = {};
+        try { bodyObj = JSON.parse(options.body || '{}'); } catch (_) {}
+        const email = (bodyObj.email || '').toLowerCase();
+        const isCorp = email.includes('zenith') || email.includes('mgr') || email.includes('corp');
+        const isDriver = email.includes('driver');
+        let user = isCorp
+          ? window.AXIOM_DEMO_DATA?.corp_user
+          : (isDriver ? { id: 'usr_driver_1', email: 'driver@axiomfleet.com', full_name: 'Vikramaditya Rao', role: 'driver', organization: { id: 'org_axiom_logistics', name: 'Axiom Fleet Logistics', type: 'vendor' } } : window.AXIOM_DEMO_DATA?.user);
+        if (!user) {
+          user = {
+            id: 'usr_demo_owner',
+            email: email || 'reddragon0075@gmail.com',
+            full_name: 'Abhijith Vijayan',
+            role: 'vendor',
+            organization: { id: 'org_axiom_logistics', name: 'Axiom Fleet Logistics', type: 'vendor' }
+          };
+        }
+        user = JSON.parse(JSON.stringify(user));
+        user.is_demo = true;
+        return { ok: true, access_token: 'tok_demo_' + Date.now(), user: user };
+      }
+
+      if (path === '/api/auth/me' && reqMethod === 'GET') {
+        const u = currentUser || readStoredUser() || window.AXIOM_DEMO_DATA?.user;
+        return { ok: true, user: u };
+      }
+
       if (isDemo && reqMethod === 'GET') {
         const cache = window.AXIOM_DEMO_DATA?.cache || {};
         const corpCache = window.AXIOM_DEMO_DATA?.corp_cache || {};
@@ -18376,6 +18405,7 @@ function openDriverModal(existing) {
           return JSON.parse(JSON.stringify(cached));
         }
       }
+
       if (isDemo && reqMethod !== 'GET' && !isLocalHostEnv) {
         let reqPayload = {};
         try { reqPayload = JSON.parse(options.body || '{}'); } catch (_) {}
@@ -18897,24 +18927,14 @@ function openDriverModal(existing) {
       submit.disabled = true;
       try {
         const response = await apiRequest('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
-        applyCurrentUser(response.user);
-        await showApp();
-      } catch (err) {
-        if (!isLocalHostEnv || password === 'motion2026' || email === 'reddragon0075@gmail.com') {
-          const isCorp = email.includes('zenith') || email.includes('mgr') || email.includes('corp');
-          const isDriver = email.includes('driver');
-          let demoUser = isCorp
-            ? window.AXIOM_DEMO_DATA?.corp_user
-            : (isDriver ? { id: 'usr_driver_1', email: 'driver@axiomfleet.com', full_name: 'Vikramaditya Rao', role: 'driver' } : window.AXIOM_DEMO_DATA?.user);
-          if (demoUser) {
-            demoUser = JSON.parse(JSON.stringify(demoUser));
-            demoUser.is_demo = true;
-            applyCurrentUser(demoUser);
-            await showApp();
-            showToast('Instant Demo Workspace Active', 'Signed in as ' + (demoUser.full_name || 'Vendor Owner'));
-            return;
-          }
+        if (response?.user) {
+          applyCurrentUser(response.user);
+          await showApp();
+          showToast('Welcome back', `Signed in as ${response.user.full_name || 'Vendor Owner'}.`);
+        } else {
+          throw new Error('Authentication failed');
         }
+      } catch (err) {
         error.textContent = err.message || 'Unable to sign in right now.';
       } finally {
         submit.disabled = false;
