@@ -14,7 +14,7 @@
   const baseUrl = String(config.url || '').replace(/\/$/, '');
   const storageKey = 'axiomfleet_supabase_session';
   const mfaPendingKey = 'axiomfleet_supabase_mfa_pending_factor';
-  const REQUEST_TIMEOUT_MS = 6000;
+  const REQUEST_TIMEOUT_MS = 25000;
 
   async function fetchWithTimeout(url, options = {}) {
     const controller = new AbortController();

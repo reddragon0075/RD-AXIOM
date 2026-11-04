@@ -18340,9 +18340,20 @@ function openDriverModal(existing) {
       const city = document.querySelector('.topbar-title .crumb span:last-child'); if (city) city.textContent = branchName;
     }
 
+    const isLocalHostEnv = Boolean(
+      typeof window !== 'undefined' && (
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname === '0.0.0.0' ||
+        window.location.hostname === ''
+      )
+    );
+
     let supabaseFallbackActive = false;
     try {
-      if (sessionStorage.getItem('axiom_local_runtime') === 'true') {
+      if (!isLocalHostEnv) {
+        sessionStorage.removeItem('axiom_local_runtime');
+      } else if (sessionStorage.getItem('axiom_local_runtime') === 'true') {
         supabaseFallbackActive = true;
       }
     } catch (_) {}
@@ -18358,9 +18369,14 @@ function openDriverModal(existing) {
           if (options.method && options.method.toUpperCase() !== 'GET') state.lastAuditReference = result?.audit_reference || result?.meta?.audit_reference || result?.item?.audit_reference || '';
           return result;
         } catch (adapterErr) {
-          console.warn('Supabase adapter error, falling back to sovereign local runtime:', adapterErr);
-          supabaseFallbackActive = true;
-          try { sessionStorage.setItem('axiom_local_runtime', 'true'); } catch (_) {}
+          if (isLocalHostEnv) {
+            console.warn('Supabase adapter error, falling back to sovereign local runtime:', adapterErr);
+            supabaseFallbackActive = true;
+            try { sessionStorage.setItem('axiom_local_runtime', 'true'); } catch (_) {}
+          } else {
+            console.error('Supabase adapter error on cloud deployment:', adapterErr);
+            throw adapterErr;
+          }
         }
       }
       const headers = { ...(options.headers || {}) };
@@ -18378,7 +18394,9 @@ function openDriverModal(existing) {
       try { payload = await response.json(); } catch (_) { payload = {}; }
       if (!response.ok) {
         const fallbackMsg = response.status === 404
-          ? 'Backend service is unavailable or route not found (ensure server.py is running on localhost:4173).'
+          ? (isLocalHostEnv
+              ? 'Backend service is unavailable or route not found (ensure server.py is running on localhost:4173).'
+              : 'Cloud service is temporarily unavailable. Please verify your connection or try again.')
           : 'The backend could not complete that request.';
         const error = new Error(payload.error || fallbackMsg);
         error.code = payload.code || 'request_failed'; error.recovery = payload.recovery || '';
