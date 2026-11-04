@@ -590,6 +590,15 @@ def _assign_booking_resources(conn, user, booking_id: str, payload: dict, ip: st
     org = _org(user)
     _require_role(user)
     booking = _assert_owned(conn, "domain_bookings", booking_id, org)
+    if booking["status"] == "pending_approval":
+        raise DomainError(409, "Booking approval is required before resources can be assigned", "booking_approval_required")
+    try:
+        t_id_chk = booking["trip_id"] if "trip_id" in booking.keys() and booking["trip_id"] else booking_id
+        gate_row = conn.execute("SELECT approval_status FROM booking_approval_requests WHERE trip_id = ? OR trip_id = ? LIMIT 1", (booking_id, t_id_chk)).fetchone()
+        if gate_row and gate_row["approval_status"] != "APPROVED":
+            raise DomainError(409, f"Cannot dispatch: Pending Corporate Manager Approval (Current Status: {gate_row['approval_status']})", "corporate_approval_pending")
+    except sqlite3.OperationalError:
+        pass
 
     driver_id = _text(payload, "driver_id") or None
     vehicle_id = _text(payload, "vehicle_id") or None
@@ -910,6 +919,13 @@ def _create_duty(conn, user, payload, ip):
     booking = _assert_owned(conn, "domain_bookings", booking_id, org)
     if booking["status"] == "pending_approval":
         raise DomainError(409, "Booking approval is required before a duty can be assigned", "booking_approval_required")
+    try:
+        t_id_chk = booking["trip_id"] if "trip_id" in booking.keys() and booking["trip_id"] else booking_id
+        gate_row = conn.execute("SELECT approval_status FROM booking_approval_requests WHERE trip_id = ? OR trip_id = ? LIMIT 1", (booking_id, t_id_chk)).fetchone()
+        if gate_row and gate_row["approval_status"] != "APPROVED":
+            raise DomainError(409, f"Cannot dispatch: Pending Corporate Manager Approval (Current Status: {gate_row['approval_status']})", "corporate_approval_pending")
+    except sqlite3.OperationalError:
+        pass
     existing_booking_duty = conn.execute(
         "SELECT id FROM domain_duties WHERE organization_id = ? AND booking_id = ? AND status NOT IN ('cancelled')",
         (org, booking_id),

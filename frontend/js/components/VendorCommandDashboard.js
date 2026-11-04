@@ -976,17 +976,36 @@ export class VendorCommandDashboard {
         </div>
       `;
     } else if (type === "unallotted") {
-      title = "Emergency Unallotted Queue";
+      title = "Emergency Unallotted Queue & Corporate Dispatch Gates";
       contentHtml = `
         <div class="drawer-action-card">
           <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
             <strong>Duty #DT-9002 &bull; Wipro Tech</strong>
-            <span class="margin-pill warn">DEPARTS IN 45 MIN</span>
+            <span class="margin-pill success" style="background:#dcfce7; color:#15803d; font-weight:700;">🔒 Corporate Approved</span>
           </div>
           <div style="font-size:12px; color:var(--text-secondary); line-height:1.6; margin-bottom:10px;">
             Pickup: Koramangala 4th Block &bull; Drop: Airport T2<br/>
-            Vehicle Class: Sedan (Dzire / Etios)
+            Vehicle Class: Sedan (Dzire / Etios) &bull; Est. Fare: ₹1,450.00<br/>
+            Parameter Hash: <code style="font-size:10px; background:#f1f5f9; padding:2px 4px; border-radius:3px;">a4f8c928...</code>
           </div>
+          <button class="tab-btn" style="background:#2563eb; color:#fff; border:none; padding:6px 12px; font-size:11px; font-weight:750; border-radius:6px; cursor:pointer;">
+            Assign Driver &amp; Vehicle &rarr;
+          </button>
+        </div>
+
+        <div class="drawer-action-card" style="border-left: 3px solid #ef4444;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+            <strong>Duty #DT-9044 &bull; Infosys BPM</strong>
+            <span class="margin-pill danger" style="background:#fee2e2; color:#991b1b; font-weight:700;">⚠️ Awaiting Manager Approval [Dispatch Locked]</span>
+          </div>
+          <div style="font-size:12px; color:var(--text-secondary); line-height:1.6; margin-bottom:10px;">
+            Pickup: Electronic City Phase 1 &bull; Drop: Mysore Infosys Campus<br/>
+            Vehicle Class: SUV Crysta &bull; Tariff: Outstation &bull; Est. Fare: ₹4,850.00<br/>
+            <span style="color:#b91c1c; font-weight:600;">Dispatch Gate: Tamper-proof lock active. Cannot assign driver until authorized by Line Manager.</span>
+          </div>
+          <button class="tab-btn" disabled style="background:#94a3b8; color:#fff; border:none; padding:6px 12px; font-size:11px; font-weight:750; border-radius:6px; cursor:not-allowed;" title="Dispatch Gate Active: Booking unapproved">
+            🔒 Dispatch Locked (Approval Required)
+          </button>
         </div>
       `;
     } else if (type === "expired_drv") {

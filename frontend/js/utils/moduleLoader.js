@@ -22,6 +22,7 @@ export class ModuleLoader {
       PARTNER_EXCHANGE: "../components/PartnerExchangeView.js",
       CORPORATE_ANNEXURE: "../components/CorporateAnnexurePortal.js",
       TRIP_CORRECTION_DRAWER: "../components/TripCorrectionDrawer.js",
+      CORPORATE_PORTAL: "../components/CorporatePortalConsole.js",
     };
   }
 

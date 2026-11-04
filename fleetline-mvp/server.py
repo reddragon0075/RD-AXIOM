@@ -140,6 +140,11 @@ from backend_workspace_bootstrap import (
     handle_workspace_bootstrap_api,
     initialize_performance_indexes,
 )
+from backend_corporate_approvals import (
+    handle_corporate_approvals_api,
+    initialize_corporate_rbac_schema,
+    verify_dispatch_allowed_gate,
+)
 
 
 ROOT = Path(__file__).resolve().parent
@@ -463,6 +468,7 @@ def initialize_database() -> None:
         initialize_prospect_crm_schema(conn)
         initialize_native_crm_schema(conn)
         initialize_performance_indexes(conn)
+        initialize_corporate_rbac_schema(conn)
         if not test_fixtures_enabled():
             purge_demo_records(conn)
             try:
@@ -1435,7 +1441,12 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             booking_approval_created = bool(booking_approval_route and conn.execute("SELECT 1 FROM domain_booking_approvals WHERE organization_id = ? AND booking_id = ? AND status = 'pending' LIMIT 1", (user["organization_id"], booking_approval_route.group(1))).fetchone()) if user["organization_id"] else False
             # Autonomous Mobility Platform Handlers
             result = None
-            if (route in {"/api/ops/sla-radar", "/api/v1/ops/sla-radar"}) and method == "GET":
+            if (
+                route.startswith("/api/corp")
+                or route.startswith("/api/v1/corp")
+            ):
+                result = handle_corporate_approvals_api(conn, user, method, self.path, payload, self.client_address[0])
+            elif (route in {"/api/ops/sla-radar", "/api/v1/ops/sla-radar"}) and method == "GET":
                 result = scan_sla_radar(conn, user.get("organization_id"))
             elif (route in {"/api/admin/tariff-simulator", "/api/v1/admin/tariff-simulator"}) and method == "POST":
                 result = simulate_tariff_scenarios(payload)

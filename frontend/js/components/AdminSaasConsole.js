@@ -336,6 +336,9 @@ export class AdminSaasConsole {
             <button class="tab-btn ${this.state.activeView === 'SIMULATOR' ? 'active' : ''}" data-view="SIMULATOR">
               📊 What-If Tariff Simulator
             </button>
+            <button class="tab-btn ${this.state.activeView === 'CORP_PORTAL' ? 'active' : ''}" data-view="CORP_PORTAL">
+              👔 Corporate RBAC &amp; Approvals
+            </button>
           </div>
           <div style="font-size:11px; color:var(--text-secondary); font-weight:700;">
             Axiom HQ Commercial Governance &bull; Strict IDOR Enforced
@@ -351,7 +354,7 @@ export class AdminSaasConsole {
                   ? this.renderNativeCrmView()
                   : (this.state.activeView === 'SIMULATOR'
                       ? this.renderSimulatorView()
-                      : this.renderTenantsView())))}
+                      : (this.state.activeView === 'CORP_PORTAL' ? this.renderCorporatePortalView() : this.renderTenantsView()))))
       </div>
 
       <!-- Modals -->
