@@ -19,6 +19,7 @@ Thumbs.db
 
 .expo/
 .scratch/
+scratch/
 .temp/
 *.log
 temp_chrome*/
