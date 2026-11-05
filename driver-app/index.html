@@ -356,6 +356,48 @@
       padding: 3px 8px; border-radius: 6px; border: 1px solid #fae6be;
       display: inline-flex; align-items: center; gap: 4px;
     }
+    .past-expense-pill.has-receipt {
+      cursor: pointer;
+      background: #edf8f3;
+      color: #0b7847;
+      border-color: #b2ddd1;
+      transition: all 0.15s ease;
+    }
+    .past-expense-pill.has-receipt:hover, .past-expense-pill.has-receipt:active {
+      background: #d4f2e3;
+      transform: translateY(-1px);
+    }
+    .receipt-tag-chip {
+      background: #1b7a5a;
+      color: #ffffff;
+      font-size: 8.5px;
+      font-weight: 800;
+      padding: 1.5px 5px;
+      border-radius: 4px;
+      letter-spacing: 0.3px;
+    }
+    .cockpit-active-expenses {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0;
+    }
+    .cockpit-expense-pill {
+      font-size: 10.5px;
+      font-weight: 800;
+      background: #eef8f3;
+      color: #0b7847;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid #b2ddd1;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+    .cockpit-expense-pill:hover, .cockpit-expense-pill:active {
+      background: #d4f2e3;
+    }
 
             /* Flight Tracking & Status Banner */
     .flight-status-box {
@@ -712,6 +754,9 @@
           </div>
 
           <!-- DRIVER NIGHT BATA ALLOWANCE (Commercial Standard) -->
+          <!-- ACTIVE TRIP EXPENSES (With Camera Receipts) -->
+          <div class="cockpit-active-expenses" id="cockpit-active-expenses" style="display:none;"></div>
+
           <div class="night-bata-banner" id="night-bata-banner">
             <div class="night-bata-left">
               <span class="bata-moon">🌙</span>
@@ -990,6 +1035,36 @@
     const $ = id => document.getElementById(id);
     const queueKey = 'axiomfleet_driver_queue_v1';
     const dutyKey = 'axiomfleet_driver_active_duty';
+    // Indecab Audit Standard: Sample Realistic Parking Ticket SVG
+    const sampleParkingReceiptSvg = "data:image/svg+xml;utf8," + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="340" height="420" viewBox="0 0 340 420" style="background:#fff; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;">
+  <rect width="340" height="420" fill="#f8faf9"/>
+  <rect x="15" y="15" width="310" height="390" rx="8" fill="#fff" stroke="#ccd9d2" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <circle cx="170" cy="50" r="16" fill="#e8f5ee"/>
+  <text x="170" y="55" font-size="16" text-anchor="middle">🅿️</text>
+  <text x="170" y="80" font-size="14" font-weight="900" text-anchor="middle" fill="#142126">EMBASSY GOLFLINKS</text>
+  <text x="170" y="96" font-size="11" text-anchor="middle" fill="#607274">VISITOR PARKING P2 · BANGALORE</text>
+  <line x1="30" y1="110" x2="310" y2="110" stroke="#e0e8e4" stroke-width="1"/>
+  <text x="35" y="135" font-size="11" fill="#607274">Ticket No:</text>
+  <text x="305" y="135" font-size="11" font-weight="700" text-anchor="end" fill="#142126">EGL-8840-P2</text>
+  <text x="35" y="160" font-size="11" fill="#607274">Vehicle No:</text>
+  <text x="305" y="160" font-size="11" font-weight="700" text-anchor="end" fill="#142126">KA01AK4421</text>
+  <text x="35" y="185" font-size="11" fill="#607274">Entry Time:</text>
+  <text x="305" y="185" font-size="11" font-weight="700" text-anchor="end" fill="#142126">Today, 08:32 AM</text>
+  <text x="35" y="210" font-size="11" fill="#607274">Exit Time:</text>
+  <text x="305" y="210" font-size="11" font-weight="700" text-anchor="end" fill="#142126">Today, 09:12 AM</text>
+  <text x="35" y="235" font-size="11" fill="#607274">Billed Duration:</text>
+  <text x="305" y="235" font-size="11" font-weight="700" text-anchor="end" fill="#142126">40 Minutes</text>
+  <line x1="30" y1="250" x2="310" y2="250" stroke="#e0e8e4" stroke-width="1"/>
+  <rect x="30" y="260" width="280" height="44" rx="6" fill="#eef8f3"/>
+  <text x="42" y="287" font-size="12" font-weight="800" fill="#0b7847">TOTAL PAID (INR)</text>
+  <text x="298" y="288" font-size="17" font-weight="900" text-anchor="end" fill="#0b7847">₹80.00</text>
+  <text x="170" y="325" font-size="10" font-weight="700" text-anchor="middle" fill="#1b7a5a">PAID VIA FASTAG / UPI · VALID AUDIT SLIP</text>
+  <line x1="60" y1="340" x2="280" y2="340" stroke="#bbb" stroke-width="2" stroke-dasharray="2,3,5,2,4,6,1,3"/>
+  <text x="170" y="360" font-size="8.5" text-anchor="middle" fill="#888">TAX INVOICE · AXIOM B2B FLEET EXPENSE AUDIT</text>
+  <text x="170" y="390" font-size="9" font-weight="800" text-anchor="middle" fill="#142126">★★★ RETAIN FOR SETTLEMENT ★★★</text>
+</svg>`);
+
     const userKey = 'axiomfleet_driver_user';
 
     // State
@@ -1053,7 +1128,7 @@
       ],
       todayEarnings: 1850,
       completedDuties: [
-        { id: 'DUTY-8840', route: 'Koramangala 5th Block → Embassy GolfLinks', fare: 420, time: '09:15 AM', expenses: [{ category: 'parking', amount: 80, note: 'Visitor Parking P2' }] },
+        { id: 'DUTY-8840', route: 'Koramangala 5th Block → Embassy GolfLinks', fare: 420, time: '09:15 AM', expenses: [{ category: 'parking', amount: 80, note: 'Visitor Parking P2', receipt_image: sampleParkingReceiptSvg }] },
         { id: 'DUTY-8839', route: 'Whitefield ITPL → HSR Layout Sector 2', fare: 680, time: '07:45 AM', expenses: [{ category: 'toll', amount: 110, note: 'Outer Ring Rd Fastag' }] },
         { id: 'DUTY-8835', route: 'BLR Airport T1 → Indiranagar 100ft Rd', fare: 750, time: '05:30 AM', bata: 350, expenses: [{ category: 'toll', amount: 90, note: 'Airport Trumpet Toll' }] }
       ]
@@ -1498,10 +1573,11 @@
           state.completedDuties.unshift({
             id: state.duty.id,
             route: `${state.duty.pickup} → ${state.duty.dropoff}`,
-            fare: state.duty.estimated_fare || 850,
+            fare: (state.duty.estimated_fare || 850) + (state.duty.expenses || []).reduce((s, e) => s + (e.amount || 0), 0),
             time: new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date()),
             g2g_summary: '68 km G2G (35 km trip + 33 km dead run)',
-            expenses: []
+            bata: state.duty.night_bata,
+            expenses: (state.duty.expenses || []).slice()
           });
 
           closeModal();
@@ -1660,9 +1736,168 @@
     }
 
     // ----------------------------------------------------
-    // EXPENSE MODAL (Toll, Fastag, Parking)
+    // EXPENSE & CAMERA RECEIPT CAPTURE HELPERS
+    // ----------------------------------------------------
+    function getReceiptCaptureSectionHtml() {
+      return `
+        <div class="receipt-picker-container" style="margin-top:12px;">
+          <label class="field" style="margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+            <span>📸 Parking / Toll Receipt Photo</span>
+            <span style="font-size:10px; color:var(--muted); font-weight:normal;">Paper Ticket or Fastag SMS/Slip</span>
+          </label>
+          <input type="file" id="expense-receipt-input" accept="image/*" capture="environment" style="display:none;">
+          <div id="receipt-dropzone" style="border:2px dashed #b2ddd1; background:#f4faf6; border-radius:12px; padding:12px 14px; text-align:center; cursor:pointer; transition:all 0.2s;">
+            <div id="receipt-empty-state">
+              <div style="font-size:24px; margin-bottom:4px;">📷</div>
+              <div style="font-weight:800; font-size:12px; color:var(--teal-dark);">Snap Receipt Photo / Upload Slip</div>
+              <div style="font-size:10px; color:var(--muted); margin-top:3px;">Tap to open camera or browse device photos</div>
+            </div>
+            <div id="receipt-preview-state" style="display:none; text-align:center;">
+              <div style="position:relative; display:inline-block;">
+                <img id="receipt-preview-img" src="" alt="Receipt Slip Preview" style="max-height:130px; max-width:100%; border-radius:8px; border:1.5px solid #1b7a5a; box-shadow:0 3px 10px rgba(0,0,0,0.12); object-fit:contain; background:#fff;">
+                <button type="button" id="btn-remove-receipt" title="Remove Receipt" style="position:absolute; top:-6px; right:-6px; width:22px; height:22px; border-radius:50%; background:#e11900; color:#fff; border:none; cursor:pointer; font-size:11px; font-weight:900; line-height:22px; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.2);">✕</button>
+              </div>
+              <div style="margin-top:6px; font-size:11px; font-weight:800; color:#0b7847; display:flex; align-items:center; justify-content:center; gap:4px;">
+                <span>✓</span> Receipt Photo Attached
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function bindReceiptUploadHandler(onReceiptCaptured) {
+      const fileInput = $('expense-receipt-input');
+      const dropzone = $('receipt-dropzone');
+      const emptyState = $('receipt-empty-state');
+      const previewState = $('receipt-preview-state');
+      const previewImg = $('receipt-preview-img');
+      const removeBtn = $('btn-remove-receipt');
+
+      let currentReceiptData = null;
+
+      dropzone?.addEventListener('click', (e) => {
+        if (e.target === removeBtn || removeBtn?.contains(e.target)) return;
+        fileInput?.click();
+      });
+
+      fileInput?.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let w = img.width;
+            let h = img.height;
+            const maxDim = 800;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            currentReceiptData = canvas.toDataURL('image/jpeg', 0.75);
+
+            if (previewImg && emptyState && previewState) {
+              previewImg.src = currentReceiptData;
+              emptyState.style.display = 'none';
+              previewState.style.display = 'block';
+            }
+            onReceiptCaptured(currentReceiptData);
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      removeBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        currentReceiptData = null;
+        if (fileInput) fileInput.value = '';
+        if (previewImg) previewImg.src = '';
+        if (previewState) previewState.style.display = 'none';
+        if (emptyState) emptyState.style.display = 'block';
+        onReceiptCaptured(null);
+      });
+    }
+
+    function openReceiptViewerModal(title, receiptDataUrl, amount, category, note) {
+      openModal(
+        `📷 ${title}`,
+        `
+          <div style="text-align:center; margin-bottom:12px; background:#142126; padding:10px; border-radius:10px;">
+            <img src="${receiptDataUrl}" alt="Duty Expense Receipt" style="max-width:100%; max-height:340px; object-fit:contain; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,0.25); background:#fff;">
+          </div>
+          <div style="background:#f4f7f5; border-radius:10px; padding:10px 14px; font-size:12px; color:var(--ink);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span style="color:var(--muted);">Category:</span>
+              <strong>${category === 'parking' ? '🅿️ Parking' : '🛣️ Toll / Fastag'}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span style="color:var(--muted);">Amount:</span>
+              <strong style="color:var(--deep); font-size:14px;">₹${amount}</strong>
+            </div>
+            ${note ? `
+              <div style="display:flex; justify-content:space-between; margin-top:2px;">
+                <span style="color:var(--muted);">Note:</span>
+                <span>${note}</span>
+              </div>
+            ` : ''}
+            <div style="display:flex; justify-content:space-between; margin-top:4px; font-size:11px; color:var(--teal-dark);">
+              <span>Audit Status:</span>
+              <strong>Verified Receipt Slip ✓</strong>
+            </div>
+          </div>
+        `,
+        `
+          <button class="btn-save" style="width:100%;" data-close>Close Receipt</button>
+        `
+      );
+      $('modal-card').querySelector('[data-close]')?.addEventListener('click', closeModal);
+    }
+
+    function renderActiveExpenses() {
+      const bar = $('cockpit-active-expenses');
+      if (!bar) return;
+      const expenses = (state.duty && state.duty.expenses) || [];
+      if (!expenses.length) {
+        bar.style.display = 'none';
+        bar.innerHTML = '';
+        return;
+      }
+      bar.style.display = 'flex';
+      bar.innerHTML = expenses.map(e => `
+        <span class="cockpit-expense-pill" data-active-exp-id="${e.id}" title="${e.receipt_image ? 'Click to view photo receipt' : ''}">
+          ${e.category === 'parking' ? '🅿️ Parking' : '🛣️ Toll'}: ₹${e.amount}
+          ${e.receipt_image ? '<span class="receipt-tag-chip">📷 RECEIPT</span>' : ''}
+        </span>
+      `).join('');
+
+      bar.querySelectorAll('[data-active-exp-id]').forEach(pill => {
+        pill.addEventListener('click', () => {
+          const exp = expenses.find(x => x.id === pill.dataset.activeExpId);
+          if (exp && exp.receipt_image) {
+            openReceiptViewerModal(`${exp.category === 'parking' ? 'Parking' : 'Toll'} Receipt`, exp.receipt_image, exp.amount, exp.category, exp.note);
+          }
+        });
+      });
+    }
+
+    // ----------------------------------------------------
+    // EXPENSE MODAL (Toll, Fastag, Parking with Camera Capture)
     // ----------------------------------------------------
     $('btn-open-expense')?.addEventListener('click', () => {
+      let capturedReceipt = null;
       openModal(
         'Add Trip Parking / Toll',
         `
@@ -1675,25 +1910,50 @@
           <label class="field" style="margin-top:10px;">Amount in Rupees (₹)
             <input id="expense-val" type="number" min="1" max="10000" placeholder="e.g. 115" style="height:46px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px; font-size:16px; font-weight:700;">
           </label>
-          <label class="field" style="margin-top:10px;">Note
-            <input id="expense-note" type="text" placeholder="Trumpet toll plaza" style="height:42px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px; font-size:12px;">
+          <label class="field" style="margin-top:10px;">Receipt Note / Toll Plaza
+            <input id="expense-note" type="text" placeholder="e.g. Trumpet toll plaza / Airport Gate 2" style="height:42px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px; font-size:12px;">
           </label>
+          ${getReceiptCaptureSectionHtml()}
         `,
         `
           <button class="btn-cancel" data-close>Cancel</button>
-          <button class="btn-save" id="btn-save-expense">Save Expense</button>
+          <button class="btn-save" id="btn-save-expense">Save Expense & Slip</button>
         `
       );
 
+      bindReceiptUploadHandler((dataUrl) => {
+        capturedReceipt = dataUrl;
+      });
+
       $('btn-save-expense')?.addEventListener('click', () => {
+        const cat = $('expense-cat')?.value || 'parking';
         const amt = parseFloat($('expense-val')?.value || '0');
-        if (amt <= 0) {
-          alert('Please enter a valid amount.');
+        const note = $('expense-note')?.value?.trim() || '';
+
+        if (!amt || amt <= 0) {
+          alert('Please enter a valid expense amount in Rupees.');
           return;
         }
+
+        if (!state.duty.expenses) state.duty.expenses = [];
+        const expObj = {
+          id: `exp-${Date.now()}`,
+          category: cat,
+          amount: amt,
+          note: note,
+          receipt_image: capturedReceipt,
+          time: new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date())
+        };
+        state.duty.expenses.push(expObj);
+        state.todayEarnings += amt;
+        saveActiveDuty(state.duty);
+
         closeModal();
-        showToast('Expense Recorded', `₹${amt} logged and added to duty settlement.`);
+        renderActiveExpenses();
+        renderEarningsView();
+        showToast('Expense & Receipt Logged', `₹${amt} (${cat}) attached to active duty settlement.${capturedReceipt ? ' Receipt slip saved.' : ''}`);
       });
+
       $('modal-card').querySelector('[data-close]')?.addEventListener('click', closeModal);
     });
 
@@ -1724,7 +1984,7 @@
     });
 
     // ----------------------------------------------------
-    // EARNINGS SCREEN RENDERER
+    // EARNINGS SCREEN RENDERER (With Camera Receipt Badges)
     // ----------------------------------------------------
     function renderEarningsView() {
       const totalTolls = state.completedDuties.reduce((sum, d) => sum + (d.expenses || []).reduce((es, e) => es + (e.amount || 0), 0), 280);
@@ -1733,12 +1993,13 @@
       if ($('kpi-tolls')) $('kpi-tolls').textContent = `₹${totalTolls}`;
       const listEl = $('duty-history-list');
       if (!listEl) return;
-      listEl.innerHTML = state.completedDuties.map(d => {
+      listEl.innerHTML = state.completedDuties.map((d, dIdx) => {
         const expensePills = (d.expenses && d.expenses.length) ? `
           <div class="past-expense-pills">
-            ${d.expenses.map(e => `
-              <span class="past-expense-pill">
+            ${d.expenses.map((e, eIdx) => `
+              <span class="past-expense-pill ${e.receipt_image ? 'has-receipt' : ''}" data-view-receipt-duty="${d.id}" data-view-receipt-idx="${eIdx}" title="${e.receipt_image ? 'Click to view photo receipt' : ''}">
                 ${e.category === 'parking' ? '🅿️ Parking' : e.category === 'toll' ? '🛣️ Toll / Fastag' : '🧾 Expense'}: ₹${e.amount}
+                ${e.receipt_image ? '<span class="receipt-tag-chip">📷 RECEIPT</span>' : ''}
               </span>
             `).join('')}
           </div>
@@ -1770,14 +2031,35 @@
           openPastDutyExpense(btn.dataset.addExpenseDuty);
         });
       });
+
+      // Bind click handlers to past expense pills with receipts
+      listEl.querySelectorAll('.past-expense-pill.has-receipt').forEach(pill => {
+        pill.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const dutyId = pill.dataset.viewReceiptDuty;
+          const expIdx = parseInt(pill.dataset.viewReceiptIdx, 10);
+          const duty = state.completedDuties.find(d => d.id === dutyId);
+          if (duty && duty.expenses && duty.expenses[expIdx]) {
+            const exp = duty.expenses[expIdx];
+            openReceiptViewerModal(
+              `${duty.id} · ${exp.category === 'parking' ? 'Parking' : 'Toll'} Slip`,
+              exp.receipt_image,
+              exp.amount,
+              exp.category,
+              exp.note
+            );
+          }
+        });
+      });
     }
 
-    // Function to add parking/toll/other fare to any completed past trip
+    // Function to add parking/toll with Camera photo capture to any completed past trip
     function openPastDutyExpense(dutyId) {
       const targetDuty = state.completedDuties.find(d => d.id === dutyId) || { id: dutyId, route: 'Selected Past Duty' };
+      let capturedReceipt = null;
 
       openModal(
-        `Add Parking / Toll to Past Duty: ${dutyId}`,
+        `Add Parking / Toll: ${dutyId}`,
         `
           <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">
             ${targetDuty.route}
@@ -1794,12 +2076,17 @@
           <label class="field" style="margin-top:10px;">Receipt Note / Fastag Txn ID
             <input id="past-expense-note" type="text" placeholder="e.g. Gate 2 parking slip / Fastag deduction" style="height:42px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px; font-size:12px;">
           </label>
+          ${getReceiptCaptureSectionHtml()}
         `,
         `
           <button class="btn-cancel" data-close>Cancel</button>
           <button class="btn-save" id="btn-save-past-expense">Save & Add to Settlement</button>
         `
       );
+
+      bindReceiptUploadHandler((dataUrl) => {
+        capturedReceipt = dataUrl;
+      });
 
       $('btn-save-past-expense')?.addEventListener('click', async () => {
         const cat = $('past-expense-cat')?.value || 'parking';
@@ -1813,7 +2100,14 @@
 
         // 1. Attach expense to this past trip in memory & local storage
         if (!targetDuty.expenses) targetDuty.expenses = [];
-        targetDuty.expenses.push({ category: cat, amount: amt, note });
+        const expObj = {
+          id: `exp-${Date.now()}`,
+          category: cat,
+          amount: amt,
+          note: note,
+          receipt_image: capturedReceipt
+        };
+        targetDuty.expenses.push(expObj);
         targetDuty.fare = (targetDuty.fare || 0) + amt;
 
         // 2. Add to driver total earnings
@@ -1824,7 +2118,7 @@
           entity_type: 'duty',
           entity_id: dutyId,
           operation: 'expense',
-          payload: { category: cat, amount_paise: Math.round(amt * 100), note, is_past_duty: true },
+          payload: { category: cat, amount_paise: Math.round(amt * 100), note, receipt_image: capturedReceipt, is_past_duty: true },
           idempotency_key: `mobile-expense-${Date.now()}-${Math.random().toString(16).slice(2)}`,
           created_at: new Date().toISOString()
         };
@@ -1833,7 +2127,7 @@
 
         closeModal();
         renderEarningsView();
-        showToast('Expense Added to Past Trip', `₹${amt} (${cat}) attached to ${dutyId} and added to your settlement.`);
+        showToast('Expense & Receipt Attached', `₹${amt} (${cat}) attached to ${dutyId} with audit slip.`);
 
         // 4. If online, sync to server
         if (state.online) {
@@ -1852,7 +2146,6 @@
       $('modal-card').querySelector('[data-close]')?.addEventListener('click', closeModal);
     }
 
-    // ----------------------------------------------------
     // TAB SWITCHING (Cockpit / Earnings / Sync / Profile)
     // ----------------------------------------------------
     function switchTab(tab) {
