@@ -45,3 +45,4 @@ known_hosts
 .DS_Store
 .vscode/
 .idea/
+.vercel

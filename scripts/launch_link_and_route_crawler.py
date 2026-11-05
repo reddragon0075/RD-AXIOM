@@ -92,7 +92,15 @@ def audit_es6_imports():
             import_matches = re.findall(r"""(?:import|export)\s+(?:.*?from\s+)?['"](\.[^'"]+)['"]""", content)
             for imp in import_matches:
                 target_path = (f.parent / imp).resolve()
-                if not target_path.exists() and not target_path.with_suffix(".js").exists() and not target_path.with_suffix(".ts").exists() and not (target_path / "index.js").exists():
+                if (
+                    not target_path.exists()
+                    and not target_path.with_suffix(".js").exists()
+                    and not target_path.with_suffix(".ts").exists()
+                    and not target_path.with_suffix(".tsx").exists()
+                    and not (target_path / "index.js").exists()
+                    and not (target_path / "index.ts").exists()
+                    and not (target_path / "index.tsx").exists()
+                ):
                     violations.append((str(f.relative_to(ROOT)), imp))
         except Exception:
             pass

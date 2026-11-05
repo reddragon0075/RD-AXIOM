@@ -1,5 +1,5 @@
 # AXIOM FLEET ENTERPRISE DESIGN SYSTEM SPECIFICATION (`DESIGN.md`)
-*Indecab-Inspired Minimalist, High-Contrast Light & Brand-Navy Flagship Edition*
+*Axiom-Design Minimalist, High-Contrast Light & Brand-Navy Flagship Edition*
 
 This document defines the visual design system, color tokens, typography hierarchy, component architectures, and responsive layout specifications for the public web experience of **Axiom Fleet** (`https://axiommobility.vercel.app/`), paired with the official **AXIOM FLEET** brand identity.
 
@@ -139,7 +139,7 @@ This document defines the visual design system, color tokens, typography hierarc
   - Inputs: Practical trip distance (km) and trip duration (hrs).
   - Output: Automated package selection (4Hr/40Km vs 8Hr/80Km), client receivable, vendor payout, and guaranteed profit margin badge.
 
-### Section 8: Enterprise Request & Indecab-Inspired Minimalist Footer
+### Section 8: Enterprise Request & Axiom-Design Minimalist Footer
 - **Lead Capture Form:** 2-column clean card submitting directly to `POST /api/v1/public/prospect-capture`.
 - **Footer Architecture (`#0A1628` Dark Navy):**
   - Official inverted brand logo (`axiom-fleet-logo.png`).

@@ -22,7 +22,7 @@ DROP POLICY IF EXISTS tenant_view_own_sla_profile ON tristack_partner_sla_profil
 CREATE POLICY tenant_view_own_sla_profile ON tristack_partner_sla_profiles
     FOR SELECT TO authenticated
     USING (
-        organization_id = (auth.jwt() ->> 'organization_id')
+        organization_id::text = (auth.jwt() ->> 'organization_id')
         OR auth.jwt() ->> 'role' IN ('admin', 'superadmin')
         OR auth.jwt() ->> 'is_axiom_hq' = 'true'
     );
@@ -31,7 +31,7 @@ DROP POLICY IF EXISTS tenant_view_own_sla_breaches ON tristack_sla_breaches;
 CREATE POLICY tenant_view_own_sla_breaches ON tristack_sla_breaches
     FOR SELECT TO authenticated
     USING (
-        organization_id = (auth.jwt() ->> 'organization_id')
+        organization_id::text = (auth.jwt() ->> 'organization_id')
         OR auth.jwt() ->> 'role' IN ('admin', 'superadmin')
         OR auth.jwt() ->> 'is_axiom_hq' = 'true'
     );
@@ -54,13 +54,13 @@ DROP POLICY IF EXISTS duties_state_lock_guard ON public.duties;
 CREATE POLICY duties_state_lock_guard ON public.duties
     FOR UPDATE TO authenticated
     USING (
-        (status NOT IN ('completed', 'invoiced', 'locked')
+        (status::text NOT IN ('completed', 'invoiced', 'locked')
          OR auth.jwt() ->> 'role' IN ('admin', 'superadmin')
          OR auth.jwt() ->> 'is_axiom_hq' = 'true')
         AND (public.has_permission(organization_id, 'duties.write') OR public.is_platform_user())
     )
     WITH CHECK (
-        (status NOT IN ('completed', 'invoiced', 'locked')
+        (status::text NOT IN ('completed', 'invoiced', 'locked')
          OR auth.jwt() ->> 'role' IN ('admin', 'superadmin')
          OR auth.jwt() ->> 'is_axiom_hq' = 'true')
         AND (public.has_permission(organization_id, 'duties.write') OR public.is_platform_user())
@@ -71,13 +71,13 @@ DROP POLICY IF EXISTS invoices_state_lock_guard ON public.invoices;
 CREATE POLICY invoices_state_lock_guard ON public.invoices
     FOR UPDATE TO authenticated
     USING (
-        (status NOT IN ('issued', 'paid', 'locked')
+        (status::text NOT IN ('issued', 'paid', 'locked')
          OR auth.jwt() ->> 'role' IN ('admin', 'superadmin')
          OR auth.jwt() ->> 'is_axiom_hq' = 'true')
         AND (public.has_permission(organization_id, 'billing.write') OR public.is_platform_user())
     )
     WITH CHECK (
-        (status NOT IN ('issued', 'paid', 'locked')
+        (status::text NOT IN ('issued', 'paid', 'locked')
          OR auth.jwt() ->> 'role' IN ('admin', 'superadmin')
          OR auth.jwt() ->> 'is_axiom_hq' = 'true')
         AND (public.has_permission(organization_id, 'billing.write') OR public.is_platform_user())

@@ -29,7 +29,7 @@ ALTER TABLE public.tristack_security_guards ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY tristack_security_guards_tenant_isolation ON public.tristack_security_guards
     FOR ALL
-    USING (organization_id = (SELECT organization_id FROM public.users WHERE id = auth.uid()));
+    USING (organization_id in (select organization_id from public.organization_memberships where user_id = auth.uid()) or organization_id = (auth.jwt() ->> 'organization_id')::uuid or auth.role() = 'service_role');
 
 -- 2. Idempotency Keys Table
 CREATE TABLE IF NOT EXISTS public.tristack_idempotency_keys (
@@ -48,20 +48,20 @@ ALTER TABLE public.tristack_idempotency_keys ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY tristack_idempotency_tenant_isolation ON public.tristack_idempotency_keys
     FOR ALL
-    USING (organization_id = (SELECT organization_id FROM public.users WHERE id = auth.uid()));
+    USING (organization_id in (select organization_id from public.organization_memberships where user_id = auth.uid()) or organization_id = (auth.jwt() ->> 'organization_id')::uuid or auth.role() = 'service_role');
 
 -- 3. Maker-Checker Variance Queue
 CREATE TABLE IF NOT EXISTS public.tristack_maker_checker_queue (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
-    duty_id UUID NOT NULL REFERENCES public.domain_duties(id) ON DELETE CASCADE,
+    duty_id UUID NOT NULL REFERENCES public.duties(id) ON DELETE CASCADE,
     reason TEXT NOT NULL,
     odometer_delta_km NUMERIC(8,2) NOT NULL,
     snapped_route_km NUMERIC(8,2) NOT NULL,
     variance_pct NUMERIC(6,2) NOT NULL,
     variance_km NUMERIC(8,2) NOT NULL,
     status TEXT NOT NULL DEFAULT 'PENDING_REVIEW' CHECK(status IN ('PENDING_REVIEW', 'APPROVED_OVERRIDE', 'ADJUSTED', 'REJECTED')),
-    reviewed_by UUID REFERENCES public.users(id),
+    reviewed_by UUID REFERENCES auth.users(id),
     reviewed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
     CONSTRAINT uq_mcq_duty UNIQUE (organization_id, duty_id)
@@ -73,9 +73,40 @@ ALTER TABLE public.tristack_maker_checker_queue ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY tristack_mcq_tenant_isolation ON public.tristack_maker_checker_queue
     FOR ALL
-    USING (organization_id = (SELECT organization_id FROM public.users WHERE id = auth.uid()));
+    USING (organization_id in (select organization_id from public.organization_memberships where user_id = auth.uid()) or organization_id = (auth.jwt() ->> 'organization_id')::uuid or auth.role() = 'service_role');
 
--- 4. Hourly Demotion Lock & Force Majeure Controls
+-- 4. Hourly Demotion Lock & Partner SLA Profiles
+CREATE TABLE IF NOT EXISTS public.tristack_partner_sla_profiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    vendor_id UUID NOT NULL,
+    vendor_name TEXT NOT NULL,
+    current_tier TEXT NOT NULL DEFAULT 'TIER_1_PLATINUM',
+    rolling_ota_pct NUMERIC(5,2) NOT NULL DEFAULT 96.5,
+    active_breaches_7d INTEGER NOT NULL DEFAULT 0,
+    total_trips_allocated INTEGER NOT NULL DEFAULT 120,
+    trips_completed INTEGER NOT NULL DEFAULT 118,
+    total_penalties_paise BIGINT NOT NULL DEFAULT 0,
+    last_demoted_hour TEXT,
+    status TEXT NOT NULL DEFAULT 'ACTIVE',
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+    CONSTRAINT uq_tristack_partner_vendor UNIQUE (organization_id, vendor_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.tristack_sla_breaches (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    vendor_id UUID NOT NULL,
+    vendor_name TEXT NOT NULL,
+    duty_id UUID REFERENCES public.duties(id) ON DELETE SET NULL,
+    breach_type TEXT NOT NULL,
+    severity TEXT NOT NULL,
+    penalty_paise BIGINT NOT NULL DEFAULT 0,
+    debit_note_reference TEXT,
+    occurred_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
+);
+
 ALTER TABLE public.tristack_partner_sla_profiles
     ADD COLUMN IF NOT EXISTS last_demoted_hour TEXT;
 
@@ -92,4 +123,4 @@ ALTER TABLE public.tristack_system_controls ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY tristack_controls_tenant_isolation ON public.tristack_system_controls
     FOR ALL
-    USING (organization_id = (SELECT organization_id FROM public.users WHERE id = auth.uid()));
+    USING (organization_id in (select organization_id from public.organization_memberships where user_id = auth.uid()) or organization_id = (auth.jwt() ->> 'organization_id')::uuid or auth.role() = 'service_role');

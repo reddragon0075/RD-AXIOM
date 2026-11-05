@@ -354,7 +354,7 @@ export class AdminSaasConsole {
                   ? this.renderNativeCrmView()
                   : (this.state.activeView === 'SIMULATOR'
                       ? this.renderSimulatorView()
-                      : (this.state.activeView === 'CORP_PORTAL' ? this.renderCorporatePortalView() : this.renderTenantsView()))))
+                      : (this.state.activeView === 'CORP_PORTAL' ? this.renderCorporatePortalView() : this.renderTenantsView()))))}
       </div>
 
       <!-- Modals -->

@@ -26,7 +26,7 @@ create index if not exists idx_employee_bands_org on public.employee_bands(organ
 alter table public.employee_bands enable row level security;
 
 create policy employee_bands_org_isolation on public.employee_bands
-  for all using (organization_id = auth.jwt() ->> 'organization_id'::uuid or auth.role() = 'service_role');
+  for all using (organization_id = (auth.jwt() ->> 'organization_id')::uuid or auth.role() = 'service_role');
 
 
 -- 2. Supplier Waterfall Allotment Rules
@@ -54,7 +54,7 @@ create index if not exists idx_supplier_waterfall_rules_org on public.supplier_w
 alter table public.supplier_waterfall_rules enable row level security;
 
 create policy supplier_waterfall_rules_isolation on public.supplier_waterfall_rules
-  for all using (organization_id = auth.jwt() ->> 'organization_id'::uuid or auth.role() = 'service_role');
+  for all using (organization_id = (auth.jwt() ->> 'organization_id')::uuid or auth.role() = 'service_role');
 
 
 -- 3. Supplier Waterfall Allotment Attempts & Telemetry
@@ -80,7 +80,7 @@ create index if not exists idx_waterfall_attempts_booking on public.supplier_wat
 alter table public.supplier_waterfall_attempts enable row level security;
 
 create policy supplier_waterfall_attempts_isolation on public.supplier_waterfall_attempts
-  for all using (organization_id = auth.jwt() ->> 'organization_id'::uuid or auth.role() = 'service_role');
+  for all using (organization_id = (auth.jwt() ->> 'organization_id')::uuid or auth.role() = 'service_role');
 
 
 -- 4. REA Resources (Standardized economic goods and tax rights)
@@ -120,7 +120,7 @@ create index if not exists idx_rea_dualities_org on public.rea_dualities(organiz
 alter table public.rea_dualities enable row level security;
 
 create policy rea_dualities_isolation on public.rea_dualities
-  for all using (organization_id = auth.jwt() ->> 'organization_id'::uuid or auth.role() = 'service_role');
+  for all using (organization_id = (auth.jwt() ->> 'organization_id')::uuid or auth.role() = 'service_role');
 
 
 -- 6. REA Economic Events (Immutable double-entry balance log)

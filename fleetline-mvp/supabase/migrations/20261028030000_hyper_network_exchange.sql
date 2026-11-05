@@ -132,10 +132,20 @@ CREATE INDEX IF NOT EXISTS idx_zk_seals_duty ON zk_compliance_seals(duty_id);
 -- 7. ADD EV BATTERY & RANGE COLUMNS TO VEHICLES IF NOT PRESENT
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'domain_vehicles' AND column_name = 'ev_battery_soc_pct') THEN
-        ALTER TABLE domain_vehicles ADD COLUMN ev_battery_soc_pct REAL DEFAULT 100.0;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'vehicles') THEN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'vehicles' AND column_name = 'ev_battery_soc_pct') THEN
+            ALTER TABLE public.vehicles ADD COLUMN IF NOT EXISTS ev_battery_soc_pct REAL DEFAULT 100.0;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'vehicles' AND column_name = 'estimated_range_km') THEN
+            ALTER TABLE public.vehicles ADD COLUMN IF NOT EXISTS estimated_range_km REAL DEFAULT 300.0;
+        END IF;
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'domain_vehicles' AND column_name = 'estimated_range_km') THEN
-        ALTER TABLE domain_vehicles ADD COLUMN estimated_range_km REAL DEFAULT 300.0;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'domain_vehicles') THEN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'domain_vehicles' AND column_name = 'ev_battery_soc_pct') THEN
+            ALTER TABLE public.domain_vehicles ADD COLUMN IF NOT EXISTS ev_battery_soc_pct REAL DEFAULT 100.0;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'domain_vehicles' AND column_name = 'estimated_range_km') THEN
+            ALTER TABLE public.domain_vehicles ADD COLUMN IF NOT EXISTS estimated_range_km REAL DEFAULT 300.0;
+        END IF;
     END IF;
 END $$;
