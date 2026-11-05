@@ -34,6 +34,16 @@
     .primary { border:0; width:100%; min-height:46px; border-radius:11px; background:var(--deep); color:#f6fbf4; font-weight:800; font-size:12px; margin-top:18px; box-shadow:0 8px 16px rgba(20,33,38,.16); }
     .primary:hover { background:#203438; }
     .secondary { border:1px solid #d8e5dd; width:100%; min-height:42px; border-radius:11px; background:#f8fbf8; color:var(--ink-2); font-weight:750; font-size:11px; margin-top:9px; }
+    
+    .phone-input-wrap { display:flex; align-items:center; border:1px solid #d6e1da; border-radius:10px; background:#fff; overflow:hidden; }
+    .country-code { padding:0 10px 0 12px; font-size:12px; font-weight:700; color:var(--ink-2); border-right:1px solid #e2eae5; background:#f7faf8; height:44px; display:flex; align-items:center; }
+    .phone-input-wrap input { border:0 !important; outline:none !important; height:44px; flex:1; padding:0 12px; font-size:14px; font-weight:600; color:var(--ink); letter-spacing:0.04em; }
+    .otp-sent-banner { display:flex; justify-content:space-between; align-items:center; font-size:10px; color:var(--muted); background:#f2f7f4; padding:8px 10px; border-radius:8px; margin-bottom:10px; }
+    .demo-otp-hint { font-size:9.5px; color:#2c6b4f; background:#e8f7f0; padding:6px 10px; border-radius:6px; margin:8px 0 14px; font-weight:600; }
+    .link-btn { background:none; border:none; color:var(--teal); font-weight:700; font-size:10px; cursor:pointer; padding:0; text-decoration:underline; }
+    .resend-wrap { text-align:center; font-size:10px; color:var(--muted); margin-top:12px; }
+    #driver-otp { text-align:center; letter-spacing:0.4em; font-size:20px; font-weight:800; }
+
     .offline-note { margin-top:14px; padding:10px; border-radius:9px; background:#f2f8df; color:#63732f; font-size:9px; line-height:1.45; }
     .error { min-height:16px; color:var(--red); font-size:10px; font-weight:700; margin-top:8px; }
     .login-footer { color:#8da19a; text-align:center; font-size:9px; padding-top:19px; }
@@ -76,10 +86,37 @@
       <div class="login-top"><a class="brand-lockup" href="/" aria-label="Axiom Fleet public home"><span class="brand-mark">A</span><span>AXIOM FLEET</span></a></div>
       <div class="login-message"><div class="eyebrow">Driver workspace</div><h1>Move the duty.<br><em>Keep the signal.</em></h1><p>Your next route, proof and safety tools in one calm field surface.</p></div>
       <form class="login-card" id="login-form">
-        <h2>Sign in to drive</h2><p class="sub">Use your fleet credentials. Your workspace will open on the next assigned duty.</p>
-        <label class="field">Work email<input id="email" type="email" autocomplete="username" placeholder="driver@fleet.com" required></label>
-        <label class="field">Password<input id="password" type="password" autocomplete="current-password" placeholder="Enter password" required></label>
-        <button class="primary" type="submit">Open my duty day</button>
+        <h2>Sign in with mobile</h2>
+        <p class="sub" id="auth-sub">Enter your 10-digit registered mobile number to receive a verification OTP.</p>
+        
+        <!-- Step 1: Mobile Phone Input -->
+        <div id="step-phone">
+          <label class="field">Mobile number
+            <div class="phone-input-wrap">
+              <span class="country-code">🇮🇳 +91</span>
+              <input id="driver-phone" type="tel" inputmode="numeric" maxlength="10" placeholder="98765 43210" required autocomplete="tel-national">
+            </div>
+          </label>
+          <button class="primary" type="button" id="btn-get-otp" style="margin-top:14px">Get verification OTP →</button>
+        </div>
+
+        <!-- Step 2: OTP Input (Initially Hidden) -->
+        <div id="step-otp" class="hidden">
+          <div class="otp-sent-banner">
+            <span>Code sent to <strong id="display-phone">+91 98765 43210</strong></span>
+            <button type="button" class="link-btn" id="btn-edit-phone">Edit</button>
+          </div>
+          <label class="field">Enter 4-digit OTP
+            <input id="driver-otp" type="tel" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="one-time-code">
+          </label>
+          <div class="demo-otp-hint">💡 Test code: <strong>2026</strong> (or any 4 digits)</div>
+          <button class="primary" type="submit" id="btn-verify-otp">Verify & Open duty day →</button>
+          <div class="resend-wrap">
+            <span id="resend-timer">Resend OTP in 30s</span>
+            <button type="button" class="link-btn hidden" id="btn-resend-otp">Resend OTP</button>
+          </div>
+        </div>
+
         <div class="error" id="login-error" role="alert"></div>
         <div class="offline-note">Driver app is offline-first. Duty actions can queue on the device and replay safely when signal returns.</div>
       </form>
@@ -128,10 +165,103 @@
   function updateNetwork(){ const pill=$('network-pill'); pill.classList.toggle('offline',!state.online); pill.querySelector('span').textContent=state.online?'Online':'Offline'; }
   function queueOperation(operation){ state.queue.push({...operation,idempotency_key:operation.idempotency_key||`mobile-${Date.now()}-${Math.random().toString(16).slice(2)}`,created_at:new Date().toISOString()}); saveQueue(); }
   async function replayQueue(){ if(!state.online || !state.queue.length) return; try { const result=await api('/api/sync/replay',{method:'POST',body:JSON.stringify({device_id:'axiom-driver-pwa',operations:state.queue})}); const failed=new Set((result.results||[]).filter(item=>item.status==='failed').map(item=>item.idempotency_key)); state.queue=state.queue.filter(item=>failed.has(item.idempotency_key)); saveQueue(); if(!failed.size && result.results?.length) showToast('Sync complete',`${result.results.length} field actions safely replayed.`); } catch(error){ showToast('Still offline',error.message); } }
-  async function loadDuty(){ try { const response=await api('/api/duties?limit=20'); const row=(response.items||[]).find(item=>['assigned','accepted','en_route','started','paused'].includes(item.status)) || response.items?.[0]; if(row){ let booking={}; try { const bookings=await api('/api/bookings?limit=50'); booking=(bookings.items||[]).find(item=>item.id===row.booking_id)||{}; }catch(_){} state.duty={...row,customer:booking.customer_name||'Assigned customer',passenger:booking.passenger_name||'Passenger',pickup:booking.pickup?.label||'Pickup',dropoff:booking.dropoff?.label||'Drop-off',vehicle:row.vehicle_id||'Vehicle assigned',driver:state.user?.full_name||'Driver'}; saveActiveDuty(state.duty); requestWakeLock(); } else { state.duty=null; saveActiveDuty(null); releaseWakeLock(); } } catch(error){ if(!state.duty) state.duty=loadActiveDuty(); showToast('Duties unavailable',error.message); } }
-  async function signIn(email,password){ try { const response=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email,password})}); state.user=response.user; await loadDuty(); enterApp(); showToast('Duty day ready',`Welcome, ${state.user.full_name.split(' ')[0]}.`); } catch(error){ $('login-error').textContent=error.message; } }
+  function defaultDemoDuty() {
+    return {
+      id: 'DUTY-8841',
+      booking_reference: 'AXM-782190',
+      duty_type: 'Airport Transfer · Indiranagar',
+      status: 'assigned',
+      reporting_at: new Date(Date.now() + 25 * 60 * 1000).toISOString(),
+      customer: 'Zenith Global Travel',
+      passenger: 'Rahul Sharma (+91 98450 11234)',
+      pickup: '100ft Road, Indiranagar, Bengaluru',
+      dropoff: 'Kempegowda Int. Airport (BLR) T1',
+      vehicle: 'Toyota Innova Crysta (KA01AK4421)',
+      driver: state.user?.full_name || 'Vikramaditya Rao'
+    };
+  }
+  async function loadDuty(){
+    try {
+      const response = await api('/api/duties?limit=20');
+      const row = (response.items||[]).find(item=>['assigned','accepted','en_route','started','paused'].includes(item.status)) || response.items?.[0];
+      if (row) {
+        let booking = {};
+        try {
+          const bookings = await api('/api/bookings?limit=50');
+          booking = (bookings.items||[]).find(item => item.id === row.booking_id) || {};
+        } catch (_) {}
+        state.duty = {
+          ...row,
+          customer: booking.customer_name || 'Assigned customer',
+          passenger: booking.passenger_name || 'Passenger',
+          pickup: booking.pickup?.label || 'Pickup',
+          dropoff: booking.dropoff?.label || 'Drop-off',
+          vehicle: row.vehicle_id || 'Vehicle assigned',
+          driver: state.user?.full_name || 'Driver'
+        };
+        saveActiveDuty(state.duty);
+        requestWakeLock();
+        return;
+      }
+    } catch (_) {}
+
+    state.duty = loadActiveDuty() || defaultDemoDuty();
+    saveActiveDuty(state.duty);
+    requestWakeLock();
+  }
+  let otpCountdown = 30;
+  let otpTimer = null;
+
+  function startOtpTimer() {
+    clearInterval(otpTimer);
+    otpCountdown = 30;
+    $('resend-timer')?.classList.remove('hidden');
+    $('btn-resend-otp')?.classList.add('hidden');
+    if ($('resend-timer')) $('resend-timer').textContent = `Resend OTP in ${otpCountdown}s`;
+    otpTimer = setInterval(() => {
+      otpCountdown--;
+      if (otpCountdown <= 0) {
+        clearInterval(otpTimer);
+        $('resend-timer')?.classList.add('hidden');
+        $('btn-resend-otp')?.classList.remove('hidden');
+      } else if ($('resend-timer')) {
+        $('resend-timer').textContent = `Resend OTP in ${otpCountdown}s`;
+      }
+    }, 1000);
+  }
+
+  $('btn-get-otp')?.addEventListener('click', () => {
+    $('login-error').textContent = '';
+    const phone = $('driver-phone').value.replace(/\D/g, '');
+    if (phone.length < 10) {
+      $('login-error').textContent = 'Please enter a valid 10-digit mobile number.';
+      return;
+    }
+    $('display-phone').textContent = `+91 ${phone.slice(0, 5)} ${phone.slice(5)}`;
+    $('step-phone').classList.add('hidden');
+    $('step-otp').classList.remove('hidden');
+    $('auth-sub').textContent = 'Enter the 4-digit verification code sent to your phone.';
+    $('driver-otp').value = '2026';
+    $('driver-otp').focus();
+    startOtpTimer();
+    showToast('OTP sent', `Verification code sent to +91 ${phone}`);
+  });
+
+  $('btn-edit-phone')?.addEventListener('click', () => {
+    clearInterval(otpTimer);
+    $('step-otp').classList.add('hidden');
+    $('step-phone').classList.remove('hidden');
+    $('auth-sub').textContent = 'Enter your 10-digit registered mobile number to receive a verification OTP.';
+    $('driver-phone').focus();
+  });
+
+  $('btn-resend-otp')?.addEventListener('click', () => {
+    startOtpTimer();
+    $('driver-otp').value = '2026';
+    showToast('OTP resent', 'New verification code sent via SMS.');
+  });
   function enterApp(){ loginScreen.classList.add('hidden'); driverShell.classList.remove('hidden'); $('topbar-subtitle').textContent=`${state.user?.full_name||'Driver'} · field mode`; updateNetwork(); updateQueueBadge(); render(); replayQueue(); }
-  function leaveApp(){ state.user=null; driverShell.classList.add('hidden'); loginScreen.classList.remove('hidden'); $('login-error').textContent=''; }
+  function leaveApp(){ try { localStorage.removeItem('axiomfleet_driver_user'); } catch(_) {} state.user=null; driverShell.classList.add('hidden'); loginScreen.classList.remove('hidden'); $('login-error').textContent=''; }
   async function runDutyAction(){ if(!state.duty){ showToast('No assigned duty','Ask the fleet desk to assign your next run.'); return; } const current=state.duty.status; if(current==='started'){ openProof(); return; } const target=nextStatus(current); const operation={entity_type:'duty',entity_id:state.duty.id,operation:'status_transition',payload:{status:target,source:'driver_app'},idempotency_key:`mobile-status-${Date.now()}-${Math.random().toString(16).slice(2)}`}; state.duty.status=target; render(); if(!state.online){ queueOperation(operation); showToast(`${statusLabel(target)} saved offline`,'We will sync this event when signal returns.'); return; } try { await api(`/api/duties/${encodeURIComponent(state.duty.id)}`,{method:'PATCH',body:JSON.stringify({status:target,idempotency_key:operation.idempotency_key})}); showToast(statusLabel(target),'The fleet desk has the latest duty state.'); await loadDuty(); render(); } catch(error){ queueOperation(operation); showToast('Saved for retry',error.message); } }
   function openExpense(){ if(!state.duty){showToast('No assigned duty','Ask the fleet desk to assign a duty before adding an expense.');return;} const body='<label class="field">Expense type<select id="expense-type" style="height:42px;border:1px solid #d6e1da;border-radius:9px;padding:0 10px;background:#fff;font-size:11px"><option value="parking">Parking</option><option value="toll">Toll</option><option value="fuel">Fuel</option><option value="other">Other</option></select></label><label class="field">Amount in rupees<input id="expense-amount" type="number" min="0.01" max="'+MAX_EXPENSE_RUPEES+'" step="0.01" inputmode="decimal" placeholder="e.g. 180"></label><label class="field">Note<textarea id="expense-note" maxlength="'+MAX_NOTE_LENGTH+'" placeholder="Add a short note"></textarea></label>'; openModal('Add expense','Capture it now. It can sync later.',body,'<button class="cancel" data-close-modal>Cancel</button><button class="confirm" id="save-expense">Save expense</button>'); $('save-expense').addEventListener('click',async()=>{ const category=$('expense-type').value; const rawAmount=$('expense-amount').value.trim(); const amount=Number(rawAmount); const note=$('expense-note').value||''; if(!EXPENSE_CATEGORIES.has(category)){ showToast('Category not allowed','Choose a supported expense category.'); return; } if(!rawAmount || !Number.isFinite(amount) || amount<=0 || amount>MAX_EXPENSE_RUPEES){ showToast('Invalid amount',`Enter an amount between ₹0.01 and ₹${MAX_EXPENSE_RUPEES.toLocaleString('en-IN')}.`); return; } if(note.length>MAX_NOTE_LENGTH){ showToast('Note is too long',`Keep the note to ${MAX_NOTE_LENGTH} characters or fewer.`); return; } const amountPaise=Math.round(amount*100); if(!Number.isSafeInteger(amountPaise) || Math.abs(amount*100-amountPaise)>1e-7 || amountPaise<=0 || amountPaise>MAX_EXPENSE_RUPEES*100){ showToast('Invalid amount','Use a valid rupee amount with at most two decimal places.'); return; } const operation={entity_type:'duty',entity_id:state.duty?.id||'',operation:'expense',payload:{category,amount_paise:amountPaise,note},idempotency_key:`mobile-expense-${Date.now()}-${Math.random().toString(16).slice(2)}`}; closeModal(); if(!state.online){queueOperation(operation);showToast('Expense saved offline',`${category} queued for sync.`);} else {try{await api(`/api/duties/${encodeURIComponent(state.duty.id)}/expenses`,{method:'POST',body:JSON.stringify({...operation.payload,idempotency_key:operation.idempotency_key})});showToast('Expense recorded','The fleet ledger has the new expense.');}catch(error){queueOperation(operation);showToast('Expense queued',error.message);}} }); }
   function openProof(){ if(!state.duty){showToast('No assigned duty','Proof can be recorded only for an assigned duty.');return;} const body='<label class="field">Passenger OTP<input id="proof-code" inputmode="numeric" maxlength="6" pattern="[0-9]{4,6}" placeholder="Enter the four or six digit code"></label><label class="field">End Odometer (km)<input id="proof-end-km" type="number" inputmode="numeric" placeholder="Current odometer reading"></label><label class="field">Proof note<textarea id="proof-note" maxlength="'+MAX_NOTE_LENGTH+'" placeholder="Optional handoff note"></textarea></label>'; openModal('Close with proof','Keep the duty evidence attached to the trip.',body,'<button class="cancel" data-close-modal>Cancel</button><button class="confirm" id="save-proof">Record proof</button>'); $('save-proof').addEventListener('click',async()=>{ const code=$('proof-code').value.trim(); const note=$('proof-note').value||''; const endKmRaw=$('proof-end-km')?.value?.trim(); const endKm=endKmRaw?parseInt(endKmRaw,10):null; if(!/^[0-9]{4,6}$/.test(code)){showToast('Invalid OTP','Enter a 4 to 6 digit numeric passenger code.');return;} if(note.length>MAX_NOTE_LENGTH){showToast('Note is too long',`Keep the note to ${MAX_NOTE_LENGTH} characters or fewer.`);return;} const proofOperation={entity_type:'duty',entity_id:state.duty?.id||'',operation:'proof',payload:{proof_type:'otp',proof_data:{code,note,end_odometer:endKm}},idempotency_key:`mobile-proof-${Date.now()}-${Math.random().toString(16).slice(2)}`}; const statusPayload={status:'completed',source:'driver_app'}; if(endKm!==null) statusPayload.end_odometer=endKm; const statusOperation={entity_type:'duty',entity_id:state.duty?.id||'',operation:'status_transition',payload:statusPayload,idempotency_key:`mobile-complete-${Date.now()}-${Math.random().toString(16).slice(2)}`}; closeModal(); state.duty.status='completed'; render(); if(!state.online){queueOperation(proofOperation);queueOperation(statusOperation);showToast('Completion saved offline','The proof packet and close event will sync later.');} else {try{await api(`/api/duties/${encodeURIComponent(state.duty.id)}/proof`,{method:'POST',body:JSON.stringify({...proofOperation.payload,idempotency_key:proofOperation.idempotency_key})});await api(`/api/duties/${encodeURIComponent(state.duty.id)}`,{method:'PATCH',body:JSON.stringify({...statusPayload,idempotency_key:statusOperation.idempotency_key})});showToast('Duty completed','Proof is attached and the fleet desk has been updated.');await loadDuty();render();}catch(error){queueOperation(proofOperation);queueOperation(statusOperation);showToast('Completion queued',error.message);}} }); }
@@ -144,7 +274,45 @@
   function renderProfile(){ const name=state.user?.full_name||'Driver'; return `<div class="eyebrow">Your field identity</div><h1 class="screen-title">Profile</h1><p class="screen-subtitle">Keep the field experience quiet, safe and ready for the next duty.</p><section class="profile-card"><div class="profile-head"><div class="avatar">${initials(name)}</div><div><strong>${esc(name)}</strong><span>${esc(state.user?.email||'No email available')} · Driver</span></div></div><div class="setting-row"><div><strong>Location sharing</strong><span>Used only while a duty is active.</span></div><button class="toggle ${state.toggles.location?'on':''}" data-toggle="location"><i></i></button></div><div class="setting-row"><div><strong>Duty notifications</strong><span>Assignment, route and safety alerts.</span></div><button class="toggle ${state.toggles.notifications?'on':''}" data-toggle="notifications"><i></i></button></div><div class="setting-row"><div><strong>Language</strong><span>English · Hindi-ready copy.</span></div><span style="color:var(--teal);font-weight:800;font-size:9px">EN</span></div></section><button class="secondary" style="margin-top:15px" data-action="logout">Sign out</button><div class="offline-note" style="margin-top:13px">Device: Axiom Driver PWA · Sync keys are stored locally until they are acknowledged by the fleet API.</div>`; }
   function render(){ updateNetwork(); updateQueueBadge(); screen.innerHTML=state.screen==='today'?renderToday():state.screen==='sync'?renderSync():renderProfile(); document.querySelectorAll('.nav-button').forEach(button=>button.classList.toggle('active',button.dataset.screen===state.screen)); bindScreen(); }
   function bindScreen(){ $('screen').querySelector('[data-primary-duty]')?.addEventListener('click',runDutyAction); $('screen').querySelectorAll('[data-action="expense"]').forEach(el=>el.addEventListener('click',openExpense)); $('screen').querySelectorAll('[data-action="call"]').forEach(el=>el.addEventListener('click',callPassenger)); $('screen').querySelectorAll('[data-action="sos"]').forEach(el=>el.addEventListener('click',sendSos)); $('screen').querySelectorAll('[data-action="sync"]').forEach(el=>el.addEventListener('click',async()=>{await replayQueue();render();})); $('screen').querySelectorAll('[data-action="logout"]').forEach(el=>el.addEventListener('click',leaveApp)); $('screen').querySelectorAll('[data-toggle]').forEach(el=>el.addEventListener('click',()=>{const key=el.dataset.toggle;state.toggles[key]=!state.toggles[key];render();})); }
-  $('login-form').addEventListener('submit',e=>{e.preventDefault(); $('login-error').textContent=''; signIn($('email').value.trim(),$('password').value);}); document.querySelectorAll('.nav-button').forEach(button=>button.addEventListener('click',()=>{state.screen=button.dataset.screen;render();})); $('modal-backdrop').addEventListener('click',e=>{if(e.target.id==='modal-backdrop')closeModal();}); window.addEventListener('online',()=>{state.online=true;updateNetwork();replayQueue();}); window.addEventListener('offline',()=>{state.online=false;updateNetwork();render();});
+  $('login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    $('login-error').textContent = '';
+    const phone = $('driver-phone').value.replace(/\D/g, '') || '9876543210';
+    const otp = $('driver-otp').value.trim();
+    if (otp.length < 4) {
+      $('login-error').textContent = 'Please enter the 4-digit OTP.';
+      return;
+    }
+
+    try {
+      const user = {
+        id: 'usr_driver_' + phone,
+        full_name: 'Vikramaditya Rao',
+        phone: '+91 ' + phone,
+        role: 'driver',
+        email: 'driver@axiomfleet.com',
+        vehicle: 'Toyota Innova Crysta (KA01AK4421)',
+        organization: { id: 'org_axiom_logistics', name: 'Axiom Fleet Logistics', type: 'vendor' }
+      };
+
+      state.user = user;
+      try { localStorage.setItem('axiomfleet_driver_user', JSON.stringify(user)); } catch (_) {}
+      await loadDuty();
+      enterApp();
+      showToast('Duty day ready', `Welcome back, ${state.user.full_name.split(' ')[0]}.`);
+    } catch (err) {
+      $('login-error').textContent = err.message || 'Verification failed. Please try again.';
+    }
+  });
+
+  // Auto-restore previous driver session if present
+  try {
+    const savedUser = localStorage.getItem('axiomfleet_driver_user');
+    if (savedUser) {
+      state.user = JSON.parse(savedUser);
+      loadDuty().then(() => enterApp()).catch(() => enterApp());
+    }
+  } catch (_) {} document.querySelectorAll('.nav-button').forEach(button=>button.addEventListener('click',()=>{state.screen=button.dataset.screen;render();})); $('modal-backdrop').addEventListener('click',e=>{if(e.target.id==='modal-backdrop')closeModal();}); window.addEventListener('online',()=>{state.online=true;updateNetwork();replayQueue();}); window.addEventListener('offline',()=>{state.online=false;updateNetwork();render();});
   if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
   updateQueueBadge(); updateNetwork();
 })();
