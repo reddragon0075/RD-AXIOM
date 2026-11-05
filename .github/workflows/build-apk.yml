@@ -26,29 +26,32 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
       - name: Prepare Driver App Web Assets
         run: |
           mkdir -p build-www
           cp -r driver-app/* build-www/
+          echo "Driver web assets ready in build-www:"
+          ls -la build-www/
 
       - name: Install Capacitor CLI & Android Tooling
         run: |
           npm init -y
-          npm install @capacitor/core@6.2.0 @capacitor/cli@6.2.0 @capacitor/android@6.2.0
+          npm install --save @capacitor/core@6.2.0 @capacitor/cli@6.2.0 @capacitor/android@6.2.0 --no-audit --no-fund
 
       - name: Initialize Capacitor Configuration
         run: |
@@ -57,13 +60,7 @@ jobs:
             "appId": "com.axiom.driver",
             "appName": "Axiom Driver",
             "webDir": "build-www",
-            "bundledWebRuntime": false,
-            "server": {
-              "cleartext": true
-            },
-            "android": {
-              "allowMixedContent": true
-            }
+            "bundledWebRuntime": false
           }
           EOF
 
@@ -74,7 +71,6 @@ jobs:
       - name: Configure Android Permissions in AndroidManifest.xml
         run: |
           python3 -c "
-          import re
           manifest_path = 'android/app/src/main/AndroidManifest.xml'
           with open(manifest_path, 'r', encoding='utf-8') as f:
               content = f.read()
@@ -90,10 +86,7 @@ jobs:
               <uses-feature android:name=\"android.hardware.location.gps\" android:required=\"false\" />
           '''
           
-          if '<uses-permission' not in content:
-              content = content.replace('<application', permissions + '\n    <application')
-          else:
-              content = content.replace('<application', permissions + '\n    <application')
+          content = content.replace('<application', permissions + '\n    <application')
 
           with open(manifest_path, 'w', encoding='utf-8') as f:
               f.write(content)
@@ -110,6 +103,10 @@ jobs:
               cp driver-app/icon-512.png "$dir/ic_launcher_round.png" 2>/dev/null || true
             done
           fi
+
+      - name: Sync Capacitor to Android
+        run: |
+          npx cap sync android
 
       - name: Build Android Debug APK with Gradle
         run: |
@@ -150,8 +147,8 @@ jobs:
               - Offline-first state persistence & digital duty slip closing
               - G2G 4-point odometer audit
               - Camera receipt capture for tolls and parking
-              - Option 2 Standby Radar & Next Scheduled Duty promotion
-              - Built-in Leaflet & OpenStreetMap transport navigation
+              - Option 2 Standby Radar & Next Scheduled Roster promotion
+              - Embedded Leaflet & OpenStreetMap transport navigation
           files: dist-apk/axiom-driver.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
