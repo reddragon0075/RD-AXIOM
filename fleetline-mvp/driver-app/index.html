@@ -343,7 +343,21 @@
     .history-route { font-size: 12px; font-weight: 800; margin: 6px 0 3px; }
     .history-meta { font-size: 10px; color: var(--muted); }
 
-    /* ----------------------------------------------------
+        .btn-add-past-expense {
+      display: inline-flex; align-items: center; gap: 5px;
+      margin-top: 8px; padding: 6px 12px; border-radius: 8px;
+      background: #f0f7f4; color: var(--teal-dark); font-size: 11px; font-weight: 800;
+      border: 1px dashed #b2ddd1; cursor: pointer; transition: background 0.15s;
+    }
+    .btn-add-past-expense:active { background: #daf2e8; transform: scale(0.98); }
+    .past-expense-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .past-expense-pill {
+      font-size: 10px; font-weight: 700; background: #fff8e6; color: #b5771c;
+      padding: 3px 8px; border-radius: 6px; border: 1px solid #fae6be;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+
+/* ----------------------------------------------------
        BOTTOM TAB BAR (Uber Navigation)
        ---------------------------------------------------- */
     .bottom-tab-bar {
@@ -778,9 +792,9 @@
       sliderThumbWidth: 48,
       todayEarnings: 1850,
       completedDuties: [
-        { id: 'DUTY-8840', route: 'Koramangala 5th Block → Embassy GolfLinks', fare: 420, time: '09:15 AM' },
-        { id: 'DUTY-8839', route: 'Whitefield ITPL → HSR Layout Sector 2', fare: 680, time: '07:45 AM' },
-        { id: 'DUTY-8835', route: 'BLR Airport T1 → Indiranagar 100ft Rd', fare: 750, time: '05:30 AM' }
+        { id: 'DUTY-8840', route: 'Koramangala 5th Block → Embassy GolfLinks', fare: 420, time: '09:15 AM', expenses: [{ category: 'parking', amount: 80, note: 'Visitor Parking P2' }] },
+        { id: 'DUTY-8839', route: 'Whitefield ITPL → HSR Layout Sector 2', fare: 680, time: '07:45 AM', expenses: [{ category: 'toll', amount: 110, note: 'Outer Ring Rd Fastag' }] },
+        { id: 'DUTY-8835', route: 'BLR Airport T1 → Indiranagar 100ft Rd', fare: 750, time: '05:30 AM', expenses: [{ category: 'toll', amount: 90, note: 'Airport Trumpet Toll' }] }
       ]
     };
 
@@ -1229,20 +1243,131 @@
     // EARNINGS SCREEN RENDERER
     // ----------------------------------------------------
     function renderEarningsView() {
+      const totalTolls = state.completedDuties.reduce((sum, d) => sum + (d.expenses || []).reduce((es, e) => es + (e.amount || 0), 0), 280);
       $('top-earnings-val').textContent = `₹${state.todayEarnings.toLocaleString('en-IN')}`;
       $('earnings-total').textContent = `₹${state.todayEarnings.toLocaleString('en-IN')}.00`;
+      if ($('kpi-tolls')) $('kpi-tolls').textContent = `₹${totalTolls}`;
       const listEl = $('duty-history-list');
       if (!listEl) return;
-      listEl.innerHTML = state.completedDuties.map(d => `
-        <div class="history-card">
-          <div class="history-top">
-            <strong style="color:var(--teal-dark);">${d.id}</strong>
-            <span style="font-weight:900; font-size:14px; color:var(--deep);">₹${d.fare}</span>
+      listEl.innerHTML = state.completedDuties.map(d => {
+        const expensePills = (d.expenses && d.expenses.length) ? `
+          <div class="past-expense-pills">
+            ${d.expenses.map(e => `
+              <span class="past-expense-pill">
+                ${e.category === 'parking' ? '🅿️ Parking' : e.category === 'toll' ? '🛣️ Toll / Fastag' : '🧾 Expense'}: ₹${e.amount}
+              </span>
+            `).join('')}
           </div>
-          <div class="history-route">${d.route}</div>
-          <div class="history-meta">Completed at ${d.time} · Direct Payout Verified</div>
-        </div>
-      `).join('');
+        ` : '';
+
+        return `
+          <div class="history-card" data-card-id="${d.id}">
+            <div class="history-top">
+              <strong style="color:var(--teal-dark);">${d.id}</strong>
+              <span style="font-weight:900; font-size:14px; color:var(--deep);">₹${d.fare}</span>
+            </div>
+            <div class="history-route">${d.route}</div>
+            <div class="history-meta">Completed at ${d.time} · Direct Payout Verified</div>
+            ${expensePills}
+            <div style="margin-top:6px;">
+              <button class="btn-add-past-expense" type="button" data-add-expense-duty="${d.id}">
+                + Add Parking / Toll / Expense
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Bind click handlers to "+ Add Parking / Toll / Expense" buttons on past trips
+      listEl.querySelectorAll('[data-add-expense-duty]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openPastDutyExpense(btn.dataset.addExpenseDuty);
+        });
+      });
+    }
+
+    // Function to add parking/toll/other fare to any completed past trip
+    function openPastDutyExpense(dutyId) {
+      const targetDuty = state.completedDuties.find(d => d.id === dutyId) || { id: dutyId, route: 'Selected Past Duty' };
+
+      openModal(
+        `Add Expense to Past Duty: ${dutyId}`,
+        `
+          <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">
+            ${targetDuty.route}
+          </div>
+          <label class="field">Expense Category
+            <select id="past-expense-cat" style="height:44px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px; font-size:13px; background:#fff;">
+              <option value="parking">🅿️ Parking (Airport / Mall / Tech Park)</option>
+              <option value="toll">🛣️ Toll / Fastag</option>
+              <option value="permit">📋 State Border Permit</option>
+              <option value="fuel">⛽ Fuel</option>
+              <option value="other">🧾 Other Incidental</option>
+            </select>
+          </label>
+          <label class="field" style="margin-top:10px;">Amount in Rupees (₹)
+            <input id="past-expense-amt" type="number" min="1" max="10000" placeholder="e.g. 150" style="height:46px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px; font-size:16px; font-weight:700;">
+          </label>
+          <label class="field" style="margin-top:10px;">Receipt Note / Fastag Txn ID
+            <input id="past-expense-note" type="text" placeholder="e.g. Gate 2 parking slip / Fastag deduction" style="height:42px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px; font-size:12px;">
+          </label>
+        `,
+        `
+          <button class="btn-cancel" data-close>Cancel</button>
+          <button class="btn-save" id="btn-save-past-expense">Save & Add to Settlement</button>
+        `
+      );
+
+      $('btn-save-past-expense')?.addEventListener('click', async () => {
+        const cat = $('past-expense-cat')?.value || 'parking';
+        const amt = parseFloat($('past-expense-amt')?.value || '0');
+        const note = $('past-expense-note')?.value?.trim() || '';
+
+        if (!amt || amt <= 0) {
+          alert('Please enter a valid expense amount in Rupees.');
+          return;
+        }
+
+        // 1. Attach expense to this past trip in memory & local storage
+        if (!targetDuty.expenses) targetDuty.expenses = [];
+        targetDuty.expenses.push({ category: cat, amount: amt, note });
+        targetDuty.fare = (targetDuty.fare || 0) + amt;
+
+        // 2. Add to driver total earnings
+        state.todayEarnings += amt;
+
+        // 3. Queue offline sync operation
+        const operation = {
+          entity_type: 'duty',
+          entity_id: dutyId,
+          operation: 'expense',
+          payload: { category: cat, amount_paise: Math.round(amt * 100), note, is_past_duty: true },
+          idempotency_key: `mobile-expense-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          created_at: new Date().toISOString()
+        };
+        state.queue.push(operation);
+        saveQueue();
+
+        closeModal();
+        renderEarningsView();
+        showToast('Expense Added to Past Trip', `₹${amt} (${cat}) attached to ${dutyId} and added to your settlement.`);
+
+        // 4. If online, sync to server
+        if (state.online) {
+          try {
+            await fetch(`/api/duties/${encodeURIComponent(dutyId)}/expenses`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(operation.payload)
+            });
+            state.queue = state.queue.filter(q => q.idempotency_key !== operation.idempotency_key);
+            saveQueue();
+          } catch (_) {}
+        }
+      });
+
+      $('modal-card').querySelector('[data-close]')?.addEventListener('click', closeModal);
     }
 
     // ----------------------------------------------------
