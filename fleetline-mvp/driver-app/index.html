@@ -524,7 +524,7 @@
 
         <div class="trip-badge-bar">
           <div class="trip-phase-tag" id="trip-phase-tag">
-            <span>●</span> <strong id="trip-phase-label">PICK UP PASSENGER</strong>
+            <span>●</span> <strong id="trip-phase-label">B2B DISPATCH · HEAD TO PICKUP</strong>
           </div>
           <div class="trip-eta" id="trip-eta">6 mins (2.4 km)</div>
         </div>
@@ -572,7 +572,7 @@
         <!-- THE ERGONOMIC UBER "SLIDE TO CONFIRM" SLIDER -->
         <div class="slide-confirm-wrap" id="slider-wrap">
           <div class="slide-progress" id="slide-progress"></div>
-          <div class="slide-text" id="slide-text">»»» SLIDE TO START TRIP</div>
+          <div class="slide-text" id="slide-text">»»» SLIDE TO ARRIVE</div>
           <div class="slide-thumb" id="slide-thumb">➜</div>
         </div>
       </article>
@@ -831,7 +831,7 @@
         id: 'DUTY-8841',
         booking_reference: 'AXM-782190',
         duty_type: 'Airport Transfer · Indiranagar',
-        status: 'assigned', // assigned -> accepted -> en_route -> started -> completed
+        status: 'accepted', // B2B corporate dispatch: auto-accepted upon assignment
         reporting_at: new Date(Date.now() + 20 * 60 * 1000).toISOString(),
         customer: 'Zenith Global Travel',
         passenger: 'Rahul Sharma',
@@ -857,7 +857,11 @@
     function loadActiveDuty() {
       try {
         const v = localStorage.getItem(dutyKey);
-        return v ? JSON.parse(v) : null;
+        const duty = v ? JSON.parse(v) : null;
+        if (duty && duty.status === 'assigned') {
+          duty.status = 'accepted'; // B2B contract auto-acceptance
+        }
+        return duty;
       } catch (_) { return null; }
     }
 
@@ -865,9 +869,9 @@
     function getSliderConfig(status) {
       switch (status) {
         case 'assigned':
-          return { label: '»»» SLIDE TO ACCEPT', next: 'accepted', color: '#00b087' };
         case 'accepted':
-          return { label: '»»» SLIDE TO ARRIVE', next: 'en_route', color: '#276ef1' };
+          // In B2B mobility, driver duties are auto-accepted on dispatch; next action is to arrive at pickup
+          return { label: '»»» SLIDE TO ARRIVE', next: 'en_route', color: '#00b087' };
         case 'en_route':
           return { label: '»»» SLIDE TO START TRIP', next: 'started', color: '#dafa5b', needsOtp: true };
         case 'started':
@@ -897,8 +901,8 @@
 
       // Phase Tag & ETA
       const phaseMap = {
-        assigned: { tag: 'NEW ASSIGNMENT', eta: 'Tap to review', sub: 'Corporate Airport Transfer · Premium Sedan' },
-        accepted: { tag: 'HEAD TO PICKUP', eta: '6 mins (2.4 km)', sub: 'Passenger notified of your arrival' },
+        assigned: { tag: 'B2B DISPATCH · AUTO-ACCEPTED', eta: '6 mins (2.4 km)', sub: 'Corporate Airport Transfer · Head to Pickup' },
+        accepted: { tag: 'B2B DISPATCH · HEAD TO PICKUP', eta: '6 mins (2.4 km)', sub: 'Corporate Airport Transfer · Head to Pickup' },
         en_route: { tag: 'ARRIVED AT PICKUP', eta: 'Waiting for passenger', sub: 'Verify passenger 4-digit OTP' },
         started: { tag: 'TRIP IN PROGRESS', eta: '38 mins (28 km)', sub: 'Route: Indiranagar → Airport T1' },
         completed: { tag: 'DUTY CLOSED', eta: 'Payment settled', sub: 'Ready for next dispatch' }

@@ -39,8 +39,8 @@ type ModalMode = 'proof' | 'expense' | null;
 
 function idempotency(prefix: string) { return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`; }
 function initials(name = 'Driver') { return name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() || 'DR'; }
-function dutyAction(status?: string) { return ({ assigned: 'Accept duty', accepted: 'Start duty', en_route: 'Mark arrived', started: 'Complete with proof', paused: 'Resume duty' } as Record<string, string>)[status || ''] || 'Open next duty'; }
-function nextStatus(status?: string) { return ({ assigned: 'accepted', accepted: 'en_route', en_route: 'started', paused: 'started' } as Record<string, string>)[status || ''] || status; }
+function dutyAction(status?: string) { return ({ assigned: 'Head to pickup (B2B Auto-accepted)', accepted: 'Mark arrived at pickup', en_route: 'Verify OTP & Start trip', started: 'Complete with proof', paused: 'Resume duty' } as Record<string, string>)[status || ''] || 'Open next duty'; }
+function nextStatus(status?: string) { return ({ assigned: 'en_route', accepted: 'en_route', en_route: 'started', paused: 'started' } as Record<string, string>)[status || ''] || status; }
 function userTimeZone(user?: SessionUser | null) { const candidate = user?.profile?.timezone || 'UTC'; try { new Intl.DateTimeFormat('en-IN', { timeZone: candidate }).format(); return candidate; } catch (_) { return 'UTC'; } }
 function greeting(user?: SessionUser | null) { let hour = 12; try { const part = new Intl.DateTimeFormat('en-IN', { hour: 'numeric', hour12: false, timeZone: userTimeZone(user) }).formatToParts(new Date()).find(item => item.type === 'hour'); hour = Number(part?.value || 12); } catch (_) {} return hour >= 5 && hour < 12 ? 'Good morning' : hour >= 12 && hour < 18 ? 'Good afternoon' : 'Good evening'; }
 function time(value?: string | null, user?: SessionUser | null) { if (!value) return 'Today'; return new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: userTimeZone(user) }).format(new Date(value)); }
