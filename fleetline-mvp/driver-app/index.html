@@ -357,7 +357,48 @@
       display: inline-flex; align-items: center; gap: 4px;
     }
 
-    /* Segment Switch for Active vs Upcoming Roster */
+        /* Garage-to-Garage (G2G) 4-Point Odometer Timeline */
+    .g2g-timeline-box {
+      background: #f7faf8; border: 1.5px solid #dce7e1; border-radius: 14px;
+      padding: 10px 12px; margin: 10px 0;
+    }
+    .g2g-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+      font-size: 10px; font-weight: 800; color: var(--ink-2); letter-spacing: 0.05em;
+    }
+    .g2g-badge {
+      background: #e0f6f0; color: #008f6d; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px;
+    }
+    .g2g-track {
+      display: flex; align-items: flex-start; justify-content: space-between; position: relative;
+    }
+    .g2g-line {
+      flex: 1; height: 2px; background: #d7e2dc; margin-top: 10px;
+    }
+    .g2g-line.filled { background: #00b087; }
+    .g2g-node {
+      display: flex; flex-direction: column; align-items: center; text-align: center; width: 62px;
+    }
+    .g2g-node-dot {
+      width: 20px; height: 20px; border-radius: 50%; background: #e3ede8; color: var(--muted);
+      font-size: 10px; font-weight: 900; display: grid; place-items: center; margin-bottom: 3px;
+    }
+    .g2g-node.active .g2g-node-dot {
+      background: #00b087; color: #ffffff; box-shadow: 0 0 0 3px rgba(0,176,135,0.22);
+    }
+    .g2g-node.done .g2g-node-dot {
+      background: #0e1a1e; color: #dafa5b;
+    }
+    .g2g-node-title { font-size: 9px; font-weight: 800; color: var(--ink-2); }
+    .g2g-node-val { font-size: 10px; font-weight: 900; color: var(--deep); margin-top: 1px; }
+    .g2g-node-time { font-size: 8.5px; color: var(--muted); }
+    .g2g-metrics-strip {
+      display: flex; justify-content: space-between; margin-top: 8px; padding-top: 6px;
+      border-top: 1px dashed #d7e2dc; font-size: 10px; color: var(--ink-2);
+    }
+    .g2g-metrics-strip strong { color: var(--deep); font-weight: 800; }
+
+/* Segment Switch for Active vs Upcoming Roster */
     .sheet-segment-switch {
       display: flex; background: #ebf3ee; border-radius: 12px; padding: 3px; margin: 4px 0 12px; gap: 4px;
     }
@@ -638,6 +679,48 @@
           </div>
 
           <!-- THE ERGONOMIC UBER "SLIDE TO CONFIRM" SLIDER -->
+          <!-- G2G 4-POINT ODOMETER & TIME AUDIT (Indecab Standard) -->
+          <div class="g2g-timeline-box">
+            <div class="g2g-header">
+              <strong>🏢 GARAGE-TO-GARAGE (G2G) AUDIT</strong>
+              <span class="g2g-badge">Indecab Standard</span>
+            </div>
+            <div class="g2g-track">
+              <div class="g2g-node done" id="g2g-node-out">
+                <div class="g2g-node-dot">1</div>
+                <div class="g2g-node-title">Garage Out</div>
+                <div class="g2g-node-val" id="g2g-out-val">48,210</div>
+                <div class="g2g-node-time" id="g2g-out-time">06:30 AM</div>
+              </div>
+              <div class="g2g-line" id="g2g-line-1"></div>
+              <div class="g2g-node active" id="g2g-node-rep">
+                <div class="g2g-node-dot">2</div>
+                <div class="g2g-node-title">Reported</div>
+                <div class="g2g-node-val" id="g2g-rep-val">--</div>
+                <div class="g2g-node-time" id="g2g-rep-time">--:--</div>
+              </div>
+              <div class="g2g-line" id="g2g-line-2"></div>
+              <div class="g2g-node" id="g2g-node-drop">
+                <div class="g2g-node-dot">3</div>
+                <div class="g2g-node-title">Drop</div>
+                <div class="g2g-node-val" id="g2g-drop-val">--</div>
+                <div class="g2g-node-time" id="g2g-drop-time">--:--</div>
+              </div>
+              <div class="g2g-line" id="g2g-line-3"></div>
+              <div class="g2g-node" id="g2g-node-in">
+                <div class="g2g-node-dot">4</div>
+                <div class="g2g-node-title">Garage In</div>
+                <div class="g2g-node-val" id="g2g-in-val">--</div>
+                <div class="g2g-node-time" id="g2g-in-time">--:--</div>
+              </div>
+            </div>
+            <div class="g2g-metrics-strip">
+              <span>Billed Run: <strong id="g2g-total-km">-- km</strong></span>
+              <span>Dead Run: <strong id="g2g-dead-km">-- km</strong></span>
+              <span>Passenger: <strong id="g2g-trip-km">-- km</strong></span>
+            </div>
+          </div>
+
           <div class="slide-confirm-wrap" id="slider-wrap">
             <div class="slide-progress" id="slide-progress"></div>
             <div class="slide-text" id="slide-text">»»» SLIDE TO ARRIVE</div>
@@ -960,6 +1043,16 @@
         booking_reference: 'AXM-782190',
         duty_type: 'Airport Transfer · Indiranagar',
         status: 'accepted', // B2B corporate dispatch: auto-accepted upon assignment
+        g2g: {
+          garage_out_km: 48210,
+          garage_out_time: '06:30 AM',
+          reported_km: null,
+          reported_time: null,
+          drop_km: null,
+          drop_time: null,
+          garage_in_km: null,
+          garage_in_time: null
+        },
         reporting_at: new Date(Date.now() + 20 * 60 * 1000).toISOString(),
         customer: 'Zenith Global Travel',
         passenger: 'Rahul Sharma',
@@ -1054,6 +1147,47 @@
     function updateCockpitUI() {
       if (!state.duty) return;
       const d = state.duty;
+      if (!d.g2g) {
+        d.g2g = { garage_out_km: 48210, garage_out_time: '06:30 AM', reported_km: null, reported_time: null, drop_km: null, drop_time: null, garage_in_km: null, garage_in_time: null };
+      }
+
+      // Update G2G Timeline Nodes
+      const g = d.g2g;
+      $('g2g-out-val').textContent = g.garage_out_km ? `${g.garage_out_km.toLocaleString('en-IN')}` : '--';
+      $('g2g-out-time').textContent = g.garage_out_time || '--:--';
+
+      $('g2g-rep-val').textContent = g.reported_km ? `${g.reported_km.toLocaleString('en-IN')}` : '--';
+      $('g2g-rep-time').textContent = g.reported_time || '--:--';
+
+      $('g2g-drop-val').textContent = g.drop_km ? `${g.drop_km.toLocaleString('en-IN')}` : '--';
+      $('g2g-drop-time').textContent = g.drop_time || '--:--';
+
+      $('g2g-in-val').textContent = g.garage_in_km ? `${g.garage_in_km.toLocaleString('en-IN')}` : '--';
+      $('g2g-in-time').textContent = g.garage_in_time || '--:--';
+
+      // Update Node active/done classes
+      $('g2g-node-out')?.classList.add('done');
+      $('g2g-node-rep')?.classList.toggle('done', Boolean(g.reported_km));
+      $('g2g-node-rep')?.classList.toggle('active', d.status === 'accepted' || d.status === 'assigned');
+      $('g2g-line-1')?.classList.toggle('filled', Boolean(g.reported_km));
+
+      $('g2g-node-drop')?.classList.toggle('done', Boolean(g.drop_km));
+      $('g2g-node-drop')?.classList.toggle('active', d.status === 'en_route' || d.status === 'started');
+      $('g2g-line-2')?.classList.toggle('filled', Boolean(g.drop_km));
+
+      $('g2g-node-in')?.classList.toggle('done', Boolean(g.garage_in_km));
+      $('g2g-node-in')?.classList.toggle('active', d.status === 'dropped');
+      $('g2g-line-3')?.classList.toggle('filled', Boolean(g.garage_in_km));
+
+      // Calculate Running KM Breakdown
+      const dead1 = (g.reported_km && g.garage_out_km) ? (g.reported_km - g.garage_out_km) : 0;
+      const tripKm = (g.drop_km && g.reported_km) ? (g.drop_km - g.reported_km) : 0;
+      const dead2 = (g.garage_in_km && g.drop_km) ? (g.garage_in_km - g.drop_km) : 0;
+      const totalKm = dead1 + tripKm + dead2;
+
+      $('g2g-total-km').textContent = totalKm ? `${totalKm} km` : (d.status === 'started' ? '15 km' : '-- km');
+      $('g2g-dead-km').textContent = (dead1 + dead2) ? `${dead1 + dead2} km` : '-- km';
+      $('g2g-trip-km').textContent = tripKm ? `${tripKm} km` : (d.status === 'started' ? 'In progress' : '-- km');
 
       // Update Passenger Details
       $('passenger-name').textContent = d.passenger || 'Passenger';
@@ -1152,6 +1286,42 @@
       if (!state.duty) return;
       const current = state.duty.status;
 
+      // Milestone 1: Record Reporting Odometer when arriving at pickup
+      if (current === 'assigned' || current === 'accepted') {
+        const lastKm = state.duty.g2g?.garage_out_km || 48210;
+        openModal(
+          '📍 Record Reporting Odometer (At Pickup)',
+          `
+            <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">
+              Arrived at <strong>100ft Road, Indiranagar</strong>. Enter the vehicle odometer reading to record reporting milestone.
+            </div>
+            <div style="background:#eef6f2; border:1px solid #cce5d7; padding:8px 12px; border-radius:8px; font-size:11px; margin-bottom:10px;">
+              Garage Out: <strong>${lastKm.toLocaleString('en-IN')} km</strong> (06:30 AM)
+            </div>
+            <label class="field">Reporting Odometer (km)
+              <input id="odo-rep-input" type="number" value="${lastKm + 15}" min="${lastKm}" style="font-size:20px; font-weight:900; height:48px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px; outline:none;">
+            </label>
+            <div class="demo-hint">💡 Dead Run: <strong>15 km</strong> (Garage to Indiranagar)</div>
+          `,
+          `
+            <button class="btn-cancel" data-close>Cancel</button>
+            <button class="btn-save" id="btn-save-rep-odo">Confirm Reported</button>
+          `
+        );
+        $('btn-save-rep-odo')?.addEventListener('click', () => {
+          const val = parseInt($('odo-rep-input')?.value || '0', 10);
+          if (!state.duty.g2g) state.duty.g2g = {};
+          state.duty.g2g.reported_km = val;
+          state.duty.g2g.reported_time = new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date());
+          closeModal();
+          advanceDutyStatus('en_route');
+          showToast('Reported at Pickup', `Reporting Odo ${val.toLocaleString('en-IN')} km recorded. Dead KM: ${val - lastKm} km.`);
+        });
+        $('modal-card').querySelector('[data-close]')?.addEventListener('click', () => { closeModal(); resetSlider(); });
+        return;
+      }
+
+      // Milestone 2: Verify Passenger OTP to start trip
       if (current === 'en_route') {
         // Must verify Passenger OTP to start trip!
         openModal(
@@ -1182,7 +1352,90 @@
         return;
       }
 
+      // Milestone 3: Passenger Drop & Drop Odometer
       if (current === 'started') {
+        const lastKm = state.duty.g2g?.reported_km || 48225;
+        openModal(
+          '🏁 Passenger Drop & Drop Odometer',
+          `
+            <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">
+              Passenger dropped at <strong>Kempegowda Int. Airport (BLR) T1</strong>. Record drop odometer to release guest.
+            </div>
+            <div style="background:#eef6f2; border:1px solid #cce5d7; padding:8px 12px; border-radius:8px; font-size:11px; margin-bottom:10px;">
+              Reported at: <strong>${lastKm.toLocaleString('en-IN')} km</strong> · Airport run in progress
+            </div>
+            <label class="field">Drop Odometer (km)
+              <input id="odo-drop-input" type="number" value="${lastKm + 35}" min="${lastKm}" style="font-size:20px; font-weight:900; height:48px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px; outline:none;">
+            </label>
+            <div class="demo-hint">💡 Passenger Trip: <strong>35 km</strong> (Indiranagar to Airport T1)</div>
+          `,
+          `
+            <button class="btn-cancel" data-close>Cancel</button>
+            <button class="btn-save" id="btn-save-drop-odo">Confirm Passenger Drop</button>
+          `
+        );
+        $('btn-save-drop-odo')?.addEventListener('click', () => {
+          const val = parseInt($('odo-drop-input')?.value || '0', 10);
+          state.duty.g2g.drop_km = val;
+          state.duty.g2g.drop_time = new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date());
+          closeModal();
+          advanceDutyStatus('dropped');
+          showToast('Guest Released', `Drop Odo ${val.toLocaleString('en-IN')} km recorded. Passenger Run: ${val - lastKm} km.`);
+        });
+        $('modal-card').querySelector('[data-close]')?.addEventListener('click', () => { closeModal(); resetSlider(); });
+        return;
+      }
+
+      // Milestone 4: Garage In / Final Depot Return
+      if (current === 'dropped') {
+        const lastKm = state.duty.g2g?.drop_km || 48260;
+        openModal(
+          '🏠 Garage In & Digital Duty Slip (DTR)',
+          `
+            <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">
+              Return back to depot / garage or close duty for corporate billing.
+            </div>
+            <label class="field">Garage In Odometer (km)
+              <input id="odo-in-input" type="number" value="${lastKm + 18}" min="${lastKm}" style="font-size:20px; font-weight:900; height:48px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px; outline:none;">
+            </label>
+            <div style="background:#f0f7f3; border:1px solid #cde8d9; border-radius:10px; padding:10px; margin-top:10px; font-size:11px;">
+              <div>🏢 Garage Out: <strong>${(state.duty.g2g.garage_out_km || 48210).toLocaleString('en-IN')} km</strong></div>
+              <div>📍 Reported: <strong>${(state.duty.g2g.reported_km || 48225).toLocaleString('en-IN')} km</strong></div>
+              <div>🏁 Dropped: <strong>${(lastKm).toLocaleString('en-IN')} km</strong></div>
+              <div style="margin-top:6px; font-weight:800; color:var(--teal-dark);">Total G2G Billed Run: 68 km (3.0 hrs)</div>
+            </div>
+          `,
+          `
+            <button class="btn-cancel" data-close>Cancel</button>
+            <button class="btn-save" id="btn-save-in-odo">Close Duty (Signed DTR)</button>
+          `
+        );
+        $('btn-save-in-odo')?.addEventListener('click', () => {
+          const val = parseInt($('odo-in-input')?.value || '0', 10);
+          state.duty.g2g.garage_in_km = val;
+          state.duty.g2g.garage_in_time = new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date());
+
+          // Add to completed duties and update earnings
+          state.todayEarnings += (state.duty.estimated_fare || 850);
+          state.completedDuties.unshift({
+            id: state.duty.id,
+            route: `${state.duty.pickup} → ${state.duty.dropoff}`,
+            fare: state.duty.estimated_fare || 850,
+            time: new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date()),
+            g2g_summary: '68 km G2G (35 km trip + 33 km dead run)',
+            expenses: []
+          });
+
+          closeModal();
+          advanceDutyStatus('completed');
+          showToast('Digital Duty Slip Closed!', `G2G run 68 km recorded. Fare ₹${state.duty.estimated_fare || 850} added to daily earnings.`);
+          renderEarningsView();
+        });
+        $('modal-card').querySelector('[data-close]')?.addEventListener('click', () => { closeModal(); resetSlider(); });
+        return;
+      }
+
+      if (false) {
         // Complete trip with proof / odometer
         openModal(
           'Complete Trip & Record Proof',
