@@ -69,9 +69,9 @@ export async function assignedDuty(): Promise<Duty | null> {
     request<Duty>('/api/duties?limit=20'),
     request<Record<string, unknown>>('/api/bookings?limit=50'),
   ]);
-  const row = (duties.items || []).find(item => ['assigned', 'accepted', 'en_route', 'started', 'paused'].includes(item.status)) || duties.items?.[0];
+  const row = (duties.items || []).find((item: Duty) => ['assigned', 'accepted', 'en_route', 'started', 'paused'].includes(item.status)) || duties.items?.[0];
   if (!row) return null;
-  const booking = (bookings.items || []).find(item => item.id === row.booking_id) as Record<string, any> | undefined;
+  const booking = (bookings.items || []).find((item: Record<string, any>) => item.id === row.booking_id) as Record<string, any> | undefined;
   return {
     ...row,
     customer: booking?.customer_name || 'Assigned customer',

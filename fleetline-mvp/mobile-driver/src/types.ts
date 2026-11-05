@@ -70,3 +70,19 @@ export type Phase3SustainabilitySummary = {
   electric_distance_share_pct: number;
   factor_version: string;
 };
+
+
+export type ApiResponse<T = unknown> = {
+  ok?: boolean;
+  error?: string;
+  user?: SessionUser;
+  access_token?: string;
+  items?: T[];
+  summary?: unknown;
+  next_duty?: unknown;
+  duties?: unknown;
+  alerts?: unknown;
+  updated_at?: string;
+  results?: Array<{ idempotency_key?: string; status?: string }>;
+  [key: string]: unknown;
+};
