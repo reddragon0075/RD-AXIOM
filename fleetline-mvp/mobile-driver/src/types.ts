@@ -86,3 +86,17 @@ export type ApiResponse<T = unknown> = {
   results?: Array<{ idempotency_key?: string; status?: string }>;
   [key: string]: unknown;
 };
+
+export type DriverEarningsSummary = {
+  todayPayout: number;
+  totalKm: number;
+  tripsCompleted: number;
+  allowances: number;
+  tolls: number;
+  weeklySettlementDue: string;
+};
+
+export type CompletedDutyItem = Duty & {
+  payout?: number;
+  completed_at?: string;
+};
