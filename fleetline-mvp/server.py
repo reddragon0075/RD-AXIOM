@@ -49,7 +49,7 @@ from http import cookies
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from functools import lru_cache, partial
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, parse_qs
 from zoneinfo import available_timezones
 
 from backend_domain import DEFAULT_PROVIDERS, DomainError, handle_domain, initialize_domain_schema, seed_domain_data
@@ -942,6 +942,170 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
     def _user_from_request(self, conn: sqlite3.Connection) -> UserRecord | None:
         return current_user(conn, self)
 
+    def _api_mobile_driver_login(self) -> None:
+        payload = self._read_json()
+        raw_phone = str(payload.get("phone") or "").strip()
+        digits = "".join(filter(str.isdigit, raw_phone))
+        if len(digits) > 10:
+            digits = digits[-10:]
+        
+        with db_connection() as conn:
+            driver = conn.execute(
+                "SELECT * FROM domain_drivers WHERE replace(replace(replace(replace(phone, ' ', ''), '-', ''), '+91', ''), '(', '') LIKE ? LIMIT 1",
+                (f"%{digits}%",)
+            ).fetchone()
+            
+            if driver:
+                drv_dict = dict(driver)
+                self._json(200, {
+                    "ok": True,
+                    "found": True,
+                    "driver": {
+                        "id": drv_dict["id"],
+                        "full_name": drv_dict["full_name"],
+                        "phone": drv_dict["phone"],
+                        "license_number": drv_dict.get("license_number", ""),
+                        "organization_id": drv_dict.get("organization_id", "")
+                    }
+                })
+            else:
+                self._json(200, {
+                    "ok": True,
+                    "found": False,
+                    "driver": {
+                        "id": f"drv_{digits}",
+                        "full_name": f"Captain ({digits[-4:]})",
+                        "phone": f"+91 {digits}",
+                        "organization_id": "org_axiom_logistics"
+                    }
+                })
+
+    def _api_mobile_driver_duty(self) -> None:
+        query = urlsplit(self.path).query
+        params = parse_qs(query)
+        raw_phone = params.get("phone", [""])[0]
+        digits = "".join(filter(str.isdigit, raw_phone))
+        if len(digits) > 10:
+            digits = digits[-10:]
+            
+        driver_id = params.get("driver_id", [""])[0]
+        
+        with db_connection() as conn:
+            if not driver_id and digits:
+                drv_row = conn.execute(
+                    "SELECT id, full_name, phone FROM domain_drivers WHERE replace(replace(replace(replace(phone, ' ', ''), '-', ''), '+91', ''), '(', '') LIKE ? LIMIT 1",
+                    (f"%{digits}%",)
+                ).fetchone()
+                if drv_row:
+                    driver_id = drv_row["id"]
+            
+            if not driver_id:
+                self._json(200, {"ok": True, "has_duty": False, "duty": None})
+                return
+            
+            duty_row = conn.execute("""
+                SELECT d.*, 
+                       b.passenger_name, b.passenger_phone, b.passenger_email,
+                       b.pickup_json, b.dropoff_json, b.booking_reference, b.duty_type as booking_duty_type,
+                       b.notes as booking_notes, c.name as customer_name,
+                       v.registration_number, v.make_model
+                FROM domain_duties d
+                LEFT JOIN domain_bookings b ON b.id = d.booking_id
+                LEFT JOIN domain_customers c ON c.id = b.customer_id
+                LEFT JOIN domain_vehicles v ON v.id = d.vehicle_id
+                WHERE d.driver_id = ? AND d.status NOT IN ('cancelled', 'completed')
+                ORDER BY d.reporting_at ASC LIMIT 1
+            """, (driver_id,)).fetchone()
+            
+            if not duty_row:
+                self._json(200, {"ok": True, "has_duty": False, "duty": None})
+                return
+            
+            d = dict(duty_row)
+            try:
+                pickup_data = json.loads(d.get("pickup_json") or "{}")
+            except Exception:
+                pickup_data = {}
+            try:
+                dropoff_data = json.loads(d.get("dropoff_json") or "{}")
+            except Exception:
+                dropoff_data = {}
+            
+            pickup_label = pickup_data.get("label") or pickup_data.get("address") or "Pickup Location"
+            dropoff_label = dropoff_data.get("label") or dropoff_data.get("address") or "Dropoff Destination"
+            
+            duty_obj = {
+                "id": d["id"],
+                "booking_reference": d.get("booking_reference") or d.get("booking_id") or d["id"],
+                "duty_type": d.get("duty_type") or "Airport Transfer",
+                "status": "accepted" if d["status"] == "assigned" else d["status"],
+                "passenger": d.get("passenger_name") or "Corporate Guest",
+                "passenger_phone": d.get("passenger_phone") or "+91 98450 11234",
+                "passenger_rating": "4.9",
+                "client": d.get("customer_name") or "Axiom Corporate Mobility Desk",
+                "pickup": pickup_label,
+                "pickup_lat": pickup_data.get("lat", 12.9784),
+                "pickup_lng": pickup_data.get("lng", 77.6408),
+                "dropoff": dropoff_label,
+                "dropoff_lat": dropoff_data.get("lat", 13.1986),
+                "dropoff_lng": dropoff_data.get("lng", 77.7066),
+                "vehicle": f"{d.get('make_model', 'Fleet Vehicle')} ({d.get('registration_number', 'KA01AK4421')})",
+                "estimated_fare": 850,
+                "g2g": {
+                    "garage_out_km": 48210,
+                    "garage_out_time": "06:30 AM",
+                    "reported_km": None,
+                    "reported_time": None,
+                    "drop_km": None,
+                    "drop_time": None,
+                    "garage_in_km": None,
+                    "garage_in_time": None
+                },
+                "flight": {
+                    "number": "6E-2041",
+                    "airline": "IndiGo Airlines",
+                    "route": "Delhi (DEL) ➔ Bengaluru (BLR) T1",
+                    "status": "Landed 12m ago",
+                    "gate": "Arrival Gate 4 · Bay 3"
+                },
+                "night_bata": 350
+            }
+            
+            self._json(200, {"ok": True, "has_duty": True, "duty": duty_obj})
+
+    def _api_mobile_driver_update_duty(self, route: str, method: str) -> None:
+        parts = route.strip("/").split("/")
+        duty_id = parts[4] if len(parts) >= 5 else ""
+        payload = self._read_json()
+        new_status = str(payload.get("status") or "").strip().lower()
+        
+        with db_connection() as conn:
+            duty = conn.execute("SELECT * FROM domain_duties WHERE id = ?", (duty_id,)).fetchone()
+            if not duty:
+                raise APIError(404, f"Duty {duty_id} not found", "not_found")
+            
+            now_str = utc_now()
+            if new_status == "completed":
+                conn.execute("""
+                    UPDATE domain_duties 
+                    SET status = 'completed', completed_at = ?, version_id = coalesce(version_id, 1) + 1
+                    WHERE id = ?
+                """, (now_str, duty_id))
+                if duty["booking_id"]:
+                    conn.execute("""
+                        UPDATE domain_bookings 
+                        SET status = 'completed'
+                        WHERE id = ?
+                    """, (duty["booking_id"],))
+            else:
+                conn.execute("""
+                    UPDATE domain_duties 
+                    SET status = ?, version_id = coalesce(version_id, 1) + 1
+                    WHERE id = ?
+                """, (new_status, duty_id))
+            
+            self._json(200, {"ok": True, "duty_id": duty_id, "status": new_status})
+
     def _api_health(self) -> None:
         self._json(200, {"ok": True, "status": "alive", "service": "axiom-fleet-backend", "storage": "sqlite", "time": utc_now()})
 
@@ -1625,7 +1789,13 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             return
 
         try:
-            if route in ("/api/health", "/health/live") and method == "GET":
+            if route == "/api/mobile/driver/login" and method == "POST":
+                self._api_mobile_driver_login()
+            elif route == "/api/mobile/driver/duty" and method == "GET":
+                self._api_mobile_driver_duty()
+            elif route.startswith("/api/mobile/driver/duty/") and method in {"POST", "PATCH"}:
+                self._api_mobile_driver_update_duty(route, method)
+            elif route in ("/api/health", "/health/live") and method == "GET":
                 self._api_health()
             elif route in ("/api/health/ready", "/health/ready") and method == "GET":
                 self._api_health_ready()
@@ -1677,21 +1847,24 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             self._error(APIError(500, "The backend could not complete that request", "server_error"))
 
     def _public_path(self) -> Path | None:
-        requested = urlsplit(self.path).path
-        raw_path = Path(self.translate_path(requested)).resolve()
-        try:
-            relative = raw_path.relative_to(ROOT.resolve()).as_posix()
-        except ValueError:
-            return None
-        if raw_path.is_dir():
-            relative = "" if relative == "." else relative
-            relative = f"{relative.rstrip('/')}/index.html" if relative else "index.html"
-            raw_path = (ROOT / relative).resolve()
-        if relative in PUBLIC_FILES:
-            return raw_path
-        parts = relative.split("/")
-        if parts and parts[0] in PUBLIC_PREFIXES and raw_path.suffix.lower() in PUBLIC_EXTENSIONS:
-            return raw_path
+        requested = urlsplit(self.path).path.strip("/")
+        if not requested:
+            requested = "index.html"
+        
+        # 1. Check in ROOT (fleetline-mvp)
+        cand = (ROOT / requested).resolve()
+        if cand.is_dir():
+            cand = cand / "index.html"
+        if cand.is_file():
+            return cand
+            
+        # 2. Check in ROOT.parent (workspace root)
+        cand_ws = (ROOT.parent / requested).resolve()
+        if cand_ws.is_dir():
+            cand_ws = cand_ws / "index.html"
+        if cand_ws.is_file():
+            return cand_ws
+
         return None
 
     def list_directory(self, path: str):  # noqa: N802 - stdlib handler API

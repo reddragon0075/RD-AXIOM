@@ -1657,11 +1657,19 @@
       // Try server sync
       if (state.online) {
         try {
-          await fetch(`/api/duties/${encodeURIComponent(state.duty.id)}`, {
-            method: 'PATCH',
+          const syncUrl = `/api/mobile/driver/duty/${encodeURIComponent(state.duty.id)}/status`;
+          let res = await fetch(syncUrl, {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: newStatus, idempotency_key: operation.idempotency_key })
+            body: JSON.stringify({ status: newStatus, sync_origin: 'mobile_driver', idempotency_key: operation.idempotency_key })
           });
+          if (!res.ok) {
+            await fetch(`/api/duties/${encodeURIComponent(state.duty.id)}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: newStatus, idempotency_key: operation.idempotency_key })
+            });
+          }
           state.queue = state.queue.filter(q => q.idempotency_key !== operation.idempotency_key);
           saveQueue();
         } catch (_) {}
@@ -2244,7 +2252,7 @@
       showToast('OTP Resent', 'New verification code sent via SMS.');
     });
 
-    $('login-form')?.addEventListener('submit', e => {
+    $('login-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const phone = $('driver-phone').value.replace(/\D/g, '') || '9876543210';
       const otp = $('driver-otp').value.trim();
@@ -2253,24 +2261,69 @@
         return;
       }
 
+      let driverName = 'Captain';
+      let driverId = `usr_${phone}`;
+      let assignedDuty = null;
+
+      // 1. Look up driver via live backend API
+      try {
+        const loginRes = await fetch('/api/mobile/driver/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, otp })
+        });
+        if (loginRes.ok) {
+          const loginData = await loginRes.json();
+          if (loginData.driver) {
+            driverName = loginData.driver.full_name || driverName;
+            driverId = loginData.driver.id || driverId;
+          }
+        }
+      } catch (_) {}
+
+      // 2. Fetch assigned duty for this driver from API
+      try {
+        const dutyRes = await fetch(`/api/mobile/driver/duty?phone=${encodeURIComponent(phone)}&driver_id=${encodeURIComponent(driverId)}`);
+        if (dutyRes.ok) {
+          const dutyData = await dutyRes.json();
+          if (dutyData.has_duty && dutyData.duty) {
+            assignedDuty = dutyData.duty;
+          }
+        }
+      } catch (_) {}
+
       const user = {
-        id: `usr_${phone}`,
+        id: driverId,
         phone: `+91 ${phone}`,
-        full_name: 'Vikramaditya Rao',
-        vehicle: 'Toyota Innova Crysta (KA01AK4421)'
+        full_name: driverName,
+        vehicle: (assignedDuty && assignedDuty.vehicle) ? assignedDuty.vehicle : 'Toyota Innova Crysta (KA01AK4421)'
       };
       state.user = user;
       try { localStorage.setItem(userKey, JSON.stringify(user)); } catch (_) {}
 
-      enterApp();
+      enterApp(assignedDuty);
     });
 
-    function enterApp() {
+    async function enterApp(initialDuty = null) {
       $('login-screen').classList.add('hidden');
       $('cockpit-view').classList.remove('hidden');
       $('bottom-tab-bar').classList.remove('hidden');
 
-      state.duty = loadActiveDuty() || defaultDemoDuty();
+      let activeDuty = initialDuty;
+      if (!activeDuty && state.user && state.user.phone) {
+        try {
+          const cleanPhone = state.user.phone.replace(/\D/g, '');
+          const dutyRes = await fetch(`/api/mobile/driver/duty?phone=${encodeURIComponent(cleanPhone)}&driver_id=${encodeURIComponent(state.user.id || '')}`);
+          if (dutyRes.ok) {
+            const dutyData = await dutyRes.json();
+            if (dutyData.has_duty && dutyData.duty) {
+              activeDuty = dutyData.duty;
+            }
+          }
+        } catch (_) {}
+      }
+
+      state.duty = activeDuty || loadActiveDuty() || defaultDemoDuty();
       saveActiveDuty(state.duty);
 
       initMap();
@@ -2285,6 +2338,23 @@
       $('btn-preview-next-run')?.addEventListener('click', () => switchCockpitSegment('upcoming'));
 
       showToast('Driver Online', `Welcome to Cockpit, ${state.user?.full_name?.split(' ')[0] || 'Captain'}.`);
+      window.axiomDriver = {
+        advanceDutyStatus,
+        getState: () => state,
+        closeSlip: (fare) => {
+          advanceDutyStatus('completed');
+          state.todayEarnings += (fare || 850);
+          state.completedDuties.unshift({
+            id: state.duty.id,
+            route: `${state.duty.pickup} → ${state.duty.dropoff}`,
+            fare: fare || 850,
+            time: 'Just now',
+            g2g_summary: '68 km G2G (35 km trip + 33 km dead run)',
+            expenses: []
+          });
+          renderEarningsView();
+        }
+      };
     }
 
     // Auto-login if previously saved session exists
