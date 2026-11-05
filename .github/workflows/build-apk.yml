@@ -96,12 +96,13 @@ jobs:
       - name: Copy App Launcher Icons
         run: |
           if [ -f "driver-app/icon-512.png" ]; then
-            mkdir -p android/app/src/main/res/drawable
-            cp driver-app/icon-512.png android/app/src/main/res/drawable/ic_launcher.png
-            for dir in android/app/src/main/res/mipmap-*; do
-              cp driver-app/icon-512.png "$dir/ic_launcher.png" 2>/dev/null || true
-              cp driver-app/icon-512.png "$dir/ic_launcher_round.png" 2>/dev/null || true
+            for dir in android/app/src/main/res/mipmap-hdpi android/app/src/main/res/mipmap-mdpi android/app/src/main/res/mipmap-xhdpi android/app/src/main/res/mipmap-xxhdpi android/app/src/main/res/mipmap-xxxhdpi; do
+              if [ -d "$dir" ]; then
+                cp driver-app/icon-512.png "$dir/ic_launcher.png"
+                cp driver-app/icon-512.png "$dir/ic_launcher_round.png"
+              fi
             done
+            rm -f android/app/src/main/res/mipmap-anydpi-v26/*.png
           fi
 
       - name: Sync Capacitor to Android
