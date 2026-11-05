@@ -899,6 +899,13 @@
     }
     .tab-btn svg { width: 21px; height: 21px; fill: currentColor; }
     
+      .invoiced-locked-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 6px;
+      background: #f4f4f4; color: #555555;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.04em;
+      border: 1px solid #e0e0e0;
+    }
   </style>
 </head>
 <body>
@@ -1444,7 +1451,7 @@
       completedDuties: [
         { id: 'DUTY-8840', route: 'Koramangala 5th Block → Embassy GolfLinks', fare: 420, time: '09:15 AM', expenses: [{ category: 'parking', amount: 80, note: 'Visitor Parking P2', receipt_image: sampleParkingReceiptSvg }] },
         { id: 'DUTY-8839', route: 'Whitefield ITPL → HSR Layout Sector 2', fare: 680, time: '07:45 AM', expenses: [{ category: 'toll', amount: 110, note: 'Outer Ring Rd Fastag' }] },
-        { id: 'DUTY-8835', route: 'BLR Airport T1 → Indiranagar 100ft Rd', fare: 750, time: '05:30 AM', bata: 350, expenses: [{ category: 'toll', amount: 90, note: 'Airport Trumpet Toll' }] }
+        { id: 'DUTY-8835', route: 'BLR Airport T1 → Indiranagar 100ft Rd', fare: 750, time: '05:30 AM', bata: 350, is_invoiced: true, invoice_number: 'INV-AXM-2026-0835', expenses: [{ category: 'toll', amount: 90, note: 'Airport Trumpet Toll' }] }
       ]
     };
 
@@ -1698,6 +1705,12 @@
       const cfg = getSliderConfig(d.status);
       $('slide-text').textContent = cfg.label;
       resetSlider();
+
+      // Guard if active duty is already invoiced
+      if (d.is_invoiced || d.invoiced || d.status === 'billed' || d.status === 'invoiced' || d.invoice_number) {
+        if ($('btn-open-expense-chip')) $('btn-open-expense-chip').style.display = 'none';
+        if ($('btn-open-expense')) $('btn-open-expense').style.display = 'none';
+      }
     }
 
     // ----------------------------------------------------
@@ -1718,6 +1731,10 @@
 
       const onStart = e => {
         if (!state.duty || state.duty.status === 'completed') return;
+        if (state.duty.is_invoiced || state.duty.invoiced || state.duty.status === 'billed' || state.duty.status === 'invoiced' || state.duty.invoice_number) {
+          showToast('Trip Invoiced & Locked', 'Milestones and details are locked once invoiced for tax and billing compliance.');
+          return;
+        }
         state.sliderDragging = true;
         state.sliderStartX = getClientX(e);
         state.sliderWidth = sliderWrap.offsetWidth - state.sliderThumbWidth - 8;
@@ -2231,6 +2248,10 @@
     // EXPENSE MODAL (Toll, Fastag, Parking with Camera Capture)
     // ----------------------------------------------------
     $('btn-open-expense')?.addEventListener('click', () => {
+      if (state.duty?.is_invoiced || state.duty?.invoiced || state.duty?.status === 'billed' || state.duty?.status === 'invoiced' || state.duty?.invoice_number) {
+        showToast('Trip Invoiced & Locked', 'Financials are locked once invoiced for tax and billing compliance. No edits permitted.');
+        return;
+      }
       let capturedReceipt = null;
       openModal(
         'Add Trip Parking / Toll',
@@ -2349,11 +2370,22 @@
             <div class="history-meta">Completed at ${d.time} · Direct Payout Verified</div>
             ${d.bata ? `<div style="margin-top:5px;"><span class="past-expense-pill" style="background:#142126; color:#dafa5b; border-color:rgba(218,250,91,0.35);">🌙 Night Bata Allowance: ₹${d.bata}</span></div>` : ''}
             ${expensePills}
-            <div style="margin-top:6px;">
-              <button class="btn-add-past-expense" type="button" data-add-expense-duty="${d.id}">
-                + Add Parking / Toll
-              </button>
-            </div>
+            ${(d.is_invoiced || d.invoiced || d.status === 'billed' || d.status === 'invoiced' || d.invoice_number) ? `
+              <div style="margin-top:8px; display:flex; align-items:center; gap:8px;">
+                <span class="invoiced-locked-badge">
+                  🔒 INVOICED · LOCKED
+                </span>
+                <span style="font-size:10.5px; color:#757575; font-weight:700;">
+                  ${d.invoice_number ? d.invoice_number : 'Audit Sealed'} · No edits permitted
+                </span>
+              </div>
+            ` : `
+              <div style="margin-top:6px;">
+                <button class="btn-add-past-expense" type="button" data-add-expense-duty="${d.id}">
+                  + Add Parking / Toll
+                </button>
+              </div>
+            `}
           </div>
         `;
       }).join('');
@@ -2390,6 +2422,10 @@
     // Function to add parking/toll with Camera photo capture to any completed past trip
     function openPastDutyExpense(dutyId) {
       const targetDuty = state.completedDuties.find(d => d.id === dutyId) || { id: dutyId, route: 'Selected Past Duty' };
+      if (targetDuty.is_invoiced || targetDuty.invoiced || targetDuty.status === 'billed' || targetDuty.status === 'invoiced' || targetDuty.invoice_number) {
+        showToast('Trip Invoiced & Locked', 'Financials are locked once invoiced for tax and billing compliance. No edits permitted.');
+        return;
+      }
       let capturedReceipt = null;
 
       openModal(
@@ -2479,6 +2515,7 @@
 
       $('modal-card').querySelector('[data-close]')?.addEventListener('click', closeModal);
     }
+    window.openPastDutyExpense = openPastDutyExpense;
 
     // TAB SWITCHING (Cockpit / Earnings / Sync / Profile)
     // ----------------------------------------------------

@@ -1070,6 +1070,18 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 },
                 "night_bata": 350
             }
+
+            inv_row = conn.execute(
+                "SELECT id, invoice_number, status FROM domain_invoices WHERE duty_id = ? LIMIT 1",
+                (d["id"],)
+            ).fetchone()
+            duty_obj["is_invoiced"] = bool(
+                inv_row
+                or d.get("invoice_id")
+                or str(d.get("invoice_status", "")).upper() in ("BILLED", "INVOICED")
+                or str(d.get("status", "")).lower() in ("billed", "invoiced")
+            )
+            duty_obj["invoice_number"] = inv_row["invoice_number"] if inv_row else d.get("invoice_id")
             
             self._json(200, {"ok": True, "has_duty": True, "duty": duty_obj})
 
@@ -1083,6 +1095,21 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             duty = conn.execute("SELECT * FROM domain_duties WHERE id = ?", (duty_id,)).fetchone()
             if not duty:
                 raise APIError(404, f"Duty {duty_id} not found", "not_found")
+
+            # Check if duty is already invoiced / billed
+            inv_row = conn.execute(
+                "SELECT id, invoice_number, status FROM domain_invoices WHERE duty_id = ? LIMIT 1",
+                (duty_id,)
+            ).fetchone()
+            is_locked = bool(
+                inv_row
+                or duty.get("invoice_id")
+                or str(duty.get("invoice_status") or "").upper() in ("BILLED", "INVOICED")
+                or str(duty.get("status") or "").lower() in ("billed", "invoiced")
+            )
+            if is_locked:
+                inv_no = inv_row["invoice_number"] if inv_row and inv_row["invoice_number"] else (duty.get("invoice_id") or "BILLED")
+                raise APIError(403, f"Duty {duty_id} is already invoiced ({inv_no}). Details are locked for audit compliance and cannot be edited from driver app.", "duty_invoiced_locked")
             
             now_str = utc_now()
             if new_status == "completed":
