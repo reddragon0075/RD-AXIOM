@@ -1,0 +1,157 @@
+name: Build Android APK (Axiom Driver)
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release Tag (leave empty to skip creating a GitHub Release)'
+        required: false
+        default: 'v1.0.0-driver'
+  push:
+    branches:
+      - main
+    paths:
+      - 'driver-app/**'
+      - '.github/workflows/build-apk.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Prepare Driver App Web Assets
+        run: |
+          mkdir -p build-www
+          cp -r driver-app/* build-www/
+
+      - name: Install Capacitor CLI & Android Tooling
+        run: |
+          npm init -y
+          npm install @capacitor/core@6.2.0 @capacitor/cli@6.2.0 @capacitor/android@6.2.0
+
+      - name: Initialize Capacitor Configuration
+        run: |
+          cat << 'EOF' > capacitor.config.json
+          {
+            "appId": "com.axiom.driver",
+            "appName": "Axiom Driver",
+            "webDir": "build-www",
+            "bundledWebRuntime": false,
+            "server": {
+              "cleartext": true
+            },
+            "android": {
+              "allowMixedContent": true
+            }
+          }
+          EOF
+
+      - name: Add Android Platform
+        run: |
+          npx cap add android
+
+      - name: Configure Android Permissions in AndroidManifest.xml
+        run: |
+          python3 -c "
+          import re
+          manifest_path = 'android/app/src/main/AndroidManifest.xml'
+          with open(manifest_path, 'r', encoding='utf-8') as f:
+              content = f.read()
+
+          permissions = '''
+              <uses-permission android:name=\"android.permission.INTERNET\" />
+              <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />
+              <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />
+              <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />
+              <uses-permission android:name=\"android.permission.CAMERA\" />
+              <uses-permission android:name=\"android.permission.VIBRATE\" />
+              <uses-feature android:name=\"android.hardware.camera\" android:required=\"false\" />
+              <uses-feature android:name=\"android.hardware.location.gps\" android:required=\"false\" />
+          '''
+          
+          if '<uses-permission' not in content:
+              content = content.replace('<application', permissions + '\n    <application')
+          else:
+              content = content.replace('<application', permissions + '\n    <application')
+
+          with open(manifest_path, 'w', encoding='utf-8') as f:
+              f.write(content)
+          print('Successfully added permissions to AndroidManifest.xml')
+          "
+
+      - name: Copy App Launcher Icons
+        run: |
+          if [ -f "driver-app/icon-512.png" ]; then
+            mkdir -p android/app/src/main/res/drawable
+            cp driver-app/icon-512.png android/app/src/main/res/drawable/ic_launcher.png
+            for dir in android/app/src/main/res/mipmap-*; do
+              cp driver-app/icon-512.png "$dir/ic_launcher.png" 2>/dev/null || true
+              cp driver-app/icon-512.png "$dir/ic_launcher_round.png" 2>/dev/null || true
+            done
+          fi
+
+      - name: Build Android Debug APK with Gradle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Prepare APK Output
+        run: |
+          mkdir -p dist-apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist-apk/axiom-driver.apk
+          echo "APK generated successfully: dist-apk/axiom-driver.apk"
+          ls -lh dist-apk/
+
+      - name: Upload APK as GitHub Actions Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: axiom-driver-apk
+          path: dist-apk/axiom-driver.apk
+          retention-days: 30
+
+      - name: Publish to GitHub Releases
+        if: github.event.inputs.release_tag != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.release_tag }}
+          name: Axiom Driver App ${{ github.event.inputs.release_tag }}
+          body: |
+            ### 🚗 Axiom Fleet Driver Android APK
+            
+            Ready-to-install Android package for Axiom Corporate Chauffeurs & Drivers.
+            
+            - **App:** Axiom Driver
+            - **Package:** `com.axiom.driver`
+            - **Version:** ${{ github.event.inputs.release_tag }}
+            - **Features:**
+              - Modern Uber-style Cockpit with Plus Jakarta Sans typography
+              - Offline-first state persistence & digital duty slip closing
+              - G2G 4-point odometer audit
+              - Camera receipt capture for tolls and parking
+              - Option 2 Standby Radar & Next Scheduled Duty promotion
+              - Built-in Leaflet & OpenStreetMap transport navigation
+          files: dist-apk/axiom-driver.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
