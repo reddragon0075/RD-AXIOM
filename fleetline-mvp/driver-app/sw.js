@@ -1,5 +1,5 @@
-const CACHE = 'axiom-driver-v2';
-const CORE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+const CACHE = 'axiom-driver-v3';
+const CORE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './leaflet.js', './leaflet.css'];
 
 self.addEventListener('install', event => event.waitUntil(
   caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting())

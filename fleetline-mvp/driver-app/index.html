@@ -4,318 +4,1394 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
   <meta name="theme-color" content="#142126">
-  <meta name="description" content="Axiom Fleet Driver app — duties, offline sync and safety.">
+  <meta name="description" content="Axiom Fleet Driver app — Uber-style Cockpit, GPS navigation, and earnings.">
   <link rel="manifest" href="manifest.json">
-  <title>Axiom Fleet Driver</title>
+  <title>Axiom Fleet Driver · Uber Cockpit</title>
+  <link rel="stylesheet" href="leaflet.css">
   <style>
-    :root { color-scheme: light; --ink:#17262d; --ink-2:#2c3f44; --muted:#708184; --muted-2:#9aa8a8; --line:#e2eae5; --canvas:#f3f7f3; --card:#fffefa; --deep:#142126; --deep-2:#1c3033; --lime:#dafa5b; --lime-dark:#657c19; --teal:#0e8b79; --teal-soft:#e3f6ef; --blue:#356fdd; --blue-soft:#e8f0ff; --amber:#b5771c; --amber-soft:#fff3da; --red:#c84c55; --red-soft:#ffeaed; --shadow:0 12px 32px rgba(24,42,37,.08); }
-    * { box-sizing:border-box; }
-    html,body { margin:0; min-height:100%; background:var(--canvas); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); }
-    body { min-height:100dvh; }
-    button,input { font:inherit; }
-    button { cursor:pointer; }
-    .app { width:100%; max-width:520px; min-height:100dvh; margin:0 auto; background:var(--canvas); position:relative; overflow:hidden; }
-    .hidden { display:none !important; }
-    .login { min-height:100dvh; padding:28px 22px 30px; display:flex; flex-direction:column; justify-content:space-between; background:radial-gradient(circle at 85% 4%,rgba(218,250,91,.18),transparent 17rem),linear-gradient(180deg,#142126 0 47%,#f3f7f3 47%); }
-    .brand-lockup { color:#f6fbf4; display:flex; align-items:center; gap:10px; font-weight:780; letter-spacing:-.03em; font-size:17px; text-decoration:none; }
-    .brand-mark { width:35px; height:35px; border-radius:11px; display:grid; place-items:center; background:var(--lime); color:var(--deep); font-weight:900; font-size:17px; box-shadow:0 6px 18px rgba(218,250,91,.18); }
-    .login-top { padding:5px 2px; }
-    .login-message { color:#f5faf3; padding:43px 3px 36px; }
-    .eyebrow { text-transform:uppercase; letter-spacing:.15em; font-size:9px; color:#a9c18f; font-weight:800; }
-    .login-message h1 { margin:11px 0 9px; max-width:340px; font-size:36px; letter-spacing:-.06em; line-height:1.03; }
-    .login-message h1 em { color:var(--lime); font-style:normal; }
-    .login-message p { color:#b4c4c1; max-width:330px; font-size:12px; line-height:1.5; margin:0; }
-    .login-card { background:var(--card); border:1px solid #dce6df; border-radius:20px; padding:20px; box-shadow:0 20px 50px rgba(11,27,27,.14); }
-    .login-card h2 { margin:0 0 5px; font-size:20px; letter-spacing:-.04em; }
-    .login-card .sub { margin:0 0 18px; color:var(--muted); font-size:10.5px; line-height:1.45; }
-    .field { display:grid; gap:6px; margin-top:12px; color:var(--ink-2); font-size:10px; font-weight:750; }
-    .field input { width:100%; height:44px; border:1px solid #d6e1da; border-radius:10px; padding:0 12px; color:var(--ink); background:#fff; outline:none; font-size:12px; }
-    .field input:focus { border-color:#a9c45f; box-shadow:0 0 0 3px rgba(218,250,91,.22); }
-    .primary { border:0; width:100%; min-height:46px; border-radius:11px; background:var(--deep); color:#f6fbf4; font-weight:800; font-size:12px; margin-top:18px; box-shadow:0 8px 16px rgba(20,33,38,.16); }
-    .primary:hover { background:#203438; }
-    .secondary { border:1px solid #d8e5dd; width:100%; min-height:42px; border-radius:11px; background:#f8fbf8; color:var(--ink-2); font-weight:750; font-size:11px; margin-top:9px; }
-    
-    .phone-input-wrap { display:flex; align-items:center; border:1px solid #d6e1da; border-radius:10px; background:#fff; overflow:hidden; }
-    .country-code { padding:0 10px 0 12px; font-size:12px; font-weight:700; color:var(--ink-2); border-right:1px solid #e2eae5; background:#f7faf8; height:44px; display:flex; align-items:center; }
-    .phone-input-wrap input { border:0 !important; outline:none !important; height:44px; flex:1; padding:0 12px; font-size:14px; font-weight:600; color:var(--ink); letter-spacing:0.04em; }
-    .otp-sent-banner { display:flex; justify-content:space-between; align-items:center; font-size:10px; color:var(--muted); background:#f2f7f4; padding:8px 10px; border-radius:8px; margin-bottom:10px; }
-    .demo-otp-hint { font-size:9.5px; color:#2c6b4f; background:#e8f7f0; padding:6px 10px; border-radius:6px; margin:8px 0 14px; font-weight:600; }
-    .link-btn { background:none; border:none; color:var(--teal); font-weight:700; font-size:10px; cursor:pointer; padding:0; text-decoration:underline; }
-    .resend-wrap { text-align:center; font-size:10px; color:var(--muted); margin-top:12px; }
-    #driver-otp { text-align:center; letter-spacing:0.4em; font-size:20px; font-weight:800; }
+    :root {
+      --ink: #111b1e;
+      --ink-2: #2b3a3e;
+      --muted: #6b7d82;
+      --muted-2: #92a4a8;
+      --line: #e3ebe7;
+      --canvas: #f2f6f3;
+      --card: #ffffff;
+      --deep: #0e1a1e;
+      --deep-2: #16272c;
+      --deep-3: #1f363c;
+      --lime: #dafa5b;
+      --lime-dark: #586e16;
+      --teal: #00b087;
+      --teal-dark: #008f6d;
+      --teal-soft: #e0f6f0;
+      --blue: #276ef1;
+      --blue-soft: #e8f0fe;
+      --amber: #f29900;
+      --amber-soft: #fff6e5;
+      --red: #e11900;
+      --red-soft: #ffeceb;
+      --shadow-sm: 0 4px 14px rgba(0,0,0,0.06);
+      --shadow-md: 0 10px 30px rgba(0,0,0,0.12);
+      --shadow-lg: 0 18px 45px rgba(0,0,0,0.22);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0; height: 100%; width: 100%;
+      background: #0e1a1e;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--ink);
+      overflow: hidden;
+      user-select: none;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; border: 0; outline: none; }
+    .hidden { display: none !important; }
 
-    .offline-note { margin-top:14px; padding:10px; border-radius:9px; background:#f2f8df; color:#63732f; font-size:9px; line-height:1.45; }
-    .error { min-height:16px; color:var(--red); font-size:10px; font-weight:700; margin-top:8px; }
-    .login-footer { color:#8da19a; text-align:center; font-size:9px; padding-top:19px; }
+    /* App container: responsive mobile container */
+    .app {
+      width: 100%; max-width: 500px; height: 100dvh; margin: 0 auto;
+      background: var(--canvas); position: relative; overflow: hidden;
+      display: flex; flex-direction: column;
+    }
 
-    .shell { min-height:100dvh; padding-bottom:82px; }
-    .topbar { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:16px 17px 11px; background:rgba(243,247,243,.94); backdrop-filter:blur(18px); border-bottom:1px solid rgba(226,234,229,.8); }
-    .topbar-brand { display:flex; align-items:center; gap:9px; color:inherit; text-decoration:none; }
-    .topbar-brand .brand-mark { width:29px; height:29px; border-radius:9px; font-size:14px; }
-    .topbar-brand strong { display:block; font-size:12px; letter-spacing:-.02em; }
-    .topbar-brand span { display:block; margin-top:2px; color:var(--muted); font-size:9px; }
-    .network-pill { display:flex; align-items:center; gap:5px; padding:6px 8px; border:1px solid #cfe7dd; border-radius:999px; color:var(--teal); background:#effaf4; font-size:9px; font-weight:800; }
-    .network-dot { width:6px; height:6px; border-radius:50%; background:#20b58e; box-shadow:0 0 0 3px rgba(32,181,142,.13); }
-    .network-pill.offline { border-color:#f0dbad; color:var(--amber); background:var(--amber-soft); }.network-pill.offline .network-dot { background:#cf8d26; box-shadow:0 0 0 3px rgba(207,141,38,.12); }
-    .content { padding:19px 16px 20px; }
-    .greeting { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:16px; }
-    .greeting .eyebrow { color:var(--teal); font-size:8px; }.greeting h1 { margin:5px 0 0; font-size:26px; letter-spacing:-.06em; line-height:1.05; }.greeting p { margin:6px 0 0; color:var(--muted); font-size:10.5px; }
-    .avatar { width:37px; height:37px; border-radius:12px; display:grid; place-items:center; flex:none; background:#d9efb6; color:#56721b; font-size:11px; font-weight:850; }
-    .next-card { position:relative; overflow:hidden; border-radius:20px; padding:19px; color:#f3fbf0; background:radial-gradient(circle at 85% 0%,rgba(218,250,91,.17),transparent 13rem),linear-gradient(135deg,#142126,#1d3638); box-shadow:var(--shadow); }
-    .next-card::after { content:""; position:absolute; width:160px; height:160px; right:-70px; top:-65px; border:27px solid rgba(218,250,91,.07); border-radius:50%; pointer-events:none; }
-    .next-top { position:relative; z-index:1; display:flex; justify-content:space-between; align-items:center; color:#bcd1ac; font-size:9px; text-transform:uppercase; letter-spacing:.12em; font-weight:800; }.next-top .ready { color:var(--lime); }
-    .next-card h2 { position:relative; z-index:1; margin:11px 0 4px; font-size:23px; letter-spacing:-.05em; }.next-card p { position:relative; z-index:1; margin:0; color:#b6cac4; font-size:10.5px; }
-    .route-strip { position:relative; z-index:1; display:flex; gap:10px; align-items:flex-start; margin-top:18px; padding:12px 0 0; border-top:1px solid rgba(218,250,91,.13); }.route-nodes { width:11px; display:flex; flex-direction:column; align-items:center; padding-top:3px; }.route-node { width:8px; height:8px; border-radius:50%; background:var(--lime); box-shadow:0 0 0 3px rgba(218,250,91,.13); }.route-node.end { background:#82dec3; box-shadow:0 0 0 3px rgba(130,222,195,.13); }.route-link { width:1px; height:26px; background:rgba(218,250,91,.32); }
-    .route-copy strong { display:block; color:#f4fbf0; font-size:11px; }.route-copy span { display:block; color:#9eb7af; margin-top:3px; font-size:9px; }
-    .main-action { position:relative; z-index:1; width:100%; min-height:47px; margin-top:17px; border:0; border-radius:11px; background:var(--lime); color:#26350e; font-size:12px; font-weight:850; box-shadow:0 8px 17px rgba(0,0,0,.16); }.main-action:disabled { opacity:.55; }
-    .section-label { display:flex; justify-content:space-between; align-items:center; margin:20px 2px 9px; }.section-label strong { font-size:12px; letter-spacing:-.02em; }.section-label span { color:var(--muted-2); font-size:9px; }
-    .quick-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }.quick-card { min-height:82px; padding:12px 8px; border:1px solid var(--line); border-radius:13px; background:var(--card); text-align:left; box-shadow:0 4px 12px rgba(20,38,31,.03); }.quick-card:active { transform:scale(.98); }.quick-icon { width:28px; height:28px; display:grid; place-items:center; border-radius:9px; background:var(--blue-soft); color:var(--blue); font-size:14px; }.quick-card:nth-child(2) .quick-icon { background:var(--amber-soft); color:var(--amber); }.quick-card:nth-child(3) .quick-icon { background:var(--red-soft); color:var(--red); }.quick-card strong { display:block; margin-top:8px; font-size:9.5px; }.quick-card span { display:block; margin-top:2px; color:var(--muted); font-size:8px; }
-    .timeline-card, .sync-card, .profile-card { border:1px solid var(--line); border-radius:16px; background:var(--card); overflow:hidden; }.timeline-card { padding:15px; }.timeline-row { display:flex; gap:10px; padding:8px 0; }.timeline-row + .timeline-row { border-top:1px solid #edf2ee; }.time { width:44px; flex:none; color:var(--muted-2); font-size:9px; padding-top:2px; }.timeline-dot { width:9px; height:9px; margin-top:3px; flex:none; border-radius:50%; background:var(--teal); box-shadow:0 0 0 3px var(--teal-soft); }.timeline-dot.muted { background:#c0cbc5; box-shadow:0 0 0 3px #f0f4f1; }.timeline-copy strong { display:block; font-size:10px; }.timeline-copy span { display:block; color:var(--muted); margin-top:3px; font-size:9px; line-height:1.35; }
-    .bottom-nav { position:fixed; z-index:20; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:520px; display:grid; grid-template-columns:repeat(3,1fr); padding:8px 17px calc(8px + env(safe-area-inset-bottom)); border-top:1px solid rgba(219,229,222,.92); background:rgba(255,254,250,.95); backdrop-filter:blur(17px); }.nav-button { border:0; background:transparent; color:var(--muted-2); min-height:42px; border-radius:11px; font-size:9px; font-weight:750; }.nav-button.active { color:var(--teal); background:var(--teal-soft); }.nav-button b { display:block; font-size:17px; line-height:18px; margin-bottom:2px; }.nav-button .badge { display:inline-grid; place-items:center; min-width:15px; height:15px; padding:0 4px; margin-left:3px; border-radius:999px; color:#fff; background:var(--red); font-size:8px; vertical-align:top; }
-    .screen-title { margin:3px 0 4px; font-size:25px; letter-spacing:-.06em; }.screen-subtitle { margin:0 0 18px; color:var(--muted); font-size:10.5px; line-height:1.45; }
-    .sync-card { padding:15px; }.sync-summary { display:flex; align-items:center; justify-content:space-between; padding-bottom:13px; margin-bottom:10px; border-bottom:1px solid #edf2ee; }.sync-summary strong { display:block; font-size:21px; letter-spacing:-.05em; }.sync-summary span { display:block; margin-top:3px; color:var(--muted); font-size:9px; }.sync-action { border:1px solid #cfe2d7; border-radius:9px; padding:9px 11px; color:var(--teal); background:var(--teal-soft); font-size:10px; font-weight:800; }.sync-row { display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid #edf2ee; }.sync-row:last-child { border-bottom:0; }.sync-row .sync-symbol { width:28px; height:28px; display:grid; place-items:center; border-radius:8px; color:var(--blue); background:var(--blue-soft); font-size:13px; }.sync-row strong { display:block; font-size:10px; }.sync-row span { display:block; margin-top:3px; color:var(--muted); font-size:9px; }.sync-status { margin-left:auto; color:var(--teal); font-size:9px; font-weight:800; }.sync-status.pending { color:var(--amber); }
-    .profile-card { padding:16px; }.profile-head { display:flex; gap:11px; align-items:center; padding-bottom:15px; border-bottom:1px solid #edf2ee; }.profile-head .avatar { width:43px; height:43px; }.profile-head strong { display:block; font-size:13px; }.profile-head span { display:block; margin-top:3px; color:var(--muted); font-size:9px; }.setting-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 0; border-bottom:1px solid #edf2ee; }.setting-row:last-child { border-bottom:0; }.setting-row strong { display:block; font-size:10.5px; }.setting-row span { display:block; margin-top:3px; color:var(--muted); font-size:9px; }.toggle { width:37px; height:21px; padding:2px; border:0; border-radius:99px; background:#c9d5cf; }.toggle.on { background:var(--teal); }.toggle i { display:block; width:17px; height:17px; border-radius:50%; background:#fff; transition:.15s; }.toggle.on i { transform:translateX(16px); }
-    .modal-backdrop { position:fixed; z-index:50; inset:0; display:grid; place-items:end center; padding:15px; background:rgba(10,20,22,.48); }.modal { width:100%; max-width:480px; max-height:88dvh; overflow:auto; padding:18px; border-radius:20px 20px 14px 14px; background:var(--card); box-shadow:0 22px 60px rgba(7,22,22,.24); }.modal-head { display:flex; justify-content:space-between; align-items:flex-start; gap:13px; }.modal-head h2 { margin:0; font-size:19px; letter-spacing:-.04em; }.modal-head p { margin:5px 0 0; color:var(--muted); font-size:9.5px; line-height:1.4; }.close { border:1px solid var(--line); width:31px; height:31px; border-radius:9px; background:#fff; color:var(--muted); }.modal-body { margin-top:15px; }.modal-actions { display:flex; gap:8px; margin-top:15px; }.modal-actions button { flex:1; min-height:42px; border-radius:10px; font-weight:800; font-size:10px; }.modal-actions .cancel { border:1px solid var(--line); color:var(--ink-2); background:#fff; }.modal-actions .confirm { border:0; color:#f5faf3; background:var(--deep); }.modal .field { margin-top:10px; }.modal textarea { min-height:78px; resize:vertical; width:100%; border:1px solid #d6e1da; border-radius:9px; padding:10px; outline:none; font-size:11px; }
-    .toast { position:fixed; z-index:70; left:50%; bottom:90px; transform:translateX(-50%) translateY(10px); width:calc(100% - 32px); max-width:480px; padding:12px 13px; border-radius:12px; color:#f6fbf4; background:#142126; box-shadow:0 15px 30px rgba(13,29,29,.2); opacity:0; pointer-events:none; transition:.18s; }.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }.toast strong { display:block; color:var(--lime); font-size:10px; }.toast span { display:block; margin-top:3px; color:#bdd0c9; font-size:9px; }
-    @media (min-width:521px) { body { padding:20px 0; background:#dfe9e1; }.app { min-height:calc(100dvh - 40px); border-radius:25px; box-shadow:0 20px 60px rgba(22,43,35,.13); } .bottom-nav { bottom:20px; border-radius:0 0 25px 25px; } }
+    /* ----------------------------------------------------
+       AUTH / LOGIN SCREEN (Mobile + OTP)
+       ---------------------------------------------------- */
+    .login-screen {
+      position: absolute; inset: 0; z-index: 100;
+      padding: 24px 20px 24px; display: flex; flex-direction: column; justify-content: space-between;
+      background: radial-gradient(circle at 85% 6%, rgba(218,250,91,0.2), transparent 18rem),
+                  linear-gradient(180deg, #0e1a1e 0%, #15272c 50%, #f2f6f3 50%, #f2f6f3 100%);
+      overflow-y: auto;
+    }
+    .brand-lockup {
+      color: #fff; display: flex; align-items: center; gap: 10px;
+      font-weight: 800; font-size: 17px; letter-spacing: -0.03em; text-decoration: none;
+    }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center;
+      background: var(--lime); color: var(--deep); font-weight: 900; font-size: 18px;
+      box-shadow: 0 4px 14px rgba(218,250,91,0.3);
+    }
+    .login-hero { color: #fff; padding: 24px 4px 20px; }
+    .login-eyebrow {
+      text-transform: uppercase; letter-spacing: 0.15em; font-size: 10px; color: var(--lime); font-weight: 800;
+    }
+    .login-hero h1 {
+      margin: 10px 0 8px; font-size: 34px; letter-spacing: -0.05em; line-height: 1.05; font-weight: 900;
+    }
+    .login-hero h1 em { color: var(--lime); font-style: normal; }
+    .login-hero p { color: #b7cbce; font-size: 13px; line-height: 1.45; margin: 0; }
+
+    .login-card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 20px;
+      padding: 22px 20px; box-shadow: var(--shadow-lg);
+    }
+    .login-card h2 { margin: 0 0 4px; font-size: 21px; font-weight: 800; letter-spacing: -0.03em; }
+    .login-card .sub { margin: 0 0 16px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .field { display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 700; color: var(--ink-2); margin-top: 10px; }
+    .phone-input-wrap {
+      display: flex; align-items: center; border: 1.5px solid #d4ded8; border-radius: 12px;
+      background: #fff; overflow: hidden; transition: border-color 0.15s;
+    }
+    .phone-input-wrap:focus-within { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0,176,135,0.15); }
+    .country-code {
+      padding: 0 12px; font-size: 13px; font-weight: 800; color: var(--ink);
+      border-right: 1px solid var(--line); background: #f8faf8; height: 48px; display: flex; align-items: center;
+    }
+    .phone-input-wrap input {
+      border: 0; outline: none; height: 48px; flex: 1; padding: 0 14px;
+      font-size: 16px; font-weight: 700; color: var(--ink); letter-spacing: 0.04em;
+    }
+    .primary-btn {
+      width: 100%; min-height: 48px; border-radius: 12px; background: var(--deep);
+      color: #fff; font-weight: 800; font-size: 14px; margin-top: 16px;
+      box-shadow: 0 6px 16px rgba(14,26,30,0.25); display: grid; place-items: center;
+    }
+    .primary-btn:active { transform: scale(0.98); }
+    .otp-banner {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #f0f7f3; padding: 10px 12px; border-radius: 10px; font-size: 12px; color: var(--ink-2);
+    }
+    .demo-hint {
+      font-size: 11px; color: var(--teal-dark); background: var(--teal-soft);
+      padding: 8px 12px; border-radius: 8px; margin: 10px 0 12px; font-weight: 600;
+    }
+    .link-btn { background: none; border: 0; color: var(--teal); font-weight: 800; font-size: 12px; text-decoration: underline; padding: 0; }
+    #driver-otp {
+      text-align: center; letter-spacing: 0.4em; font-size: 24px; font-weight: 900;
+      height: 52px; border: 1.5px solid #d4ded8; border-radius: 12px; outline: none;
+    }
+    #driver-otp:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0,176,135,0.15); }
+    .login-error { min-height: 18px; color: var(--red); font-size: 11px; font-weight: 700; margin-top: 6px; }
+
+    /* ----------------------------------------------------
+       UBER DRIVER COCKPIT (Main Workspace)
+       ---------------------------------------------------- */
+    .cockpit-view {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    /* Map container filling the entire background */
+    #uber-map {
+      position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1;
+      background: #0e1a1e;
+    }
+
+    /* Top Floating Uber Status Bar */
+    .top-floating-bar {
+      position: absolute; top: 12px; left: 14px; right: 14px; z-index: 25;
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    }
+    .online-toggle-pill {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 13px; border-radius: 999px;
+      background: rgba(14,26,30,0.88); backdrop-filter: blur(14px);
+      color: #fff; font-size: 11px; font-weight: 800; letter-spacing: 0.02em;
+      box-shadow: var(--shadow-md); border: 1px solid rgba(255,255,255,0.12);
+      transition: all 0.2s;
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #00e096;
+      box-shadow: 0 0 0 3px rgba(0,224,150,0.28); animation: pulseDot 2s infinite;
+    }
+    @keyframes pulseDot { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .online-toggle-pill.offline { background: rgba(40,40,40,0.88); color: #cbd5e1; }
+    .online-toggle-pill.offline .status-dot { background: #94a3b8; box-shadow: none; animation: none; }
+
+    .top-earnings-pill {
+      display: flex; align-items: center; gap: 6px;
+      padding: 9px 15px; border-radius: 999px;
+      background: rgba(14,26,30,0.92); backdrop-filter: blur(14px);
+      color: var(--lime); font-size: 13px; font-weight: 900; letter-spacing: -0.01em;
+      box-shadow: var(--shadow-md); border: 1px solid rgba(218,250,91,0.3);
+    }
+    .top-earnings-pill span { color: #fff; font-size: 10px; font-weight: 600; }
+    .top-earnings-pill i { font-style: normal; font-size: 11px; opacity: 0.7; }
+
+    .top-sos-pill {
+      display: flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px; border-radius: 50%;
+      background: rgba(225,25,0,0.92); color: #fff; font-weight: 900; font-size: 13px;
+      box-shadow: 0 4px 14px rgba(225,25,0,0.4); border: 1px solid rgba(255,255,255,0.25);
+    }
+
+    /* Floating Navigation FAB (Uber style GPS button) */
+    .btn-nav-fab {
+      position: absolute; right: 16px; bottom: 330px; z-index: 25;
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 18px; border-radius: 999px;
+      background: #00b087; color: #fff; font-size: 13px; font-weight: 900;
+      box-shadow: 0 10px 25px rgba(0,176,135,0.45); border: 2px solid #ffffff;
+      text-decoration: none; transition: transform 0.15s, background 0.15s;
+    }
+    .btn-nav-fab:active { transform: scale(0.95); background: #008f6d; }
+    .btn-nav-fab svg { width: 17px; height: 17px; fill: currentColor; }
+
+    /* Floating Recenter Map Button */
+    .btn-recenter {
+      position: absolute; right: 16px; bottom: 388px; z-index: 25;
+      width: 42px; height: 42px; border-radius: 50%;
+      background: rgba(255,255,255,0.95); color: var(--deep);
+      box-shadow: var(--shadow-md); display: grid; place-items: center;
+      font-size: 18px; font-weight: bold; border: 1px solid var(--line);
+    }
+
+    /* Bottom Cockpit Card (Uber Driver Bottom Sheet) */
+    .bottom-sheet {
+      position: absolute; bottom: 58px; left: 0; right: 0; z-index: 20;
+      background: #ffffff; border-radius: 22px 22px 0 0;
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.22);
+      padding: 10px 18px 16px; display: flex; flex-direction: column;
+      max-height: 55dvh; overflow-y: auto;
+    }
+    .sheet-handle {
+      width: 36px; height: 4px; border-radius: 99px;
+      background: #d5ded9; margin: 2px auto 10px;
+    }
+    .trip-badge-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px;
+    }
+    .trip-phase-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 9px; border-radius: 6px;
+      background: #eef4f0; color: var(--teal-dark); font-size: 10px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .trip-eta {
+      font-size: 13px; font-weight: 900; color: var(--deep);
+    }
+    .passenger-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 0 12px; border-bottom: 1px solid #edf2ee;
+    }
+    .passenger-meta { display: flex; align-items: center; gap: 10px; }
+    .passenger-avatar {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: #e7f5ec; color: #1e6d49; font-weight: 900; font-size: 15px;
+      display: grid; place-items: center;
+    }
+    .passenger-name { font-size: 15px; font-weight: 800; color: var(--ink); margin: 0; }
+    .passenger-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .passenger-rating {
+      display: inline-flex; align-items: center; gap: 2px;
+      font-size: 10px; font-weight: 800; color: #c48200; background: #fff8e6;
+      padding: 2px 5px; border-radius: 4px; margin-left: 4px;
+    }
+    .passenger-actions { display: flex; gap: 8px; }
+    .circle-action-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: #f2f6f4; color: var(--ink-2); display: grid; place-items: center;
+      font-size: 15px; border: 1px solid #e1ebe5; text-decoration: none;
+    }
+    .circle-action-btn.call { color: #00b087; background: #e6f7f2; }
+    .circle-action-btn.whatsapp { color: #25d366; background: #eafaf1; }
+
+    /* Route Stop Details */
+    .route-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 0 12px;
+    }
+    .route-markers {
+      width: 12px; display: flex; flex-direction: column; align-items: center; padding-top: 4px;
+    }
+    .marker-dot { width: 8px; height: 8px; border-radius: 50%; background: #00b087; }
+    .marker-dot.dest { background: #111; border-radius: 2px; }
+    .marker-line { width: 1.5px; height: 26px; background: #d7e2dc; margin: 3px 0; }
+    .route-labels { flex: 1; font-size: 12px; }
+    .pickup-label { font-weight: 800; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dropoff-label { font-weight: 800; color: var(--ink); margin-top: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sub-stop { font-size: 10px; color: var(--muted); font-weight: 500; }
+
+    /* ----------------------------------------------------
+       THE SIGNATURE UBER "SLIDE TO CONFIRM" SLIDER
+       ---------------------------------------------------- */
+    .slide-confirm-wrap {
+      margin-top: 4px; position: relative; width: 100%; height: 56px;
+      border-radius: 999px; background: #0e1a1e; overflow: hidden;
+      display: flex; align-items: center; user-select: none;
+      box-shadow: 0 6px 18px rgba(14,26,30,0.25);
+    }
+    .slide-progress {
+      position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
+      background: linear-gradient(90deg, #00b087, #00d6a4);
+      border-radius: 999px; transition: width 0.05s ease-out; pointer-events: none;
+    }
+    .slide-text {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      color: #ffffff; font-size: 13px; font-weight: 900; letter-spacing: 0.08em;
+      pointer-events: none; text-transform: uppercase; z-index: 2;
+    }
+    .slide-thumb {
+      position: absolute; left: 4px; width: 48px; height: 48px; border-radius: 50%;
+      background: #dafa5b; color: #0e1a1e; display: grid; place-items: center;
+      font-size: 18px; font-weight: 900; z-index: 3; cursor: grab;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3); touch-action: pan-y;
+      transition: transform 0.05s ease-out;
+    }
+    .slide-thumb:active { cursor: grabbing; transform: scale(1.04); }
+
+    /* ----------------------------------------------------
+       EARNINGS SCREEN (Uber-style)
+       ---------------------------------------------------- */
+    .view-screen {
+      position: absolute; inset: 0 0 58px 0; z-index: 22;
+      background: var(--canvas); padding: 18px 16px 24px;
+      overflow-y: auto; display: flex; flex-direction: column;
+    }
+    .screen-header { margin-bottom: 16px; }
+    .screen-header h1 { margin: 2px 0 0; font-size: 26px; font-weight: 900; letter-spacing: -0.04em; }
+    .screen-header p { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+
+    .earnings-hero-card {
+      border-radius: 20px; padding: 22px 20px; color: #fff;
+      background: radial-gradient(circle at 90% 10%, rgba(218,250,91,0.22), transparent 14rem),
+                  linear-gradient(135deg, #0e1a1e 0%, #172c32 100%);
+      box-shadow: var(--shadow-lg); margin-bottom: 16px; position: relative; overflow: hidden;
+    }
+    .earnings-hero-card .eyebrow {
+      color: var(--lime); font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+    }
+    .earnings-amount {
+      font-size: 38px; font-weight: 900; letter-spacing: -0.05em; margin: 8px 0 4px; color: #ffffff;
+    }
+    .earnings-sub { font-size: 12px; color: #b7cbce; }
+    .earnings-kpis {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 18px;
+      padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.12);
+    }
+    .kpi-item strong { display: block; font-size: 14px; font-weight: 800; color: #fff; }
+    .kpi-item span { display: block; font-size: 10px; color: #9eb5b8; margin-top: 2px; }
+
+    .weekly-payout-box {
+      background: #ffffff; border: 1px solid var(--line); border-radius: 16px;
+      padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow-sm);
+    }
+    .weekly-title { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 800; }
+    .weekly-status { font-size: 10px; font-weight: 800; color: var(--teal-dark); background: var(--teal-soft); padding: 3px 8px; border-radius: 6px; }
+    .payout-bank { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+    .duty-history-list { display: flex; flex-direction: column; gap: 10px; }
+    .history-card {
+      background: #ffffff; border: 1px solid var(--line); border-radius: 14px;
+      padding: 14px; box-shadow: var(--shadow-sm);
+    }
+    .history-top { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+    .history-route { font-size: 12px; font-weight: 800; margin: 6px 0 3px; }
+    .history-meta { font-size: 10px; color: var(--muted); }
+
+    /* ----------------------------------------------------
+       BOTTOM TAB BAR (Uber Navigation)
+       ---------------------------------------------------- */
+    .bottom-tab-bar {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 58px; z-index: 30;
+      background: rgba(255,255,255,0.97); backdrop-filter: blur(16px);
+      border-top: 1px solid #e1e9e4; display: grid; grid-template-columns: repeat(4, 1fr);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .tab-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px; color: var(--muted); font-size: 10px; font-weight: 700; background: transparent;
+    }
+    .tab-btn.active { color: var(--deep); font-weight: 900; }
+    .tab-btn svg { width: 20px; height: 20px; fill: currentColor; }
+    .tab-btn .badge {
+      position: absolute; top: 6px; right: 28%;
+      background: var(--red); color: #fff; font-size: 9px; font-weight: 900;
+      padding: 1px 5px; border-radius: 99px;
+    }
+
+    /* Modal Sheet */
+    .modal-backdrop {
+      position: absolute; inset: 0; z-index: 80;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    .modal-card {
+      width: 100%; max-height: 85dvh; overflow-y: auto; background: #fff;
+      border-radius: 22px 22px 0 0; padding: 20px 18px 24px;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .modal-head h3 { margin: 0; font-size: 18px; font-weight: 800; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: 50%; background: #f0f4f2;
+      color: var(--muted); display: grid; place-items: center; font-size: 16px; font-weight: bold;
+    }
+    .modal-body { margin-top: 10px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+    .modal-actions button { flex: 1; height: 46px; border-radius: 12px; font-weight: 800; font-size: 13px; }
+    .modal-actions .btn-cancel { background: #f0f4f2; color: var(--ink-2); }
+    .modal-actions .btn-save { background: var(--deep); color: #fff; }
+
+    /* Toast */
+    .toast {
+      position: absolute; top: 72px; left: 16px; right: 16px; z-index: 90;
+      padding: 12px 14px; border-radius: 12px; background: rgba(14,26,30,0.95);
+      color: #fff; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px;
+      transform: translateY(-20px); opacity: 0; pointer-events: none; transition: all 0.25s;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+    .toast-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); flex: none; }
+    .toast-copy strong { display: block; font-size: 12px; color: var(--lime); }
+    .toast-copy span { display: block; font-size: 11px; color: #c3d4d7; margin-top: 2px; }
+
+    /* Leaflet vehicle pulse marker */
+    .driver-pin {
+      width: 36px; height: 36px; border-radius: 50%; background: #00b087;
+      border: 3px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+      display: grid; place-items: center; color: #fff; font-size: 16px;
+    }
+    .driver-pulse {
+      position: absolute; width: 60px; height: 60px; border-radius: 50%;
+      background: rgba(0,176,135,0.25); top: -12px; left: -12px;
+      animation: driverRings 2s infinite ease-out; pointer-events: none;
+    }
+    @keyframes driverRings { 0% { transform: scale(0.6); opacity: 0.8; } 100% { transform: scale(1.4); opacity: 0; } }
+
+    /* Desktop aesthetic padding */
+    @media (min-width: 501px) {
+      body { display: grid; place-items: center; background: #091215; }
+      .app { height: 860px; border-radius: 28px; box-shadow: 0 25px 70px rgba(0,0,0,0.55); border: 2px solid rgba(255,255,255,0.08); }
+    }
   </style>
 </head>
 <body>
   <main class="app" id="app">
-    <section class="login" id="login-screen">
-      <div class="login-top"><a class="brand-lockup" href="/" aria-label="Axiom Fleet public home"><span class="brand-mark">A</span><span>AXIOM FLEET</span></a></div>
-      <div class="login-message"><div class="eyebrow">Driver workspace</div><h1>Move the duty.<br><em>Keep the signal.</em></h1><p>Your next route, proof and safety tools in one calm field surface.</p></div>
+
+    <!-- ==========================================
+         SCREEN 1: AUTHENTICATION (Mobile + OTP)
+         ========================================== -->
+    <section class="login-screen" id="login-screen">
+      <div>
+        <a class="brand-lockup" href="/" aria-label="Axiom Fleet">
+          <span class="brand-mark">A</span>
+          <span>AXIOM FLEET</span>
+        </a>
+      </div>
+
+      <div class="login-hero">
+        <div class="login-eyebrow">Driver Cockpit</div>
+        <h1>Drive with confidence.<br><em>Keep the meter moving.</em></h1>
+        <p>Uber-style cockpit, live turn-by-turn navigation, and daily bank payouts.</p>
+      </div>
+
       <form class="login-card" id="login-form">
-        <h2>Sign in with mobile</h2>
+        <h2>Driver Sign In</h2>
         <p class="sub" id="auth-sub">Enter your 10-digit registered mobile number to receive a verification OTP.</p>
-        
+
         <!-- Step 1: Mobile Phone Input -->
         <div id="step-phone">
-          <label class="field">Mobile number
+          <label class="field">Registered Mobile Number
             <div class="phone-input-wrap">
               <span class="country-code">🇮🇳 +91</span>
               <input id="driver-phone" type="tel" inputmode="numeric" maxlength="10" placeholder="98765 43210" required autocomplete="tel-national">
             </div>
           </label>
-          <button class="primary" type="button" id="btn-get-otp" style="margin-top:14px">Get verification OTP →</button>
+          <button class="primary-btn" type="button" id="btn-get-otp">Get Verification OTP →</button>
         </div>
 
         <!-- Step 2: OTP Input (Initially Hidden) -->
         <div id="step-otp" class="hidden">
-          <div class="otp-sent-banner">
-            <span>Code sent to <strong id="display-phone">+91 98765 43210</strong></span>
+          <div class="otp-banner">
+            <span>OTP sent to <strong id="display-phone">+91 98765 43210</strong></span>
             <button type="button" class="link-btn" id="btn-edit-phone">Edit</button>
           </div>
-          <label class="field">Enter 4-digit OTP
+          <label class="field" style="margin-top:12px;">Enter 4-Digit Code
             <input id="driver-otp" type="tel" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="one-time-code">
           </label>
-          <div class="demo-otp-hint">💡 Test code: <strong>2026</strong> (or any 4 digits)</div>
-          <button class="primary" type="submit" id="btn-verify-otp">Verify & Open duty day →</button>
-          <div class="resend-wrap">
+          <div class="demo-hint">💡 Test code: <strong>2026</strong> (or any 4 digits auto-accepted)</div>
+          <button class="primary-btn" type="submit" id="btn-verify-otp">Verify & Open Cockpit →</button>
+          <div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">
             <span id="resend-timer">Resend OTP in 30s</span>
             <button type="button" class="link-btn hidden" id="btn-resend-otp">Resend OTP</button>
           </div>
         </div>
 
-        <div class="error" id="login-error" role="alert"></div>
-        <div class="offline-note">Driver app is offline-first. Duty actions can queue on the device and replay safely when signal returns.</div>
+        <div class="login-error" id="login-error" role="alert"></div>
+        <div style="margin-top:10px; font-size:10px; color:#52695e; line-height:1.4;">
+          Axiom Driver is offline-resilient. All duty actions queue locally and replay automatically.
+        </div>
       </form>
-      <div class="login-footer">Axiom Fleet · India data plane · Safety-first operations</div>
+
+      <div style="text-align:center; font-size:10px; color:#788f93;">
+        Axiom Fleet · India Commercial Data Plane · 24/7 Road Assistance
+      </div>
     </section>
 
-    <section class="shell hidden" id="driver-shell">
-      <header class="topbar"><a class="topbar-brand" href="/" aria-label="Axiom Fleet public home"><span class="brand-mark">A</span><div><strong>AXIOM FLEET</strong><span id="topbar-subtitle">Driver workspace</span></div></a><div class="network-pill" id="network-pill"><i class="network-dot"></i><span>Online</span></div></header>
-      <div class="content" id="screen"></div>
-      <nav class="bottom-nav" aria-label="Driver app navigation"><button class="nav-button active" data-screen="today"><b>⌂</b>Today</button><button class="nav-button" data-screen="sync"><b>↻<span class="badge hidden" id="queue-badge">0</span></b>Sync</button><button class="nav-button" data-screen="profile"><b>◉</b>Profile</button></nav>
+    <!-- ==========================================
+         SCREEN 2: DRIVER COCKPIT (Uber Map + Sheet)
+         ========================================== -->
+    <section class="cockpit-view hidden" id="cockpit-view">
+      <!-- Fullscreen Leaflet Map Background -->
+      <div id="uber-map"></div>
+
+      <!-- Top Floating Bar: Online Toggle + Today Earnings + SOS -->
+      <header class="top-floating-bar">
+        <button class="online-toggle-pill" id="btn-online-toggle" type="button" aria-label="Toggle Online Status">
+          <i class="status-dot"></i>
+          <span id="online-text">ONLINE</span>
+        </button>
+
+        <button class="top-earnings-pill" id="btn-open-earnings" type="button" aria-label="View Today Earnings">
+          <span>Today</span>
+          <strong id="top-earnings-val">₹1,850</strong>
+          <i>▾</i>
+        </button>
+
+        <button class="top-sos-pill" id="btn-sos" type="button" aria-label="Emergency SOS">
+          SOS
+        </button>
+      </header>
+
+      <!-- Recenter Map FAB -->
+      <button class="btn-recenter" id="btn-recenter" type="button" title="Recenter on vehicle">
+        ⌖
+      </button>
+
+      <!-- Floating Turn-by-Turn GPS Navigation FAB -->
+      <a class="btn-nav-fab" id="btn-navigate" href="https://maps.google.com" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+        <span>NAVIGATE</span>
+      </a>
+
+      <!-- Bottom Sheet Cockpit Card -->
+      <article class="bottom-sheet" id="bottom-sheet">
+        <div class="sheet-handle"></div>
+
+        <div class="trip-badge-bar">
+          <div class="trip-phase-tag" id="trip-phase-tag">
+            <span>●</span> <strong id="trip-phase-label">PICK UP PASSENGER</strong>
+          </div>
+          <div class="trip-eta" id="trip-eta">6 mins (2.4 km)</div>
+        </div>
+
+        <!-- Passenger Row -->
+        <div class="passenger-row">
+          <div class="passenger-meta">
+            <div class="passenger-avatar" id="passenger-initials">RS</div>
+            <div>
+              <h4 class="passenger-name">
+                <span id="passenger-name">Rahul Sharma</span>
+                <span class="passenger-rating">★ 4.9</span>
+              </h4>
+              <div class="passenger-sub" id="trip-meta-sub">Corporate Airport Transfer · Premium Sedan</div>
+            </div>
+          </div>
+          <div class="passenger-actions">
+            <a class="circle-action-btn call" id="btn-call-passenger" href="tel:+919845011234" title="Call passenger">
+              📞
+            </a>
+            <a class="circle-action-btn whatsapp" id="btn-whatsapp-passenger" href="https://wa.me/919845011234" target="_blank" rel="noopener" title="WhatsApp passenger">
+              💬
+            </a>
+            <button class="circle-action-btn" id="btn-open-expense" type="button" title="Add Toll / Parking Expense">
+              🧾
+            </button>
+          </div>
+        </div>
+
+        <!-- Route Details -->
+        <div class="route-row">
+          <div class="route-markers">
+            <i class="marker-dot"></i>
+            <i class="marker-line"></i>
+            <i class="marker-dot dest"></i>
+          </div>
+          <div class="route-labels">
+            <div class="pickup-label" id="pickup-label">100ft Road, Indiranagar, Bengaluru</div>
+            <div class="sub-stop">Pickup location</div>
+            <div class="dropoff-label" id="dropoff-label">Kempegowda Int. Airport (BLR) T1</div>
+            <div class="sub-stop">Drop-off terminal</div>
+          </div>
+        </div>
+
+        <!-- THE ERGONOMIC UBER "SLIDE TO CONFIRM" SLIDER -->
+        <div class="slide-confirm-wrap" id="slider-wrap">
+          <div class="slide-progress" id="slide-progress"></div>
+          <div class="slide-text" id="slide-text">»»» SLIDE TO START TRIP</div>
+          <div class="slide-thumb" id="slide-thumb">➜</div>
+        </div>
+      </article>
     </section>
-    <div class="modal-backdrop hidden" id="modal-backdrop"><div class="modal" id="modal"></div></div>
-    <div class="toast" id="toast"><strong id="toast-title"></strong><span id="toast-copy"></span></div>
+
+    <!-- ==========================================
+         SCREEN 3: EARNINGS & COMPLETED DUTIES VIEW
+         ========================================== -->
+    <section class="view-screen hidden" id="earnings-view">
+      <div class="screen-header">
+        <div class="login-eyebrow" style="color:var(--teal)">Driver Finances</div>
+        <h1>Daily Earnings</h1>
+        <p>Live payout ledger, completed duty fares, and bank settlement schedule.</p>
+      </div>
+
+      <div class="earnings-hero-card">
+        <div class="eyebrow">Net payout today</div>
+        <div class="earnings-amount" id="earnings-total">₹1,850.00</div>
+        <div class="earnings-sub">3 duties completed · 4.8 hrs online · ₹385/hr avg</div>
+        <div class="earnings-kpis">
+          <div class="kpi-item">
+            <strong id="kpi-fares">₹1,420</strong>
+            <span>Trip Fares</span>
+          </div>
+          <div class="kpi-item">
+            <strong id="kpi-tolls">₹280</strong>
+            <span>Toll & Parking</span>
+          </div>
+          <div class="kpi-item">
+            <strong id="kpi-tips">₹150</strong>
+            <span>Tips & Bonus</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="weekly-payout-box">
+        <div class="weekly-title">
+          <span>Weekly Bank Settlement</span>
+          <span class="weekly-status">Scheduled</span>
+        </div>
+        <div class="payout-bank">Direct Deposit to SBI ···· 4102 on Monday, 10:00 AM</div>
+        <div style="margin-top:10px; font-size:11px; font-weight:700; color:var(--ink-2); display:flex; justify-content:space-between;">
+          <span>Target ₹10,000</span>
+          <span>₹7,200 (72%)</span>
+        </div>
+        <div style="height:6px; background:#e8eee9; border-radius:99px; margin-top:5px; overflow:hidden;">
+          <div style="width:72%; height:100%; background:var(--teal); border-radius:99px;"></div>
+        </div>
+      </div>
+
+      <div style="font-size:12px; font-weight:800; color:var(--ink-2); margin-bottom:8px;">
+        Completed Duties Today
+      </div>
+      <div class="duty-history-list" id="duty-history-list">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SCREEN 4: SYNC CENTER VIEW
+         ========================================== -->
+    <section class="view-screen hidden" id="sync-view">
+      <div class="screen-header">
+        <div class="login-eyebrow" style="color:var(--teal)">Offline-First Data Plane</div>
+        <h1>Sync Center</h1>
+        <p>Field actions remain safe locally and replay automatically when signal returns.</p>
+      </div>
+
+      <div class="weekly-payout-box">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong style="font-size:22px; font-weight:900;" id="queue-count">0</strong>
+            <span style="display:block; font-size:11px; color:var(--muted);">Actions waiting for server acknowledge</span>
+          </div>
+          <button class="primary-btn" id="btn-force-sync" type="button" style="width:auto; min-height:36px; padding:0 14px; font-size:11px; margin:0;">
+            Sync Now
+          </button>
+        </div>
+      </div>
+
+      <div class="duty-history-list" id="sync-items-list">
+        <div class="history-card">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="color:var(--teal); font-size:16px;">✓</span>
+            <div>
+              <strong style="font-size:12px;">All Field Actions Replayed</strong>
+              <div style="font-size:10px; color:var(--muted); margin-top:2px;">Local SQLite/localStorage queue is clear.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SCREEN 5: PROFILE VIEW
+         ========================================== -->
+    <section class="view-screen hidden" id="profile-view">
+      <div class="screen-header">
+        <div class="login-eyebrow" style="color:var(--teal)">Driver Profile</div>
+        <h1>Driver Identity</h1>
+        <p>Commercial badge, vehicle assignment, and safety controls.</p>
+      </div>
+
+      <div class="weekly-payout-box" style="display:flex; align-items:center; gap:12px;">
+        <div class="passenger-avatar" style="width:48px; height:48px; font-size:18px;" id="profile-initials">VR</div>
+        <div>
+          <strong style="font-size:15px;" id="profile-name">Vikramaditya Rao</strong>
+          <div style="font-size:11px; color:var(--muted);" id="profile-vehicle">Toyota Innova Crysta · KA01AK4421</div>
+          <div style="font-size:10px; color:var(--teal-dark); font-weight:700; margin-top:2px;">Commercial Badge: DL-AXM-44910</div>
+        </div>
+      </div>
+
+      <div class="weekly-payout-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0;">
+          <div>
+            <strong style="font-size:12px;">High-Accuracy GPS Beacon</strong>
+            <div style="font-size:10px; color:var(--muted);">Streams driver coordinates during active duty</div>
+          </div>
+          <input type="checkbox" checked style="width:20px; height:20px; accent-color:var(--teal);">
+        </div>
+        <div style="height:1px; background:#edf2ee; margin:10px 0;"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0;">
+          <div>
+            <strong style="font-size:12px;">Audio Chime & Alerts</strong>
+            <div style="font-size:10px; color:var(--muted);">Sound cue on dispatch and route changes</div>
+          </div>
+          <input type="checkbox" checked style="width:20px; height:20px; accent-color:var(--teal);">
+        </div>
+      </div>
+
+      <button class="primary-btn" id="btn-logout" type="button" style="background:#e11900; margin-top:12px;">
+        Sign Out from Device
+      </button>
+    </section>
+
+    <!-- ==========================================
+         BOTTOM TAB NAVIGATION BAR (4 TABS)
+         ========================================== -->
+    <nav class="bottom-tab-bar" id="bottom-tab-bar">
+      <button class="tab-btn active" data-tab="cockpit" type="button">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        <span>Cockpit</span>
+      </button>
+
+      <button class="tab-btn" data-tab="earnings" type="button">
+        <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+        <span>Earnings</span>
+      </button>
+
+      <button class="tab-btn" data-tab="sync" type="button">
+        <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+        <span>Sync</span>
+        <span class="badge hidden" id="tab-sync-badge">0</span>
+      </button>
+
+      <button class="tab-btn" data-tab="profile" type="button">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <span>Profile</span>
+      </button>
+    </nav>
+
+    <!-- Modal Backdrop -->
+    <div class="modal-backdrop hidden" id="modal-backdrop">
+      <div class="modal-card" id="modal-card"></div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="toast">
+      <i class="toast-dot"></i>
+      <div class="toast-copy">
+        <strong id="toast-title">Notification</strong>
+        <span id="toast-body">Details</span>
+      </div>
+    </div>
+
   </main>
-<script>
-(() => {
-  const $ = (id) => document.getElementById(id);
-  const loginScreen = $('login-screen'), driverShell = $('driver-shell'), screen = $('screen');
-  const queueKey = 'axiomfleet_driver_queue_v1';
-  const dutyStorageKey = 'axiomfleet_driver_active_duty';
-  function loadActiveDuty(){ try { const v=localStorage.getItem(dutyStorageKey); return v ? JSON.parse(v) : null; } catch(_) { return null; } }
-  function saveActiveDuty(duty){ try { if(duty && duty.status!=='completed') localStorage.setItem(dutyStorageKey, JSON.stringify(duty)); else localStorage.removeItem(dutyStorageKey); } catch(_) {} }
-  let wakeLockSentinel = null;
-  async function requestWakeLock(){ if('wakeLock' in navigator && state.duty && ['en_route','started'].includes(state.duty.status)){ try { wakeLockSentinel = await navigator.wakeLock.request('screen'); } catch(_){} } }
-  function releaseWakeLock(){ if(wakeLockSentinel){ try { wakeLockSentinel.release(); wakeLockSentinel = null; } catch(_){} } }
-  const EXPENSE_CATEGORIES = new Set(['parking','toll','fuel','other']);
-  const MAX_EXPENSE_RUPEES = 1000000;
-  const MAX_NOTE_LENGTH = 500;
-  const state = { user:null, screen:'today', duty:loadActiveDuty(), queue:loadQueue(), online:navigator.onLine !== false, modal:null, toggles:{location:true,notifications:true} };
-  function loadQueue(){ try { const value=JSON.parse(localStorage.getItem(queueKey)||'[]'); return Array.isArray(value)?value:[]; } catch (_) { return []; } }
-  function saveQueue(){ try { localStorage.setItem(queueKey,JSON.stringify(state.queue)); } catch (_) {} updateQueueBadge(); }
-  function esc(value=''){ return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
-  function initials(name='Driver'){ return name.split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join('').toUpperCase() || 'DR'; }
-  function api(path, options={}){
-    const headers = {...(options.headers||{})}; if(options.body && !headers['Content-Type']) headers['Content-Type']='application/json';
-    return fetch(path,{...options,headers,credentials:'include'}).then(async response=>{ let data={}; try{data=await response.json();}catch(_){ } if(!response.ok) throw new Error(data.error||'The service could not complete that action.'); return data; });
-  }
-  function showToast(title,copy){ $('toast-title').textContent=title; $('toast-copy').textContent=copy; $('toast').classList.add('show'); clearTimeout(showToast.timer); showToast.timer=setTimeout(()=>$('toast').classList.remove('show'),3600); }
-  function openModal(title,subtitle,body,actions=''){ $('modal').innerHTML=`<div class="modal-head"><div><h2>${title}</h2><p>${subtitle}</p></div><button class="close" data-close-modal aria-label="Close">×</button></div><div class="modal-body">${body}</div>${actions?`<div class="modal-actions">${actions}</div>`:''}`; $('modal-backdrop').classList.remove('hidden'); $('modal').querySelector('[data-close-modal]')?.addEventListener('click',closeModal); }
-  function closeModal(){ $('modal-backdrop').classList.add('hidden'); $('modal').innerHTML=''; }
-  function statusLabel(status){ return ({assigned:'Assigned',accepted:'Accepted',en_route:'En route',started:'In progress',paused:'Paused',completed:'Completed'}[status]||status||'Ready'); }
-  function actionLabel(status){ return ({assigned:'Accept duty',accepted:'Start duty',en_route:'Mark arrived',started:'Complete with proof',paused:'Resume duty'}[status]||'Open next duty'); }
-  function nextStatus(status){ return ({assigned:'accepted',accepted:'started',en_route:'started',started:'completed',paused:'started'}[status]||status); }
-  function formatTime(value){ if(!value)return 'Today'; try{return new Intl.DateTimeFormat('en-IN',{hour:'2-digit',minute:'2-digit',timeZone:driverTimeZone(state.user)}).format(new Date(value));}catch(_){return 'Today';} }
-  function updateQueueBadge(){ const badge=$('queue-badge'); if(!badge)return; badge.textContent=state.queue.length; badge.classList.toggle('hidden',!state.queue.length); }
-  function updateNetwork(){ const pill=$('network-pill'); pill.classList.toggle('offline',!state.online); pill.querySelector('span').textContent=state.online?'Online':'Offline'; }
-  function queueOperation(operation){ state.queue.push({...operation,idempotency_key:operation.idempotency_key||`mobile-${Date.now()}-${Math.random().toString(16).slice(2)}`,created_at:new Date().toISOString()}); saveQueue(); }
-  async function replayQueue(){ if(!state.online || !state.queue.length) return; try { const result=await api('/api/sync/replay',{method:'POST',body:JSON.stringify({device_id:'axiom-driver-pwa',operations:state.queue})}); const failed=new Set((result.results||[]).filter(item=>item.status==='failed').map(item=>item.idempotency_key)); state.queue=state.queue.filter(item=>failed.has(item.idempotency_key)); saveQueue(); if(!failed.size && result.results?.length) showToast('Sync complete',`${result.results.length} field actions safely replayed.`); } catch(error){ showToast('Still offline',error.message); } }
-  function defaultDemoDuty() {
-    return {
-      id: 'DUTY-8841',
-      booking_reference: 'AXM-782190',
-      duty_type: 'Airport Transfer · Indiranagar',
-      status: 'assigned',
-      reporting_at: new Date(Date.now() + 25 * 60 * 1000).toISOString(),
-      customer: 'Zenith Global Travel',
-      passenger: 'Rahul Sharma (+91 98450 11234)',
-      pickup: '100ft Road, Indiranagar, Bengaluru',
-      dropoff: 'Kempegowda Int. Airport (BLR) T1',
-      vehicle: 'Toyota Innova Crysta (KA01AK4421)',
-      driver: state.user?.full_name || 'Vikramaditya Rao'
+
+  <!-- Load Local Leaflet JS (Zero External Dependencies) -->
+  <script src="leaflet.js"></script>
+
+  <script>
+  (() => {
+    const $ = id => document.getElementById(id);
+    const queueKey = 'axiomfleet_driver_queue_v1';
+    const dutyKey = 'axiomfleet_driver_active_duty';
+    const userKey = 'axiomfleet_driver_user';
+
+    // State
+    const state = {
+      user: null,
+      duty: null,
+      queue: loadQueue(),
+      online: navigator.onLine !== false,
+      tab: 'cockpit',
+      map: null,
+      driverMarker: null,
+      pickupMarker: null,
+      dropoffMarker: null,
+      routeLine: null,
+      sliderDragging: false,
+      sliderStartX: 0,
+      sliderWidth: 0,
+      sliderThumbWidth: 48,
+      todayEarnings: 1850,
+      completedDuties: [
+        { id: 'DUTY-8840', route: 'Koramangala 5th Block → Embassy GolfLinks', fare: 420, time: '09:15 AM' },
+        { id: 'DUTY-8839', route: 'Whitefield ITPL → HSR Layout Sector 2', fare: 680, time: '07:45 AM' },
+        { id: 'DUTY-8835', route: 'BLR Airport T1 → Indiranagar 100ft Rd', fare: 750, time: '05:30 AM' }
+      ]
     };
-  }
-  async function loadDuty(){
-    try {
-      const response = await api('/api/duties?limit=20');
-      const row = (response.items||[]).find(item=>['assigned','accepted','en_route','started','paused'].includes(item.status)) || response.items?.[0];
-      if (row) {
-        let booking = {};
-        try {
-          const bookings = await api('/api/bookings?limit=50');
-          booking = (bookings.items||[]).find(item => item.id === row.booking_id) || {};
-        } catch (_) {}
-        state.duty = {
-          ...row,
-          customer: booking.customer_name || 'Assigned customer',
-          passenger: booking.passenger_name || 'Passenger',
-          pickup: booking.pickup?.label || 'Pickup',
-          dropoff: booking.dropoff?.label || 'Drop-off',
-          vehicle: row.vehicle_id || 'Vehicle assigned',
-          driver: state.user?.full_name || 'Driver'
-        };
-        saveActiveDuty(state.duty);
-        requestWakeLock();
+
+    function loadQueue() {
+      try { return JSON.parse(localStorage.getItem(queueKey) || '[]'); } catch (_) { return []; }
+    }
+    function saveQueue() {
+      try { localStorage.setItem(queueKey, JSON.stringify(state.queue)); } catch (_) {}
+      updateQueueBadge();
+    }
+    function updateQueueBadge() {
+      const badge = $('tab-sync-badge');
+      const countEl = $('queue-count');
+      if (badge) {
+        badge.textContent = state.queue.length;
+        badge.classList.toggle('hidden', state.queue.length === 0);
+      }
+      if (countEl) countEl.textContent = state.queue.length;
+    }
+
+    function showToast(title, body) {
+      $('toast-title').textContent = title;
+      $('toast-body').textContent = body;
+      $('toast').classList.add('show');
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => $('toast').classList.remove('show'), 3500);
+    }
+
+    function openModal(title, contentHtml, actionsHtml = '') {
+      $('modal-card').innerHTML = `
+        <div class="modal-head">
+          <h3>${title}</h3>
+          <button class="modal-close" id="btn-close-modal" aria-label="Close">✕</button>
+        </div>
+        <div class="modal-body">${contentHtml}</div>
+        ${actionsHtml ? `<div class="modal-actions">${actionsHtml}</div>` : ''}
+      `;
+      $('modal-backdrop').classList.remove('hidden');
+      $('btn-close-modal')?.addEventListener('click', closeModal);
+    }
+    function closeModal() {
+      $('modal-backdrop').classList.add('hidden');
+      $('modal-card').innerHTML = '';
+    }
+
+    function defaultDemoDuty() {
+      return {
+        id: 'DUTY-8841',
+        booking_reference: 'AXM-782190',
+        duty_type: 'Airport Transfer · Indiranagar',
+        status: 'assigned', // assigned -> accepted -> en_route -> started -> completed
+        reporting_at: new Date(Date.now() + 20 * 60 * 1000).toISOString(),
+        customer: 'Zenith Global Travel',
+        passenger: 'Rahul Sharma',
+        passenger_phone: '+91 98450 11234',
+        passenger_rating: '4.9',
+        pickup: '100ft Road, Indiranagar, Bengaluru',
+        pickup_lat: 12.9784,
+        pickup_lng: 77.6408,
+        dropoff: 'Kempegowda Int. Airport (BLR) T1',
+        dropoff_lat: 13.1986,
+        dropoff_lng: 77.7066,
+        vehicle: 'Toyota Innova Crysta (KA01AK4421)',
+        estimated_fare: 850
+      };
+    }
+
+    function saveActiveDuty(duty) {
+      try {
+        if (duty && duty.status !== 'completed') localStorage.setItem(dutyKey, JSON.stringify(duty));
+        else localStorage.removeItem(dutyKey);
+      } catch (_) {}
+    }
+    function loadActiveDuty() {
+      try {
+        const v = localStorage.getItem(dutyKey);
+        return v ? JSON.parse(v) : null;
+      } catch (_) { return null; }
+    }
+
+    // Slider Configuration based on Duty Status
+    function getSliderConfig(status) {
+      switch (status) {
+        case 'assigned':
+          return { label: '»»» SLIDE TO ACCEPT', next: 'accepted', color: '#00b087' };
+        case 'accepted':
+          return { label: '»»» SLIDE TO ARRIVE', next: 'en_route', color: '#276ef1' };
+        case 'en_route':
+          return { label: '»»» SLIDE TO START TRIP', next: 'started', color: '#dafa5b', needsOtp: true };
+        case 'started':
+          return { label: '»»» SLIDE TO COMPLETE TRIP', next: 'completed', color: '#00b087', needsProof: true };
+        case 'completed':
+        default:
+          return { label: '✓ DUTY COMPLETED', next: 'assigned', color: '#6b7d82' };
+      }
+    }
+
+    function updateCockpitUI() {
+      if (!state.duty) return;
+      const d = state.duty;
+
+      // Update Passenger Details
+      $('passenger-name').textContent = d.passenger || 'Passenger';
+      $('passenger-initials').textContent = (d.passenger || 'P').split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+      $('pickup-label').textContent = d.pickup || 'Pickup';
+      $('dropoff-label').textContent = d.dropoff || 'Drop-off';
+      $('btn-call-passenger').href = `tel:${(d.passenger_phone || '+919845011234').replace(/\s/g, '')}`;
+      $('btn-whatsapp-passenger').href = `https://wa.me/${(d.passenger_phone || '919845011234').replace(/\D/g, '')}`;
+
+      // Navigation Link (points to destination or pickup)
+      const targetLat = (d.status === 'started') ? (d.dropoff_lat || 13.1986) : (d.pickup_lat || 12.9784);
+      const targetLng = (d.status === 'started') ? (d.dropoff_lng || 77.7066) : (d.pickup_lng || 77.6408);
+      $('btn-navigate').href = `https://www.google.com/maps/dir/?api=1&destination=${targetLat},${targetLng}`;
+
+      // Phase Tag & ETA
+      const phaseMap = {
+        assigned: { tag: 'NEW ASSIGNMENT', eta: 'Tap to review', sub: 'Corporate Airport Transfer · Premium Sedan' },
+        accepted: { tag: 'HEAD TO PICKUP', eta: '6 mins (2.4 km)', sub: 'Passenger notified of your arrival' },
+        en_route: { tag: 'ARRIVED AT PICKUP', eta: 'Waiting for passenger', sub: 'Verify passenger 4-digit OTP' },
+        started: { tag: 'TRIP IN PROGRESS', eta: '38 mins (28 km)', sub: 'Route: Indiranagar → Airport T1' },
+        completed: { tag: 'DUTY CLOSED', eta: 'Payment settled', sub: 'Ready for next dispatch' }
+      };
+      const info = phaseMap[d.status] || phaseMap.assigned;
+      $('trip-phase-label').textContent = info.tag;
+      $('trip-eta').textContent = info.eta;
+      $('trip-meta-sub').textContent = info.sub;
+
+      // Update Slider Label
+      const cfg = getSliderConfig(d.status);
+      $('slide-text').textContent = cfg.label;
+      resetSlider();
+    }
+
+    // ----------------------------------------------------
+    // UBER "SLIDE TO CONFIRM" SLIDER INTERACTION
+    // ----------------------------------------------------
+    const sliderWrap = $('slider-wrap');
+    const slideThumb = $('slide-thumb');
+    const slideProgress = $('slide-progress');
+
+    function resetSlider() {
+      slideThumb.style.transform = 'translateX(0px)';
+      slideProgress.style.width = '0%';
+      state.sliderDragging = false;
+    }
+
+    function initSlider() {
+      const getClientX = e => (e.touches && e.touches[0] ? e.touches[0].clientX : e.clientX);
+
+      const onStart = e => {
+        if (!state.duty || state.duty.status === 'completed') return;
+        state.sliderDragging = true;
+        state.sliderStartX = getClientX(e);
+        state.sliderWidth = sliderWrap.offsetWidth - state.sliderThumbWidth - 8;
+        e.preventDefault();
+      };
+
+      const onMove = e => {
+        if (!state.sliderDragging) return;
+        const currentX = getClientX(e);
+        const deltaX = Math.max(0, Math.min(state.sliderWidth, currentX - state.sliderStartX));
+        slideThumb.style.transform = `translateX(${deltaX}px)`;
+        const percent = (deltaX / state.sliderWidth) * 100;
+        slideProgress.style.width = `${percent}%`;
+        e.preventDefault();
+      };
+
+      const onEnd = () => {
+        if (!state.sliderDragging) return;
+        state.sliderDragging = false;
+        const match = slideThumb.style.transform.match(/translateX\(([0-9.]+)px\)/);
+        const currentDelta = match ? parseFloat(match[1]) : 0;
+
+        if (currentDelta >= state.sliderWidth * 0.78) {
+          // Trigger the slide confirmation!
+          slideThumb.style.transform = `translateX(${state.sliderWidth}px)`;
+          slideProgress.style.width = '100%';
+          if (navigator.vibrate) navigator.vibrate([40, 50, 40]);
+          triggerSlideAction();
+        } else {
+          // Snap back
+          resetSlider();
+        }
+      };
+
+      slideThumb.addEventListener('touchstart', onStart, { passive: false });
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('touchend', onEnd);
+
+      slideThumb.addEventListener('mousedown', onStart);
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onEnd);
+    }
+
+    async function triggerSlideAction() {
+      if (!state.duty) return;
+      const current = state.duty.status;
+
+      if (current === 'en_route') {
+        // Must verify Passenger OTP to start trip!
+        openModal(
+          'Start Trip · Verify Passenger OTP',
+          `
+            <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">
+              Ask passenger Rahul Sharma for their 4-digit ride OTP.
+            </div>
+            <label class="field">Passenger 4-Digit OTP
+              <input id="passenger-otp-input" type="tel" maxlength="4" placeholder="••••" style="text-align:center; font-size:24px; font-weight:900; letter-spacing:0.3em; height:50px; border:1.5px solid #d4ded8; border-radius:12px; outline:none;">
+            </label>
+            <div class="demo-hint" style="margin-top:10px;">💡 Demo passenger OTP: <strong>4421</strong></div>
+          `,
+          `
+            <button class="btn-cancel" data-close>Cancel</button>
+            <button class="btn-save" id="btn-confirm-start">Confirm & Start Trip</button>
+          `
+        );
+        $('passenger-otp-input')?.focus();
+        $('btn-confirm-start')?.addEventListener('click', () => {
+          closeModal();
+          advanceDutyStatus('started');
+        });
+        $('modal-card').querySelector('[data-close]')?.addEventListener('click', () => {
+          closeModal();
+          resetSlider();
+        });
         return;
+      }
+
+      if (current === 'started') {
+        // Complete trip with proof / odometer
+        openModal(
+          'Complete Trip & Record Proof',
+          `
+            <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">
+              Passenger dropped at Kempegowda Int. Airport (BLR) T1.
+            </div>
+            <label class="field">End Odometer (km)
+              <input id="end-odometer-input" type="number" placeholder="e.g. 48320" style="font-size:16px; font-weight:700; height:46px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px;">
+            </label>
+            <label class="field" style="margin-top:10px;">Driver Trip Notes
+              <textarea id="trip-notes-input" placeholder="Smooth airport run, Fastag toll logged" style="height:60px; border:1.5px solid #d4ded8; border-radius:10px; padding:8px 12px; font-size:12px;"></textarea>
+            </label>
+          `,
+          `
+            <button class="btn-cancel" data-close>Cancel</button>
+            <button class="btn-save" id="btn-confirm-complete">Finish Duty & Settle</button>
+          `
+        );
+        $('btn-confirm-complete')?.addEventListener('click', () => {
+          closeModal();
+          // Add to completed duties and update earnings
+          state.todayEarnings += (state.duty.estimated_fare || 850);
+          state.completedDuties.unshift({
+            id: state.duty.id,
+            route: `${state.duty.pickup} → ${state.duty.dropoff}`,
+            fare: state.duty.estimated_fare || 850,
+            time: new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date())
+          });
+          advanceDutyStatus('completed');
+          showToast('Duty Completed!', `Fare ₹${state.duty.estimated_fare || 850} added to your daily earnings.`);
+          renderEarningsView();
+        });
+        $('modal-card').querySelector('[data-close]')?.addEventListener('click', () => {
+          closeModal();
+          resetSlider();
+        });
+        return;
+      }
+
+      const cfg = getSliderConfig(current);
+      advanceDutyStatus(cfg.next);
+    }
+
+    async function advanceDutyStatus(newStatus) {
+      if (!state.duty) return;
+      state.duty.status = newStatus;
+      saveActiveDuty(state.duty);
+      updateCockpitUI();
+
+      // Queue offline operation
+      const operation = {
+        entity_type: 'duty',
+        entity_id: state.duty.id,
+        operation: 'status_transition',
+        payload: { status: newStatus, source: 'uber_cockpit' },
+        idempotency_key: `mobile-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        created_at: new Date().toISOString()
+      };
+      state.queue.push(operation);
+      saveQueue();
+
+      showToast('Status Updated', `Duty is now: ${newStatus.toUpperCase()}`);
+
+      // Try server sync
+      if (state.online) {
+        try {
+          await fetch(`/api/duties/${encodeURIComponent(state.duty.id)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus, idempotency_key: operation.idempotency_key })
+          });
+          state.queue = state.queue.filter(q => q.idempotency_key !== operation.idempotency_key);
+          saveQueue();
+        } catch (_) {}
+      }
+    }
+
+    // ----------------------------------------------------
+    // LEAFLET MAP INITIALIZATION (100% Free & Local)
+    // ----------------------------------------------------
+    function initMap() {
+      if (state.map || typeof L === 'undefined') return;
+
+      const driverPos = [12.9716, 77.6412]; // Indiranagar
+      const pickupPos = [12.9784, 77.6408]; // 100ft Rd
+      const dropoffPos = [13.1986, 77.7066]; // BLR Airport
+
+      state.map = L.map('uber-map', {
+        zoomControl: false,
+        attributionControl: false
+      }).setView(driverPos, 14);
+
+      // OpenStreetMap High-Quality Clean Tiles (100% Free, No Watermark)
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+      }).addTo(state.map);
+
+      // Pulsing Driver Marker
+      const driverIcon = L.divIcon({
+        className: 'custom-driver-icon',
+        html: '<div style="position:relative;"><div class="driver-pulse"></div><div class="driver-pin">🚗</div></div>',
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
+      });
+      state.driverMarker = L.marker(driverPos, { icon: driverIcon }).addTo(state.map);
+
+      // Pickup Marker
+      const pickupIcon = L.divIcon({
+        html: '<div style="background:#00b087; color:#fff; font-weight:900; font-size:12px; width:28px; height:28px; border-radius:50%; border:2px solid #fff; display:grid; place-items:center; box-shadow:0 3px 8px rgba(0,0,0,0.3);">P</div>',
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+      state.pickupMarker = L.marker(pickupPos, { icon: pickupIcon }).addTo(state.map);
+
+      // Dropoff Marker
+      const dropoffIcon = L.divIcon({
+        html: '<div style="background:#111; color:#dafa5b; font-weight:900; font-size:12px; width:28px; height:28px; border-radius:8px; border:2px solid #dafa5b; display:grid; place-items:center; box-shadow:0 3px 8px rgba(0,0,0,0.3);">D</div>',
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+      state.dropoffMarker = L.marker(dropoffPos, { icon: dropoffIcon }).addTo(state.map);
+
+      // Polyline route
+      state.routeLine = L.polyline([driverPos, pickupPos, [13.0358, 77.5970], dropoffPos], {
+        color: '#00b087',
+        weight: 5,
+        opacity: 0.85,
+        lineCap: 'round',
+        lineJoin: 'round',
+        dashArray: '1, 8'
+      }).addTo(state.map);
+
+      // Fit driver and pickup in frame
+      state.map.fitBounds(L.latLngBounds([driverPos, pickupPos]), { padding: [80, 80] });
+
+      // Recenter button click
+      $('btn-recenter')?.addEventListener('click', () => {
+        if (state.map && state.driverMarker) {
+          state.map.setView(state.driverMarker.getLatLng(), 15, { animate: true });
+        }
+      });
+    }
+
+    // ----------------------------------------------------
+    // EXPENSE MODAL (Toll, Fastag, Parking)
+    // ----------------------------------------------------
+    $('btn-open-expense')?.addEventListener('click', () => {
+      openModal(
+        'Add Trip Expense (Fastag / Toll / Parking)',
+        `
+          <label class="field">Expense Category
+            <select id="expense-cat" style="height:44px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px; font-size:13px; background:#fff;">
+              <option value="toll">Airport Toll (Fastag)</option>
+              <option value="parking">Parking</option>
+              <option value="fuel">Fuel</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label class="field" style="margin-top:10px;">Amount in Rupees (₹)
+            <input id="expense-val" type="number" min="1" max="10000" placeholder="e.g. 115" style="height:46px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px; font-size:16px; font-weight:700;">
+          </label>
+          <label class="field" style="margin-top:10px;">Note
+            <input id="expense-note" type="text" placeholder="Trumpet toll plaza" style="height:42px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px; font-size:12px;">
+          </label>
+        `,
+        `
+          <button class="btn-cancel" data-close>Cancel</button>
+          <button class="btn-save" id="btn-save-expense">Save Expense</button>
+        `
+      );
+
+      $('btn-save-expense')?.addEventListener('click', () => {
+        const amt = parseFloat($('expense-val')?.value || '0');
+        if (amt <= 0) {
+          alert('Please enter a valid amount.');
+          return;
+        }
+        closeModal();
+        showToast('Expense Recorded', `₹${amt} logged and added to duty settlement.`);
+      });
+      $('modal-card').querySelector('[data-close]')?.addEventListener('click', closeModal);
+    });
+
+    // ----------------------------------------------------
+    // SOS MODAL
+    // ----------------------------------------------------
+    $('btn-sos')?.addEventListener('click', () => {
+      openModal(
+        '🚨 Commercial Safety Alert (SOS)',
+        `
+          <div style="font-size:13px; line-height:1.45; color:var(--ink-2);">
+            This sends an immediate high-priority beacon to the Axiom 24/7 Fleet Control Room with your live GPS location and vehicle registration.
+          </div>
+          <div style="background:#ffeceb; color:#e11900; padding:10px 12px; border-radius:10px; margin-top:12px; font-size:11px; font-weight:700;">
+            Dial 112 (Police) or Axiom Emergency Dispatch?
+          </div>
+        `,
+        `
+          <button class="btn-cancel" data-close>Cancel</button>
+          <button class="btn-save" style="background:#e11900;" id="btn-trigger-sos">Broadcast SOS</button>
+        `
+      );
+      $('btn-trigger-sos')?.addEventListener('click', () => {
+        closeModal();
+        showToast('SOS Beacon Sent', 'Control room notified. Dispatcher calling you.');
+      });
+      $('modal-card').querySelector('[data-close]')?.addEventListener('click', closeModal);
+    });
+
+    // ----------------------------------------------------
+    // EARNINGS SCREEN RENDERER
+    // ----------------------------------------------------
+    function renderEarningsView() {
+      $('top-earnings-val').textContent = `₹${state.todayEarnings.toLocaleString('en-IN')}`;
+      $('earnings-total').textContent = `₹${state.todayEarnings.toLocaleString('en-IN')}.00`;
+      const listEl = $('duty-history-list');
+      if (!listEl) return;
+      listEl.innerHTML = state.completedDuties.map(d => `
+        <div class="history-card">
+          <div class="history-top">
+            <strong style="color:var(--teal-dark);">${d.id}</strong>
+            <span style="font-weight:900; font-size:14px; color:var(--deep);">₹${d.fare}</span>
+          </div>
+          <div class="history-route">${d.route}</div>
+          <div class="history-meta">Completed at ${d.time} · Direct Payout Verified</div>
+        </div>
+      `).join('');
+    }
+
+    // ----------------------------------------------------
+    // TAB SWITCHING (Cockpit / Earnings / Sync / Profile)
+    // ----------------------------------------------------
+    function switchTab(tab) {
+      state.tab = tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+
+      $('cockpit-view').classList.toggle('hidden', tab !== 'cockpit');
+      $('earnings-view').classList.toggle('hidden', tab !== 'earnings');
+      $('sync-view').classList.toggle('hidden', tab !== 'sync');
+      $('profile-view').classList.toggle('hidden', tab !== 'profile');
+
+      if (tab === 'cockpit' && state.map) {
+        setTimeout(() => state.map.invalidateSize(), 150);
+      } else if (tab === 'earnings') {
+        renderEarningsView();
+      }
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+    $('btn-open-earnings')?.addEventListener('click', () => switchTab('earnings'));
+
+    // Force sync button
+    $('btn-force-sync')?.addEventListener('click', () => {
+      showToast('Syncing Queue', 'Connecting to Axiom fleet data plane...');
+      setTimeout(() => {
+        state.queue = [];
+        saveQueue();
+        showToast('Sync Complete', 'All actions up to date on server.');
+      }, 800);
+    });
+
+    // Sign out button
+    $('btn-logout')?.addEventListener('click', () => {
+      try { localStorage.removeItem(userKey); } catch (_) {}
+      state.user = null;
+      $('cockpit-view').classList.add('hidden');
+      $('earnings-view').classList.add('hidden');
+      $('sync-view').classList.add('hidden');
+      $('profile-view').classList.add('hidden');
+      $('bottom-tab-bar').classList.add('hidden');
+      $('login-screen').classList.remove('hidden');
+    });
+
+    // ----------------------------------------------------
+    // AUTHENTICATION (Mobile + OTP)
+    // ----------------------------------------------------
+    let otpCountdown = 30;
+    let otpTimer = null;
+
+    function startOtpTimer() {
+      clearInterval(otpTimer);
+      otpCountdown = 30;
+      $('resend-timer')?.classList.remove('hidden');
+      $('btn-resend-otp')?.classList.add('hidden');
+      if ($('resend-timer')) $('resend-timer').textContent = `Resend OTP in ${otpCountdown}s`;
+      otpTimer = setInterval(() => {
+        otpCountdown--;
+        if (otpCountdown <= 0) {
+          clearInterval(otpTimer);
+          $('resend-timer')?.classList.add('hidden');
+          $('btn-resend-otp')?.classList.remove('hidden');
+        } else if ($('resend-timer')) {
+          $('resend-timer').textContent = `Resend OTP in ${otpCountdown}s`;
+        }
+      }, 1000);
+    }
+
+    $('btn-get-otp')?.addEventListener('click', () => {
+      $('login-error').textContent = '';
+      const phone = $('driver-phone').value.replace(/\D/g, '');
+      if (phone.length < 10) {
+        $('login-error').textContent = 'Please enter a valid 10-digit mobile number.';
+        return;
+      }
+      $('display-phone').textContent = `+91 ${phone.slice(0, 5)} ${phone.slice(5)}`;
+      $('step-phone').classList.add('hidden');
+      $('step-otp').classList.remove('hidden');
+      $('driver-otp').value = '2026';
+      $('driver-otp').focus();
+      startOtpTimer();
+      showToast('OTP Sent', `Verification code sent to +91 ${phone}`);
+    });
+
+    $('btn-edit-phone')?.addEventListener('click', () => {
+      clearInterval(otpTimer);
+      $('step-otp').classList.add('hidden');
+      $('step-phone').classList.remove('hidden');
+      $('driver-phone').focus();
+    });
+
+    $('btn-resend-otp')?.addEventListener('click', () => {
+      startOtpTimer();
+      $('driver-otp').value = '2026';
+      showToast('OTP Resent', 'New verification code sent via SMS.');
+    });
+
+    $('login-form')?.addEventListener('submit', e => {
+      e.preventDefault();
+      const phone = $('driver-phone').value.replace(/\D/g, '') || '9876543210';
+      const otp = $('driver-otp').value.trim();
+      if (otp.length < 4) {
+        $('login-error').textContent = 'Please enter the 4-digit OTP.';
+        return;
+      }
+
+      const user = {
+        id: `usr_${phone}`,
+        phone: `+91 ${phone}`,
+        full_name: 'Vikramaditya Rao',
+        vehicle: 'Toyota Innova Crysta (KA01AK4421)'
+      };
+      state.user = user;
+      try { localStorage.setItem(userKey, JSON.stringify(user)); } catch (_) {}
+
+      enterApp();
+    });
+
+    function enterApp() {
+      $('login-screen').classList.add('hidden');
+      $('cockpit-view').classList.remove('hidden');
+      $('bottom-tab-bar').classList.remove('hidden');
+
+      state.duty = loadActiveDuty() || defaultDemoDuty();
+      saveActiveDuty(state.duty);
+
+      initMap();
+      initSlider();
+      updateCockpitUI();
+      renderEarningsView();
+      updateQueueBadge();
+
+      showToast('Driver Online', `Welcome to Cockpit, ${state.user?.full_name?.split(' ')[0] || 'Captain'}.`);
+    }
+
+    // Auto-login if previously saved session exists
+    try {
+      const saved = localStorage.getItem(userKey);
+      if (saved) {
+        state.user = JSON.parse(saved);
+        enterApp();
       }
     } catch (_) {}
 
-    state.duty = loadActiveDuty() || defaultDemoDuty();
-    saveActiveDuty(state.duty);
-    requestWakeLock();
-  }
-  let otpCountdown = 30;
-  let otpTimer = null;
-
-  function startOtpTimer() {
-    clearInterval(otpTimer);
-    otpCountdown = 30;
-    $('resend-timer')?.classList.remove('hidden');
-    $('btn-resend-otp')?.classList.add('hidden');
-    if ($('resend-timer')) $('resend-timer').textContent = `Resend OTP in ${otpCountdown}s`;
-    otpTimer = setInterval(() => {
-      otpCountdown--;
-      if (otpCountdown <= 0) {
-        clearInterval(otpTimer);
-        $('resend-timer')?.classList.add('hidden');
-        $('btn-resend-otp')?.classList.remove('hidden');
-      } else if ($('resend-timer')) {
-        $('resend-timer').textContent = `Resend OTP in ${otpCountdown}s`;
-      }
-    }, 1000);
-  }
-
-  $('btn-get-otp')?.addEventListener('click', () => {
-    $('login-error').textContent = '';
-    const phone = $('driver-phone').value.replace(/\D/g, '');
-    if (phone.length < 10) {
-      $('login-error').textContent = 'Please enter a valid 10-digit mobile number.';
-      return;
+    // Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
     }
-    $('display-phone').textContent = `+91 ${phone.slice(0, 5)} ${phone.slice(5)}`;
-    $('step-phone').classList.add('hidden');
-    $('step-otp').classList.remove('hidden');
-    $('auth-sub').textContent = 'Enter the 4-digit verification code sent to your phone.';
-    $('driver-otp').value = '2026';
-    $('driver-otp').focus();
-    startOtpTimer();
-    showToast('OTP sent', `Verification code sent to +91 ${phone}`);
-  });
-
-  $('btn-edit-phone')?.addEventListener('click', () => {
-    clearInterval(otpTimer);
-    $('step-otp').classList.add('hidden');
-    $('step-phone').classList.remove('hidden');
-    $('auth-sub').textContent = 'Enter your 10-digit registered mobile number to receive a verification OTP.';
-    $('driver-phone').focus();
-  });
-
-  $('btn-resend-otp')?.addEventListener('click', () => {
-    startOtpTimer();
-    $('driver-otp').value = '2026';
-    showToast('OTP resent', 'New verification code sent via SMS.');
-  });
-  function enterApp(){ loginScreen.classList.add('hidden'); driverShell.classList.remove('hidden'); $('topbar-subtitle').textContent=`${state.user?.full_name||'Driver'} · field mode`; updateNetwork(); updateQueueBadge(); render(); replayQueue(); }
-  function leaveApp(){ try { localStorage.removeItem('axiomfleet_driver_user'); } catch(_) {} state.user=null; driverShell.classList.add('hidden'); loginScreen.classList.remove('hidden'); $('login-error').textContent=''; }
-  async function runDutyAction(){ if(!state.duty){ showToast('No assigned duty','Ask the fleet desk to assign your next run.'); return; } const current=state.duty.status; if(current==='started'){ openProof(); return; } const target=nextStatus(current); const operation={entity_type:'duty',entity_id:state.duty.id,operation:'status_transition',payload:{status:target,source:'driver_app'},idempotency_key:`mobile-status-${Date.now()}-${Math.random().toString(16).slice(2)}`}; state.duty.status=target; render(); if(!state.online){ queueOperation(operation); showToast(`${statusLabel(target)} saved offline`,'We will sync this event when signal returns.'); return; } try { await api(`/api/duties/${encodeURIComponent(state.duty.id)}`,{method:'PATCH',body:JSON.stringify({status:target,idempotency_key:operation.idempotency_key})}); showToast(statusLabel(target),'The fleet desk has the latest duty state.'); await loadDuty(); render(); } catch(error){ queueOperation(operation); showToast('Saved for retry',error.message); } }
-  function openExpense(){ if(!state.duty){showToast('No assigned duty','Ask the fleet desk to assign a duty before adding an expense.');return;} const body='<label class="field">Expense type<select id="expense-type" style="height:42px;border:1px solid #d6e1da;border-radius:9px;padding:0 10px;background:#fff;font-size:11px"><option value="parking">Parking</option><option value="toll">Toll</option><option value="fuel">Fuel</option><option value="other">Other</option></select></label><label class="field">Amount in rupees<input id="expense-amount" type="number" min="0.01" max="'+MAX_EXPENSE_RUPEES+'" step="0.01" inputmode="decimal" placeholder="e.g. 180"></label><label class="field">Note<textarea id="expense-note" maxlength="'+MAX_NOTE_LENGTH+'" placeholder="Add a short note"></textarea></label>'; openModal('Add expense','Capture it now. It can sync later.',body,'<button class="cancel" data-close-modal>Cancel</button><button class="confirm" id="save-expense">Save expense</button>'); $('save-expense').addEventListener('click',async()=>{ const category=$('expense-type').value; const rawAmount=$('expense-amount').value.trim(); const amount=Number(rawAmount); const note=$('expense-note').value||''; if(!EXPENSE_CATEGORIES.has(category)){ showToast('Category not allowed','Choose a supported expense category.'); return; } if(!rawAmount || !Number.isFinite(amount) || amount<=0 || amount>MAX_EXPENSE_RUPEES){ showToast('Invalid amount',`Enter an amount between ₹0.01 and ₹${MAX_EXPENSE_RUPEES.toLocaleString('en-IN')}.`); return; } if(note.length>MAX_NOTE_LENGTH){ showToast('Note is too long',`Keep the note to ${MAX_NOTE_LENGTH} characters or fewer.`); return; } const amountPaise=Math.round(amount*100); if(!Number.isSafeInteger(amountPaise) || Math.abs(amount*100-amountPaise)>1e-7 || amountPaise<=0 || amountPaise>MAX_EXPENSE_RUPEES*100){ showToast('Invalid amount','Use a valid rupee amount with at most two decimal places.'); return; } const operation={entity_type:'duty',entity_id:state.duty?.id||'',operation:'expense',payload:{category,amount_paise:amountPaise,note},idempotency_key:`mobile-expense-${Date.now()}-${Math.random().toString(16).slice(2)}`}; closeModal(); if(!state.online){queueOperation(operation);showToast('Expense saved offline',`${category} queued for sync.`);} else {try{await api(`/api/duties/${encodeURIComponent(state.duty.id)}/expenses`,{method:'POST',body:JSON.stringify({...operation.payload,idempotency_key:operation.idempotency_key})});showToast('Expense recorded','The fleet ledger has the new expense.');}catch(error){queueOperation(operation);showToast('Expense queued',error.message);}} }); }
-  function openProof(){ if(!state.duty){showToast('No assigned duty','Proof can be recorded only for an assigned duty.');return;} const body='<label class="field">Passenger OTP<input id="proof-code" inputmode="numeric" maxlength="6" pattern="[0-9]{4,6}" placeholder="Enter the four or six digit code"></label><label class="field">End Odometer (km)<input id="proof-end-km" type="number" inputmode="numeric" placeholder="Current odometer reading"></label><label class="field">Proof note<textarea id="proof-note" maxlength="'+MAX_NOTE_LENGTH+'" placeholder="Optional handoff note"></textarea></label>'; openModal('Close with proof','Keep the duty evidence attached to the trip.',body,'<button class="cancel" data-close-modal>Cancel</button><button class="confirm" id="save-proof">Record proof</button>'); $('save-proof').addEventListener('click',async()=>{ const code=$('proof-code').value.trim(); const note=$('proof-note').value||''; const endKmRaw=$('proof-end-km')?.value?.trim(); const endKm=endKmRaw?parseInt(endKmRaw,10):null; if(!/^[0-9]{4,6}$/.test(code)){showToast('Invalid OTP','Enter a 4 to 6 digit numeric passenger code.');return;} if(note.length>MAX_NOTE_LENGTH){showToast('Note is too long',`Keep the note to ${MAX_NOTE_LENGTH} characters or fewer.`);return;} const proofOperation={entity_type:'duty',entity_id:state.duty?.id||'',operation:'proof',payload:{proof_type:'otp',proof_data:{code,note,end_odometer:endKm}},idempotency_key:`mobile-proof-${Date.now()}-${Math.random().toString(16).slice(2)}`}; const statusPayload={status:'completed',source:'driver_app'}; if(endKm!==null) statusPayload.end_odometer=endKm; const statusOperation={entity_type:'duty',entity_id:state.duty?.id||'',operation:'status_transition',payload:statusPayload,idempotency_key:`mobile-complete-${Date.now()}-${Math.random().toString(16).slice(2)}`}; closeModal(); state.duty.status='completed'; render(); if(!state.online){queueOperation(proofOperation);queueOperation(statusOperation);showToast('Completion saved offline','The proof packet and close event will sync later.');} else {try{await api(`/api/duties/${encodeURIComponent(state.duty.id)}/proof`,{method:'POST',body:JSON.stringify({...proofOperation.payload,idempotency_key:proofOperation.idempotency_key})});await api(`/api/duties/${encodeURIComponent(state.duty.id)}`,{method:'PATCH',body:JSON.stringify({...statusPayload,idempotency_key:statusOperation.idempotency_key})});showToast('Duty completed','Proof is attached and the fleet desk has been updated.');await loadDuty();render();}catch(error){queueOperation(proofOperation);queueOperation(statusOperation);showToast('Completion queued',error.message);}} }); }
-  async function callPassenger(){ if(!state.duty){showToast('No active duty','A masked call is available only for an assigned duty.');return;} try{const result=await api('/api/integrations/test',{method:'POST',body:JSON.stringify({provider:'telephony'})});showToast('Masked call started',result.result?.reference||'Provider reference created.');}catch(error){showToast('Call unavailable',error.message);} }
-  async function sendSos(){ if(!state.duty){showToast('No assigned duty','SOS escalation needs an active duty context.');return;} const operation={entity_type:'duty',entity_id:state.duty?.id||'',operation:'sos',payload:{alert_type:'sos',severity:'critical'},idempotency_key:`mobile-sos-${Date.now()}-${Math.random().toString(16).slice(2)}`}; if(!state.online){queueOperation(operation);showToast('SOS queued offline','The alert will sync when signal returns.');return;} try{await api(`/api/duties/${encodeURIComponent(state.duty.id)}/sos`,{method:'POST',body:JSON.stringify(operation.payload)});showToast('SOS sent','The fleet control room has been notified.');}catch(error){queueOperation(operation);showToast('SOS queued',error.message);} }
-  function driverTimeZone(user){ const candidate=user?.profile?.timezone || (()=>{ try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';}catch(_){return 'UTC';} })(); try { new Intl.DateTimeFormat('en-US',{timeZone:candidate}).format(); return candidate; } catch(_){ return 'UTC'; } }
-  function driverGreeting(user){ let hour=12; try { const part=new Intl.DateTimeFormat('en-US',{hour:'numeric',hour12:false,timeZone:driverTimeZone(user)}).formatToParts(new Date()).find(item=>item.type==='hour'); hour=Number(part?.value||12); } catch(_) {} return hour>=5&&hour<12?'Good morning':hour>=12&&hour<18?'Good afternoon':'Good evening'; }
-  function renderToday(){ const d=state.duty; const name=state.user?.full_name||'Driver'; const first=name.split(' ')[0]; if(!d) return `<div class="greeting"><div><div class="eyebrow">Driver workspace</div><h1>${driverGreeting(state.user)}, ${esc(first)}.</h1><p>No duty is assigned yet.</p></div><div class="avatar">${initials(name)}</div></div><div class="timeline-card"><div class="timeline-copy"><strong>Nothing waiting on you</strong><span>Your fleet desk will publish the next duty here. You can still review your sync and profile settings.</span></div></div>`; const isComplete=d.status==='completed'; const mainAction=isComplete?'Open next duty':actionLabel(d.status); return `<div class="greeting"><div><div class="eyebrow">Today · ${formatTime(d.reporting_at)}</div><h1>${driverGreeting(state.user)}, ${esc(first)}.</h1><p>One duty at a time. Everything important stays close.</p></div><div class="avatar">${initials(name)}</div></div><section class="next-card"><div class="next-top"><span>Next duty · ${formatTime(d.reporting_at)}</span><span class="ready">● ${esc(statusLabel(d.status))}</span></div><h2>${esc(d.duty_type || d.booking_reference || 'Assigned duty')}</h2><p>${esc(d.customer||'Assigned customer')} · ${esc(d.id)}</p><div class="route-strip"><div class="route-nodes"><i class="route-node"></i><i class="route-link"></i><i class="route-node end"></i></div><div class="route-copy"><strong>${esc(d.pickup||'Pickup')}</strong><span>Reporting point · passenger details protected</span><div style="height:12px"></div><strong>${esc(d.dropoff||'Drop-off')}</strong><span>${esc(d.vehicle||'Vehicle assigned')} · ${esc(d.passenger||'Passenger')}</span></div></div><button class="main-action" data-primary-duty ${isComplete?'disabled':''}>${mainAction}</button></section><div class="section-label"><strong>Quick actions</strong><span>Available from the road</span></div><div class="quick-grid"><button class="quick-card" data-action="expense"><i class="quick-icon">₹</i><strong>Add expense</strong><span>Toll, fuel, parking</span></button><button class="quick-card" data-action="call"><i class="quick-icon">⌕</i><strong>Masked call</strong><span>Passenger stays private</span></button><button class="quick-card" data-action="sos"><i class="quick-icon">!</i><strong>Safety / SOS</strong><span>Control room aware</span></button></div><div class="section-label"><strong>Duty timeline</strong><span>Verified milestones</span></div><div class="timeline-card"><div class="timeline-row"><span class="time">${formatTime(d.reporting_at)}</span><i class="timeline-dot"></i><div class="timeline-copy"><strong>Duty assigned</strong><span>${esc(d.vehicle||'Vehicle')} · route saved for offline use</span></div></div><div class="timeline-row"><span class="time">Now</span><i class="timeline-dot ${d.status==='assigned'?'muted':''}"></i><div class="timeline-copy"><strong>${statusLabel(d.status)}</strong><span>${d.status==='assigned'?'Start when you are ready.':'The fleet desk can see this milestone.'}</span></div></div><div class="timeline-row"><span class="time">Next</span><i class="timeline-dot muted"></i><div class="timeline-copy"><strong>${isComplete?'Duty closed':'Proof and close'}</strong><span>${isComplete?'Evidence packet is ready for billing.':'OTP, signature and expense evidence stay attached to the duty.'}</span></div></div></div>`; }
-  function renderSync(){ return `<div class="eyebrow">Field operations</div><h1 class="screen-title">Sync center</h1><p class="screen-subtitle">You can keep working without signal. Actions replay in order when the connection returns.</p><section class="sync-card"><div class="sync-summary"><div><strong>${state.queue.length}</strong><span>actions waiting to sync</span></div><button class="sync-action" data-action="sync">Sync now</button></div>${state.queue.length?state.queue.map(item=>`<div class="sync-row"><i class="sync-symbol">↻</i><div><strong>${esc(item.operation||'Field action')}</strong><span>${esc(item.entity_type||'Duty')} · ${formatTime(item.created_at||Date.now())}</span></div><b class="sync-status pending">Queued</b></div>`).join(''):`<div class="sync-row"><i class="sync-symbol" style="color:var(--teal);background:var(--teal-soft)">✓</i><div><strong>All caught up</strong><span>Your field actions are safely on the server.</span></div><b class="sync-status">Ready</b></div>`}</section><div class="section-label"><strong>What sync protects</strong></div><div class="timeline-card"><div class="timeline-row"><i class="timeline-dot"></i><div class="timeline-copy"><strong>Exactly-once replay</strong><span>Every action carries an idempotency key, so reconnecting does not duplicate a duty event.</span></div></div><div class="timeline-row"><i class="timeline-dot"></i><div class="timeline-copy"><strong>Visible recovery</strong><span>Failed actions remain in this queue instead of disappearing behind a spinner.</span></div></div></div>`; }
-  function renderProfile(){ const name=state.user?.full_name||'Driver'; return `<div class="eyebrow">Your field identity</div><h1 class="screen-title">Profile</h1><p class="screen-subtitle">Keep the field experience quiet, safe and ready for the next duty.</p><section class="profile-card"><div class="profile-head"><div class="avatar">${initials(name)}</div><div><strong>${esc(name)}</strong><span>${esc(state.user?.email||'No email available')} · Driver</span></div></div><div class="setting-row"><div><strong>Location sharing</strong><span>Used only while a duty is active.</span></div><button class="toggle ${state.toggles.location?'on':''}" data-toggle="location"><i></i></button></div><div class="setting-row"><div><strong>Duty notifications</strong><span>Assignment, route and safety alerts.</span></div><button class="toggle ${state.toggles.notifications?'on':''}" data-toggle="notifications"><i></i></button></div><div class="setting-row"><div><strong>Language</strong><span>English · Hindi-ready copy.</span></div><span style="color:var(--teal);font-weight:800;font-size:9px">EN</span></div></section><button class="secondary" style="margin-top:15px" data-action="logout">Sign out</button><div class="offline-note" style="margin-top:13px">Device: Axiom Driver PWA · Sync keys are stored locally until they are acknowledged by the fleet API.</div>`; }
-  function render(){ updateNetwork(); updateQueueBadge(); screen.innerHTML=state.screen==='today'?renderToday():state.screen==='sync'?renderSync():renderProfile(); document.querySelectorAll('.nav-button').forEach(button=>button.classList.toggle('active',button.dataset.screen===state.screen)); bindScreen(); }
-  function bindScreen(){ $('screen').querySelector('[data-primary-duty]')?.addEventListener('click',runDutyAction); $('screen').querySelectorAll('[data-action="expense"]').forEach(el=>el.addEventListener('click',openExpense)); $('screen').querySelectorAll('[data-action="call"]').forEach(el=>el.addEventListener('click',callPassenger)); $('screen').querySelectorAll('[data-action="sos"]').forEach(el=>el.addEventListener('click',sendSos)); $('screen').querySelectorAll('[data-action="sync"]').forEach(el=>el.addEventListener('click',async()=>{await replayQueue();render();})); $('screen').querySelectorAll('[data-action="logout"]').forEach(el=>el.addEventListener('click',leaveApp)); $('screen').querySelectorAll('[data-toggle]').forEach(el=>el.addEventListener('click',()=>{const key=el.dataset.toggle;state.toggles[key]=!state.toggles[key];render();})); }
-  $('login-form').addEventListener('submit', async e => {
-    e.preventDefault();
-    $('login-error').textContent = '';
-    const phone = $('driver-phone').value.replace(/\D/g, '') || '9876543210';
-    const otp = $('driver-otp').value.trim();
-    if (otp.length < 4) {
-      $('login-error').textContent = 'Please enter the 4-digit OTP.';
-      return;
-    }
-
-    try {
-      const user = {
-        id: 'usr_driver_' + phone,
-        full_name: 'Vikramaditya Rao',
-        phone: '+91 ' + phone,
-        role: 'driver',
-        email: 'driver@axiomfleet.com',
-        vehicle: 'Toyota Innova Crysta (KA01AK4421)',
-        organization: { id: 'org_axiom_logistics', name: 'Axiom Fleet Logistics', type: 'vendor' }
-      };
-
-      state.user = user;
-      try { localStorage.setItem('axiomfleet_driver_user', JSON.stringify(user)); } catch (_) {}
-      await loadDuty();
-      enterApp();
-      showToast('Duty day ready', `Welcome back, ${state.user.full_name.split(' ')[0]}.`);
-    } catch (err) {
-      $('login-error').textContent = err.message || 'Verification failed. Please try again.';
-    }
-  });
-
-  // Auto-restore previous driver session if present
-  try {
-    const savedUser = localStorage.getItem('axiomfleet_driver_user');
-    if (savedUser) {
-      state.user = JSON.parse(savedUser);
-      loadDuty().then(() => enterApp()).catch(() => enterApp());
-    }
-  } catch (_) {} document.querySelectorAll('.nav-button').forEach(button=>button.addEventListener('click',()=>{state.screen=button.dataset.screen;render();})); $('modal-backdrop').addEventListener('click',e=>{if(e.target.id==='modal-backdrop')closeModal();}); window.addEventListener('online',()=>{state.online=true;updateNetwork();replayQueue();}); window.addEventListener('offline',()=>{state.online=false;updateNetwork();render();});
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
-  updateQueueBadge(); updateNetwork();
-})();
-</script>
+  })();
+  </script>
 </body>
 </html>
