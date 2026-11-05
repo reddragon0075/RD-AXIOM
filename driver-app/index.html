@@ -357,7 +357,41 @@
       display: inline-flex; align-items: center; gap: 4px;
     }
 
-        /* Garage-to-Garage (G2G) 4-Point Odometer Timeline */
+            /* Flight Tracking & Status Banner */
+    .flight-status-box {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #f0f7f4; border: 1.5px solid #cbe5d7; border-radius: 12px;
+      padding: 9px 12px; margin: 8px 0;
+    }
+    .flight-info-left { display: flex; flex-direction: column; gap: 2px; }
+    .flight-airline { font-size: 12px; font-weight: 800; color: var(--deep); display: flex; align-items: center; gap: 5px; }
+    .flight-sector { font-size: 10px; color: var(--muted); font-weight: 600; }
+    .flight-status-badge {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+    }
+    .flight-pill {
+      font-size: 9.5px; font-weight: 800; padding: 2px 7px; border-radius: 6px;
+      background: #d4f4e2; color: #0b7847; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .flight-pill.delayed { background: #fff3da; color: #b5771c; }
+    .flight-gate { font-size: 9.5px; font-weight: 800; color: var(--ink-2); }
+
+    /* Driver Night Bata Allowance Banner */
+    .night-bata-banner {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #142126; color: #f4fbf1; border-radius: 12px;
+      padding: 8px 12px; margin: 6px 0 10px; border: 1px solid rgba(218,250,91,0.25);
+    }
+    .night-bata-left { display: flex; align-items: center; gap: 8px; }
+    .bata-moon { font-size: 16px; }
+    .bata-title { font-size: 11px; font-weight: 800; color: #ffffff; }
+    .bata-sub { font-size: 9px; color: #b7cbce; }
+    .bata-amount {
+      font-size: 13px; font-weight: 900; color: var(--lime);
+      background: rgba(218,250,91,0.12); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(218,250,91,0.3);
+    }
+
+/* Garage-to-Garage (G2G) 4-Point Odometer Timeline */
     .g2g-timeline-box {
       background: #f7faf8; border: 1.5px solid #dce7e1; border-radius: 14px;
       padding: 10px 12px; margin: 10px 0;
@@ -663,6 +697,32 @@
             </div>
           </div>
 
+          <!-- AIRPORT FLIGHT TRACKING (Indecab Standard) -->
+          <div class="flight-status-box" id="flight-status-box">
+            <div class="flight-info-left">
+              <div class="flight-airline">
+                <span>✈️</span> <strong id="flight-num">IndiGo 6E-2041</strong>
+              </div>
+              <div class="flight-sector" id="flight-sector">Delhi (DEL) ➔ Bengaluru (BLR) T1</div>
+            </div>
+            <div class="flight-status-badge">
+              <span class="flight-pill" id="flight-status-pill">● Landed 12m ago</span>
+              <span class="flight-gate" id="flight-gate">Arrival Gate 4 · Bay 3</span>
+            </div>
+          </div>
+
+          <!-- DRIVER NIGHT BATA ALLOWANCE (Commercial Standard) -->
+          <div class="night-bata-banner" id="night-bata-banner">
+            <div class="night-bata-left">
+              <span class="bata-moon">🌙</span>
+              <div>
+                <div class="bata-title">Driver Night Bata: ₹350 Guaranteed</div>
+                <div class="bata-sub">Commercial night allowance (10:00 PM - 06:00 AM)</div>
+              </div>
+            </div>
+            <div class="bata-amount">+₹350</div>
+          </div>
+
           <!-- Route Details -->
           <div class="route-row">
             <div class="route-markers">
@@ -774,8 +834,8 @@
             <span>Toll & Parking</span>
           </div>
           <div class="kpi-item">
-            <strong id="kpi-tips">₹150</strong>
-            <span>Tips & Bonus</span>
+            <strong id="kpi-bata">₹350</strong>
+            <span>Night Bata</span>
           </div>
         </div>
       </div>
@@ -953,6 +1013,8 @@
         {
           id: 'DUTY-8842',
           time: 'Today · 02:30 PM (in 2h 15m)',
+          flight: '✈️ Flight 6E-2041 (Gate 4) · Landed',
+          bata: null,
           route: 'BLR Airport T1 (Arrivals) → Manyata Tech Park, Nagavara',
           pickup: 'BLR Airport T1 Arrival Gate 4',
           dropoff: 'Manyata Tech Park, Block G3',
@@ -977,6 +1039,8 @@
         {
           id: 'DUTY-8844',
           time: 'Tomorrow · 06:00 AM',
+          flight: '✈️ Air India AI-505 · T2 Departures',
+          bata: '🌙 Night Bata: ₹350',
           route: 'Indiranagar 100ft Rd → Kempegowda Int. Airport (BLR) T2',
           pickup: 'Indiranagar 100ft Road, Near Metro',
           dropoff: 'BLR Airport T2 Departures',
@@ -991,7 +1055,7 @@
       completedDuties: [
         { id: 'DUTY-8840', route: 'Koramangala 5th Block → Embassy GolfLinks', fare: 420, time: '09:15 AM', expenses: [{ category: 'parking', amount: 80, note: 'Visitor Parking P2' }] },
         { id: 'DUTY-8839', route: 'Whitefield ITPL → HSR Layout Sector 2', fare: 680, time: '07:45 AM', expenses: [{ category: 'toll', amount: 110, note: 'Outer Ring Rd Fastag' }] },
-        { id: 'DUTY-8835', route: 'BLR Airport T1 → Indiranagar 100ft Rd', fare: 750, time: '05:30 AM', expenses: [{ category: 'toll', amount: 90, note: 'Airport Trumpet Toll' }] }
+        { id: 'DUTY-8835', route: 'BLR Airport T1 → Indiranagar 100ft Rd', fare: 750, time: '05:30 AM', bata: 350, expenses: [{ category: 'toll', amount: 90, note: 'Airport Trumpet Toll' }] }
       ]
     };
 
@@ -1042,6 +1106,14 @@
         id: 'DUTY-8841',
         booking_reference: 'AXM-782190',
         duty_type: 'Airport Transfer · Indiranagar',
+        flight: {
+          number: '6E-2041',
+          airline: 'IndiGo Airlines',
+          route: 'Delhi (DEL) ➔ Bengaluru (BLR) T1',
+          status: 'Landed 12m ago',
+          gate: 'Arrival Gate 4 · Bay 3'
+        },
+        night_bata: 350,
         status: 'accepted', // B2B corporate dispatch: auto-accepted upon assignment
         g2g: {
           garage_out_km: 48210,
@@ -1115,6 +1187,12 @@
             <span class="duty-code">${d.id}</span>
           </div>
           <div class="upcoming-route">${d.route}</div>
+          ${d.flight || d.bata ? `
+            <div style="display:flex; gap:6px; margin:4px 0 6px; flex-wrap:wrap;">
+              ${d.flight ? `<span style="font-size:10px; font-weight:800; background:#e0f6f0; color:#008f6d; padding:2px 7px; border-radius:5px;">${d.flight}</span>` : ''}
+              ${d.bata ? `<span style="font-size:10px; font-weight:800; background:#142126; color:#dafa5b; padding:2px 7px; border-radius:5px;">${d.bata}</span>` : ''}
+            </div>
+          ` : ''}
           <div class="upcoming-passenger">
             <div class="passenger-avatar" style="width:34px; height:34px; font-size:12px;">
               ${d.passenger.split(' ').map(p => p[0]).join('').slice(0, 2)}
@@ -1674,6 +1752,7 @@
             </div>
             <div class="history-route">${d.route}</div>
             <div class="history-meta">Completed at ${d.time} · Direct Payout Verified</div>
+            ${d.bata ? `<div style="margin-top:5px;"><span class="past-expense-pill" style="background:#142126; color:#dafa5b; border-color:rgba(218,250,91,0.35);">🌙 Night Bata Allowance: ₹${d.bata}</span></div>` : ''}
             ${expensePills}
             <div style="margin-top:6px;">
               <button class="btn-add-past-expense" type="button" data-add-expense-duty="${d.id}">
