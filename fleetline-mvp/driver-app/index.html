@@ -1178,14 +1178,12 @@
     // ----------------------------------------------------
     $('btn-open-expense')?.addEventListener('click', () => {
       openModal(
-        'Add Trip Expense (Fastag / Toll / Parking)',
+        'Add Trip Parking / Toll',
         `
           <label class="field">Expense Category
             <select id="expense-cat" style="height:44px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px; font-size:13px; background:#fff;">
-              <option value="toll">Airport Toll (Fastag)</option>
-              <option value="parking">Parking</option>
-              <option value="fuel">Fuel</option>
-              <option value="other">Other</option>
+              <option value="parking">🅿️ Parking (Airport / Tech Park / Mall)</option>
+              <option value="toll">🛣️ Toll / Fastag</option>
             </select>
           </label>
           <label class="field" style="margin-top:10px;">Amount in Rupees (₹)
@@ -1271,14 +1269,14 @@
             ${expensePills}
             <div style="margin-top:6px;">
               <button class="btn-add-past-expense" type="button" data-add-expense-duty="${d.id}">
-                + Add Parking / Toll / Expense
+                + Add Parking / Toll
               </button>
             </div>
           </div>
         `;
       }).join('');
 
-      // Bind click handlers to "+ Add Parking / Toll / Expense" buttons on past trips
+      // Bind click handlers to "+ Add Parking / Toll" buttons on past trips
       listEl.querySelectorAll('[data-add-expense-duty]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -1292,18 +1290,15 @@
       const targetDuty = state.completedDuties.find(d => d.id === dutyId) || { id: dutyId, route: 'Selected Past Duty' };
 
       openModal(
-        `Add Expense to Past Duty: ${dutyId}`,
+        `Add Parking / Toll to Past Duty: ${dutyId}`,
         `
           <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">
             ${targetDuty.route}
           </div>
           <label class="field">Expense Category
             <select id="past-expense-cat" style="height:44px; border:1.5px solid #d4ded8; border-radius:10px; padding:0 12px; font-size:13px; background:#fff;">
-              <option value="parking">🅿️ Parking (Airport / Mall / Tech Park)</option>
+              <option value="parking">🅿️ Parking (Airport / Tech Park / Mall)</option>
               <option value="toll">🛣️ Toll / Fastag</option>
-              <option value="permit">📋 State Border Permit</option>
-              <option value="fuel">⛽ Fuel</option>
-              <option value="other">🧾 Other Incidental</option>
             </select>
           </label>
           <label class="field" style="margin-top:10px;">Amount in Rupees (₹)
