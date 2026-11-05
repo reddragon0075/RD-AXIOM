@@ -357,6 +357,47 @@
       display: inline-flex; align-items: center; gap: 4px;
     }
 
+    /* Segment Switch for Active vs Upcoming Roster */
+    .sheet-segment-switch {
+      display: flex; background: #ebf3ee; border-radius: 12px; padding: 3px; margin: 4px 0 12px; gap: 4px;
+    }
+    .segment-btn {
+      flex: 1; height: 36px; border-radius: 9px; font-size: 12px; font-weight: 800;
+      color: var(--muted); background: transparent; display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.18s; cursor: pointer;
+    }
+    .segment-btn.active {
+      background: #ffffff; color: var(--deep); box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .badge-count {
+      background: var(--teal); color: #ffffff; font-size: 10px; font-weight: 900;
+      padding: 1px 7px; border-radius: 99px;
+    }
+    .upcoming-preview-banner {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #f7faf8; border: 1px solid #e1ebe5; border-radius: 10px;
+      padding: 8px 12px; margin-top: 10px; font-size: 11px; color: var(--ink-2); cursor: pointer;
+    }
+    .upcoming-preview-banner:active { background: #eef6f1; }
+    .upcoming-card {
+      background: #ffffff; border: 1.5px solid #e3ede7; border-radius: 14px;
+      padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow-sm);
+    }
+    .upcoming-top {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
+    }
+    .time-tag {
+      font-size: 11px; font-weight: 800; color: #008f6d; background: #e0f6f0;
+      padding: 3px 8px; border-radius: 6px;
+    }
+    .duty-code { font-size: 12px; font-weight: 900; color: var(--deep); }
+    .upcoming-passenger {
+      display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #edf2ee;
+    }
+    .upcoming-route {
+      font-size: 12px; font-weight: 800; color: var(--ink); margin: 8px 0 3px;
+    }
+
 /* ----------------------------------------------------
        BOTTOM TAB BAR (Uber Navigation)
        ---------------------------------------------------- */
@@ -536,59 +577,93 @@
       <article class="bottom-sheet" id="bottom-sheet">
         <div class="sheet-handle"></div>
 
-        <div class="trip-badge-bar">
-          <div class="trip-phase-tag" id="trip-phase-tag">
-            <span>●</span> <strong id="trip-phase-label">B2B DISPATCH · HEAD TO PICKUP</strong>
-          </div>
-          <div class="trip-eta" id="trip-eta">6 mins (2.4 km)</div>
+        <!-- Segment Switch: Active Run vs Upcoming Roster -->
+        <div class="sheet-segment-switch">
+          <button class="segment-btn active" id="seg-btn-active" type="button">
+            <span>● Active Run</span>
+          </button>
+          <button class="segment-btn" id="seg-btn-upcoming" type="button">
+            <span>📅 Upcoming Roster</span>
+            <span class="badge-count" id="upcoming-badge-count">3</span>
+          </button>
         </div>
 
-        <!-- Passenger Row -->
-        <div class="passenger-row">
-          <div class="passenger-meta">
-            <div class="passenger-avatar" id="passenger-initials">RS</div>
-            <div>
-              <h4 class="passenger-name">
-                <span id="passenger-name">Rahul Sharma</span>
-                <span class="passenger-rating">★ 4.9</span>
-              </h4>
-              <div class="passenger-sub" id="trip-meta-sub">Corporate Airport Transfer · Premium Sedan</div>
+        <!-- TAB 1: ACTIVE RUN CONTENT -->
+        <div id="active-run-panel">
+          <div class="trip-badge-bar">
+            <div class="trip-phase-tag" id="trip-phase-tag">
+              <span>●</span> <strong id="trip-phase-label">B2B DISPATCH · HEAD TO PICKUP</strong>
+            </div>
+            <div class="trip-eta" id="trip-eta">6 mins (2.4 km)</div>
+          </div>
+
+          <!-- Passenger Row -->
+          <div class="passenger-row">
+            <div class="passenger-meta">
+              <div class="passenger-avatar" id="passenger-initials">RS</div>
+              <div>
+                <h4 class="passenger-name">
+                  <span id="passenger-name">Rahul Sharma</span>
+                  <span class="passenger-rating">★ 4.9</span>
+                </h4>
+                <div class="passenger-sub" id="trip-meta-sub">Corporate Airport Transfer · Head to Pickup</div>
+              </div>
+            </div>
+            <div class="passenger-actions">
+              <a class="circle-action-btn call" id="btn-call-passenger" href="tel:+919845011234" title="Call passenger">
+                📞
+              </a>
+              <a class="circle-action-btn whatsapp" id="btn-whatsapp-passenger" href="https://wa.me/919845011234" target="_blank" rel="noopener" title="WhatsApp passenger">
+                💬
+              </a>
+              <button class="circle-action-btn" id="btn-open-expense" type="button" title="Add Toll / Parking">
+                🧾
+              </button>
             </div>
           </div>
-          <div class="passenger-actions">
-            <a class="circle-action-btn call" id="btn-call-passenger" href="tel:+919845011234" title="Call passenger">
-              📞
-            </a>
-            <a class="circle-action-btn whatsapp" id="btn-whatsapp-passenger" href="https://wa.me/919845011234" target="_blank" rel="noopener" title="WhatsApp passenger">
-              💬
-            </a>
-            <button class="circle-action-btn" id="btn-open-expense" type="button" title="Add Toll / Parking Expense">
-              🧾
-            </button>
+
+          <!-- Route Details -->
+          <div class="route-row">
+            <div class="route-markers">
+              <i class="marker-dot"></i>
+              <i class="marker-line"></i>
+              <i class="marker-dot dest"></i>
+            </div>
+            <div class="route-labels">
+              <div class="pickup-label" id="pickup-label">100ft Road, Indiranagar, Bengaluru</div>
+              <div class="sub-stop">Pickup location</div>
+              <div class="dropoff-label" id="dropoff-label">Kempegowda Int. Airport (BLR) T1</div>
+              <div class="sub-stop">Drop-off terminal</div>
+            </div>
+          </div>
+
+          <!-- THE ERGONOMIC UBER "SLIDE TO CONFIRM" SLIDER -->
+          <div class="slide-confirm-wrap" id="slider-wrap">
+            <div class="slide-progress" id="slide-progress"></div>
+            <div class="slide-text" id="slide-text">»»» SLIDE TO ARRIVE</div>
+            <div class="slide-thumb" id="slide-thumb">➜</div>
+          </div>
+
+          <!-- Quick Preview of Next Upcoming Duty -->
+          <div class="upcoming-preview-banner" id="btn-preview-next-run">
+            <div>
+              <strong>Next Run: 02:30 PM</strong> · BLR T1 ➔ Manyata Tech Park
+            </div>
+            <span style="color:var(--teal); font-weight:800;">View Roster →</span>
           </div>
         </div>
 
-        <!-- Route Details -->
-        <div class="route-row">
-          <div class="route-markers">
-            <i class="marker-dot"></i>
-            <i class="marker-line"></i>
-            <i class="marker-dot dest"></i>
+        <!-- TAB 2: UPCOMING ROSTER PANEL (Initially Hidden) -->
+        <div id="upcoming-roster-panel" class="hidden">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <strong style="font-size:14px; color:var(--deep);">Upcoming Assigned Roster</strong>
+            <span style="font-size:11px; color:var(--teal-dark); font-weight:800;">3 Confirmed Runs</span>
           </div>
-          <div class="route-labels">
-            <div class="pickup-label" id="pickup-label">100ft Road, Indiranagar, Bengaluru</div>
-            <div class="sub-stop">Pickup location</div>
-            <div class="dropoff-label" id="dropoff-label">Kempegowda Int. Airport (BLR) T1</div>
-            <div class="sub-stop">Drop-off terminal</div>
+          <div id="upcoming-duties-list">
+            <!-- Rendered by JS -->
           </div>
         </div>
 
-        <!-- THE ERGONOMIC UBER "SLIDE TO CONFIRM" SLIDER -->
-        <div class="slide-confirm-wrap" id="slider-wrap">
-          <div class="slide-progress" id="slide-progress"></div>
-          <div class="slide-text" id="slide-text">»»» SLIDE TO ARRIVE</div>
-          <div class="slide-thumb" id="slide-thumb">➜</div>
-        </div>
       </article>
     </section>
 
@@ -790,6 +865,45 @@
       sliderStartX: 0,
       sliderWidth: 0,
       sliderThumbWidth: 48,
+      activeSegment: 'active',
+      upcomingDuties: [
+        {
+          id: 'DUTY-8842',
+          time: 'Today · 02:30 PM (in 2h 15m)',
+          route: 'BLR Airport T1 (Arrivals) → Manyata Tech Park, Nagavara',
+          pickup: 'BLR Airport T1 Arrival Gate 4',
+          dropoff: 'Manyata Tech Park, Block G3',
+          passenger: 'Priya Nair',
+          passenger_phone: '+91 98112 44321',
+          client: 'Infosys Limited · Corporate Travel Desk',
+          status: 'Confirmed & Auto-Accepted',
+          fare: 720
+        },
+        {
+          id: 'DUTY-8843',
+          time: 'Today · 05:45 PM',
+          route: 'Manyata Tech Park, Block G3 → Koramangala 4th Block',
+          pickup: 'Manyata Tech Park, Block G3 Visitor Gate',
+          dropoff: 'Koramangala 4th Block, 80ft Road',
+          passenger: 'Vikram Seth',
+          passenger_phone: '+91 99001 88722',
+          client: 'Accenture India',
+          status: 'Scheduled',
+          fare: 450
+        },
+        {
+          id: 'DUTY-8844',
+          time: 'Tomorrow · 06:00 AM',
+          route: 'Indiranagar 100ft Rd → Kempegowda Int. Airport (BLR) T2',
+          pickup: 'Indiranagar 100ft Road, Near Metro',
+          dropoff: 'BLR Airport T2 Departures',
+          passenger: 'David Miller',
+          passenger_phone: '+91 97401 22345',
+          client: 'Google Cloud Bangalore',
+          status: 'Scheduled',
+          fare: 890
+        }
+      ],
       todayEarnings: 1850,
       completedDuties: [
         { id: 'DUTY-8840', route: 'Koramangala 5th Block → Embassy GolfLinks', fare: 420, time: '09:15 AM', expenses: [{ category: 'parking', amount: 80, note: 'Visitor Parking P2' }] },
@@ -893,6 +1007,47 @@
         case 'completed':
         default:
           return { label: '✓ DUTY COMPLETED', next: 'assigned', color: '#6b7d82' };
+      }
+    }
+
+    function renderUpcomingRoster() {
+      const listEl = $('upcoming-duties-list');
+      if (!listEl) return;
+      $('upcoming-badge-count').textContent = state.upcomingDuties.length;
+
+      listEl.innerHTML = state.upcomingDuties.map(d => `
+        <div class="upcoming-card">
+          <div class="upcoming-top">
+            <span class="time-tag">🕒 ${d.time}</span>
+            <span class="duty-code">${d.id}</span>
+          </div>
+          <div class="upcoming-route">${d.route}</div>
+          <div class="upcoming-passenger">
+            <div class="passenger-avatar" style="width:34px; height:34px; font-size:12px;">
+              ${d.passenger.split(' ').map(p => p[0]).join('').slice(0, 2)}
+            </div>
+            <div>
+              <strong style="font-size:12px; color:var(--ink);">${d.passenger}</strong>
+              <div style="font-size:10px; color:var(--muted);">${d.client}</div>
+            </div>
+            <span style="margin-left:auto; font-weight:900; font-size:13px; color:var(--deep);">₹${d.fare}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:10px; color:var(--teal-dark); font-weight:700;">
+            <span>● ${d.status}</span>
+            <span style="color:var(--muted)">Vehicle: KA01AK4421</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function switchCockpitSegment(seg) {
+      state.activeSegment = seg;
+      $('seg-btn-active')?.classList.toggle('active', seg === 'active');
+      $('seg-btn-upcoming')?.classList.toggle('active', seg === 'upcoming');
+      $('active-run-panel')?.classList.toggle('hidden', seg !== 'active');
+      $('upcoming-roster-panel')?.classList.toggle('hidden', seg !== 'upcoming');
+      if (seg === 'upcoming') {
+        renderUpcomingRoster();
       }
     }
 
@@ -1497,7 +1652,12 @@
       initSlider();
       updateCockpitUI();
       renderEarningsView();
+      renderUpcomingRoster();
       updateQueueBadge();
+
+      $('seg-btn-active')?.addEventListener('click', () => switchCockpitSegment('active'));
+      $('seg-btn-upcoming')?.addEventListener('click', () => switchCockpitSegment('upcoming'));
+      $('btn-preview-next-run')?.addEventListener('click', () => switchCockpitSegment('upcoming'));
 
       showToast('Driver Online', `Welcome to Cockpit, ${state.user?.full_name?.split(' ')[0] || 'Captain'}.`);
     }
