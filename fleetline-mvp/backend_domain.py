@@ -378,6 +378,16 @@ def initialize_domain_schema(conn) -> None:
         "fitness_number": "TEXT NOT NULL DEFAULT ''",
         "permit_number": "TEXT NOT NULL DEFAULT ''",
         "permit_type": "TEXT NOT NULL DEFAULT ''",
+        "rc_file_name": "TEXT NOT NULL DEFAULT ''",
+        "rc_file_data": "TEXT NOT NULL DEFAULT ''",
+        "insurance_file_name": "TEXT NOT NULL DEFAULT ''",
+        "insurance_file_data": "TEXT NOT NULL DEFAULT ''",
+        "puc_file_name": "TEXT NOT NULL DEFAULT ''",
+        "puc_file_data": "TEXT NOT NULL DEFAULT ''",
+        "fitness_file_name": "TEXT NOT NULL DEFAULT ''",
+        "fitness_file_data": "TEXT NOT NULL DEFAULT ''",
+        "permit_file_name": "TEXT NOT NULL DEFAULT ''",
+        "permit_file_data": "TEXT NOT NULL DEFAULT ''",
         "notes": "TEXT NOT NULL DEFAULT ''",
         "manufacturer": "TEXT NOT NULL DEFAULT ''",
         "model": "TEXT NOT NULL DEFAULT ''",
@@ -908,6 +918,11 @@ def _create_vehicle(conn, user, payload, ip):
         _text(payload, "gps_provider", maximum=80),
         rc_expiry, insurance_expiry, puc_expiry, fitness_expiry, permit_expiry,
         insurance_policy_number, rc_number, puc_number, fitness_number, permit_number, permit_type,
+        _text(payload, "rc_file_name", maximum=255), _text(payload, "rc_file_data"),
+        _text(payload, "insurance_file_name", maximum=255), _text(payload, "insurance_file_data"),
+        _text(payload, "puc_file_name", maximum=255), _text(payload, "puc_file_data"),
+        _text(payload, "fitness_file_name", maximum=255), _text(payload, "fitness_file_data"),
+        _text(payload, "permit_file_name", maximum=255), _text(payload, "permit_file_data"),
         _text(payload, "notes", maximum=500), manufacturer, model, now, now,
     )
     conn.execute("""INSERT INTO domain_vehicles(
@@ -917,8 +932,10 @@ def _create_vehicle(conn, user, payload, ip):
         seating_capacity, luggage_capacity, ownership_type, supplier_id, supplier_name, owner_name, branch_name, gps_provider,
         rc_expiry, insurance_expiry, puc_expiry, fitness_expiry, permit_expiry,
         insurance_policy_number, rc_number, puc_number, fitness_number, permit_number, permit_type,
+        rc_file_name, rc_file_data, insurance_file_name, insurance_file_data, puc_file_name, puc_file_data,
+        fitness_file_name, fitness_file_data, permit_file_name, permit_file_data,
         notes, manufacturer, model, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
     _audit(conn, user, "vehicle.created", "vehicle", vehicle_id, ip, {"registration_number": registration})
     return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_vehicles WHERE id = ?", (vehicle_id,)).fetchone())}
 
@@ -976,6 +993,9 @@ def _update_vehicle(conn, user, vehicle_id: str, payload: dict, ip: str):
         "supplier_id", "supplier_name", "owner_name", "branch_name", "gps_provider",
         "rc_expiry", "insurance_expiry", "puc_expiry", "fitness_expiry", "permit_expiry",
         "insurance_policy_number", "rc_number", "puc_number", "fitness_number", "permit_number", "permit_type",
+        "rc_file_name", "rc_file_data", "insurance_file_name", "insurance_file_data",
+        "puc_file_name", "puc_file_data", "fitness_file_name", "fitness_file_data",
+        "permit_file_name", "permit_file_data",
         "notes", "manufacturer", "model"
     ]
     updates = []
