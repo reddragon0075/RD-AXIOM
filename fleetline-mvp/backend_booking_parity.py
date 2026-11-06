@@ -2500,8 +2500,323 @@ def get_organization_partners_dashboard(conn, org: str):
     }
 
 
+def get_organization_compliance_dashboard(conn, org: str):
+    v_rows = conn.execute("SELECT * FROM domain_vehicles WHERE organization_id = ? ORDER BY registration_number ASC", (org,)).fetchall()
+    d_rows = conn.execute("SELECT * FROM domain_drivers WHERE organization_id = ? ORDER BY full_name ASC", (org,)).fetchall()
+
+    settings = {}
+    settings_row = None
+    try:
+        settings_row = conn.execute("SELECT settings_json FROM domain_org_settings WHERE organization_id = ?", (org,)).fetchone()
+    except Exception:
+        pass
+    if not settings_row:
+        try:
+            settings_row = conn.execute("SELECT settings_json FROM domain_settings WHERE organization_id = ?", (org,)).fetchone()
+        except Exception:
+            pass
+    if settings_row and settings_row["settings_json"]:
+        try:
+            settings = json.loads(settings_row["settings_json"])
+        except Exception:
+            settings = {}
+    guardrails = settings.get("dispatch_guardrails") or {}
+
+    today = datetime.now(timezone.utc).date()
+    nearest_expiries = []
+
+    # Process Vehicles
+    v_compliant = 0
+    v_expiring = 0
+    v_non_compliant = 0
+    vehicles_detail = []
+
+    v_doc_defs = [
+        ("rc_expiry", "rc_number", "rc_file_name", "RC", "Registration Certificate"),
+        ("insurance_expiry", "insurance_policy_number", "insurance_file_name", "INS", "Commercial Insurance"),
+        ("puc_expiry", "puc_number", "puc_file_name", "PUC", "Pollution Under Control"),
+        ("fitness_expiry", "fitness_number", "fitness_file_name", "FIT", "Fitness Certificate"),
+        ("permit_expiry", "permit_number", "permit_file_name", "PERMIT", "Transport Permit")
+    ]
+
+    is_veh_mandatory = bool(guardrails.get("require_mandatory_vehicle_docs"))
+
+    for v in v_rows:
+        vd = dict(v)
+        veh_docs = []
+        veh_has_expired = False
+        veh_has_expiring = False
+        veh_has_missing = False
+
+        for exp_k, num_k, file_k, code, label in v_doc_defs:
+            raw_date = vd.get(exp_k)
+            doc_num = vd.get(num_k) or ""
+            file_name = vd.get(file_k) or ""
+
+            if not raw_date:
+                veh_has_missing = True
+                doc_obj = {
+                    "code": code, "label": label, "number": doc_num, "expiry_date": None,
+                    "days_left": None, "status": "missing_mandatory" if is_veh_mandatory else "missing_optional",
+                    "has_file": bool(file_name)
+                }
+            else:
+                try:
+                    exp_dt = datetime.strptime(str(raw_date)[:10], "%Y-%m-%d").date()
+                    days = (exp_dt - today).days
+                except Exception:
+                    days = 999
+
+                if days < 0:
+                    status = "expired"
+                    veh_has_expired = True
+                elif days <= 30:
+                    status = "expiring_soon"
+                    veh_has_expiring = True
+                else:
+                    status = "valid"
+
+                doc_obj = {
+                    "code": code, "label": label, "number": doc_num, "expiry_date": str(raw_date)[:10],
+                    "days_left": days, "status": status, "has_file": bool(file_name)
+                }
+
+                nearest_expiries.append({
+                    "entity_type": "vehicle",
+                    "type": "vehicle",
+                    "target_id": vd.get("id"),
+                    "identifier": vd.get("registration_number", ""),
+                    "title": vd.get("registration_number", ""),
+                    "subtitle": f"{vd.get('manufacturer', '')} {vd.get('model', '')}".strip() or vd.get("make_model") or vd.get("vehicle_group") or "Vehicle",
+                    "city": vd.get("city", "") or "",
+                    "doc_code": code,
+                    "doc_type": label,
+                    "doc_name": label,
+                    "doc_number": doc_num,
+                    "expiry_date": str(raw_date)[:10],
+                    "days_left": days,
+                    "status": status,
+                    "urgency": "expired" if days < 0 else "critical" if days <= 7 else "imminent" if days <= 30 else "upcoming",
+                    "is_mandatory": is_veh_mandatory
+                })
+            veh_docs.append(doc_obj)
+
+        if veh_has_expired:
+            v_status = "expired"
+            v_non_compliant += 1
+            is_v_ok = False
+        elif is_veh_mandatory and veh_has_missing:
+            v_status = "non_compliant"
+            v_non_compliant += 1
+            is_v_ok = False
+        elif veh_has_expiring:
+            v_status = "expiring_soon"
+            v_expiring += 1
+            v_compliant += 1
+            is_v_ok = True
+        else:
+            v_status = "compliant"
+            v_compliant += 1
+            is_v_ok = True
+
+        veh_doc_map = {
+            d["code"].lower(): {"number": d["number"], "expiry": d["expiry_date"], "status": d["status"]}
+            for d in veh_docs
+        }
+        if "ins" in veh_doc_map: veh_doc_map["insurance"] = veh_doc_map["ins"]
+        if "fit" in veh_doc_map: veh_doc_map["fitness"] = veh_doc_map["fit"]
+
+        vehicles_detail.append({
+            "id": vd.get("id"),
+            "registration_number": vd.get("registration_number", ""),
+            "model": f"{vd.get('manufacturer', '')} {vd.get('model', '')}".strip() or vd.get("make_model") or "",
+            "make_model": f"{vd.get('manufacturer', '')} {vd.get('model', '')}".strip() or vd.get("make_model") or "",
+            "group": vd.get("vehicle_group", "") or "",
+            "vehicle_group": vd.get("vehicle_group", "") or "",
+            "type": vd.get("vehicle_type", "sedan") or "sedan",
+            "fuel_type": vd.get("fuel_type", "Diesel") or "Diesel",
+            "city": vd.get("city", "") or "",
+            "ownership_type": vd.get("ownership_type", "Own") or "Own",
+            "status": vd.get("status", "available") or "available",
+            "compliant": is_v_ok,
+            "compliance_status": v_status,
+            "docs": veh_docs,
+            "documents": veh_doc_map
+        })
+
+    # Process Drivers
+    d_compliant = 0
+    d_expiring = 0
+    d_non_compliant = 0
+    drivers_detail = []
+
+    d_doc_defs = [
+        ("license_expiry", "license_number", "dl_file_name", "DL", "Driving License"),
+        ("badge_expiry", "badge_number", "badge_file_name", "BADGE", "PSV Badge"),
+        ("police_verification_expiry", "police_verification_number", "pcc_file_name", "PCC", "Police Verification"),
+        ("medical_expiry", "medical_certificate_number", "medical_file_name", "MED", "Medical Fitness")
+    ]
+
+    is_drv_mandatory = bool(guardrails.get("require_driver_commercial_license") or guardrails.get("require_mandatory_driver_docs"))
+
+    for d in d_rows:
+        dd = dict(d)
+        drv_docs = []
+        drv_has_expired = False
+        drv_has_expiring = False
+        drv_has_missing = False
+
+        for exp_k, num_k, file_k, code, label in d_doc_defs:
+            raw_date = dd.get(exp_k)
+            doc_num = dd.get(num_k) or ""
+            file_name = dd.get(file_k) or ""
+
+            if not raw_date:
+                drv_has_missing = True
+                doc_obj = {
+                    "code": code, "label": label, "number": doc_num, "expiry_date": None,
+                    "days_left": None, "status": "missing_mandatory" if is_drv_mandatory else "missing_optional",
+                    "has_file": bool(file_name)
+                }
+            else:
+                try:
+                    exp_dt = datetime.strptime(str(raw_date)[:10], "%Y-%m-%d").date()
+                    days = (exp_dt - today).days
+                except Exception:
+                    days = 999
+
+                if days < 0:
+                    status = "expired"
+                    drv_has_expired = True
+                elif days <= 30:
+                    status = "expiring_soon"
+                    drv_has_expiring = True
+                else:
+                    status = "valid"
+
+                doc_obj = {
+                    "code": code, "label": label, "number": doc_num, "expiry_date": str(raw_date)[:10],
+                    "days_left": days, "status": status, "has_file": bool(file_name)
+                }
+
+                nearest_expiries.append({
+                    "entity_type": "driver",
+                    "type": "driver",
+                    "target_id": dd.get("id"),
+                    "identifier": dd.get("full_name", ""),
+                    "title": dd.get("full_name", ""),
+                    "subtitle": (dd.get("driver_type") or dd.get("ownership_type") or "own").upper(),
+                    "city": dd.get("city", "") or "",
+                    "doc_code": code,
+                    "doc_type": label,
+                    "doc_name": label,
+                    "doc_number": doc_num,
+                    "expiry_date": str(raw_date)[:10],
+                    "days_left": days,
+                    "status": status,
+                    "urgency": "expired" if days < 0 else "critical" if days <= 7 else "imminent" if days <= 30 else "upcoming",
+                    "is_mandatory": is_drv_mandatory
+                })
+            drv_docs.append(doc_obj)
+
+        if drv_has_expired:
+            d_status = "expired"
+            d_non_compliant += 1
+            is_d_ok = False
+        elif is_drv_mandatory and drv_has_missing:
+            d_status = "non_compliant"
+            d_non_compliant += 1
+            is_d_ok = False
+        elif drv_has_expiring:
+            d_status = "expiring_soon"
+            d_expiring += 1
+            d_compliant += 1
+            is_d_ok = True
+        else:
+            d_status = "compliant"
+            d_compliant += 1
+            is_d_ok = True
+
+        drv_doc_map = {
+            d["code"].lower(): {"number": d["number"], "expiry": d["expiry_date"], "status": d["status"]}
+            for d in drv_docs
+        }
+        if "dl" in drv_doc_map: drv_doc_map["license"] = drv_doc_map["dl"]
+        if "pcc" in drv_doc_map: drv_doc_map["police_verification"] = drv_doc_map["pcc"]
+        if "med" in drv_doc_map: drv_doc_map["medical"] = drv_doc_map["med"]
+
+        drivers_detail.append({
+            "id": dd.get("id"),
+            "full_name": dd.get("full_name", ""),
+            "phone": dd.get("phone", "") or "",
+            "city": dd.get("city", "") or "",
+            "ownership_type": dd.get("ownership_type", "Own") or "Own",
+            "driver_type": dd.get("driver_type") or dd.get("ownership_type") or "own",
+            "status": dd.get("status", "available") or "available",
+            "compliant": is_d_ok,
+            "compliance_status": d_status,
+            "docs": drv_docs,
+            "documents": drv_doc_map
+        })
+
+    # Sort nearest expiries ascending by days left (expired first, then nearest)
+    nearest_expiries.sort(key=lambda x: x["days_left"])
+
+    tot_v = len(v_rows)
+    tot_d = len(d_rows)
+    tot_entities = tot_v + tot_d
+    tot_compliant = v_compliant + d_compliant
+    overall_score = round((tot_compliant / tot_entities * 100), 1) if tot_entities > 0 else 100.0
+
+    expired_count = sum(1 for e in nearest_expiries if e["days_left"] < 0)
+    critical_7d = sum(1 for e in nearest_expiries if 0 <= e["days_left"] <= 7)
+    imminent_30d = sum(1 for e in nearest_expiries if 0 <= e["days_left"] <= 30)
+    upcoming_90d = sum(1 for e in nearest_expiries if 31 <= e["days_left"] <= 90)
+    healthy_90plus = sum(1 for e in nearest_expiries if e["days_left"] > 90)
+
+    return {
+        "ok": True,
+        "summary": {
+            "overall_compliance_score": overall_score,
+            "overall_compliance_score_pct": overall_score,
+            "total_vehicles": tot_v,
+            "compliant_vehicles": v_compliant,
+            "expiring_vehicles": v_expiring,
+            "non_compliant_vehicles": v_non_compliant,
+            "vehicle_compliance_rate": round(v_compliant / tot_v * 100, 1) if tot_v > 0 else 100.0,
+            "vehicle_compliance_rate_pct": round(v_compliant / tot_v * 100, 1) if tot_v > 0 else 100.0,
+            "total_drivers": tot_d,
+            "compliant_drivers": d_compliant,
+            "expiring_drivers": d_expiring,
+            "non_compliant_drivers": d_non_compliant,
+            "driver_compliance_rate": round(d_compliant / tot_d * 100, 1) if tot_d > 0 else 100.0,
+            "driver_compliance_rate_pct": round(d_compliant / tot_d * 100, 1) if tot_d > 0 else 100.0,
+            "expired_count": expired_count,
+            "critical_7d": critical_7d,
+            "critical_expiries_7d": critical_7d,
+            "imminent_30d": imminent_30d,
+            "imminent_expiries_30d": imminent_30d,
+            "upcoming_90d": upcoming_90d,
+            "upcoming_expiries_90d": upcoming_90d,
+            "healthy_90plus": healthy_90plus,
+            "healthy_expiries_90d_plus": healthy_90plus,
+            "hard_gate_active": bool(guardrails.get("block_allotment_on_document_expiry") or guardrails.get("block_expired_documents"))
+        },
+        "nearest_expiries": nearest_expiries[:25],
+        "vehicles": vehicles_detail,
+        "drivers": drivers_detail,
+        "policy": {
+            "require_mandatory_documents": is_veh_mandatory,
+            "block_allotment_on_expiry": bool(guardrails.get("block_allotment_on_document_expiry") or guardrails.get("block_expired_documents"))
+        },
+        "guardrails": guardrails
+    }
+
+
 def handle_booking_parity(conn, user, method: str, raw_route: str, payload: dict, ip: str):
     route = urlsplit(raw_route).path.rstrip("/") or "/"
+    if route == "/api/dashboards/compliance" and method == "GET":
+        return get_organization_compliance_dashboard(conn, _org(user))
     if route == "/api/dashboards/pnl" and method == "GET":
         return get_organization_pnl_dashboard(conn, _org(user))
     if route == "/api/dashboards/ops" and method == "GET":
