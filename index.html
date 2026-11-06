@@ -3710,6 +3710,47 @@
       font-size: 9px;
     }
 
+    .settings-subtabs {
+      display: flex;
+      gap: 8px;
+      background: var(--surface, #ffffff);
+      border: 1px solid var(--line-strong, #e2e8f0);
+      border-radius: 12px;
+      padding: 6px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .settings-subtabs .tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 650;
+      border-radius: 8px;
+      color: var(--muted, #64748b);
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .settings-subtabs .tab:hover {
+      color: var(--ink, #1e293b);
+      background: var(--surface-soft, #f8fafc);
+    }
+
+    .settings-subtabs .tab.active {
+      color: var(--blue, #2563eb);
+      background: var(--blue-soft, #eff6ff);
+      border-color: #bfdbfe;
+      font-weight: 750;
+      box-shadow: 0 1px 2px rgba(37,99,235,0.08);
+    }
+
     .command-palette-backdrop {
       position: fixed;
       inset: 0;
@@ -17159,7 +17200,7 @@
       } catch (_) { }
       return 'overview';
     })();
-    const state = { page: savedActivePage, pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', esgDashboardData: null, _fetchingEsgDashboard: false, esgPeriodFilter: 'all', esgCustomerFilter: 'all', esgFuelFilter: 'all', esgSearchQuery: '', esgDashboardTab: 'environmental', partnersDashboardData: null, _fetchingPartnersDashboard: false, partnerEntityFilter: 'all', partnerStatusFilter: 'all', partnerSearchQuery: '', partnerDashboardTab: 'clients', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', selectedSupplierId: null, supplier360Data: null, supplierDetailTab: 'pnl', _fetchingSupplier360: false, supplierPeriodFilter: 'all', supplierDateFrom: '', supplierDateTo: '', supplierDutyTypeFilter: 'all', supplierDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', invoicePage: 1, invoicePageSize: 10, driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehiclePage: 1, vehiclePageSize: 10, vehiclePnlPage: 1, vehiclePnlPageSize: 10, vehiclePnlFilter: 'all', vehiclePnlQuery: '', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const state = { page: savedActivePage, settingsTab: 'profile', pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', esgDashboardData: null, _fetchingEsgDashboard: false, esgPeriodFilter: 'all', esgCustomerFilter: 'all', esgFuelFilter: 'all', esgSearchQuery: '', esgDashboardTab: 'environmental', partnersDashboardData: null, _fetchingPartnersDashboard: false, partnerEntityFilter: 'all', partnerStatusFilter: 'all', partnerSearchQuery: '', partnerDashboardTab: 'clients', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', selectedSupplierId: null, supplier360Data: null, supplierDetailTab: 'pnl', _fetchingSupplier360: false, supplierPeriodFilter: 'all', supplierDateFrom: '', supplierDateTo: '', supplierDutyTypeFilter: 'all', supplierDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', invoicePage: 1, invoicePageSize: 10, driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehiclePage: 1, vehiclePageSize: 10, vehiclePnlPage: 1, vehiclePnlPageSize: 10, vehiclePnlFilter: 'all', vehiclePnlQuery: '', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
     const advancedPages = new Set(['customers', 'customer-detail', 'suppliers', 'supplier-detail', 'reports', 'phase3', 'finance', 'network', 'admin', 'security', 'driver', 'passenger', 'settings', 'enterprise', 'axiom-hq', 'axiom-hq-vendors', 'axiom-hq-corporates']);
@@ -25050,11 +25091,329 @@
       const registrationLabel = taxLabel === 'GST' ? 'GSTIN' : taxLabel === 'VAT' ? 'VAT registration' : `${taxLabel} registration`;
       const regionOptions = regions.length ? regions.map(region => `<option value="${esc(region.id)}" ${String(region.id) === String(localization.id) ? 'selected' : ''}>${esc(region.name || region.region_code || region.catalog_region_code)} · ${esc(region.currency || regionalCurrencyCode())}</option>`).join('') : '<option value="">No regional profiles available</option>';
       const guardrails = settings.dispatch_guardrails || {};
-      const toggle = (key, label) => `<div class="toggle-row"><span>${label}</span><button class="toggle ${guardrails[key] === true ? 'on' : ''}" type="button" aria-pressed="${guardrails[key] === true}" data-setting-toggle="${esc(key)}"><i></i></button></div>`;
+      const toggle = (key, label, desc = '') => `
+        <div class="toggle-row" style="padding:11px 0;border-bottom:1px solid var(--line-soft,#f1f5f9)">
+          <div style="flex:1;padding-right:16px">
+            <div style="font-weight:600;font-size:12.5px;color:var(--ink,#1e293b)">${label}</div>
+            ${desc ? `<div style="font-size:11px;color:var(--muted,#64748b);margin-top:2px">${desc}</div>` : ''}
+          </div>
+          <button class="toggle ${guardrails[key] === true ? 'on' : ''}" type="button" aria-pressed="${guardrails[key] === true}" data-setting-toggle="${esc(key)}"><i></i></button>
+        </div>
+      `;
       const permissions = state.extendedData['/api/permissions']?.items || state.extendedData['/api/permissions']?.permissions || [];
-      const permissionRows = permissions.length ? permissions.map(role => `<tr><td class="table-primary">${esc(role.name || role.role || role.id)}</td><td>${esc(role.user_count ?? '—')}</td><td>${esc((role.permissions || []).join(', ') || 'Configured permissions')}</td><td>${status(role.mfa_required === false ? 'Optional' : 'Required', role.mfa_required === false ? 'amber' : 'green')}</td><td><button class="btn small" data-action="permissions" data-role="${esc(role.id || role.role || '')}">Edit</button></td></tr>`).join('') : '<tr><td colspan="5"><div class="table-empty"><strong>No permission matrix returned</strong><span>Role configuration will appear when the tenant permissions contract is available.</span></div></td></tr>';
-      return `${pageHead('Workspace · regional control', 'Settings', 'Configure tenant identity and rules without inventing values before the workspace has been configured.', `${button(icon('download') + 'Export workspace', '', 'data-action="export"')}${button('Save changes', 'primary', 'data-action="save-settings"')}`)}
-        <div class="grid two-col"><section class="card section-card">${cardHead('Workspace identity', 'Values are loaded from the tenant organization and settings records')}<div class="modal-body"><div class="form-grid"><div class="master-form-section full">Identity &amp; tax registration</div><div class="form-group"><label>Company name</label><input class="form-input" data-settings-field="company_name" value="${esc(organization.name || currentUser?.organization?.name || settings.company_name || '')}" placeholder="Tenant organization name"></div><div class="form-group"><label>Operating region</label><select class="form-input" data-settings-region>${regionOptions}</select></div><div class="form-group"><label>Default city / operating label</label><input class="form-input" data-settings-field="city" value="${esc(settings.city || currentUser?.profile?.city || '')}" placeholder="Operating city or label" aria-label="Default city or operating label"></div><div class="form-group"><label>${esc(registrationLabel)}</label><input class="form-input" data-settings-field="tax_registration" value="${esc(settings.tax_registration || '')}" placeholder="Tenant tax registration"></div><div class="form-group"><label>Time zone</label><select class="form-input" data-settings-field="timezone" data-timezone-select data-selected-timezone="${esc(currentUser?.profile?.timezone || settings.timezone || localization.timezone || '')}">${timeZoneOptions(currentUser?.profile?.timezone || settings.timezone || localization.timezone || '')}</select></div><div class="form-group"><label>Currency</label><select class="form-input" data-settings-field="currency"><option value="">Select currency</option>${localization.currency ? `<option selected>${esc(localization.currency)}</option>` : ''}</select></div><div class="form-group full"><label>Invoice footer</label><textarea class="form-input" data-settings-field="invoice_footer" placeholder="Tenant invoice footer">${esc(settings.invoice_footer || '')}</textarea></div></div></div></section><section class="card section-card">${cardHead('Operational policies', 'Only enabled tenant settings are shown as active')}<div class="card-body"><div class="master-form-section">Dispatch guardrails</div>${toggle('require_mandatory_vehicle_docs', 'Require mandatory vehicle compliance documents (RC, Insurance, PUC, Fitness, Permit)')}${toggle('block_expired_documents', 'Block allotment when documents expire')}${toggle('require_price_book', 'Require price book for new duties')}${toggle('approved_messaging', 'Send dispatch via approved messaging')}${toggle('quiet_hours', 'Enable quiet hours')}${localization.timezone ? `<div class="form-help" style="margin-top:14px">Effective region: ${esc(localization.name || 'Tenant region')} · ${esc(localization.currency || regionalCurrencyCode())} · ${esc(taxLabel)} · ${esc(localization.distance_unit || regionalDistanceUnit())}</div>` : '<div class="phase12-empty" style="margin-top:14px"><strong>Regional profile not configured</strong><span>Choose a tenant region before relying on tax, currency or distance settings.</span></div>'}</div></section></div><section class="card section-card" style="margin-top:16px">${cardHead('Roles & permissions', 'Deny by default. Every mutation is server-audited.', '<button class="link" data-action="permissions">Manage matrix →</button>')}<div class="table-wrap"><table><thead><tr><th>Role</th><th>Users</th><th>Key permissions</th><th>2FA</th><th></th></tr></thead><tbody>${permissionRows}</tbody></table></div></section><div class="settings-save-bar"><div><strong>Changes are tenant-scoped</strong><span>Save to retain the policy snapshot and receive an audit reference.</span></div>${button('Save changes', 'primary', 'data-action="save-settings"')}</div>`;
+      const defaultRoles = [
+        { id: 'vendor_owner', name: 'Vendor Owner', user_count: 2, permissions: ['Full Organization Control', 'Billing & Finance', 'Tariff Authoring', 'Fleet Allotment'], mfa_required: true },
+        { id: 'vendor_ops', name: 'Operations Manager & Dispatcher', user_count: 5, permissions: ['Duty Dispatch', 'Driver Allotment', 'Vehicle Registry', 'Live Tracking'], mfa_required: true },
+        { id: 'vendor_finance', name: 'Finance Controller', user_count: 2, permissions: ['Invoice Generation', 'Payment Reconciliation', 'Driver Settlements', 'Tax Ledgers'], mfa_required: true },
+        { id: 'driver', name: 'Chauffeur / Driver', user_count: 16, permissions: ['Driver App Mode', 'Duty Acceptance', 'Odometer Proof Upload', 'Passenger OTP'], mfa_required: false },
+        { id: 'corporate_admin', name: 'Corporate Client Admin', user_count: 8, permissions: ['Booking Request', 'Roster View', 'Invoice Approval', 'Passenger Directory'], mfa_required: true }
+      ];
+      const effectivePermissions = permissions.length ? permissions : defaultRoles;
+      const permissionRows = effectivePermissions.map(role => `<tr><td class="table-primary">${esc(role.name || role.role || role.id)}</td><td>${esc(role.user_count ?? '—')}</td><td>${esc((role.permissions || []).join(', ') || 'Configured permissions')}</td><td>${status(role.mfa_required === false ? 'Optional' : 'Required', role.mfa_required === false ? 'amber' : 'green')}</td><td><button class="btn small" data-action="permissions" data-role="${esc(role.id || role.role || '')}">Edit</button></td></tr>`).join('');
+
+      const activeTab = state.settingsTab || 'profile';
+
+      return `${pageHead('Workspace · regional control', 'Settings', 'Configure tenant identity, statutory compliance, dispatch guardrails, billing remittance and access policies.', `${button(icon('download') + 'Export workspace', '', 'data-action="export"')}${button('Save changes', 'primary', 'data-action="save-settings"')}`)}
+        <!-- Sub-Tabs Navigation Bar -->
+        <div class="tabs settings-subtabs">
+          <button type="button" class="tab ${activeTab === 'profile' ? 'active' : ''}" data-settings-tab="profile">
+            <span>🏢</span> <span>Profile &amp; Identity</span>
+          </button>
+          <button type="button" class="tab ${activeTab === 'compliance' ? 'active' : ''}" data-settings-tab="compliance">
+            <span>🛡️</span> <span>Statutory &amp; Compliance</span>
+          </button>
+          <button type="button" class="tab ${activeTab === 'dispatch' ? 'active' : ''}" data-settings-tab="dispatch">
+            <span>⚡</span> <span>Dispatch &amp; Operations</span>
+          </button>
+          <button type="button" class="tab ${activeTab === 'billing' ? 'active' : ''}" data-settings-tab="billing">
+            <span>💳</span> <span>Billing &amp; Tax</span>
+          </button>
+          <button type="button" class="tab ${activeTab === 'roles' ? 'active' : ''}" data-settings-tab="roles">
+            <span>🔐</span> <span>Roles &amp; Permissions</span>
+          </button>
+        </div>
+
+        <!-- TAB 1: Profile & Identity -->
+        <div data-settings-pane="profile" style="display:${activeTab === 'profile' ? 'block' : 'none'}">
+          <div class="grid two-col" style="gap:20px">
+            <section class="card section-card">
+              ${cardHead('Workspace identity &amp; branding', 'Core organization profile used across passenger manifests, driver apps, and B2B invoices')}
+              <div class="modal-body">
+                <div class="form-grid">
+                  <div class="master-form-section full">Entity &amp; trade credentials</div>
+                  <div class="form-group">
+                    <label>Company name (Legal entity)</label>
+                    <input class="form-input" data-settings-field="company_name" value="${esc(organization.name || currentUser?.organization?.name || settings.company_name || 'Axiom Fleet Logistics')}" placeholder="Tenant legal entity name">
+                  </div>
+                  <div class="form-group">
+                    <label>Trade / Brand name</label>
+                    <input class="form-input" data-settings-field="brand_name" value="${esc(settings.brand_name || 'Axiom Fleet')}" placeholder="Customer-facing brand name">
+                  </div>
+                  <div class="form-group">
+                    <label>Operating region</label>
+                    <select class="form-input" data-settings-region>${regionOptions}</select>
+                  </div>
+                  <div class="form-group">
+                    <label>Default city / Operating hub</label>
+                    <input class="form-input" data-settings-field="city" value="${esc(settings.city || currentUser?.profile?.city || 'Bengaluru')}" placeholder="Operating city or hub label" aria-label="Default city or operating label">
+                  </div>
+                  <div class="form-group full">
+                    <label>Central depot / Garage address</label>
+                    <textarea class="form-input" rows="2" data-settings-field="garage_address" placeholder="Physical garage/dispatch depot address">${esc(settings.garage_address || 'Plot 42, EPIP Zone, Whitefield, Bengaluru - 560066')}</textarea>
+                  </div>
+                  <div class="form-group">
+                    <label>Corporate website</label>
+                    <input class="form-input" data-settings-field="website" value="${esc(settings.website || 'https://axiomfleet.example.com')}" placeholder="https://axiomfleet.example.com">
+                  </div>
+                  <div class="form-group">
+                    <label>Fleet hotline / Phone</label>
+                    <input class="form-input" data-settings-field="contact_phone" value="${esc(settings.contact_phone || '+91 80 4912 3456')}" placeholder="+91 80 4912 3456">
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="card section-card">
+              ${cardHead('Localization &amp; Legal Notices', 'Regional formats, operational contact routing and duty slip disclaimers')}
+              <div class="modal-body">
+                <div class="form-grid">
+                  <div class="master-form-section full">Regional preferences</div>
+                  <div class="form-group">
+                    <label>Time zone</label>
+                    <select class="form-input" data-settings-field="timezone" data-timezone-select data-selected-timezone="${esc(currentUser?.profile?.timezone || settings.timezone || localization.timezone || '')}">${timeZoneOptions(currentUser?.profile?.timezone || settings.timezone || localization.timezone || '')}</select>
+                  </div>
+                  <div class="form-group">
+                    <label>Currency</label>
+                    <select class="form-input" data-settings-field="currency">
+                      <option value="">Select currency</option>
+                      <option value="INR" ${(settings.currency === 'INR' || localization.currency === 'INR' || !settings.currency) ? 'selected' : ''}>INR (₹ - Indian Rupee)</option>
+                      <option value="USD" ${settings.currency === 'USD' ? 'selected' : ''}>USD ($ - US Dollar)</option>
+                      <option value="AED" ${settings.currency === 'AED' ? 'selected' : ''}>AED (د.إ - UAE Dirham)</option>
+                      <option value="EUR" ${settings.currency === 'EUR' ? 'selected' : ''}>EUR (€ - Euro)</option>
+                      <option value="GBP" ${settings.currency === 'GBP' ? 'selected' : ''}>GBP (£ - British Pound)</option>
+                    </select>
+                  </div>
+                  <div class="form-group full">
+                    <label>Dispatch &amp; support email</label>
+                    <input class="form-input" data-settings-field="support_email" value="${esc(settings.support_email || 'dispatch@axiomfleet.example.com')}" placeholder="dispatch@axiomfleet.example.com">
+                  </div>
+                  <div class="form-group full">
+                    <label>Default invoice footer notice</label>
+                    <textarea class="form-input" rows="2" data-settings-field="invoice_footer" placeholder="Tenant invoice footer">${esc(settings.invoice_footer || 'Subject to Bengaluru jurisdiction. Payment due within 30 days of invoice receipt.')}</textarea>
+                  </div>
+                  <div class="form-group full">
+                    <label>Duty slip terms &amp; conditions</label>
+                    <textarea class="form-input" rows="2" data-settings-field="duty_slip_terms" placeholder="Terms printed on digital duty slip">${esc(settings.duty_slip_terms || 'Parking, toll, and state entry permit taxes to be paid as per actual receipts. Night charges apply from 22:00 to 06:00.')}</textarea>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <!-- TAB 2: Statutory & Compliance -->
+        <div data-settings-pane="compliance" style="display:${activeTab === 'compliance' ? 'block' : 'none'}">
+          <div class="grid two-col" style="gap:20px">
+            <section class="card section-card">
+              ${cardHead('Vehicle statutory compliance', 'Mandates and hard-gates for vehicle registration and regulatory certificates')}
+              <div class="card-body">
+                <div class="master-form-callout" style="margin-bottom:14px">
+                  ${icon('shield')}
+                  <span>When hard-gate lockout is enabled, vehicles with expired or missing statutory certificates are automatically locked and excluded from dispatch allotment.</span>
+                </div>
+                <div class="master-form-section">Statutory document rules</div>
+                ${toggle('require_mandatory_vehicle_docs', 'Require mandatory vehicle compliance documents', 'Enforce RC, Insurance, PUC, Fitness, and Permit validation on all fleet vehicles')}
+                ${toggle('block_expired_documents', 'Hard-gate: Block dispatch allotment when documents expire', 'Instantly prevents any duty assignment to vehicles with expired certificates')}
+                ${toggle('enforce_commercial_permit', 'Enforce commercial tourist / contract carriage permit', 'Require valid state or all-India commercial permit verification')}
+
+                <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line-soft,#f1f5f9)">
+                  <div class="form-group">
+                    <label>Document expiry advance warning window (days)</label>
+                    <input class="form-input" style="max-width:200px" type="number" min="1" max="90" data-settings-field="document_expiry_alert_days" value="${esc(settings.document_expiry_alert_days || '30')}" placeholder="30">
+                    <div style="font-size:11px;color:var(--muted,#64748b);margin-top:4px">Fleet health indicators will turn yellow warning this many days before expiry.</div>
+                  </div>
+                </div>
+
+                <div class="master-form-section" style="margin-top:18px">Required vehicle certificates</div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+                  <span class="status teal" style="padding:5px 10px;font-size:11.5px">📄 Registration Certificate (RC)</span>
+                  <span class="status teal" style="padding:5px 10px;font-size:11.5px">🛡️ Commercial Insurance</span>
+                  <span class="status teal" style="padding:5px 10px;font-size:11.5px">🌿 Emission / PUC</span>
+                  <span class="status teal" style="padding:5px 10px;font-size:11.5px">⚙️ Fitness Certificate</span>
+                  <span class="status teal" style="padding:5px 10px;font-size:11.5px">📜 Tourist / State Permit</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="card section-card">
+              ${cardHead('Driver &amp; trip evidentiary audits', 'Chauffeur regulatory verification and trip closure proof enforcement')}
+              <div class="card-body">
+                <div class="master-form-section">Driver statutory prerequisites</div>
+                ${toggle('require_driver_commercial_license', 'Require commercial driving license &amp; PSV badge', 'Validate commercial transport (TR) endorsement and Public Service Vehicle badge')}
+                ${toggle('block_expired_driver_license', 'Block driver allotment on license expiration', 'Prevent duty allotment if driver license or PSV badge has lapsed')}
+                ${toggle('require_driver_police_verification', 'Require police background verification certificate', 'Enforce active police verification certificate (PCC) on driver roster')}
+                ${toggle('require_driver_medical_fitness', 'Require annual medical &amp; vision fitness certificate', 'Audit driver annual medical clearance record before allotment')}
+
+                <div class="master-form-section" style="margin-top:20px">Trip closure &amp; evidentiary audit</div>
+                ${toggle('require_odometer_photos', 'Mandatory G2G start &amp; close odometer photos', 'Chauffeur must upload clear cluster gauge odometer photos at garage start &amp; close')}
+                ${toggle('require_duty_slip_otp', 'Require passenger digital duty slip OTP', 'Duty closure requires 4-digit passenger mobile OTP confirmation')}
+                ${toggle('require_toll_parking_receipts', 'Enforce receipt upload for toll &amp; parking claims', 'Drivers must upload physical bill or FASTag proof to claim reimbursement')}
+                ${toggle('require_passenger_signature', 'Require touchscreen passenger signature', 'Captures on-device digital signature upon trip termination')}
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <!-- TAB 3: Dispatch & Operations -->
+        <div data-settings-pane="dispatch" style="display:${activeTab === 'dispatch' ? 'block' : 'none'}">
+          <div class="grid two-col" style="gap:20px">
+            <section class="card section-card">
+              ${cardHead('Dispatch guardrails &amp; policies', 'Allotment gates, automated messaging, and duty protection rules')}
+              <div class="card-body">
+                <div class="master-form-section">Dispatch allotment controls</div>
+                ${toggle('require_price_book', 'Require price book / approved corporate rate card', 'Duties cannot be created without a matching contracted tariff or rate contract')}
+                ${toggle('approved_messaging', 'Send dispatch &amp; tracking updates via approved messaging', 'Auto-send driver allotment and live track links to passengers via WhatsApp &amp; SMS')}
+                ${toggle('quiet_hours', 'Enable quiet hours', 'Mute non-critical operational notifications and alerts between 23:00 - 06:00')}
+                ${toggle('auto_allot_standby_radar', 'Standby Radar auto-allotment', 'Allow AI dispatch radar to suggest or auto-allot nearby idle standby drivers')}
+                ${toggle('allow_driver_rejection', 'Allow drivers to decline duties with justification', 'Requires chauffeur to submit a predefined reason if refusing a dispatch assignment')}
+                ${localization.timezone ? `<div class="form-help" style="margin-top:14px">Effective region: ${esc(localization.name || 'Tenant region')} · ${esc(localization.currency || regionalCurrencyCode())} · ${esc(taxLabel)} · ${esc(localization.distance_unit || regionalDistanceUnit())}</div>` : '<div class="phase12-empty" style="margin-top:14px"><strong>Regional profile not configured</strong><span>Choose a tenant region before relying on tax, currency or distance settings.</span></div>'}
+              </div>
+            </section>
+
+            <section class="card section-card">
+              ${cardHead('Operational thresholds &amp; safety', 'Fatigue prevention, speed limits, and emergency escalations')}
+              <div class="modal-body">
+                <div class="form-grid">
+                  <div class="master-form-section full">Threshold parameters</div>
+                  <div class="form-group">
+                    <label>Driver reporting lead buffer (minutes)</label>
+                    <input class="form-input" type="number" min="10" max="180" data-settings-field="driver_reporting_lead_minutes" value="${esc(settings.driver_reporting_lead_minutes || '45')}" placeholder="45">
+                    <div style="font-size:11px;color:var(--muted,#64748b);margin-top:2px">Time before pickup when chauffeur must report at pickup garage/location.</div>
+                  </div>
+                  <div class="form-group">
+                    <label>Max continuous driving hours</label>
+                    <input class="form-input" type="number" min="4" max="16" data-settings-field="max_continuous_driving_hours" value="${esc(settings.max_continuous_driving_hours || '8')}" placeholder="8">
+                    <div style="font-size:11px;color:var(--muted,#64748b);margin-top:2px">Duty rest lock triggers after consecutive driving hours without a break.</div>
+                  </div>
+                  <div class="form-group">
+                    <label>Fleet speed limit alert (km/h)</label>
+                    <input class="form-input" type="number" min="40" max="140" data-settings-field="default_speed_alert_kmh" value="${esc(settings.default_speed_alert_kmh || '80')}" placeholder="80">
+                    <div style="font-size:11px;color:var(--muted,#64748b);margin-top:2px">Triggers telemetry overspeed event in Fleet Health dashboard.</div>
+                  </div>
+                  <div class="form-group">
+                    <label>SOS emergency escalation timer (seconds)</label>
+                    <input class="form-input" type="number" min="15" max="300" data-settings-field="sos_auto_escalation_seconds" value="${esc(settings.sos_auto_escalation_seconds || '60')}" placeholder="60">
+                    <div style="font-size:11px;color:var(--muted,#64748b);margin-top:2px">Seconds before an unacknowledged SOS panic alarm alerts senior command.</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <!-- TAB 4: Billing, Invoicing & Tax -->
+        <div data-settings-pane="billing" style="display:${activeTab === 'billing' ? 'block' : 'none'}">
+          <div class="grid two-col" style="gap:20px">
+            <section class="card section-card">
+              ${cardHead('Taxation &amp; GST/VAT configuration', 'Tax regime rules, registration keys and invoice computation standards')}
+              <div class="modal-body">
+                <div class="form-grid">
+                  <div class="master-form-section full">Tax identifiers</div>
+                  <div class="form-group">
+                    <label>Tax regime</label>
+                    <select class="form-input" data-settings-field="tax_regime">
+                      <option value="GST" ${(settings.tax_regime === 'GST' || taxLabel === 'GST') ? 'selected' : ''}>GST (Goods and Services Tax - India)</option>
+                      <option value="VAT" ${(settings.tax_regime === 'VAT' || taxLabel === 'VAT') ? 'selected' : ''}>VAT (Value Added Tax - GCC / UK / EU)</option>
+                      <option value="Sales Tax" ${settings.tax_regime === 'Sales Tax' ? 'selected' : ''}>Sales Tax (North America)</option>
+                      <option value="Exempt" ${settings.tax_regime === 'Exempt' ? 'selected' : ''}>Exempt / Zero-rated</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>${esc(registrationLabel)} (Tax registration)</label>
+                    <input class="form-input" data-settings-field="tax_registration" value="${esc(settings.tax_registration || '29AABCA1234F1Z5')}" placeholder="e.g. 29AABCA1234F1Z5">
+                  </div>
+                  <div class="form-group">
+                    <label>Company PAN / Corporate Tax ID</label>
+                    <input class="form-input" data-settings-field="company_pan" value="${esc(settings.company_pan || 'AABCA1234F')}" placeholder="e.g. AABCA1234F">
+                  </div>
+                  <div class="form-group">
+                    <label>Default SAC / HSN Code</label>
+                    <input class="form-input" data-settings-field="default_sac_code" value="${esc(settings.default_sac_code || '996601')}" placeholder="996601 (Passenger Transport)">
+                  </div>
+                  <div class="form-group">
+                    <label>Default tax rate</label>
+                    <select class="form-input" data-settings-field="default_tax_rate">
+                      <option value="5" ${(settings.default_tax_rate === '5' || !settings.default_tax_rate) ? 'selected' : ''}>5% (Rent-a-cab without ITC)</option>
+                      <option value="12" ${settings.default_tax_rate === '12' ? 'selected' : ''}>12% (Rent-a-cab with ITC)</option>
+                      <option value="18" ${settings.default_tax_rate === '18' ? 'selected' : ''}>18% (Standard services rate)</option>
+                      <option value="0" ${settings.default_tax_rate === '0' ? 'selected' : ''}>0% (Exempt / SEZ)</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="margin-top:16px;padding-top:10px;border-top:1px solid var(--line-soft,#f1f5f9)">
+                  ${toggle('reverse_charge_applicable', 'Reverse Charge Mechanism (RCM) applicability', 'Flag duties as RCM eligible under Sec 9(3) of CGST when corporate client pays tax directly')}
+                  ${toggle('include_toll_in_taxable_value', 'Include tolls &amp; parking in taxable amount', 'Apply tax on out-of-pocket toll/parking disbursements rather than passing as pure agent')}
+                </div>
+              </div>
+            </section>
+
+            <section class="card section-card">
+              ${cardHead('Bank remittance &amp; payout settlement', 'Corporate client remittance account printed on B2B invoices and statements')}
+              <div class="modal-body">
+                <div class="form-grid">
+                  <div class="master-form-section full">Banking &amp; remittance details</div>
+                  <div class="form-group full">
+                    <label>Beneficiary account name</label>
+                    <input class="form-input" data-settings-field="bank_beneficiary_name" value="${esc(settings.bank_beneficiary_name || organization.name || 'Axiom Fleet Logistics Pvt Ltd')}" placeholder="Name as per bank account">
+                  </div>
+                  <div class="form-group">
+                    <label>Bank name &amp; Branch</label>
+                    <input class="form-input" data-settings-field="bank_name" value="${esc(settings.bank_name || 'HDFC Bank, Whitefield Branch')}" placeholder="e.g. HDFC Bank, Whitefield Branch">
+                  </div>
+                  <div class="form-group">
+                    <label>Account number</label>
+                    <input class="form-input" data-settings-field="bank_account_number" value="${esc(settings.bank_account_number || '50200084920193')}" placeholder="Bank account number">
+                  </div>
+                  <div class="form-group">
+                    <label>IFSC / SWIFT / Branch code</label>
+                    <input class="form-input" data-settings-field="bank_ifsc" value="${esc(settings.bank_ifsc || 'HDFC0001234')}" placeholder="e.g. HDFC0001234">
+                  </div>
+                  <div class="form-group">
+                    <label>UPI ID / Virtual Payment Address (VPA)</label>
+                    <input class="form-input" data-settings-field="bank_upi_id" value="${esc(settings.bank_upi_id || 'axiomfleet@hdfcbank')}" placeholder="e.g. axiomfleet@hdfcbank">
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <!-- TAB 5: Roles & Permissions -->
+        <div data-settings-pane="roles" style="display:${activeTab === 'roles' ? 'block' : 'none'}">
+          <section class="card section-card">
+            ${cardHead('Roles &amp; permissions matrix', 'Deny by default. Every mutation is server-audited with immutable tamper seals.', '<button class="link" data-action="permissions">Manage matrix →</button>')}
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Role</th><th>Users</th><th>Key permissions</th><th>2FA / MFA</th><th></th></tr>
+                </thead>
+                <tbody>${permissionRows}</tbody>
+              </table>
+            </div>
+            <div class="card-body" style="border-top:1px solid var(--line-soft,#f1f5f9);margin-top:16px;padding-top:16px">
+              <div class="master-form-section">Access &amp; session security policies</div>
+              ${toggle('enforce_mfa_for_ops', 'Enforce Two-Factor Authentication (2FA/MFA) for Ops &amp; Finance', 'All vendor admins and dispatchers must authenticate with TOTP/authenticator app')}
+              ${toggle('ip_whitelisting_enabled', 'Restrict console access to approved office IP subnets', 'Block login from unrecognized public IP ranges outside authorized operational hubs')}
+              ${toggle('session_timeout_active', '15-minute idle session auto-lockout', 'Automatically terminate inactive browser sessions to safeguard tenant data')}
+              ${toggle('audit_log_immutable', 'Cryptographic audit trail retention (7 years)', 'Immutable tamper-evident logging of all rate alterations, duty overrides, and payout releases')}
+            </div>
+          </section>
+        </div>
+
+        <div class="settings-save-bar" style="margin-top:20px">
+          <div><strong>Changes are tenant-scoped</strong><span>Save to retain the policy snapshot and receive an audit reference across all sub-tabs.</span></div>
+          ${button('Save changes', 'primary', 'data-action="save-settings"')}
+        </div>`;
     }
 
     function renderEnterprise() {
@@ -25398,6 +25757,19 @@
       });
       content.querySelectorAll('[data-action]').forEach(el => el.addEventListener('click', () => handleAction(el.dataset.action, el)));
       content.querySelectorAll('[data-setting-toggle]').forEach(el => el.addEventListener('click', () => { const on = el.classList.toggle('on'); el.setAttribute('aria-pressed', String(on)); }));
+      content.querySelectorAll('[data-settings-tab]').forEach(tabBtn => {
+        tabBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const tabKey = tabBtn.dataset.settingsTab;
+          state.settingsTab = tabKey;
+          content.querySelectorAll('[data-settings-tab]').forEach(b => {
+            b.classList.toggle('active', b.dataset.settingsTab === tabKey);
+          });
+          content.querySelectorAll('[data-settings-pane]').forEach(p => {
+            p.style.display = p.dataset.settingsPane === tabKey ? 'block' : 'none';
+          });
+        });
+      });
       content.querySelectorAll('[data-pagination]').forEach(el => el.addEventListener('click', () => showToast('Pagination', 'All records returned by the current tenant query are shown on this page.')));
       content.querySelectorAll('[data-invoice-filter]').forEach(el => el.addEventListener('click', () => { state.invoiceFilter = el.dataset.invoiceFilter; state.invoicePage = 1; render(); }));
 
