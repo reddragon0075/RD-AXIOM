@@ -1,4 +1,4 @@
-const CACHE_NAME = 'axiom-fleet-driver-shell-v19';
+const CACHE_NAME = 'axiom-fleet-driver-shell-v20';
 const SHELL = ['/', '/axiom-fleet-logo.png', '/driver-manifest.json'];
 
 self.addEventListener('install', event => {
