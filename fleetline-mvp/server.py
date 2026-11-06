@@ -1133,6 +1133,66 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             
             self._json(200, {"ok": True, "duty_id": duty_id, "status": new_status})
 
+    def _api_mobile_driver_availability(self, method: str) -> None:
+        if method == "GET":
+            query = urlsplit(self.path).query
+            params = parse_qs(query)
+            raw_phone = params.get("phone", [""])[0]
+            digits = "".join(filter(str.isdigit, raw_phone))
+            if len(digits) > 10:
+                digits = digits[-10:]
+            driver_id = params.get("driver_id", [""])[0]
+
+            with db_connection() as conn:
+                drv = None
+                if driver_id:
+                    drv = conn.execute("SELECT id, full_name, status FROM domain_drivers WHERE id = ?", (driver_id,)).fetchone()
+                elif digits:
+                    drv = conn.execute(
+                        "SELECT id, full_name, status FROM domain_drivers WHERE replace(replace(replace(replace(phone, ' ', ''), '-', ''), '+91', ''), '(', '') LIKE ? LIMIT 1",
+                        (f"%{digits}%",)
+                    ).fetchone()
+                status = drv["status"] if drv else "available"
+                self._json(200, {"ok": True, "driver_id": drv["id"] if drv else driver_id, "status": status, "is_available": status in ("available", "on_duty")})
+            return
+
+        payload = self._read_json()
+        new_status = str(payload.get("status") or "").strip().lower()
+        if new_status not in ("available", "offline", "on_duty"):
+            new_status = "offline" if new_status in ("off", "inactive", "false") else "available"
+
+        driver_id = str(payload.get("driver_id") or "").strip()
+        raw_phone = str(payload.get("phone") or "").strip()
+        digits = "".join(filter(str.isdigit, raw_phone))
+        if len(digits) > 10:
+            digits = digits[-10:]
+
+        with db_connection() as conn:
+            drv = None
+            if driver_id:
+                drv = conn.execute("SELECT id, status FROM domain_drivers WHERE id = ?", (driver_id,)).fetchone()
+            if not drv and digits:
+                drv = conn.execute(
+                    "SELECT id, status FROM domain_drivers WHERE replace(replace(replace(replace(phone, ' ', ''), '-', ''), '+91', ''), '(', '') LIKE ? LIMIT 1",
+                    (f"%{digits}%",)
+                ).fetchone()
+
+            target_id = drv["id"] if drv else (driver_id or f"drv_{digits}")
+            now_str = utc_now()
+            conn.execute("""
+                UPDATE domain_drivers
+                SET status = ?, updated_at = ?
+                WHERE id = ?
+            """, (new_status, now_str, target_id))
+
+            self._json(200, {
+                "ok": True,
+                "driver_id": target_id,
+                "status": new_status,
+                "is_available": new_status == "available",
+                "updated_at": now_str
+            })
+
     def _api_health(self) -> None:
         self._json(200, {"ok": True, "status": "alive", "service": "axiom-fleet-backend", "storage": "sqlite", "time": utc_now()})
 
@@ -1822,6 +1882,8 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 self._api_mobile_driver_duty()
             elif route.startswith("/api/mobile/driver/duty/") and method in {"POST", "PATCH"}:
                 self._api_mobile_driver_update_duty(route, method)
+            elif route == "/api/mobile/driver/availability" and method in {"GET", "POST", "PATCH"}:
+                self._api_mobile_driver_availability(method)
             elif route in ("/api/health", "/health/live") and method == "GET":
                 self._api_health()
             elif route in ("/api/health/ready", "/health/ready") and method == "GET":

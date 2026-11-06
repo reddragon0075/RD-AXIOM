@@ -924,6 +924,51 @@
       justify-content: space-between;
       box-shadow: 0 4px 16px rgba(0,0,0,0.12);
     }
+    .standby-radar-card.offline {
+      background: #1c1c1e;
+      border: 1px solid #38383a;
+    }
+    .standby-radar-card.offline .pulsing-radar-dot {
+      background-color: #ef4444;
+      animation: none;
+      box-shadow: 0 0 0 2px rgba(239,68,68,0.25);
+    }
+    .standby-radar-card.offline .standby-radar-pill {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .btn-go-online-cta {
+      width: 100%;
+      height: 48px;
+      background: #06C167;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(6,193,103,0.3);
+      transition: transform 0.1s ease, background 0.15s ease;
+    }
+    .btn-go-online-cta:active {
+      transform: scale(0.98);
+      background: #05944f;
+    }
+    .offline-notice-box {
+      background: #f8f8f8;
+      border: 1.5px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 22px 16px;
+      text-align: center;
+      margin-top: 10px;
+    }
     .standby-radar-left {
       display: flex;
       align-items: center;
@@ -1342,15 +1387,15 @@
 
         <!-- STANDBY / ONLINE RADAR PANEL (Shown when trip is completed) -->
         <div id="standby-panel" class="standby-panel hidden">
-          <div class="standby-radar-card">
+          <div class="standby-radar-card" id="standby-radar-card">
             <div class="standby-radar-left">
-              <span class="pulsing-radar-dot"></span>
+              <span class="pulsing-radar-dot" id="standby-radar-dot"></span>
               <div>
-                <h4 class="standby-radar-title">ONLINE · STANDBY FOR DISPATCH</h4>
-                <div class="standby-radar-sub">Vehicle KA01AK4421 · Axiom Corporate Mobility Desk</div>
+                <h4 class="standby-radar-title" id="standby-radar-title">ONLINE · STANDBY FOR DISPATCH</h4>
+                <div class="standby-radar-sub" id="standby-radar-sub">Vehicle KA01AK4421 · Axiom Corporate Mobility Desk</div>
               </div>
             </div>
-            <span class="standby-radar-pill">GPS LIVE</span>
+            <span class="standby-radar-pill" id="standby-radar-pill">GPS LIVE</span>
           </div>
 
           <!-- PROMOTED NEXT ROSTER DUTY CONTAINER -->
@@ -1591,6 +1636,7 @@
       duty: null,
       queue: loadQueue(),
       online: navigator.onLine !== false,
+      driverAvailable: localStorage.getItem('axiom_driver_available') !== 'false',
       tab: 'cockpit',
       map: null,
       driverMarker: null,
@@ -1813,10 +1859,108 @@
       });
     }
 
+    // ----------------------------------------------------
+    // DRIVER ONLINE / OFFLINE AVAILABILITY
+    // ----------------------------------------------------
+    function updateOnlinePillUI() {
+      const btn = $('btn-online-toggle');
+      const text = $('online-text');
+      if (state.driverAvailable) {
+        btn?.classList.remove('offline');
+        if (text) text.textContent = 'ONLINE';
+      } else {
+        btn?.classList.add('offline');
+        if (text) text.textContent = 'OFFLINE';
+      }
+    }
+
+    async function syncDriverAvailability(isAvailable) {
+      try {
+        localStorage.setItem('axiom_driver_available', isAvailable ? 'true' : 'false');
+      } catch (_) {}
+
+      try {
+        const payload = {
+          driver_id: state.duty?.driver_id || 'drv_4421',
+          status: isAvailable ? 'available' : 'offline',
+          phone: state.user?.phone || '+919845011234'
+        };
+        await fetch('/api/mobile/driver/availability', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.warn('Driver availability sync fallback:', err);
+      }
+    }
+
+    function setDriverAvailability(isAvailable) {
+      const hasActiveTrip = state.duty && state.duty.status && !['completed', 'billed', 'invoiced'].includes(state.duty.status);
+      
+      state.driverAvailable = isAvailable;
+      updateOnlinePillUI();
+      syncDriverAvailability(isAvailable);
+
+      if (hasActiveTrip && !isAvailable) {
+        showToast('Offline Scheduled', 'You will go off-duty once your current trip is finished. No new assignments will be added.');
+      } else if (isAvailable) {
+        showToast('Online & Ready', 'You are now visible to Axiom corporate dispatch.');
+      } else {
+        showToast('You are Offline', 'Marked unavailable for new dispatch assignments.');
+      }
+
+      const isCompleted = !state.duty || state.duty.status === 'completed';
+      if (isCompleted) {
+        renderStandbyPanel();
+        if ($('seg-btn-active')) {
+          $('seg-btn-active').innerHTML = isAvailable 
+            ? '<span style="color:#06C167; font-size:12px;">●</span> <span>Online Standby</span>'
+            : '<span style="color:#ef4444; font-size:12px;">●</span> <span>Offline</span>';
+        }
+      }
+    }
+
     // UBER-STYLE STANDBY RADAR & NEXT DUTY RENDERING (Option 2 Post-Trip Flow)
     function renderStandbyPanel() {
       const container = $('standby-next-duty-box');
       if (!container) return;
+
+      const card = $('standby-radar-card');
+      const title = $('standby-radar-title');
+      const sub = $('standby-radar-sub');
+      const pill = $('standby-radar-pill');
+
+      if (!state.driverAvailable) {
+        if (card) card.classList.add('offline');
+        if (title) title.textContent = '🔴 OFFLINE · NOT AVAILABLE';
+        if (sub) sub.textContent = 'Vehicle KA01AK4421 · Off-duty on Axiom Mobility Desk';
+        if (pill) pill.textContent = 'OFFLINE';
+
+        container.innerHTML = `
+          <div class="offline-notice-box">
+            <div style="font-size:32px; margin-bottom:8px;">⏸️</div>
+            <div style="font-size:15px; font-weight:800; color:#000000;">You are currently Offline</div>
+            <div style="font-size:12px; color:#666666; margin-top:4px; max-width:280px; margin-left:auto; margin-right:auto; line-height:1.5;">
+              Dispatchers and automated booking engines see you as unavailable. You will not receive new trip assignments.
+            </div>
+            <button class="btn-go-online-cta" id="btn-go-online-standby" type="button">
+              🟢 GO ONLINE NOW
+            </button>
+            <div style="margin-top:14px; font-size:11px;">
+              <a href="javascript:void(0)" id="link-offline-view-earnings" style="color:#000; font-weight:700; text-decoration:none;">View Today's Earnings (₹${state.todayEarnings.toLocaleString('en-IN')}) →</a>
+            </div>
+          </div>
+        `;
+        $('btn-go-online-standby')?.addEventListener('click', () => setDriverAvailability(true));
+        $('link-offline-view-earnings')?.addEventListener('click', () => switchTab('earnings'));
+        return;
+      }
+
+      if (card) card.classList.remove('offline');
+      if (title) title.textContent = 'ONLINE · STANDBY FOR DISPATCH';
+      if (sub) sub.textContent = 'Vehicle KA01AK4421 · Axiom Corporate Mobility Desk';
+      if (pill) pill.textContent = 'GPS LIVE';
 
       const nextDuty = state.upcomingDuties && state.upcomingDuties.length > 0 ? state.upcomingDuties[0] : null;
 
@@ -3124,13 +3268,18 @@
       renderUpcomingRoster();
       updateQueueBadge();
 
+      updateOnlinePillUI();
+      $('btn-online-toggle')?.addEventListener('click', () => setDriverAvailability(!state.driverAvailable));
       $('seg-btn-active')?.addEventListener('click', () => switchCockpitSegment('active'));
       $('seg-btn-upcoming')?.addEventListener('click', () => switchCockpitSegment('upcoming'));
       $('btn-preview-next-run')?.addEventListener('click', () => switchCockpitSegment('upcoming'));
 
-      showToast('Driver Online', `Welcome to Cockpit, ${state.user?.full_name?.split(' ')[0] || 'Captain'}.`);
+      showToast(state.driverAvailable ? 'Driver Online' : 'Driver Offline', `Welcome to Cockpit, ${state.user?.full_name?.split(' ')[0] || 'Captain'}.`);
       window.axiomDriver = {
         advanceDutyStatus,
+        setDriverAvailability,
+        updateOnlinePillUI,
+        renderStandbyPanel,
         getState: () => state,
         closeSlip: (fare) => {
           advanceDutyStatus('completed');
