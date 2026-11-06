@@ -100,8 +100,10 @@ jobs:
               if [ -d "$dir" ]; then
                 cp driver-app/icon-512.png "$dir/ic_launcher.png"
                 cp driver-app/icon-512.png "$dir/ic_launcher_round.png"
+                cp driver-app/icon-512.png "$dir/ic_launcher_foreground.png"
               fi
             done
+            # Adaptive icon XMLs reside in mipmap-anydpi-v26; remove any PNGs to prevent duplicate resource collision
             rm -f android/app/src/main/res/mipmap-anydpi-v26/*.png
           fi
 
@@ -113,6 +115,8 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
+          # Double guard: ensure no PNG files conflict with XML resources in anydpi
+          rm -f app/src/main/res/mipmap-anydpi-v26/*.png 2>/dev/null || true
           ./gradlew assembleDebug --no-daemon
 
       - name: Prepare APK Output

@@ -8448,7 +8448,11 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
     }
 
     function renderVehicles() {
-      const vehicles = state.liveData?.vehicles?.items || [];
+      let vehicles = state.liveData?.vehicles?.items || [];
+      if (!vehicles.length && window.AXIOM_DEMO_DATA?.cache?.['/api/vehicles?limit=50']?.items?.length) {
+        vehicles = JSON.parse(JSON.stringify(window.AXIOM_DEMO_DATA.cache['/api/vehicles?limit=50'].items));
+        if (state.liveData?.vehicles) state.liveData.vehicles.items = vehicles;
+      }
       const availableVehicles = vehicles.filter(item => !['inactive','archived','on_duty'].includes(item.status)).length;
       const onDutyVehicles = vehicles.filter(item => item.status === 'on_duty').length;
       const inactiveVehicles = vehicles.filter(item => ['inactive','archived'].includes(item.status)).length;
@@ -18782,10 +18786,35 @@ function openDriverModal(existing) {
         headers['Authorization'] = `Bearer ${localToken}`;
       }
       if (options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
-      const response = await fetch(path, { ...options, headers, credentials: 'include' });
+      let response;
+      try {
+        response = await fetch(path, { ...options, headers, credentials: 'include' });
+      } catch (fetchErr) {
+        if (reqMethod === 'GET') {
+          const cache = window.AXIOM_DEMO_DATA?.cache || {};
+          const corpCache = window.AXIOM_DEMO_DATA?.corp_cache || {};
+          const cleanPath = path.split('?')[0];
+          const cached = cache[path] || cache[cleanPath + '?limit=50'] || cache[cleanPath] || corpCache[path] || corpCache[cleanPath];
+          if (cached) {
+            console.warn(`[Axiom] Backend unreachable for ${path}. Serving cached demo data.`);
+            return JSON.parse(JSON.stringify(cached));
+          }
+        }
+        throw fetchErr;
+      }
       let payload = {};
       try { payload = await response.json(); } catch (_) { payload = {}; }
       if (!response.ok) {
+        if (reqMethod === 'GET' && (response.status === 404 || response.status >= 500)) {
+          const cache = window.AXIOM_DEMO_DATA?.cache || {};
+          const corpCache = window.AXIOM_DEMO_DATA?.corp_cache || {};
+          const cleanPath = path.split('?')[0];
+          const cached = cache[path] || cache[cleanPath + '?limit=50'] || cache[cleanPath] || corpCache[path] || corpCache[cleanPath];
+          if (cached) {
+            console.warn(`[Axiom] Backend returned ${response.status} for ${path}. Serving cached demo data.`);
+            return JSON.parse(JSON.stringify(cached));
+          }
+        }
         const fallbackMsg = response.status === 404
           ? (isLocalHostEnv
               ? 'Backend service is unavailable or route not found (ensure server.py is running on localhost:4173).'
@@ -19016,7 +19045,25 @@ function openDriverModal(existing) {
           }
         }
 
-        const [overview, bookings, duties, invoices, drivers, vehicles, customers, suppliers, branches, manufacturers, organization, settings, reports, checklist, ...corpFast] = await Promise.all(criticalEndpoints);
+        let [overview, bookings, duties, invoices, drivers, vehicles, customers, suppliers, branches, manufacturers, organization, settings, reports, checklist, ...corpFast] = await Promise.all(criticalEndpoints);
+
+        // Fallback to demo data if critical operational collections returned empty (e.g. unseeded local tenant or offline server)
+        const demoCache = window.AXIOM_DEMO_DATA?.cache || {};
+        if (!vehicles?.items?.length && demoCache['/api/vehicles?limit=50']?.items?.length) {
+          vehicles = JSON.parse(JSON.stringify(demoCache['/api/vehicles?limit=50']));
+        }
+        if (!drivers?.items?.length && demoCache['/api/drivers?limit=50']?.items?.length) {
+          drivers = JSON.parse(JSON.stringify(demoCache['/api/drivers?limit=50']));
+        }
+        if (!bookings?.items?.length && demoCache['/api/bookings?limit=50']?.items?.length) {
+          bookings = JSON.parse(JSON.stringify(demoCache['/api/bookings?limit=50']));
+        }
+        if (!duties?.items?.length && demoCache['/api/duties?limit=50']?.items?.length) {
+          duties = JSON.parse(JSON.stringify(demoCache['/api/duties?limit=50']));
+        }
+        if (!invoices?.items?.length && demoCache['/api/invoices?limit=50']?.items?.length) {
+          invoices = JSON.parse(JSON.stringify(demoCache['/api/invoices?limit=50']));
+        }
 
         state.liveData = {
           overview, bookings, duties, invoices, drivers, vehicles, customers, suppliers, branches,

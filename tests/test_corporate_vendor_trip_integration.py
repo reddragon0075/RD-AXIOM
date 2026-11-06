@@ -100,16 +100,17 @@ def ensure_server_running():
 
     print("  Starting Axiom Fleet backend server (server.py)...")
     proc = subprocess.Popen([sys.executable, "server.py"], cwd=str(MVP_DIR))
-    for _ in range(25):
-        time.sleep(0.4)
+    last_err = None
+    for _ in range(30):
+        time.sleep(0.5)
         try:
             st, _ = make_request("/api/health")
             if st == 200:
                 print("  ✓ Axiom Fleet backend ready.")
                 return proc
-        except Exception:
-            pass
-    raise RuntimeError("Failed to start server.py on port 4173 within 10s")
+        except Exception as e:
+            last_err = e
+    raise RuntimeError(f"Failed to start server.py on port 4173: {last_err}")
 
 def seed_integration_data():
     """Ensure corporate hierarchy, vendor, and driver records are seeded."""

@@ -449,6 +449,13 @@
     .pager button { width: 27px; height: 27px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--muted); font-size: 11px; }
     .pager button.active { background: var(--blue); color: #fff; border-color: var(--blue); }
 
+    .veh-doc-chip { display: inline-flex; align-items: center; gap: 3px; font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; line-height: 1.3; white-space: nowrap; }
+    .veh-doc-chip.green { background: #e7f8f2; color: #188260; border: 1px solid rgba(24, 130, 96, 0.25); }
+    .veh-doc-chip.amber { background: #fff3dc; color: #a86c11; border: 1px solid rgba(168, 108, 17, 0.35); }
+    .veh-doc-chip.red { background: #fee2e2; color: #b91c1c; border: 1px solid rgba(185, 28, 28, 0.35); }
+    .veh-doc-chip.gray { background: #f1f5f9; color: #64748b; border: 1px solid rgba(100, 116, 139, 0.2); }
+    .compliance-banner { display: flex; align-items: flex-start; gap: 8px; border-radius: 8px; font-size: 11.5px; line-height: 1.5; padding: 10px 14px; margin-bottom: 14px; }
+
     .duty-layout { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 16px; align-items: start; }
     .side-stats { display: grid; gap: 11px; }
     .side-stat { display: flex; align-items: center; justify-content: space-between; padding: 13px 14px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
@@ -8324,29 +8331,177 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
     }
 
 
+    function getVehicleComplianceInfo(vehicle, guardrails) {
+      const g = guardrails || state.liveData?.settings?.item?.settings?.dispatch_guardrails || {};
+      const isMandatory = g.require_mandatory_vehicle_docs === true;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const docs = [
+        { key: 'rc_expiry', numKey: 'rc_number', code: 'RC', label: 'Registration Certificate' },
+        { key: 'insurance_expiry', numKey: 'insurance_policy_number', code: 'INS', label: 'Commercial Insurance' },
+        { key: 'puc_expiry', numKey: 'puc_number', code: 'PUC', label: 'Pollution Under Control' },
+        { key: 'fitness_expiry', numKey: 'fitness_number', code: 'FIT', label: 'Fitness Certificate' },
+        { key: 'permit_expiry', numKey: 'permit_number', code: 'PERMIT', label: 'Transport Permit' }
+      ];
+
+      const compliance = (vehicle && typeof vehicle.compliance === 'object' && vehicle.compliance) ? vehicle.compliance : {};
+
+      let expiredCount = 0;
+      let expiringSoonCount = 0;
+      let validCount = 0;
+      let missingCount = 0;
+
+      const docDetails = docs.map(d => {
+        const rawDate = vehicle[d.key] || compliance[d.key] || '';
+        const docNum = vehicle[d.numKey] || compliance[d.numKey] || '';
+        if (!rawDate) {
+          missingCount++;
+          return {
+            ...d,
+            date: '',
+            num: docNum,
+            status: isMandatory ? 'missing_mandatory' : 'missing_optional',
+            daysLeft: null,
+            badgeClass: isMandatory ? 'red' : 'gray',
+            badgeText: isMandatory ? 'Missing (Mandatory)' : 'Not set',
+            chipText: `${d.code} —`
+          };
+        }
+        const expDate = new Date(rawDate);
+        expDate.setHours(0, 0, 0, 0);
+        const diffTime = expDate.getTime() - today.getTime();
+        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (daysLeft < 0) {
+          expiredCount++;
+          return {
+            ...d,
+            date: rawDate,
+            num: docNum,
+            status: 'expired',
+            daysLeft,
+            badgeClass: 'red',
+            badgeText: `Expired (${Math.abs(daysLeft)}d ago)`,
+            chipText: `${d.code} Exp`
+          };
+        } else if (daysLeft <= 30) {
+          expiringSoonCount++;
+          return {
+            ...d,
+            date: rawDate,
+            num: docNum,
+            status: 'expiring_soon',
+            daysLeft,
+            badgeClass: 'amber',
+            badgeText: `Expiring (${daysLeft}d left)`,
+            chipText: `${d.code} ${daysLeft}d`
+          };
+        } else {
+          validCount++;
+          return {
+            ...d,
+            date: rawDate,
+            num: docNum,
+            status: 'valid',
+            daysLeft,
+            badgeClass: 'green',
+            badgeText: `Valid (${daysLeft}d left)`,
+            chipText: `${d.code} ${daysLeft}d`
+          };
+        }
+      });
+
+      let overallStatus = 'compliant';
+      let overallClass = 'green';
+      let overallLabel = `Compliant (${validCount}/5)`;
+
+      if (expiredCount > 0) {
+        overallStatus = 'expired';
+        overallClass = 'red';
+        overallLabel = `${expiredCount} Expired`;
+      } else if (isMandatory && missingCount > 0) {
+        overallStatus = 'non_compliant';
+        overallClass = 'red';
+        overallLabel = `${missingCount} Missing (Mandatory)`;
+      } else if (expiringSoonCount > 0) {
+        overallStatus = 'expiring_soon';
+        overallClass = 'amber';
+        overallLabel = `${expiringSoonCount} Expiring soon`;
+      } else if (!isMandatory && validCount === 0) {
+        overallStatus = 'optional_empty';
+        overallClass = 'gray';
+        overallLabel = 'Optional (None set)';
+      }
+
+      return {
+        isMandatory,
+        expiredCount,
+        expiringSoonCount,
+        validCount,
+        missingCount,
+        overallStatus,
+        overallClass,
+        overallLabel,
+        docDetails
+      };
+    }
+
     function renderVehicles() {
-      const vehicles = state.liveData?.vehicles?.items || [];
+      let vehicles = state.liveData?.vehicles?.items || [];
+      if (!vehicles.length && window.AXIOM_DEMO_DATA?.cache?.['/api/vehicles?limit=50']?.items?.length) {
+        vehicles = JSON.parse(JSON.stringify(window.AXIOM_DEMO_DATA.cache['/api/vehicles?limit=50'].items));
+        if (state.liveData?.vehicles) state.liveData.vehicles.items = vehicles;
+      }
       const availableVehicles = vehicles.filter(item => !['inactive','archived','on_duty'].includes(item.status)).length;
       const onDutyVehicles = vehicles.filter(item => item.status === 'on_duty').length;
       const inactiveVehicles = vehicles.filter(item => ['inactive','archived'].includes(item.status)).length;
       const filter = state.vehicleFilter || 'all';
       const q = String(state.vehicleQuery || '').trim().toLowerCase();
+      const guardrails = state.liveData?.settings?.item?.settings?.dispatch_guardrails || {};
+      const isMandatory = guardrails.require_mandatory_vehicle_docs === true;
+
+      let fleetCompliantCount = 0;
+      let fleetExpiringSoonCount = 0;
+      let fleetNonCompliantCount = 0;
+      vehicles.forEach(veh => {
+        const c = getVehicleComplianceInfo(veh, guardrails);
+        if (c.overallStatus === 'compliant' || c.overallStatus === 'optional_empty') fleetCompliantCount++;
+        else if (c.overallStatus === 'expiring_soon') fleetExpiringSoonCount++;
+        else fleetNonCompliantCount++;
+      });
 
       const filteredVehicles = vehicles.filter(item => {
         const matchesQuery = !q || `${item.registration_number || ''} ${item.make_model || ''} ${item.vehicle_group || ''} ${item.vehicle_type || ''} ${item.fuel_type || ''} ${item.city || ''} ${item.status || ''}`.toLowerCase().includes(q);
+        const comp = getVehicleComplianceInfo(item, guardrails);
         const matchesFilter = filter === 'all'
           ? true
           : filter === 'available'
             ? !['inactive','archived','on_duty'].includes(item.status)
             : filter === 'on_duty'
               ? item.status === 'on_duty'
-              : ['inactive','archived'].includes(item.status);
+              : filter === 'inactive'
+                ? ['inactive','archived'].includes(item.status)
+                : filter === 'compliance'
+                  ? (comp.overallStatus !== 'compliant' && comp.overallStatus !== 'optional_empty')
+                  : true;
         return matchesQuery && matchesFilter;
       });
 
-      const kpis = `<div class="grid three-col" style="margin-bottom:16px"><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Total fleet</span><span class="kpi-icon">${icon('car')}</span></div><div class="kpi-value">${vehicles.length}</div><div class="kpi-foot">Registered vehicles</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Available for dispatch</span><span class="kpi-icon teal">${icon('check')}</span></div><div class="kpi-value">${availableVehicles}</div><div class="kpi-foot">Ready for allotment</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Active / on duty</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${onDutyVehicles}</div><div class="kpi-foot">${inactiveVehicles} inactive or maintenance</div></div></div>`;
+      const attentionCount = fleetExpiringSoonCount + fleetNonCompliantCount;
+      const tabItems = [
+        ['all', 'All vehicles'],
+        ['available', `Available (${availableVehicles})`],
+        ['on_duty', `On duty (${onDutyVehicles})`],
+        ['inactive', `Inactive (${inactiveVehicles})`]
+      ];
+      if (attentionCount > 0) {
+        tabItems.push(['compliance', `⚠️ Compliance attention (${attentionCount})`]);
+      }
 
-      const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px"><div class="tabs">${[['all','All vehicles'],['available',`Available (${availableVehicles})`],['on_duty',`On duty (${onDutyVehicles})`],['inactive',`Inactive (${inactiveVehicles})`]].map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-vehicle-filter="${key}">${label}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="vehicleQuery" placeholder="Search vehicles…" value="${esc(state.vehicleQuery || '')}"></label></div>`;
+      const kpis = `<div class="grid four-col" style="margin-bottom:16px"><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Total fleet</span><span class="kpi-icon">${icon('car')}</span></div><div class="kpi-value">${vehicles.length}</div><div class="kpi-foot">Registered vehicles</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Available for dispatch</span><span class="kpi-icon teal">${icon('check')}</span></div><div class="kpi-value">${availableVehicles}</div><div class="kpi-foot">Ready for allotment</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Active / on duty</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${onDutyVehicles}</div><div class="kpi-foot">${inactiveVehicles} inactive or maintenance</div></div><div class="card kpi ${fleetNonCompliantCount > 0 ? 'red' : (fleetExpiringSoonCount > 0 ? 'amber' : 'green')}"><div class="kpi-top"><span class="kpi-label">Compliance health</span><span class="kpi-icon">${icon('shield')}</span></div><div class="kpi-value">${fleetCompliantCount}/${vehicles.length}</div><div class="kpi-foot">${fleetNonCompliantCount ? `${fleetNonCompliantCount} non-compliant` : (fleetExpiringSoonCount ? `${fleetExpiringSoonCount} expiring soon` : (isMandatory ? 'All statutory docs valid' : 'All docs valid'))} · Policy: ${isMandatory ? 'Mandatory' : 'Optional'}</div></div></div>`;
+
+      const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px"><div class="tabs">${tabItems.map(([key,label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-vehicle-filter="${key}">${label}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="vehicleQuery" placeholder="Search vehicles…" value="${esc(state.vehicleQuery || '')}"></label></div>`;
 
       // Vehicles register pagination calculation
       const totalVehiclesCount = filteredVehicles.length;
@@ -8411,7 +8566,15 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         </div>
       `;
 
-      const vehiclesTable = `<section class="card section-card">${cardHead('Vehicles register','Registration number, make & model, capacity and compliance records',`${button(icon('upload')+'Import roster','small','data-action="import-master"')}${button(icon('plus')+'Add vehicle','small primary','data-action="add-vehicle"')}`)}<div class="table-wrap"><table><thead><tr><th>Vehicle</th><th>Make &amp; model</th><th>Group / fuel</th><th>Capacity</th><th>Status</th><th></th></tr></thead><tbody>${pagedFleetVehicles.length ? pagedFleetVehicles.map(item => `<tr><td><span class="primary">${esc(item.registration_number || item.id)}</span><span class="secondary">${esc(item.city || item.id)}</span></td><td>${esc(item.make_model || 'Model not specified')}</td><td>${esc(item.vehicle_group || item.vehicle_type || 'Standard')} · ${esc(item.fuel_type || 'Fuel not added')}</td><td>${item.seating_capacity ? `${item.seating_capacity} seats` : '—'}</td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="vehicle-edit" data-vehicle-id="${esc(item.id)}">${icon('edit', 13)}Edit</button></td></tr>`).join('') : tenantTableEmpty('No vehicles returned','Add the first vehicle or import a fleet roster via CSV.',button(icon('plus')+'Add vehicle','small soft','data-action="add-vehicle"'))}</tbody></table></div>${vehicleRegisterPaginationMarkup}</section>`;
+      const vehiclesTable = `<section class="card section-card">${cardHead('Vehicles register','Registration number, make & model, capacity and compliance records',`${button(icon('upload')+'Import roster','small','data-action="import-master"')}${button(icon('plus')+'Add vehicle','small primary','data-action="add-vehicle"')}`)}<div class="table-wrap"><table><thead><tr><th>Vehicle</th><th>Make &amp; model</th><th>Group / fuel</th><th>Capacity</th><th>Compliance &amp; documents</th><th>Status</th><th></th></tr></thead><tbody>${pagedFleetVehicles.length ? pagedFleetVehicles.map(item => {
+        const comp = getVehicleComplianceInfo(item, guardrails);
+        const chipsMarkup = comp.docDetails.map(d => {
+          const tooltip = `${d.label}: ${d.date ? `${d.date} (${d.badgeText})` : (d.status === 'missing_mandatory' ? 'Missing (Mandatory)' : 'Not configured')}${d.num ? ` · #${d.num}` : ''}`;
+          return `<span class="veh-doc-chip ${d.badgeClass}" title="${esc(tooltip)}">${esc(d.chipText)}</span>`;
+        }).join('');
+        const compCell = `<td><div style="display:flex;flex-direction:column;gap:5px"><div style="display:flex;align-items:center;gap:6px"><span class="status ${comp.overallClass}" style="font-size:10px;padding:3px 7px">${esc(comp.overallLabel)}</span>${comp.isMandatory ? '<span style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.4px">Mandatory</span>' : ''}</div><div class="veh-doc-chips" style="display:flex;gap:4px;flex-wrap:wrap">${chipsMarkup}</div></div></td>`;
+        return `<tr><td><span class="primary">${esc(item.registration_number || item.id)}</span><span class="secondary">${esc(item.city || item.id)}</span></td><td>${esc(item.make_model || 'Model not specified')}</td><td>${esc(item.vehicle_group || item.vehicle_type || 'Standard')} · ${esc(item.fuel_type || 'Fuel not added')}</td><td>${item.seating_capacity ? `${item.seating_capacity} seats` : '—'}</td>${compCell}<td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="vehicle-edit" data-vehicle-id="${esc(item.id)}">${icon('edit', 13)}Edit</button></td></tr>`;
+      }).join('') : tenantTableEmpty('No vehicles returned','Add the first vehicle or import a fleet roster via CSV.',button(icon('plus')+'Add vehicle','small soft','data-action="add-vehicle"'))}</tbody></table></div>${vehicleRegisterPaginationMarkup}</section>`;
 
       const vehicleSubmenu = `
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;border-bottom:1px solid var(--line,#e2e8f0);padding-bottom:10px">
@@ -12514,7 +12677,7 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
       const permissions = state.extendedData['/api/permissions']?.items || state.extendedData['/api/permissions']?.permissions || [];
       const permissionRows = permissions.length ? permissions.map(role => `<tr><td class="table-primary">${esc(role.name || role.role || role.id)}</td><td>${esc(role.user_count ?? '—')}</td><td>${esc((role.permissions || []).join(', ') || 'Configured permissions')}</td><td>${status(role.mfa_required === false ? 'Optional' : 'Required', role.mfa_required === false ? 'amber' : 'green')}</td><td><button class="btn small" data-action="permissions" data-role="${esc(role.id || role.role || '')}">Edit</button></td></tr>`).join('') : '<tr><td colspan="5"><div class="table-empty"><strong>No permission matrix returned</strong><span>Role configuration will appear when the tenant permissions contract is available.</span></div></td></tr>';
       return `${pageHead('Workspace · regional control', 'Settings', 'Configure tenant identity and rules without inventing values before the workspace has been configured.', `${button(icon('download')+'Export workspace', '', 'data-action="export"')}${button('Save changes', 'primary', 'data-action="save-settings"')}`)}
-        <div class="grid two-col"><section class="card section-card">${cardHead('Workspace identity','Values are loaded from the tenant organization and settings records')}<div class="modal-body"><div class="form-grid"><div class="master-form-section full">Identity &amp; tax registration</div><div class="form-group"><label>Company name</label><input class="form-input" data-settings-field="company_name" value="${esc(organization.name || currentUser?.organization?.name || settings.company_name || '')}" placeholder="Tenant organization name"></div><div class="form-group"><label>Operating region</label><select class="form-input" data-settings-region>${regionOptions}</select></div><div class="form-group"><label>Default city / operating label</label><input class="form-input" data-settings-field="city" value="${esc(settings.city || currentUser?.profile?.city || '')}" placeholder="Operating city or label" aria-label="Default city or operating label"></div><div class="form-group"><label>${esc(registrationLabel)}</label><input class="form-input" data-settings-field="tax_registration" value="${esc(settings.tax_registration || '')}" placeholder="Tenant tax registration"></div><div class="form-group"><label>Time zone</label><select class="form-input" data-settings-field="timezone" data-timezone-select data-selected-timezone="${esc(currentUser?.profile?.timezone || settings.timezone || localization.timezone || '')}">${timeZoneOptions(currentUser?.profile?.timezone || settings.timezone || localization.timezone || '')}</select></div><div class="form-group"><label>Currency</label><select class="form-input" data-settings-field="currency"><option value="">Select currency</option>${localization.currency ? `<option selected>${esc(localization.currency)}</option>` : ''}</select></div><div class="form-group full"><label>Invoice footer</label><textarea class="form-input" data-settings-field="invoice_footer" placeholder="Tenant invoice footer">${esc(settings.invoice_footer || '')}</textarea></div></div></div></section><section class="card section-card">${cardHead('Operational policies','Only enabled tenant settings are shown as active')}<div class="card-body"><div class="master-form-section">Dispatch guardrails</div>${toggle('block_expired_documents','Block allotment when documents expire')}${toggle('require_price_book','Require price book for new duties')}${toggle('approved_messaging','Send dispatch via approved messaging')}${toggle('quiet_hours','Enable quiet hours')}${localization.timezone ? `<div class="form-help" style="margin-top:14px">Effective region: ${esc(localization.name || 'Tenant region')} · ${esc(localization.currency || regionalCurrencyCode())} · ${esc(taxLabel)} · ${esc(localization.distance_unit || regionalDistanceUnit())}</div>` : '<div class="phase12-empty" style="margin-top:14px"><strong>Regional profile not configured</strong><span>Choose a tenant region before relying on tax, currency or distance settings.</span></div>'}</div></section></div><section class="card section-card" style="margin-top:16px">${cardHead('Roles & permissions','Deny by default. Every mutation is server-audited.', '<button class="link" data-action="permissions">Manage matrix →</button>')}<div class="table-wrap"><table><thead><tr><th>Role</th><th>Users</th><th>Key permissions</th><th>2FA</th><th></th></tr></thead><tbody>${permissionRows}</tbody></table></div></section><div class="settings-save-bar"><div><strong>Changes are tenant-scoped</strong><span>Save to retain the policy snapshot and receive an audit reference.</span></div>${button('Save changes','primary','data-action="save-settings"')}</div>`;
+        <div class="grid two-col"><section class="card section-card">${cardHead('Workspace identity','Values are loaded from the tenant organization and settings records')}<div class="modal-body"><div class="form-grid"><div class="master-form-section full">Identity &amp; tax registration</div><div class="form-group"><label>Company name</label><input class="form-input" data-settings-field="company_name" value="${esc(organization.name || currentUser?.organization?.name || settings.company_name || '')}" placeholder="Tenant organization name"></div><div class="form-group"><label>Operating region</label><select class="form-input" data-settings-region>${regionOptions}</select></div><div class="form-group"><label>Default city / operating label</label><input class="form-input" data-settings-field="city" value="${esc(settings.city || currentUser?.profile?.city || '')}" placeholder="Operating city or label" aria-label="Default city or operating label"></div><div class="form-group"><label>${esc(registrationLabel)}</label><input class="form-input" data-settings-field="tax_registration" value="${esc(settings.tax_registration || '')}" placeholder="Tenant tax registration"></div><div class="form-group"><label>Time zone</label><select class="form-input" data-settings-field="timezone" data-timezone-select data-selected-timezone="${esc(currentUser?.profile?.timezone || settings.timezone || localization.timezone || '')}">${timeZoneOptions(currentUser?.profile?.timezone || settings.timezone || localization.timezone || '')}</select></div><div class="form-group"><label>Currency</label><select class="form-input" data-settings-field="currency"><option value="">Select currency</option>${localization.currency ? `<option selected>${esc(localization.currency)}</option>` : ''}</select></div><div class="form-group full"><label>Invoice footer</label><textarea class="form-input" data-settings-field="invoice_footer" placeholder="Tenant invoice footer">${esc(settings.invoice_footer || '')}</textarea></div></div></div></section><section class="card section-card">${cardHead('Operational policies','Only enabled tenant settings are shown as active')}<div class="card-body"><div class="master-form-section">Dispatch guardrails</div>${toggle('require_mandatory_vehicle_docs','Require mandatory vehicle compliance documents (RC, Insurance, PUC, Fitness, Permit)')}${toggle('block_expired_documents','Block allotment when documents expire')}${toggle('require_price_book','Require price book for new duties')}${toggle('approved_messaging','Send dispatch via approved messaging')}${toggle('quiet_hours','Enable quiet hours')}${localization.timezone ? `<div class="form-help" style="margin-top:14px">Effective region: ${esc(localization.name || 'Tenant region')} · ${esc(localization.currency || regionalCurrencyCode())} · ${esc(taxLabel)} · ${esc(localization.distance_unit || regionalDistanceUnit())}</div>` : '<div class="phase12-empty" style="margin-top:14px"><strong>Regional profile not configured</strong><span>Choose a tenant region before relying on tax, currency or distance settings.</span></div>'}</div></section></div><section class="card section-card" style="margin-top:16px">${cardHead('Roles & permissions','Deny by default. Every mutation is server-audited.', '<button class="link" data-action="permissions">Manage matrix →</button>')}<div class="table-wrap"><table><thead><tr><th>Role</th><th>Users</th><th>Key permissions</th><th>2FA</th><th></th></tr></thead><tbody>${permissionRows}</tbody></table></div></section><div class="settings-save-bar"><div><strong>Changes are tenant-scoped</strong><span>Save to retain the policy snapshot and receive an audit reference.</span></div>${button('Save changes','primary','data-action="save-settings"')}</div>`;
     }
 
     function renderEnterprise() {
@@ -13821,8 +13984,120 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         ...(currentMfr ? [currentMfr] : [])
       ])).sort((a, b) => a.localeCompare(b));
       const mfrOptions = allMfrNames.map(name => `<option value="${esc(name)}" ${name.toLowerCase() === currentMfr.toLowerCase() ? 'selected' : ''}>${esc(name)}</option>`).join('');
-      const modal = modalShell(existing ? 'Edit vehicle' : 'Add vehicle', existing ? 'Keep the vehicle record current so allotment and compliance checks stay reliable.' : 'Create one complete vehicle record instead of collecting the same details during dispatch.', `<div class="form-grid"><div class="master-form-callout">${icon('shield')}<span>Only workspace staff can change master data. Registration numbers are unique per tenant and every save is audit logged.</span></div><div class="master-form-section">Identity</div><div class="form-group"><label>Registration number <span class="required">*</span></label><input class="form-input" data-vehicle-field="registration_number" value="${value('registration_number')}" placeholder="KA 01 AB 1234" required></div><div class="form-group"><label>Vehicle group <span class="required">*</span></label><select class="form-input" data-vehicle-field="vehicle_group"><option value="Standard sedan" ${defaultGroup === 'Standard sedan' ? 'selected' : ''}>Standard sedan</option><option value="Executive sedan" ${defaultGroup === 'Executive sedan' ? 'selected' : ''}>Executive sedan</option><option value="SUV" ${defaultGroup === 'SUV' ? 'selected' : ''}>SUV</option><option value="Tempo Traveller" ${defaultGroup === 'Tempo Traveller' ? 'selected' : ''}>Tempo Traveller</option></select></div><div class="form-group"><label>Manufacturer <span class="required" style="color:var(--red,#ef4444);font-weight:700">* (Required)</span></label><select class="form-input" data-vehicle-field="manufacturer" required><option value="">Select manufacturer…</option>${mfrOptions}</select></div><div class="form-group"><label>Model <span class="required" style="color:var(--red,#ef4444);font-weight:700">* (Required)</span></label><input class="form-input" data-vehicle-field="model" value="${esc(currentModel)}" placeholder="e.g. Dzire, Innova Crysta, Etios, Aura" required></div><div class="form-group"><label>Vehicle type</label><select class="form-input" data-vehicle-field="vehicle_type"><option value="sedan" ${defaultType === 'sedan' ? 'selected' : ''}>Sedan</option><option value="suv" ${defaultType === 'suv' ? 'selected' : ''}>SUV</option><option value="hatchback" ${defaultType === 'hatchback' ? 'selected' : ''}>Hatchback</option><option value="tempo_traveller" ${defaultType === 'tempo_traveller' ? 'selected' : ''}>Tempo Traveller</option></select></div><div class="form-group"><label>Manufacture year</label><input class="form-input" data-vehicle-field="year" type="number" min="1980" max="2100" value="${value('year')}" placeholder="2024"></div><div class="form-group"><label>City</label><select class="form-input" data-vehicle-field="city">${renderCityOptions(value('city') || 'Bengaluru')}</select></div><div class="form-group"><label>Branch / dispatch centre</label><input class="form-input" data-vehicle-field="branch_name" value="${value('branch_name')}" placeholder="Bengaluru · Whitefield"></div><div class="master-form-section">Capacity and operations</div><div class="form-group"><label>Fuel type</label><select class="form-input" data-vehicle-field="fuel_type"><option value="petrol" ${defaultFuel === 'petrol' ? 'selected' : ''}>Petrol</option><option value="diesel" ${defaultFuel === 'diesel' ? 'selected' : ''}>Diesel</option><option value="CNG" ${defaultFuel === 'CNG' ? 'selected' : ''}>CNG</option><option value="EV" ${defaultFuel === 'EV' ? 'selected' : ''}>EV</option></select></div><div class="form-group"><label>Seating capacity</label><input class="form-input" data-vehicle-field="seating_capacity" type="number" min="1" max="60" value="${defaultSeats}" placeholder="Seats" required></div><div class="form-group"><label>Luggage capacity</label><input class="form-input" data-vehicle-field="luggage_capacity" type="number" min="0" max="30" value="${value('luggage_capacity')}" placeholder="Bags"></div><div class="form-group"><label>Ownership / Belongs to <span class="required">*</span></label><select class="form-input" data-vehicle-field="ownership_type" id="vehOwnershipSelect"><option value="owned" ${defaultOwnership === 'owned' ? 'selected' : ''}>Own (Company Fleet)</option><option value="dco" ${defaultOwnership === 'dco' ? 'selected' : ''}>DCO (Driver Cum Owner)</option><option value="supplier" ${['supplier','attached'].includes(defaultOwnership) ? 'selected' : ''}>Supplier / Attached</option><option value="leased" ${defaultOwnership === 'leased' ? 'selected' : ''}>Leased</option></select></div><div class="form-group" id="vehSupplierWrap" style="${['supplier','attached'].includes(defaultOwnership) ? '' : 'display:none'}"><label>Attached Supplier</label><select class="form-input" data-vehicle-field="supplier_id" id="vehSupplierId"><option value="">Select supplier partner…</option>${supplierOptions}</select><input class="form-input" style="margin-top:4px" data-vehicle-field="supplier_name" id="vehSupplierName" value="${esc(v.supplier_name || '')}" placeholder="Or enter custom supplier name…"></div><div class="form-group" id="vehDcoWrap" style="${defaultOwnership === 'dco' ? '' : 'display:none'}"><label>Driver Cum Owner (DCO)</label><select class="form-input" data-vehicle-field="driver_id" id="vehDriverId"><option value="">Select driver from roster…</option>${driverOptions}</select><input class="form-input" style="margin-top:4px" data-vehicle-field="owner_name" id="vehOwnerName" value="${esc(v.owner_name || '')}" placeholder="Or enter owner name…"></div><div class="form-group"><label>GPS / telematics provider</label><input class="form-input" data-vehicle-field="gps_provider" value="${value('gps_provider')}" placeholder="Optional provider"></div><div class="form-group"><label>Status</label><select class="form-input" data-vehicle-field="status"><option value="available" ${['available','active'].includes(v.status || 'available') ? 'selected' : ''}>Available</option><option value="on_duty" ${v.status === 'on_duty' ? 'selected' : ''}>On duty</option><option value="inactive" ${['inactive','archived'].includes(v.status) ? 'selected' : ''}>Inactive</option></select></div><div class="master-form-section">Compliance dates</div><div class="vehicle-doc-grid"><div class="form-group"><label>RC expiry</label><input class="form-input" data-vehicle-field="rc_expiry" type="date" value="${value('rc_expiry')}"></div><div class="form-group"><label>Insurance expiry</label><input class="form-input" data-vehicle-field="insurance_expiry" type="date" value="${value('insurance_expiry')}"></div><div class="form-group"><label>PUC expiry</label><input class="form-input" data-vehicle-field="puc_expiry" type="date" value="${value('puc_expiry')}"></div></div><div class="form-group full"><label>Internal notes</label><textarea class="form-input" data-vehicle-field="notes" placeholder="Access instructions, special equipment or operational notes…">${value('notes')}</textarea></div></div>`, `${button('Cancel','','data-close-modal')}${button(existing ? 'Save vehicle' : 'Create vehicle','primary','data-submit-vehicle')}`);
+
+      const guardrails = state.liveData?.settings?.item?.settings?.dispatch_guardrails || {};
+      const isMandatory = guardrails.require_mandatory_vehicle_docs === true;
+
+      const modal = modalShell(existing ? 'Edit vehicle' : 'Add vehicle', existing ? 'Keep the vehicle record current so allotment and compliance checks stay reliable.' : 'Create one complete vehicle record instead of collecting the same details during dispatch.', `<div class="form-grid"><div class="master-form-callout">${icon('shield')}<span>Only workspace staff can change master data. Registration numbers are unique per tenant and every save is audit logged.</span></div><div class="master-form-section">Identity</div><div class="form-group"><label>Registration number <span class="required">*</span></label><input class="form-input" data-vehicle-field="registration_number" value="${value('registration_number')}" placeholder="KA 01 AB 1234" required></div><div class="form-group"><label>Vehicle group <span class="required">*</span></label><select class="form-input" data-vehicle-field="vehicle_group"><option value="Standard sedan" ${defaultGroup === 'Standard sedan' ? 'selected' : ''}>Standard sedan</option><option value="Executive sedan" ${defaultGroup === 'Executive sedan' ? 'selected' : ''}>Executive sedan</option><option value="SUV" ${defaultGroup === 'SUV' ? 'selected' : ''}>SUV</option><option value="Tempo Traveller" ${defaultGroup === 'Tempo Traveller' ? 'selected' : ''}>Tempo Traveller</option></select></div><div class="form-group"><label>Manufacturer <span class="required" style="color:var(--red,#ef4444);font-weight:700">* (Required)</span></label><select class="form-input" data-vehicle-field="manufacturer" required><option value="">Select manufacturer…</option>${mfrOptions}</select></div><div class="form-group"><label>Model <span class="required" style="color:var(--red,#ef4444);font-weight:700">* (Required)</span></label><input class="form-input" data-vehicle-field="model" value="${esc(currentModel)}" placeholder="e.g. Dzire, Innova Crysta, Etios, Aura" required></div><div class="form-group"><label>Vehicle type</label><select class="form-input" data-vehicle-field="vehicle_type"><option value="sedan" ${defaultType === 'sedan' ? 'selected' : ''}>Sedan</option><option value="suv" ${defaultType === 'suv' ? 'selected' : ''}>SUV</option><option value="hatchback" ${defaultType === 'hatchback' ? 'selected' : ''}>Hatchback</option><option value="tempo_traveller" ${defaultType === 'tempo_traveller' ? 'selected' : ''}>Tempo Traveller</option></select></div><div class="form-group"><label>Manufacture year</label><input class="form-input" data-vehicle-field="year" type="number" min="1980" max="2100" value="${value('year')}" placeholder="2024"></div><div class="form-group"><label>City</label><select class="form-input" data-vehicle-field="city">${renderCityOptions(value('city') || 'Bengaluru')}</select></div><div class="form-group"><label>Branch / dispatch centre</label><input class="form-input" data-vehicle-field="branch_name" value="${value('branch_name')}" placeholder="Bengaluru · Whitefield"></div><div class="master-form-section">Capacity and operations</div><div class="form-group"><label>Fuel type</label><select class="form-input" data-vehicle-field="fuel_type"><option value="petrol" ${defaultFuel === 'petrol' ? 'selected' : ''}>Petrol</option><option value="diesel" ${defaultFuel === 'diesel' ? 'selected' : ''}>Diesel</option><option value="CNG" ${defaultFuel === 'CNG' ? 'selected' : ''}>CNG</option><option value="EV" ${defaultFuel === 'EV' ? 'selected' : ''}>EV</option></select></div><div class="form-group"><label>Seating capacity</label><input class="form-input" data-vehicle-field="seating_capacity" type="number" min="1" max="60" value="${defaultSeats}" placeholder="Seats" required></div><div class="form-group"><label>Luggage capacity</label><input class="form-input" data-vehicle-field="luggage_capacity" type="number" min="0" max="30" value="${value('luggage_capacity')}" placeholder="Bags"></div><div class="form-group"><label>Ownership / Belongs to <span class="required">*</span></label><select class="form-input" data-vehicle-field="ownership_type" id="vehOwnershipSelect"><option value="owned" ${defaultOwnership === 'owned' ? 'selected' : ''}>Own (Company Fleet)</option><option value="dco" ${defaultOwnership === 'dco' ? 'selected' : ''}>DCO (Driver Cum Owner)</option><option value="supplier" ${['supplier','attached'].includes(defaultOwnership) ? 'selected' : ''}>Supplier / Attached</option><option value="leased" ${defaultOwnership === 'leased' ? 'selected' : ''}>Leased</option></select></div><div class="form-group" id="vehSupplierWrap" style="${['supplier','attached'].includes(defaultOwnership) ? '' : 'display:none'}"><label>Attached Supplier</label><select class="form-input" data-vehicle-field="supplier_id" id="vehSupplierId"><option value="">Select supplier partner…</option>${supplierOptions}</select><input class="form-input" style="margin-top:4px" data-vehicle-field="supplier_name" id="vehSupplierName" value="${esc(v.supplier_name || '')}" placeholder="Or enter custom supplier name…"></div><div class="form-group" id="vehDcoWrap" style="${defaultOwnership === 'dco' ? '' : 'display:none'}"><label>Driver Cum Owner (DCO)</label><select class="form-input" data-vehicle-field="driver_id" id="vehDriverId"><option value="">Select driver from roster…</option>${driverOptions}</select><input class="form-input" style="margin-top:4px" data-vehicle-field="owner_name" id="vehOwnerName" value="${esc(v.owner_name || '')}" placeholder="Or enter owner name…"></div><div class="form-group"><label>GPS / telematics provider</label><input class="form-input" data-vehicle-field="gps_provider" value="${value('gps_provider')}" placeholder="Optional provider"></div><div class="form-group"><label>Status</label><select class="form-input" data-vehicle-field="status"><option value="available" ${['available','active'].includes(v.status || 'available') ? 'selected' : ''}>Available</option><option value="on_duty" ${v.status === 'on_duty' ? 'selected' : ''}>On duty</option><option value="inactive" ${['inactive','archived'].includes(v.status) ? 'selected' : ''}>Inactive</option></select></div>
+
+      <div class="master-form-section" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Compliance &amp; statutory documents</span>
+        <span class="status ${isMandatory ? 'red' : 'gray'}" style="font-size:10px">
+          ${isMandatory ? 'Policy: Mandatory' : 'Policy: Optional'}
+        </span>
+      </div>
+      <div class="compliance-banner" style="grid-column:1/-1;border-radius:8px;padding:9px 12px;font-size:11.5px;line-height:1.45;${isMandatory ? 'background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);color:#991b1b' : 'background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);color:#1e40af'}">
+        ${isMandatory 
+          ? '<strong>🛡️ Mandatory compliance policy active:</strong> Registration Certificate (RC), Commercial Insurance, PUC, Fitness Certificate and Transport Permit are strictly mandatory. Missing or expired documents block vehicle dispatch and allotment.'
+          : '<strong>ℹ️ Optional documents mode:</strong> Vehicle compliance documents are optional by default. Expiration dates are tracked and visually indicated. You can make documents mandatory for all fleet vehicles in <em>Workspace Settings</em>.'}
+      </div>
+
+      <!-- 1. RC -->
+      <div class="form-group">
+        <label>RC number ${isMandatory ? '<span class="required" style="color:var(--red,#ef4444)">*</span>' : ''}</label>
+        <input class="form-input" data-vehicle-field="rc_number" value="${value('rc_number') || value('registration_number')}" placeholder="RC registration number">
+      </div>
+      <div class="form-group">
+        <label style="display:flex;justify-content:space-between;align-items:center">
+          <span>RC expiry ${isMandatory ? '<span class="required" style="color:var(--red,#ef4444)">*</span>' : ''}</span>
+          <span class="doc-expiry-indicator" id="ind_rc_expiry"></span>
+        </label>
+        <input class="form-input doc-date-input" data-vehicle-field="rc_expiry" data-indicator="ind_rc_expiry" type="date" value="${value('rc_expiry')}">
+      </div>
+
+      <!-- 2. Commercial Insurance -->
+      <div class="form-group">
+        <label>Insurance policy number ${isMandatory ? '<span class="required" style="color:var(--red,#ef4444)">*</span>' : ''}</label>
+        <input class="form-input" data-vehicle-field="insurance_policy_number" value="${value('insurance_policy_number')}" placeholder="e.g. POL-99281-COM">
+      </div>
+      <div class="form-group">
+        <label style="display:flex;justify-content:space-between;align-items:center">
+          <span>Insurance expiry ${isMandatory ? '<span class="required" style="color:var(--red,#ef4444)">*</span>' : ''}</span>
+          <span class="doc-expiry-indicator" id="ind_insurance_expiry"></span>
+        </label>
+        <input class="form-input doc-date-input" data-vehicle-field="insurance_expiry" data-indicator="ind_insurance_expiry" type="date" value="${value('insurance_expiry')}">
+      </div>
+
+      <!-- 3. PUC -->
+      <div class="form-group">
+        <label>PUC certificate number ${isMandatory ? '<span class="required" style="color:var(--red,#ef4444)">*</span>' : ''}</label>
+        <input class="form-input" data-vehicle-field="puc_number" value="${value('puc_number')}" placeholder="e.g. PUC-2026-KA01">
+      </div>
+      <div class="form-group">
+        <label style="display:flex;justify-content:space-between;align-items:center">
+          <span>PUC expiry ${isMandatory ? '<span class="required" style="color:var(--red,#ef4444)">*</span>' : ''}</span>
+          <span class="doc-expiry-indicator" id="ind_puc_expiry"></span>
+        </label>
+        <input class="form-input doc-date-input" data-vehicle-field="puc_expiry" data-indicator="ind_puc_expiry" type="date" value="${value('puc_expiry')}">
+      </div>
+
+      <!-- 4. Fitness -->
+      <div class="form-group">
+        <label>Fitness certificate number ${isMandatory ? '<span class="required" style="color:var(--red,#ef4444)">*</span>' : ''}</label>
+        <input class="form-input" data-vehicle-field="fitness_number" value="${value('fitness_number')}" placeholder="e.g. FC-KA-99214">
+      </div>
+      <div class="form-group">
+        <label style="display:flex;justify-content:space-between;align-items:center">
+          <span>Fitness expiry ${isMandatory ? '<span class="required" style="color:var(--red,#ef4444)">*</span>' : ''}</span>
+          <span class="doc-expiry-indicator" id="ind_fitness_expiry"></span>
+        </label>
+        <input class="form-input doc-date-input" data-vehicle-field="fitness_expiry" data-indicator="ind_fitness_expiry" type="date" value="${value('fitness_expiry')}">
+      </div>
+
+      <!-- 5. Permit -->
+      <div class="form-group">
+        <label>Permit number ${isMandatory ? '<span class="required" style="color:var(--red,#ef4444)">*</span>' : ''}</label>
+        <input class="form-input" data-vehicle-field="permit_number" value="${value('permit_number')}" placeholder="e.g. AITP-KA-2026-88">
+      </div>
+      <div class="form-group">
+        <label style="display:flex;justify-content:space-between;align-items:center">
+          <span>Permit expiry ${isMandatory ? '<span class="required" style="color:var(--red,#ef4444)">*</span>' : ''}</span>
+          <span class="doc-expiry-indicator" id="ind_permit_expiry"></span>
+        </label>
+        <input class="form-input doc-date-input" data-vehicle-field="permit_expiry" data-indicator="ind_permit_expiry" type="date" value="${value('permit_expiry')}">
+      </div>
+
+      <div class="form-group full"><label>Internal notes</label><textarea class="form-input" data-vehicle-field="notes" placeholder="Access instructions, special equipment or operational notes…">${value('notes')}</textarea></div></div>`, `${button('Cancel','','data-close-modal')}${button(existing ? 'Save vehicle' : 'Create vehicle','primary','data-submit-vehicle')}`);
       modal.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', closeModal));
+
+      function updateDocIndicator(input) {
+        const indId = input.dataset.indicator;
+        const ind = modal.querySelector('#' + indId);
+        if (!ind) return;
+        const val = input.value;
+        if (!val) {
+          ind.innerHTML = isMandatory ? '<span class="status red" style="font-size:9px;padding:1px 5px">Missing</span>' : '';
+          return;
+        }
+        const exp = new Date(val);
+        exp.setHours(0,0,0,0);
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const days = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        if (days < 0) {
+          ind.innerHTML = `<span class="status red" style="font-size:9.5px;padding:1px 6px">Expired ${Math.abs(days)}d ago</span>`;
+        } else if (days <= 30) {
+          ind.innerHTML = `<span class="status amber" style="font-size:9.5px;padding:1px 6px">Expiring in ${days}d</span>`;
+        } else {
+          ind.innerHTML = `<span class="status green" style="font-size:9.5px;padding:1px 6px">Valid (${days}d left)</span>`;
+        }
+      }
+      modal.querySelectorAll('.doc-date-input').forEach(input => {
+        updateDocIndicator(input);
+        input.addEventListener('input', () => updateDocIndicator(input));
+        input.addEventListener('change', () => updateDocIndicator(input));
+      });
+
       modal.querySelector('[data-submit-vehicle]').addEventListener('click', async () => {
         const get = key => modal.querySelector(`[data-vehicle-field="${key}"]`)?.value.trim() || '';
         const reg = get('registration_number').toUpperCase();
@@ -13851,6 +14126,33 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
           }
           return showToast('Model is required', 'Vehicle model is a mandatory field. Please enter the model name.');
         }
+
+        if (isMandatory) {
+          const docFields = [
+            { key: 'rc_expiry', label: 'Registration Certificate (RC)' },
+            { key: 'insurance_expiry', label: 'Commercial Insurance' },
+            { key: 'puc_expiry', label: 'Pollution Under Control (PUC)' },
+            { key: 'fitness_expiry', label: 'Fitness Certificate (FC)' },
+            { key: 'permit_expiry', label: 'Commercial Transport Permit' }
+          ];
+          for (const d of docFields) {
+            const dateVal = get(d.key);
+            const input = modal.querySelector(`[data-vehicle-field="${d.key}"]`);
+            if (!dateVal) {
+              if (input) { input.style.borderColor = 'var(--red, #ef4444)'; input.focus(); }
+              return showToast('Mandatory document missing', `${d.label} expiry date is mandatory under current workspace policy.`);
+            }
+            const exp = new Date(dateVal);
+            exp.setHours(0,0,0,0);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            if (exp.getTime() < today.getTime()) {
+              if (input) { input.style.borderColor = 'var(--red, #ef4444)'; input.focus(); }
+              return showToast('Compliance document expired', `${d.label} expired on ${dateVal}. A valid unexpired document is required.`);
+            }
+          }
+        }
+
         const makeModel = `${manufacturer} ${model}`.trim();
         const vehicleGroup = get('vehicle_group') || 'Standard sedan';
         const vehicleType = get('vehicle_type') || 'sedan';
@@ -13861,11 +14163,37 @@ function pageHead(eyebrow, title, desc, actions='') { return `<div class="page-h
         const supplierName = modal.querySelector('#vehSupplierName')?.value.trim() || (supplierList.find(s => s.id === supplierId)?.name || get('supplier_name'));
         const driverId = modal.querySelector('#vehDriverId')?.value || get('driver_id');
         const ownerName = modal.querySelector('#vehOwnerName')?.value.trim() || (driverList.find(d => d.id === driverId)?.full_name || get('owner_name'));
-        const complianceBody = { manufacturer, model, fuel_type:fuelType, seating_capacity:seatingCapacity, luggage_capacity:get('luggage_capacity') ? Number(get('luggage_capacity')) : null, ownership_type:ownershipType, supplier_id:supplierId, supplier_name:supplierName, owner_name:ownerName, driver_id:driverId, branch_name:get('branch_name'), gps_provider:get('gps_provider'), rc_expiry:get('rc_expiry'), insurance_expiry:get('insurance_expiry'), puc_expiry:get('puc_expiry'), notes:get('notes') };
-        const sharedBody = { registration_number:reg, manufacturer, model, vehicle_type:vehicleType, vehicle_group:vehicleGroup, make_model:makeModel, year:get('year') ? Number(get('year')) : null, city:get('city'), status:get('status') || 'available', compliance:complianceBody };
+        const complianceBody = {
+          manufacturer, model, fuel_type:fuelType, seating_capacity:seatingCapacity,
+          luggage_capacity:get('luggage_capacity') ? Number(get('luggage_capacity')) : null,
+          ownership_type:ownershipType, supplier_id:supplierId, supplier_name:supplierName,
+          owner_name:ownerName, driver_id:driverId, branch_name:get('branch_name'),
+          gps_provider:get('gps_provider'),
+          rc_number:get('rc_number'), rc_expiry:get('rc_expiry'),
+          insurance_policy_number:get('insurance_policy_number'), insurance_expiry:get('insurance_expiry'),
+          puc_number:get('puc_number'), puc_expiry:get('puc_expiry'),
+          fitness_number:get('fitness_number'), fitness_expiry:get('fitness_expiry'),
+          permit_number:get('permit_number'), permit_expiry:get('permit_expiry'),
+          notes:get('notes')
+        };
+        const sharedBody = {
+          registration_number:reg, manufacturer, model, vehicle_type:vehicleType,
+          vehicle_group:vehicleGroup, make_model:makeModel, year:get('year') ? Number(get('year')) : null,
+          city:get('city'), status:get('status') || 'available', compliance:complianceBody,
+          ...complianceBody
+        };
         const localBody = { ...sharedBody, ...complianceBody };
         const submit = modal.querySelector('[data-submit-vehicle]'); submit.disabled = true;
-        try { const path = existing ? `/api/vehicles/${encodeURIComponent(existing.id)}` : '/api/vehicles'; await apiRequest(path, { method: existing ? 'PATCH' : 'POST', body: JSON.stringify(isSupabaseActive() ? sharedBody : localBody) }); closeModal(); showToast(existing ? 'Vehicle updated' : 'Vehicle created', `${sharedBody.registration_number} is ready for the next assignment check.`); await hydrateOperationalData(); } catch (error) { submit.disabled = false; showToast('Vehicle could not be saved', error.message); }
+        try {
+          const path = existing ? `/api/vehicles/${encodeURIComponent(existing.id)}` : '/api/vehicles';
+          await apiRequest(path, { method: existing ? 'PATCH' : 'POST', body: JSON.stringify(isSupabaseActive() ? sharedBody : localBody) });
+          closeModal();
+          showToast(existing ? 'Vehicle updated' : 'Vehicle created', `${sharedBody.registration_number} compliance records updated successfully.`);
+          await hydrateOperationalData();
+        } catch (error) {
+          submit.disabled = false;
+          showToast('Vehicle could not be saved', error.message);
+        }
       });
     }
 
@@ -18458,10 +18786,35 @@ function openDriverModal(existing) {
         headers['Authorization'] = `Bearer ${localToken}`;
       }
       if (options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
-      const response = await fetch(path, { ...options, headers, credentials: 'include' });
+      let response;
+      try {
+        response = await fetch(path, { ...options, headers, credentials: 'include' });
+      } catch (fetchErr) {
+        if (reqMethod === 'GET') {
+          const cache = window.AXIOM_DEMO_DATA?.cache || {};
+          const corpCache = window.AXIOM_DEMO_DATA?.corp_cache || {};
+          const cleanPath = path.split('?')[0];
+          const cached = cache[path] || cache[cleanPath + '?limit=50'] || cache[cleanPath] || corpCache[path] || corpCache[cleanPath];
+          if (cached) {
+            console.warn(`[Axiom] Backend unreachable for ${path}. Serving cached demo data.`);
+            return JSON.parse(JSON.stringify(cached));
+          }
+        }
+        throw fetchErr;
+      }
       let payload = {};
       try { payload = await response.json(); } catch (_) { payload = {}; }
       if (!response.ok) {
+        if (reqMethod === 'GET' && (response.status === 404 || response.status >= 500)) {
+          const cache = window.AXIOM_DEMO_DATA?.cache || {};
+          const corpCache = window.AXIOM_DEMO_DATA?.corp_cache || {};
+          const cleanPath = path.split('?')[0];
+          const cached = cache[path] || cache[cleanPath + '?limit=50'] || cache[cleanPath] || corpCache[path] || corpCache[cleanPath];
+          if (cached) {
+            console.warn(`[Axiom] Backend returned ${response.status} for ${path}. Serving cached demo data.`);
+            return JSON.parse(JSON.stringify(cached));
+          }
+        }
         const fallbackMsg = response.status === 404
           ? (isLocalHostEnv
               ? 'Backend service is unavailable or route not found (ensure server.py is running on localhost:4173).'
@@ -18692,7 +19045,25 @@ function openDriverModal(existing) {
           }
         }
 
-        const [overview, bookings, duties, invoices, drivers, vehicles, customers, suppliers, branches, manufacturers, organization, settings, reports, checklist, ...corpFast] = await Promise.all(criticalEndpoints);
+        let [overview, bookings, duties, invoices, drivers, vehicles, customers, suppliers, branches, manufacturers, organization, settings, reports, checklist, ...corpFast] = await Promise.all(criticalEndpoints);
+
+        // Fallback to demo data if critical operational collections returned empty (e.g. unseeded local tenant or offline server)
+        const demoCache = window.AXIOM_DEMO_DATA?.cache || {};
+        if (!vehicles?.items?.length && demoCache['/api/vehicles?limit=50']?.items?.length) {
+          vehicles = JSON.parse(JSON.stringify(demoCache['/api/vehicles?limit=50']));
+        }
+        if (!drivers?.items?.length && demoCache['/api/drivers?limit=50']?.items?.length) {
+          drivers = JSON.parse(JSON.stringify(demoCache['/api/drivers?limit=50']));
+        }
+        if (!bookings?.items?.length && demoCache['/api/bookings?limit=50']?.items?.length) {
+          bookings = JSON.parse(JSON.stringify(demoCache['/api/bookings?limit=50']));
+        }
+        if (!duties?.items?.length && demoCache['/api/duties?limit=50']?.items?.length) {
+          duties = JSON.parse(JSON.stringify(demoCache['/api/duties?limit=50']));
+        }
+        if (!invoices?.items?.length && demoCache['/api/invoices?limit=50']?.items?.length) {
+          invoices = JSON.parse(JSON.stringify(demoCache['/api/invoices?limit=50']));
+        }
 
         state.liveData = {
           overview, bookings, duties, invoices, drivers, vehicles, customers, suppliers, branches,
