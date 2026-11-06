@@ -338,9 +338,11 @@ def initialize_domain_schema(conn) -> None:
     )
     # Additive local migrations keep existing SQLite previews usable while the
     # Supabase vehicles table remains the production source of truth.
-    vehicle_columns = {row["name"] for row in conn.execute("PRAGMA table_info(domain_vehicles)").fetchall()}
-    booking_columns = {row["name"] for row in conn.execute("PRAGMA table_info(domain_bookings)").fetchall()}
-    customer_columns = {row["name"] for row in conn.execute("PRAGMA table_info(domain_customers)").fetchall()}
+    def _col_name(r):
+        return r["name"] if isinstance(r, sqlite3.Row) or isinstance(r, dict) else r[1]
+    vehicle_columns = {_col_name(row) for row in conn.execute("PRAGMA table_info(domain_vehicles)").fetchall()}
+    booking_columns = {_col_name(row) for row in conn.execute("PRAGMA table_info(domain_bookings)").fetchall()}
+    customer_columns = {_col_name(row) for row in conn.execute("PRAGMA table_info(domain_customers)").fetchall()}
     if "code" not in customer_columns:
         conn.execute("ALTER TABLE domain_customers ADD COLUMN code TEXT NOT NULL DEFAULT ''")
     if "passenger_email" not in booking_columns:
@@ -368,13 +370,29 @@ def initialize_domain_schema(conn) -> None:
         "rc_expiry": "TEXT",
         "insurance_expiry": "TEXT",
         "puc_expiry": "TEXT",
+        "fitness_expiry": "TEXT",
+        "permit_expiry": "TEXT",
+        "insurance_policy_number": "TEXT NOT NULL DEFAULT ''",
+        "rc_number": "TEXT NOT NULL DEFAULT ''",
+        "puc_number": "TEXT NOT NULL DEFAULT ''",
+        "fitness_number": "TEXT NOT NULL DEFAULT ''",
+        "permit_number": "TEXT NOT NULL DEFAULT ''",
+        "permit_type": "TEXT NOT NULL DEFAULT ''",
         "notes": "TEXT NOT NULL DEFAULT ''",
         "manufacturer": "TEXT NOT NULL DEFAULT ''",
         "model": "TEXT NOT NULL DEFAULT ''",
     }.items():
         if column not in vehicle_columns:
             conn.execute(f"ALTER TABLE domain_vehicles ADD COLUMN {column} {definition}")
-    driver_columns = {row["name"] for row in conn.execute("PRAGMA table_info(domain_drivers)").fetchall()}
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS domain_org_settings (
+            organization_id TEXT PRIMARY KEY,
+            settings_json TEXT NOT NULL DEFAULT '{}',
+            updated_by TEXT NOT NULL DEFAULT '',
+            updated_at TEXT NOT NULL DEFAULT ''
+        );
+    """)
+    driver_columns = {_col_name(row) for row in conn.execute("PRAGMA table_info(domain_drivers)").fetchall()}
     for column, definition in {
         "driver_type": "TEXT NOT NULL DEFAULT 'own'",
         "vehicle_registration": "TEXT NOT NULL DEFAULT ''",
@@ -383,10 +401,10 @@ def initialize_domain_schema(conn) -> None:
     }.items():
         if column not in driver_columns:
             conn.execute(f"ALTER TABLE domain_drivers ADD COLUMN {column} {definition}")
-    inv_columns = {row["name"] for row in conn.execute("PRAGMA table_info(domain_invoices)").fetchall()}
+    inv_columns = {_col_name(row) for row in conn.execute("PRAGMA table_info(domain_invoices)").fetchall()}
     if "idempotency_key" not in inv_columns:
         conn.execute("ALTER TABLE domain_invoices ADD COLUMN idempotency_key TEXT")
-    duty_columns = {row["name"] for row in conn.execute("PRAGMA table_info(domain_duties)").fetchall()}
+    duty_columns = {_col_name(row) for row in conn.execute("PRAGMA table_info(domain_duties)").fetchall()}
     if "version_id" not in duty_columns:
         conn.execute("ALTER TABLE domain_duties ADD COLUMN version_id INTEGER NOT NULL DEFAULT 1")
 
@@ -413,6 +431,16 @@ def _org(user) -> str:
     if not organization_id:
         raise DomainError(403, "This account is not linked to an organization", "organization_required")
     return organization_id
+
+
+def _get_org_settings(conn, org: str) -> dict:
+    try:
+        row = conn.execute("SELECT settings_json FROM domain_org_settings WHERE organization_id = ?", (org,)).fetchone()
+        if row and row["settings_json"]:
+            return json.loads(row["settings_json"]) if isinstance(row["settings_json"], str) else dict(row["settings_json"])
+    except Exception:
+        pass
+    return {}
 
 
 def _require_role(user, roles=("vendor", "corporate")) -> None:
@@ -615,12 +643,31 @@ def _assign_booking_resources(conn, user, booking_id: str, payload: dict, ip: st
 
     vehicle_number = None
     if vehicle_id:
-        veh = conn.execute(
-            "SELECT id, registration_number, make_model FROM domain_vehicles WHERE id = ? AND organization_id = ?",
-            (vehicle_id, org),
-        ).fetchone()
-        if veh:
-            vehicle_number = veh["registration_number"]
+        veh = _assert_owned(conn, "domain_vehicles", vehicle_id, org)
+        vehicle_number = veh["registration_number"]
+        guardrails = _get_org_settings(conn, org).get("dispatch_guardrails") or {}
+        require_mandatory_docs = bool(guardrails.get("require_mandatory_vehicle_docs"))
+        block_expired_docs = bool(guardrails.get("block_expired_documents"))
+        today_str = now_iso()[:10]
+        if require_mandatory_docs:
+            mandatory_docs = [
+                ("rc_expiry", "Registration Certificate (RC)"),
+                ("insurance_expiry", "Commercial Insurance"),
+                ("puc_expiry", "Pollution Under Control (PUC)"),
+                ("fitness_expiry", "Fitness Certificate (FC)"),
+                ("permit_expiry", "Commercial Transport Permit"),
+            ]
+            for doc_field, doc_label in mandatory_docs:
+                val = veh[doc_field] if doc_field in veh.keys() else None
+                if not val or not str(val).strip():
+                    raise DomainError(422, f"Cannot allot vehicle {vehicle_id}: Mandatory statutory document missing ({doc_label})", "vehicle_compliance_document_missing")
+                if str(val)[:10] < today_str:
+                    raise DomainError(422, f"Cannot allot vehicle {vehicle_id}: Mandatory statutory document {doc_label} expired on {val}", "vehicle_compliance_document_expired")
+        elif block_expired_docs:
+            for doc_field in ("insurance_expiry", "puc_expiry", "rc_expiry", "fitness_expiry", "permit_expiry"):
+                if doc_field in veh.keys() and veh[doc_field]:
+                    if str(veh[doc_field])[:10] < today_str:
+                        raise DomainError(422, f"Cannot allot vehicle {vehicle_id}: Statutory {doc_field.replace('_expiry', '').upper()} expired on {veh[doc_field]}", "vehicle_compliance_document_expired")
 
     supplier_name = None
     if supplier_id and supplier_id != "OWN":
@@ -797,6 +844,48 @@ def _create_vehicle(conn, user, payload, ip):
         raise DomainError(400, "Manufacturer is a required field and cannot be empty", "validation_error")
     if not model:
         raise DomainError(400, "Model is a required field and cannot be empty", "validation_error")
+    rc_expiry = _text(payload, "rc_expiry", maximum=40) or None
+    insurance_expiry = _text(payload, "insurance_expiry", maximum=40) or None
+    puc_expiry = _text(payload, "puc_expiry", maximum=40) or None
+    fitness_expiry = _text(payload, "fitness_expiry", maximum=40) or None
+    permit_expiry = _text(payload, "permit_expiry", maximum=40) or None
+
+    insurance_policy_number = _text(payload, "insurance_policy_number", maximum=80)
+    rc_number = _text(payload, "rc_number", maximum=80)
+    puc_number = _text(payload, "puc_number", maximum=80)
+    fitness_number = _text(payload, "fitness_number", maximum=80)
+    permit_number = _text(payload, "permit_number", maximum=80)
+    permit_type = _text(payload, "permit_type", maximum=80)
+
+    guardrails = _get_org_settings(conn, org).get("dispatch_guardrails") or {}
+    require_mandatory_docs = bool(guardrails.get("require_mandatory_vehicle_docs"))
+    block_expired_docs = bool(guardrails.get("block_expired_documents"))
+    today_str = now[:10]
+
+    if require_mandatory_docs:
+        mandatory_checks = [
+            ("rc_expiry", rc_expiry, "Registration Certificate (RC)"),
+            ("insurance_expiry", insurance_expiry, "Commercial Insurance"),
+            ("puc_expiry", puc_expiry, "Pollution Under Control (PUC)"),
+            ("fitness_expiry", fitness_expiry, "Fitness Certificate (FC)"),
+            ("permit_expiry", permit_expiry, "Commercial Transport Permit"),
+        ]
+        for key, val, label in mandatory_checks:
+            if not val or not str(val).strip():
+                raise DomainError(422, f"Mandatory compliance document missing: {label} expiry date is required", "mandatory_document_missing")
+            if str(val)[:10] < today_str:
+                raise DomainError(422, f"Mandatory compliance document expired: {label} expired on {val}", "mandatory_document_expired")
+    elif block_expired_docs:
+        for val, label in [
+            (rc_expiry, "Registration Certificate (RC)"),
+            (insurance_expiry, "Commercial Insurance"),
+            (puc_expiry, "Pollution Under Control (PUC)"),
+            (fitness_expiry, "Fitness Certificate (FC)"),
+            (permit_expiry, "Commercial Transport Permit"),
+        ]:
+            if val and str(val)[:10] < today_str:
+                raise DomainError(422, f"Statutory document expired: {label} expired on {val}", "vehicle_compliance_document_expired")
+
     values = (
         vehicle_id, org, registration, _text(payload, "vehicle_type", "sedan", 40),
         _text(payload, "vehicle_group", maximum=80), make_model,
@@ -816,19 +905,111 @@ def _create_vehicle(conn, user, payload, ip):
         _text(payload, "supplier_name", maximum=120),
         _text(payload, "owner_name", maximum=120),
         _text(payload, "branch_name", maximum=100),
-        _text(payload, "gps_provider", maximum=80), _text(payload, "rc_expiry", maximum=40) or None,
-        _text(payload, "insurance_expiry", maximum=40) or None, _text(payload, "puc_expiry", maximum=40) or None,
+        _text(payload, "gps_provider", maximum=80),
+        rc_expiry, insurance_expiry, puc_expiry, fitness_expiry, permit_expiry,
+        insurance_policy_number, rc_number, puc_number, fitness_number, permit_number, permit_type,
         _text(payload, "notes", maximum=500), manufacturer, model, now, now,
     )
     conn.execute("""INSERT INTO domain_vehicles(
         id, organization_id, registration_number, vehicle_type, vehicle_group, make_model, year, city, status,
         fuel_type, ev_eligible, battery_capacity_kwh, usable_range_km, energy_consumption_kwh_per_km,
         charging_connector, charging_power_kw, charging_status, energy_price_per_kwh_minor,
-        seating_capacity, luggage_capacity, ownership_type, supplier_id, supplier_name, owner_name, branch_name, gps_provider, rc_expiry,
-        insurance_expiry, puc_expiry, notes, manufacturer, model, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
+        seating_capacity, luggage_capacity, ownership_type, supplier_id, supplier_name, owner_name, branch_name, gps_provider,
+        rc_expiry, insurance_expiry, puc_expiry, fitness_expiry, permit_expiry,
+        insurance_policy_number, rc_number, puc_number, fitness_number, permit_number, permit_type,
+        notes, manufacturer, model, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
     _audit(conn, user, "vehicle.created", "vehicle", vehicle_id, ip, {"registration_number": registration})
     return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_vehicles WHERE id = ?", (vehicle_id,)).fetchone())}
+
+
+def _vehicle(conn, vehicle_id: str, org: str):
+    row = _assert_owned(conn, "domain_vehicles", vehicle_id, org)
+    return _serialize(row)
+
+
+def _update_vehicle(conn, user, vehicle_id: str, payload: dict, ip: str):
+    org = _org(user)
+    _require_role(user)
+    row = _assert_owned(conn, "domain_vehicles", vehicle_id, org)
+    now = now_iso()
+    today_str = now[:10]
+
+    guardrails = _get_org_settings(conn, org).get("dispatch_guardrails") or {}
+    require_mandatory_docs = bool(guardrails.get("require_mandatory_vehicle_docs"))
+    block_expired_docs = bool(guardrails.get("block_expired_documents"))
+
+    target_status = payload.get("status", row["status"])
+    if require_mandatory_docs and target_status in ("active", "available"):
+        mandatory_checks = [
+            ("rc_expiry", "Registration Certificate (RC)"),
+            ("insurance_expiry", "Commercial Insurance"),
+            ("puc_expiry", "Pollution Under Control (PUC)"),
+            ("fitness_expiry", "Fitness Certificate (FC)"),
+            ("permit_expiry", "Commercial Transport Permit"),
+        ]
+        for key, label in mandatory_checks:
+            val = payload[key] if key in payload else (row[key] if key in row.keys() else None)
+            if not val or not str(val).strip():
+                raise DomainError(422, f"Mandatory compliance document missing: {label} expiry date is required", "mandatory_document_missing")
+            if str(val)[:10] < today_str:
+                raise DomainError(422, f"Mandatory compliance document expired: {label} expired on {val}", "mandatory_document_expired")
+
+    if block_expired_docs:
+        for key, label in [
+            ("rc_expiry", "Registration Certificate (RC)"),
+            ("insurance_expiry", "Commercial Insurance"),
+            ("puc_expiry", "Pollution Under Control (PUC)"),
+            ("fitness_expiry", "Fitness Certificate (FC)"),
+            ("permit_expiry", "Commercial Transport Permit"),
+        ]:
+            if key in payload and payload[key]:
+                if str(payload[key])[:10] < today_str:
+                    raise DomainError(422, f"Statutory document expired: {label} expired on {payload[key]}", "vehicle_compliance_document_expired")
+
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(domain_vehicles)").fetchall()}
+    allowed_keys = [
+        "registration_number", "vehicle_type", "vehicle_group", "make_model", "year",
+        "city", "status", "fuel_type", "ev_eligible", "battery_capacity_kwh", "usable_range_km",
+        "energy_consumption_kwh_per_km", "charging_connector", "charging_power_kw", "charging_status",
+        "energy_price_per_kwh_minor", "seating_capacity", "luggage_capacity", "ownership_type",
+        "supplier_id", "supplier_name", "owner_name", "branch_name", "gps_provider",
+        "rc_expiry", "insurance_expiry", "puc_expiry", "fitness_expiry", "permit_expiry",
+        "insurance_policy_number", "rc_number", "puc_number", "fitness_number", "permit_number", "permit_type",
+        "notes", "manufacturer", "model"
+    ]
+    updates = []
+    values = []
+    for k in allowed_keys:
+        if k in payload and k in cols:
+            val = payload[k]
+            if k in ("year", "seating_capacity", "luggage_capacity", "energy_price_per_kwh_minor", "ev_eligible"):
+                val = int(val) if val not in (None, "") else None
+            elif k in ("battery_capacity_kwh", "usable_range_km", "energy_consumption_kwh_per_km", "charging_power_kw"):
+                val = float(val) if val not in (None, "") else None
+            else:
+                val = str(val).strip() if val is not None else None
+            updates.append(f"{k} = ?")
+            values.append(val)
+
+    if "make_model" not in payload and ("manufacturer" in payload or "model" in payload):
+        mfr = payload.get("manufacturer") or (row["manufacturer"] if "manufacturer" in row.keys() else "")
+        mdl = payload.get("model") or (row["model"] if "model" in row.keys() else "")
+        if mfr or mdl:
+            mm = f"{mfr} {mdl}".strip()
+            if "make_model" in cols:
+                updates.append("make_model = ?")
+                values.append(mm)
+
+    if not updates:
+        return {"ok": True, "item": _vehicle(conn, vehicle_id, org)}
+
+    updates.append("updated_at = ?")
+    values.append(now)
+    values.extend([vehicle_id, org])
+    conn.execute(f"UPDATE domain_vehicles SET {', '.join(updates)} WHERE id = ? AND organization_id = ?", values)
+    _audit(conn, user, "vehicle.updated", "vehicle", vehicle_id, ip, {"updated_fields": list(payload.keys())})
+    return {"ok": True, "item": _vehicle(conn, vehicle_id, org)}
 
 
 def _create_booking(conn, user, payload, ip):
@@ -953,10 +1134,28 @@ def _create_duty(conn, user, payload, ip):
         vehicle = _assert_owned(conn, "domain_vehicles", vehicle_id, org)
         if vehicle["status"] not in ("active", "available"):
             raise DomainError(422, f"Cannot dispatch vehicle with inactive status '{vehicle['status']}'", "vehicle_compliance_inactive")
-        for doc_field in ("insurance_expiry", "puc_expiry", "rc_expiry"):
-            if doc_field in vehicle.keys() and vehicle[doc_field]:
-                if str(vehicle[doc_field])[:10] < today_str:
-                    raise DomainError(422, f"Cannot dispatch vehicle {vehicle_id}: Statutory {doc_field.replace('_expiry', '').upper()} expired on {vehicle[doc_field]}", "vehicle_compliance_document_expired")
+        guardrails = _get_org_settings(conn, org).get("dispatch_guardrails") or {}
+        require_mandatory_docs = bool(guardrails.get("require_mandatory_vehicle_docs"))
+        block_expired_docs = bool(guardrails.get("block_expired_documents"))
+        if require_mandatory_docs:
+            mandatory_docs = [
+                ("rc_expiry", "Registration Certificate (RC)"),
+                ("insurance_expiry", "Commercial Insurance"),
+                ("puc_expiry", "Pollution Under Control (PUC)"),
+                ("fitness_expiry", "Fitness Certificate (FC)"),
+                ("permit_expiry", "Commercial Transport Permit"),
+            ]
+            for doc_field, doc_label in mandatory_docs:
+                val = vehicle[doc_field] if doc_field in vehicle.keys() else None
+                if not val or not str(val).strip():
+                    raise DomainError(422, f"Cannot dispatch vehicle {vehicle_id}: Mandatory statutory document missing ({doc_label})", "vehicle_compliance_document_missing")
+                if str(val)[:10] < today_str:
+                    raise DomainError(422, f"Cannot dispatch vehicle {vehicle_id}: Mandatory statutory document {doc_label} expired on {val}", "vehicle_compliance_document_expired")
+        elif block_expired_docs:
+            for doc_field in ("insurance_expiry", "puc_expiry", "rc_expiry", "fitness_expiry", "permit_expiry"):
+                if doc_field in vehicle.keys() and vehicle[doc_field]:
+                    if str(vehicle[doc_field])[:10] < today_str:
+                        raise DomainError(422, f"Cannot dispatch vehicle {vehicle_id}: Statutory {doc_field.replace('_expiry', '').upper()} expired on {vehicle[doc_field]}", "vehicle_compliance_document_expired")
         active_veh_duty = conn.execute(
             "SELECT id FROM domain_duties WHERE organization_id = ? AND vehicle_id = ? AND status IN ('assigned', 'accepted', 'en_route', 'arrived', 'started', 'active')",
             (org, vehicle_id),
@@ -1620,7 +1819,7 @@ def handle_domain(conn, user, method: str, raw_route: str, payload: dict, ip: st
                 }
             }
 
-    if len(parts) >= 4 and parts[2] in {"bookings", "duties", "invoices"}:
+    if len(parts) >= 4 and parts[2] in {"bookings", "duties", "invoices", "vehicles"}:
         if parts[2] == "duties" and len(parts) == 5 and parts[4] == "proof" and method == "POST": return _create_duty_proof(conn, user, parts[3], payload, ip)
         if parts[2] == "duties" and len(parts) == 5 and parts[4] == "track" and method == "POST": return _create_track_point(conn, user, parts[3], payload, ip)
         if parts[2] == "duties" and len(parts) == 5 and parts[4] == "expenses" and method == "POST": return _create_expense(conn, user, parts[3], payload, ip)
@@ -1628,6 +1827,10 @@ def handle_domain(conn, user, method: str, raw_route: str, payload: dict, ip: st
             org = _org(user); _assert_owned(conn, "domain_duties", parts[3], org); return {"ok": True, "items": [_serialize(row, ("attachment_json",)) for row in conn.execute("SELECT * FROM domain_expenses WHERE organization_id = ? AND duty_id = ? ORDER BY created_at DESC", (org, parts[3])).fetchall()]}
 
         resource, entity_id = parts[2], parts[3]
+        if resource == "vehicles" and method == "GET":
+            return {"ok": True, "item": _vehicle(conn, entity_id, _org(user))}
+        if resource == "vehicles" and method == "PATCH":
+            return _update_vehicle(conn, user, entity_id, payload, ip)
         if resource == "bookings" and method == "GET":
             return {"ok": True, "item": _booking(conn, entity_id, _org(user))}
         if resource == "bookings" and method == "PATCH": return _update_booking(conn, user, entity_id, payload, ip)
