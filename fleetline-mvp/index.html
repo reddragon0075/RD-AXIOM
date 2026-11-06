@@ -20309,17 +20309,18 @@
           fuel_type: v.fuel_type || 'Diesel',
           city: v.city || 'Bengaluru',
           ownership_type: v.ownership_type || 'Own',
-          compliant: c.isCompliant,
-          documents: {
-            rc: { number: v.rc_number || '', expiry: v.rc_expiry || '', status: c.docDetails.find(d => d.code === 'RC')?.status || 'missing' },
-            insurance: { number: v.insurance_policy_number || '', expiry: v.insurance_expiry || '', status: c.docDetails.find(d => d.code === 'INS')?.status || 'missing' },
-            puc: { number: v.puc_number || '', expiry: v.puc_expiry || '', status: c.docDetails.find(d => d.code === 'PUC')?.status || 'missing' },
-            fitness: { number: v.fitness_number || '', expiry: v.fitness_expiry || '', status: c.docDetails.find(d => d.code === 'FIT')?.status || 'missing' },
-            permit: { number: v.permit_number || '', expiry: v.permit_expiry || '', status: c.docDetails.find(d => d.code === 'PERMIT')?.status || 'missing' }
-          },
+          compliant: c.overallStatus === 'compliant' || c.overallStatus === 'expiring_soon',
+          docs: c.docDetails.map(d => ({
+            code: d.code,
+            label: d.label,
+            number: d.num || '',
+            expiry_date: d.date || '',
+            days_left: d.daysLeft,
+            status: d.status
+          })),
           docDetails: c.docDetails,
-          badgeText: c.badgeText,
-          badgeClass: c.badgeClass
+          badgeText: c.overallLabel,
+          badgeClass: c.overallClass
         };
       });
 
@@ -20331,54 +20332,88 @@
           full_name: d.full_name || 'Driver',
           phone: d.phone || '',
           city: d.city || 'Bengaluru',
-          ownership_type: d.ownership_type || 'Own',
-          compliant: c.isCompliant,
-          documents: {
-            license: { number: d.license_number || '', expiry: d.license_expiry || '', status: c.docDetails.find(x => x.code === 'DL')?.status || 'missing' },
-            badge: { number: d.badge_number || '', expiry: d.badge_expiry || '', status: c.docDetails.find(x => x.code === 'BADGE')?.status || 'missing' },
-            police_verification: { number: d.police_verification_number || '', expiry: d.police_verification_expiry || '', status: c.docDetails.find(x => x.code === 'PCC')?.status || 'missing' },
-            medical: { number: d.medical_certificate_number || '', expiry: d.medical_expiry || '', status: c.docDetails.find(x => x.code === 'MED')?.status || 'missing' }
-          },
+          ownership_type: d.ownership_type || d.driver_type || 'Own',
+          driver_type: d.driver_type || d.ownership_type || 'Own',
+          compliant: c.overallStatus === 'compliant' || c.overallStatus === 'expiring_soon',
+          docs: c.docDetails.map(x => ({
+            code: x.code,
+            label: x.label,
+            number: x.num || '',
+            expiry_date: x.date || '',
+            days_left: x.daysLeft,
+            status: x.status
+          })),
           docDetails: c.docDetails,
-          badgeText: c.badgeText,
-          badgeClass: c.badgeClass
+          badgeText: c.overallLabel,
+          badgeClass: c.overallClass
         };
       });
 
-      // Nearest expiries
-      let nearestExpiries = (res?.nearest_expiries && res.nearest_expiries.length) ? res.nearest_expiries : [];
+      // Normalize nearest expiries
+      let nearestExpiries = (res?.nearest_expiries && res.nearest_expiries.length) ? res.nearest_expiries.map(item => {
+        const isVeh = (item.type === 'vehicle' || item.entity_type === 'vehicle');
+        const targetId = item.target_id || item.entity_id || '';
+        const identifier = item.identifier || item.title || targetId || 'Asset';
+        const docType = item.doc_type || item.doc_name || item.doc_code || 'Document';
+        const docCode = item.doc_code || '';
+        const docNumber = item.doc_number || item.number || '—';
+        const expiryDate = item.expiry_date || '';
+        const daysLeft = typeof item.days_left === 'number' ? item.days_left : 0;
+        const urgency = item.urgency || (daysLeft < 0 ? 'expired' : daysLeft <= 7 ? 'critical' : daysLeft <= 30 ? 'imminent' : 'upcoming');
+        return {
+          ...item,
+          type: isVeh ? 'vehicle' : 'driver',
+          entity_type: isVeh ? 'vehicle' : 'driver',
+          target_id: targetId,
+          identifier,
+          doc_type: docType,
+          doc_code: docCode,
+          doc_number: docNumber,
+          expiry_date: expiryDate,
+          days_left: daysLeft,
+          urgency,
+          city: item.city || ''
+        };
+      }) : [];
+
       if (!nearestExpiries.length) {
         vehiclesList.forEach(v => {
-          (v.docDetails || []).forEach(doc => {
-            if (doc.date && doc.daysLeft !== null && doc.daysLeft <= 90) {
+          (v.docs || v.docDetails || []).forEach(doc => {
+            const exp = doc.expiry_date || doc.date || '';
+            const days = typeof doc.days_left === 'number' ? doc.days_left : doc.daysLeft;
+            if (exp && days !== null && days !== undefined && days <= 90) {
               nearestExpiries.push({
                 type: 'vehicle',
+                entity_type: 'vehicle',
                 target_id: v.id,
                 identifier: v.registration_number,
-                doc_type: doc.label,
+                doc_type: doc.label || doc.code,
                 doc_code: doc.code,
-                doc_number: doc.num || '',
-                expiry_date: doc.date,
-                days_left: doc.daysLeft,
-                urgency: doc.daysLeft < 0 ? 'expired' : doc.daysLeft <= 7 ? 'critical' : doc.daysLeft <= 30 ? 'imminent' : 'upcoming',
+                doc_number: doc.number || doc.num || '',
+                expiry_date: exp,
+                days_left: days,
+                urgency: days < 0 ? 'expired' : days <= 7 ? 'critical' : days <= 30 ? 'imminent' : 'upcoming',
                 city: v.city
               });
             }
           });
         });
         driversList.forEach(d => {
-          (d.docDetails || []).forEach(doc => {
-            if (doc.date && doc.daysLeft !== null && doc.daysLeft <= 90) {
+          (d.docs || d.docDetails || []).forEach(doc => {
+            const exp = doc.expiry_date || doc.date || '';
+            const days = typeof doc.days_left === 'number' ? doc.days_left : doc.daysLeft;
+            if (exp && days !== null && days !== undefined && days <= 90) {
               nearestExpiries.push({
                 type: 'driver',
+                entity_type: 'driver',
                 target_id: d.id,
                 identifier: d.full_name,
-                doc_type: doc.label,
+                doc_type: doc.label || doc.code,
                 doc_code: doc.code,
-                doc_number: doc.num || '',
-                expiry_date: doc.date,
-                days_left: doc.daysLeft,
-                urgency: doc.daysLeft < 0 ? 'expired' : doc.daysLeft <= 7 ? 'critical' : doc.daysLeft <= 30 ? 'imminent' : 'upcoming',
+                doc_number: doc.number || doc.num || '',
+                expiry_date: exp,
+                days_left: days,
+                urgency: days < 0 ? 'expired' : days <= 7 ? 'critical' : days <= 30 ? 'imminent' : 'upcoming',
                 city: d.city
               });
             }
@@ -20387,22 +20422,26 @@
         nearestExpiries.sort((a, b) => a.days_left - b.days_left);
       }
 
-      // Summary
-      const summary = res?.summary || {
-        total_vehicles: vehiclesList.length,
-        compliant_vehicles: vehiclesList.filter(v => v.compliant).length,
-        non_compliant_vehicles: vehiclesList.filter(v => !v.compliant).length,
-        vehicle_compliance_rate_pct: vehiclesList.length ? Math.round((vehiclesList.filter(v => v.compliant).length / vehiclesList.length) * 1000) / 10 : 100,
-        total_drivers: driversList.length,
-        compliant_drivers: driversList.filter(d => d.compliant).length,
-        non_compliant_drivers: driversList.filter(d => !d.compliant).length,
-        driver_compliance_rate_pct: driversList.length ? Math.round((driversList.filter(d => d.compliant).length / driversList.length) * 1000) / 10 : 100,
-        critical_expiries_7d: nearestExpiries.filter(x => x.days_left >= 0 && x.days_left <= 7).length,
-        imminent_expiries_30d: nearestExpiries.filter(x => x.days_left > 7 && x.days_left <= 30).length,
-        upcoming_expiries_90d: nearestExpiries.filter(x => x.days_left > 30 && x.days_left <= 90).length,
-        expired_count: nearestExpiries.filter(x => x.days_left < 0).length,
-        overall_compliance_score_pct: (vehiclesList.length + driversList.length) ? Math.round(((vehiclesList.filter(v => v.compliant).length + driversList.filter(d => d.compliant).length) / (vehiclesList.length + driversList.length)) * 1000) / 10 : 100
-      };
+      // Summary normalization
+      const rawSummary = res?.summary || {};
+      const totVeh = rawSummary.total_vehicles ?? vehiclesList.length;
+      const compVeh = rawSummary.compliant_vehicles ?? vehiclesList.filter(v => v.compliant !== false && v.compliance_status !== 'expired' && v.compliance_status !== 'non_compliant').length;
+      const nonCompVeh = rawSummary.non_compliant_vehicles ?? (totVeh - compVeh);
+      const vehRate = rawSummary.vehicle_compliance_rate_pct ?? rawSummary.vehicle_compliance_rate ?? (totVeh ? Math.round((compVeh / totVeh) * 1000) / 10 : 100);
+
+      const totDrv = rawSummary.total_drivers ?? driversList.length;
+      const compDrv = rawSummary.compliant_drivers ?? driversList.filter(d => d.compliant !== false && d.compliance_status !== 'expired' && d.compliance_status !== 'non_compliant').length;
+      const nonCompDrv = rawSummary.non_compliant_drivers ?? (totDrv - compDrv);
+      const drvRate = rawSummary.driver_compliance_rate_pct ?? rawSummary.driver_compliance_rate ?? (totDrv ? Math.round((compDrv / totDrv) * 1000) / 10 : 100);
+
+      const crit7d = rawSummary.critical_expiries_7d ?? rawSummary.critical_7d ?? nearestExpiries.filter(x => x.days_left >= 0 && x.days_left <= 7).length;
+      const imm30d = rawSummary.imminent_expiries_30d ?? rawSummary.imminent_30d ?? nearestExpiries.filter(x => x.days_left > 7 && x.days_left <= 30).length;
+      const upc90d = rawSummary.upcoming_expiries_90d ?? rawSummary.upcoming_90d ?? nearestExpiries.filter(x => x.days_left > 30 && x.days_left <= 90).length;
+      const expCount = rawSummary.expired_count ?? nearestExpiries.filter(x => x.days_left < 0).length;
+
+      const overallScore = rawSummary.overall_compliance_score_pct ?? rawSummary.overall_compliance_score ?? (
+        (totVeh + totDrv) ? Math.round(((compVeh + compDrv) / (totVeh + totDrv)) * 1000) / 10 : 100
+      );
 
       // Filters
       const hubFilter = state.complianceHubFilter || 'all';
@@ -20433,12 +20472,13 @@
       // Filtered vehicles
       const filteredVehicles = vehiclesList.filter(v => {
         if (hubFilter !== 'all' && (v.city || '').toLowerCase() !== hubFilter.toLowerCase()) return false;
-        if (statusFilter === 'compliant' && !v.compliant) return false;
-        if (statusFilter === 'attention' && v.compliant) return false;
-        if (statusFilter === 'expiring' && !(v.docDetails || []).some(d => d.status === 'expiring_soon')) return false;
-        if (statusFilter === 'expired' && !(v.docDetails || []).some(d => d.status === 'expired')) return false;
+        const isOk = v.compliant !== false && v.compliance_status !== 'expired' && v.compliance_status !== 'non_compliant';
+        if (statusFilter === 'compliant' && !isOk) return false;
+        if (statusFilter === 'attention' && isOk) return false;
+        if (statusFilter === 'expiring' && v.compliance_status !== 'expiring_soon' && !(v.docs || []).some(d => d.status === 'expiring_soon')) return false;
+        if (statusFilter === 'expired' && v.compliance_status !== 'expired' && !(v.docs || []).some(d => d.status === 'expired')) return false;
         if (searchQuery) {
-          const hay = `${v.registration_number} ${v.make_model || ''} ${v.city || ''} ${v.vehicle_group || ''}`.toLowerCase();
+          const hay = `${v.registration_number} ${v.model || v.make_model || ''} ${v.city || ''} ${v.group || v.vehicle_group || ''}`.toLowerCase();
           if (!hay.includes(searchQuery)) return false;
         }
         return true;
@@ -20447,12 +20487,13 @@
       // Filtered drivers
       const filteredDrivers = driversList.filter(d => {
         if (hubFilter !== 'all' && (d.city || '').toLowerCase() !== hubFilter.toLowerCase()) return false;
-        if (statusFilter === 'compliant' && !d.compliant) return false;
-        if (statusFilter === 'attention' && d.compliant) return false;
-        if (statusFilter === 'expiring' && !(d.docDetails || []).some(x => x.status === 'expiring_soon')) return false;
-        if (statusFilter === 'expired' && !(d.docDetails || []).some(x => x.status === 'expired')) return false;
+        const isOk = d.compliant !== false && d.compliance_status !== 'expired' && d.compliance_status !== 'non_compliant';
+        if (statusFilter === 'compliant' && !isOk) return false;
+        if (statusFilter === 'attention' && isOk) return false;
+        if (statusFilter === 'expiring' && d.compliance_status !== 'expiring_soon' && !(d.docs || []).some(x => x.status === 'expiring_soon')) return false;
+        if (statusFilter === 'expired' && d.compliance_status !== 'expired' && !(d.docs || []).some(x => x.status === 'expired')) return false;
         if (searchQuery) {
-          const hay = `${d.full_name} ${d.phone || ''} ${d.city || ''}`.toLowerCase();
+          const hay = `${d.full_name || d.name || ''} ${d.phone || ''} ${d.city || ''}`.toLowerCase();
           if (!hay.includes(searchQuery)) return false;
         }
         return true;
@@ -20468,7 +20509,20 @@
       const bucketUpcoming = nearestExpiries.filter(x => x.days_left > 30 && x.days_left <= 90);
       const bucketSafe = nearestExpiries.filter(x => x.days_left > 90);
 
-      // Helper function for document chip rendering
+      // Helper to extract doc info from vehicle/driver item
+      function getEntityDoc(entity, code) {
+        if (entity.documents && entity.documents[code.toLowerCase()]) {
+          const d = entity.documents[code.toLowerCase()];
+          return { number: d.number || '', expiry: d.expiry || d.expiry_date || '', status: d.status || '' };
+        }
+        if (Array.isArray(entity.docs)) {
+          const f = entity.docs.find(x => x.code?.toUpperCase() === code.toUpperCase());
+          if (f) return { number: f.number || '', expiry: f.expiry_date || f.expiry || '', status: f.status || '' };
+        }
+        return { number: '', expiry: '', status: '' };
+      }
+
+      // Helper for document chip rendering
       function renderDocChip(label, docObj) {
         if (!docObj || !docObj.expiry) {
           return `<span class="chip-sm" style="background:#f1f5f9;color:#64748b;font-size:11px;padding:2px 6px;border-radius:4px" title="${esc(label)}: Not configured">${esc(label)} &mdash;</span>`;
@@ -20547,7 +20601,7 @@
                     </td>
                   </tr>
                 ` : filteredRadar.map(item => {
-                  const isVeh = item.type === 'vehicle';
+                  const isVeh = item.type === 'vehicle' || item.entity_type === 'vehicle';
                   let urgencyBadge = '';
                   if (item.days_left < 0) {
                     urgencyBadge = `<span class="badge red" style="font-weight:700">Expired ${Math.abs(item.days_left)}d ago</span>`;
@@ -20571,11 +20625,11 @@
                         </span>
                       </td>
                       <td>
-                        <div style="font-weight:700;color:var(--ink)">${esc(item.identifier)}</div>
-                        <div style="font-size:11px;color:var(--muted)">ID: ${esc(item.target_id || '')}</div>
+                        <div style="font-weight:700;color:var(--ink)">${esc(item.identifier || item.title || '')}</div>
+                        <div style="font-size:11px;color:var(--muted)">${esc(item.subtitle || `ID: ${item.target_id || item.entity_id || ''}`)}</div>
                       </td>
                       <td>
-                        <strong style="color:#0f172a">${esc(item.doc_type)}</strong>
+                        <strong style="color:#0f172a">${esc(item.doc_type || item.doc_name || item.doc_code || '')}</strong>
                         <span style="font-size:10.5px;color:var(--muted);margin-left:4px">(${esc(item.doc_code || '')})</span>
                       </td>
                       <td>
@@ -20595,11 +20649,11 @@
                       </td>
                       <td style="text-align:right">
                         ${isVeh ? `
-                          <button class="btn small primary" data-compliance-renew-vehicle="${esc(item.identifier)}" style="padding:4px 10px;font-size:11.5px">
+                          <button class="btn small primary" data-compliance-renew-vehicle="${esc(item.identifier || item.title || '')}" style="padding:4px 10px;font-size:11.5px">
                             ${icon('upload', 12)} Renew &amp; Upload
                           </button>
                         ` : `
-                          <button class="btn small primary" data-compliance-renew-driver="${esc(item.target_id)}" style="padding:4px 10px;font-size:11.5px">
+                          <button class="btn small primary" data-compliance-renew-driver="${esc(item.target_id || item.entity_id || '')}" style="padding:4px 10px;font-size:11.5px">
                             ${icon('upload', 12)} Renew &amp; Upload
                           </button>
                         `}
@@ -20634,26 +20688,35 @@
                 ${filteredVehicles.length === 0 ? `
                   <tr><td colspan="11" style="text-align:center;padding:32px;color:var(--muted)">No vehicle records match the selected filters.</td></tr>
                 ` : filteredVehicles.map(v => {
-                  const docs = v.documents || {};
-                  const isOk = v.compliant !== false;
+                  const isOk = v.compliant !== false && v.compliance_status !== 'expired' && v.compliance_status !== 'non_compliant';
+                  const rcDoc = getEntityDoc(v, 'RC');
+                  const insDoc = getEntityDoc(v, 'INS');
+                  const pucDoc = getEntityDoc(v, 'PUC');
+                  const fitDoc = getEntityDoc(v, 'FIT');
+                  const permitDoc = getEntityDoc(v, 'PERMIT');
+                  const modelLabel = v.model || v.make_model || '—';
+                  const grpLabel = v.group || v.vehicle_group || '';
+                  const fuelLabel = v.type || v.fuel_type || '';
+                  const ownLabel = v.ownership_type || 'Own';
+
                   return `
                     <tr>
                       <td>
                         <strong style="color:var(--ink);letter-spacing:0.3px">${esc(v.registration_number)}</strong>
-                        <div style="font-size:10.5px;color:var(--muted)">${esc(v.vehicle_group || '')} &middot; ${esc(v.fuel_type || '')}</div>
+                        <div style="font-size:10.5px;color:var(--muted)">${esc(grpLabel)}${fuelLabel ? ` &middot; ${esc(fuelLabel)}` : ''}</div>
                       </td>
-                      <td style="color:var(--text)">${esc(v.make_model || '—')}</td>
+                      <td style="color:var(--text)">${esc(modelLabel)}</td>
                       <td>${esc(v.city || '—')}</td>
                       <td>
-                        <span class="badge ${v.ownership_type?.toLowerCase() === 'own' ? 'teal' : 'purple'}" style="font-size:10.5px">
-                          ${esc(v.ownership_type || 'Own')}
+                        <span class="badge ${ownLabel.toLowerCase() === 'own' ? 'teal' : 'purple'}" style="font-size:10.5px">
+                          ${esc(ownLabel)}
                         </span>
                       </td>
-                      <td>${renderDocChip('RC', docs.rc)}</td>
-                      <td>${renderDocChip('INS', docs.insurance)}</td>
-                      <td>${renderDocChip('PUC', docs.puc)}</td>
-                      <td>${renderDocChip('FIT', docs.fitness)}</td>
-                      <td>${renderDocChip('PERMIT', docs.permit)}</td>
+                      <td>${renderDocChip('RC', rcDoc)}</td>
+                      <td>${renderDocChip('INS', insDoc)}</td>
+                      <td>${renderDocChip('PUC', pucDoc)}</td>
+                      <td>${renderDocChip('FIT', fitDoc)}</td>
+                      <td>${renderDocChip('PERMIT', permitDoc)}</td>
                       <td>
                         ${isOk
                           ? `<span class="status green" style="font-size:11px">● Compliant (5/5)</span>`
@@ -20694,25 +20757,31 @@
                 ${filteredDrivers.length === 0 ? `
                   <tr><td colspan="10" style="text-align:center;padding:32px;color:var(--muted)">No driver records match the selected filters.</td></tr>
                 ` : filteredDrivers.map(d => {
-                  const docs = d.documents || {};
-                  const isOk = d.compliant !== false;
+                  const isOk = d.compliant !== false && d.compliance_status !== 'expired' && d.compliance_status !== 'non_compliant';
+                  const dlDoc = getEntityDoc(d, 'DL');
+                  const badgeDoc = getEntityDoc(d, 'BADGE');
+                  const pccDoc = getEntityDoc(d, 'PCC');
+                  const medDoc = getEntityDoc(d, 'MED');
+                  const nameLabel = d.full_name || d.name || 'Driver';
+                  const engLabel = d.driver_type || d.ownership_type || 'Own';
+
                   return `
                     <tr>
                       <td>
-                        <strong style="color:var(--ink)">${esc(d.full_name)}</strong>
+                        <strong style="color:var(--ink)">${esc(nameLabel)}</strong>
                         <div style="font-size:10.5px;color:var(--muted)">ID: ${esc(d.id || '')}</div>
                       </td>
                       <td style="font-family:monospace;font-size:12px;color:var(--text)">${esc(d.phone || '—')}</td>
                       <td>${esc(d.city || '—')}</td>
                       <td>
-                        <span class="badge ${d.ownership_type?.toLowerCase() === 'supplier' ? 'purple' : 'teal'}" style="font-size:10.5px">
-                          ${esc(d.ownership_type || 'Own')}
+                        <span class="badge ${engLabel.toLowerCase() === 'supplier' ? 'purple' : 'teal'}" style="font-size:10.5px">
+                          ${esc(engLabel)}
                         </span>
                       </td>
-                      <td>${renderDocChip('DL', docs.license)}</td>
-                      <td>${renderDocChip('BADGE', docs.badge)}</td>
-                      <td>${renderDocChip('PCC', docs.police_verification)}</td>
-                      <td>${renderDocChip('MED', docs.medical)}</td>
+                      <td>${renderDocChip('DL', dlDoc)}</td>
+                      <td>${renderDocChip('BADGE', badgeDoc)}</td>
+                      <td>${renderDocChip('PCC', pccDoc)}</td>
+                      <td>${renderDocChip('MED', medDoc)}</td>
                       <td>
                         ${isOk
                           ? `<span class="status green" style="font-size:11px">● Compliant (4/4)</span>`
@@ -20749,11 +20818,11 @@
               <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
                 <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9">
                   <span style="color:var(--muted)">Vehicle Document Readiness</span>
-                  <strong style="color:#059669">${summary.compliant_vehicles} / ${summary.total_vehicles} (${summary.vehicle_compliance_rate_pct}%)</strong>
+                  <strong style="color:#059669">${compVeh} / ${totVeh} (${vehRate}%)</strong>
                 </div>
                 <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9">
                   <span style="color:var(--muted)">Driver Workforce Credentials</span>
-                  <strong style="color:#059669">${summary.compliant_drivers} / ${summary.total_drivers} (${summary.driver_compliance_rate_pct}%)</strong>
+                  <strong style="color:#059669">${compDrv} / ${totDrv} (${drvRate}%)</strong>
                 </div>
                 <div style="display:flex;justify-content:space-between;padding:6px 0">
                   <span style="color:var(--muted)">Digital Dossier Status</span>
@@ -20823,29 +20892,29 @@
           <!-- KPI 1 -->
           <div class="card kpi teal">
             <div class="kpi-top"><span class="kpi-label">Overall Compliance Index</span><span class="kpi-icon teal">${icon('shield')}</span></div>
-            <div class="kpi-value">${summary.overall_compliance_score_pct}%</div>
-            <div class="kpi-foot"><span class="trend up">${summary.compliant_vehicles + summary.compliant_drivers} / ${summary.total_vehicles + summary.total_drivers} Verified Assets</span></div>
+            <div class="kpi-value">${overallScore}%</div>
+            <div class="kpi-foot"><span class="trend up">${compVeh + compDrv} / ${totVeh + totDrv} Verified Assets</span></div>
           </div>
 
           <!-- KPI 2 -->
           <div class="card kpi">
             <div class="kpi-top"><span class="kpi-label">Vehicle Statutory Fleet</span><span class="kpi-icon">${icon('car')}</span></div>
-            <div class="kpi-value">${summary.compliant_vehicles} <span style="font-size:13px;font-weight:500;color:var(--muted)">/ ${summary.total_vehicles}</span></div>
-            <div class="kpi-foot"><span class="trend ${summary.non_compliant_vehicles > 0 ? 'amber' : 'up'}">${summary.vehicle_compliance_rate_pct}% Compliant &middot; 5 Docs</span></div>
+            <div class="kpi-value">${compVeh} <span style="font-size:13px;font-weight:500;color:var(--muted)">/ ${totVeh}</span></div>
+            <div class="kpi-foot"><span class="trend ${nonCompVeh > 0 ? 'amber' : 'up'}">${vehRate}% Compliant &middot; 5 Docs</span></div>
           </div>
 
           <!-- KPI 3 -->
           <div class="card kpi purple">
             <div class="kpi-top"><span class="kpi-label">Driver Workforce Credentials</span><span class="kpi-icon purple">${icon('users')}</span></div>
-            <div class="kpi-value">${summary.compliant_drivers} <span style="font-size:13px;font-weight:500;color:var(--muted)">/ ${summary.total_drivers}</span></div>
-            <div class="kpi-foot"><span class="trend ${summary.non_compliant_drivers > 0 ? 'amber' : 'up'}">${summary.driver_compliance_rate_pct}% Compliant &middot; 4 Docs</span></div>
+            <div class="kpi-value">${compDrv} <span style="font-size:13px;font-weight:500;color:var(--muted)">/ ${totDrv}</span></div>
+            <div class="kpi-foot"><span class="trend ${nonCompDrv > 0 ? 'amber' : 'up'}">${drvRate}% Compliant &middot; 4 Docs</span></div>
           </div>
 
           <!-- KPI 4 -->
           <div class="card kpi ${urgentItems.length > 0 ? 'amber' : 'teal'}">
             <div class="kpi-top"><span class="kpi-label">Imminent Expiries (&le; 30d)</span><span class="kpi-icon ${urgentItems.length > 0 ? 'amber' : 'teal'}">${icon('clock')}</span></div>
             <div class="kpi-value">${urgentItems.length}</div>
-            <div class="kpi-foot"><span class="trend ${urgentItems.length > 0 ? 'down' : 'up'}">${summary.critical_expiries_7d} critical (1-7d) &middot; ${summary.expired_count} expired</span></div>
+            <div class="kpi-foot"><span class="trend ${urgentItems.length > 0 ? 'down' : 'up'}">${crit7d} critical (1-7d) &middot; ${expCount} expired</span></div>
           </div>
 
           <!-- KPI 5 -->
@@ -20866,7 +20935,7 @@
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
                   ${urgentItems.slice(0, 4).map(it => `
                     <span style="font-size:11px;padding:2px 8px;border-radius:12px;background:#fff;border:1px solid #fde68a;color:#78350f">
-                      <strong>${esc(it.identifier)}</strong> &middot; ${esc(it.doc_type)}: <span style="font-weight:700;color:${it.days_left < 0 ? '#dc2626' : it.days_left <= 7 ? '#ea580c' : '#d97706'}">${it.days_left < 0 ? 'EXPIRED' : it.days_left + 'd left'}</span>
+                      <strong>${esc(it.identifier || it.title || '')}</strong> &middot; ${esc(it.doc_type || it.doc_name || '')}: <span style="font-weight:700;color:${it.days_left < 0 ? '#dc2626' : it.days_left <= 7 ? '#ea580c' : '#d97706'}">${it.days_left < 0 ? 'EXPIRED' : it.days_left + 'd left'}</span>
                     </span>
                   `).join('')}
                 </div>
@@ -20932,7 +21001,7 @@
               </button>
             </div>
             <span style="font-size:12px;color:var(--muted)">
-              Audit readiness: <strong>${summary.overall_compliance_score_pct}%</strong>
+              Audit readiness: <strong>${overallScore}%</strong>
             </span>
           </div>
           ${tabContent}
