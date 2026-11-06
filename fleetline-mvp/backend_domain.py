@@ -408,6 +408,21 @@ def initialize_domain_schema(conn) -> None:
         "vehicle_registration": "TEXT NOT NULL DEFAULT ''",
         "vehicle_group": "TEXT NOT NULL DEFAULT ''",
         "license_expiry": "TEXT",
+        "badge_number": "TEXT NOT NULL DEFAULT ''",
+        "badge_expiry": "TEXT",
+        "police_verification_number": "TEXT NOT NULL DEFAULT ''",
+        "police_verification_expiry": "TEXT",
+        "medical_certificate_number": "TEXT NOT NULL DEFAULT ''",
+        "medical_expiry": "TEXT",
+        "dl_file_name": "TEXT NOT NULL DEFAULT ''",
+        "dl_file_data": "TEXT NOT NULL DEFAULT ''",
+        "badge_file_name": "TEXT NOT NULL DEFAULT ''",
+        "badge_file_data": "TEXT NOT NULL DEFAULT ''",
+        "pcc_file_name": "TEXT NOT NULL DEFAULT ''",
+        "pcc_file_data": "TEXT NOT NULL DEFAULT ''",
+        "medical_file_name": "TEXT NOT NULL DEFAULT ''",
+        "medical_file_data": "TEXT NOT NULL DEFAULT ''",
+        "notes": "TEXT NOT NULL DEFAULT ''",
     }.items():
         if column not in driver_columns:
             conn.execute(f"ALTER TABLE domain_drivers ADD COLUMN {column} {definition}")
@@ -813,11 +828,93 @@ def _create_driver(conn, user, payload, ip):
     driver_type = raw_type if raw_type in ("own", "supplier", "dco") else "own"
     vehicle_registration = _text(payload, "vehicle_registration", maximum=40).upper()
     vehicle_group = _text(payload, "vehicle_group", maximum=60)
-    conn.execute(
-        "INSERT INTO domain_drivers(id, organization_id, user_id, full_name, phone, license_number, city, status, driver_type, vehicle_registration, vehicle_group, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'available', ?, ?, ?, ?, ?)",
-        (driver_id, org, linked_user_id, name, _text(payload, "phone"), _text(payload, "license_number").upper(), _text(payload, "city"), driver_type, vehicle_registration, vehicle_group, now, now)
+    license_number = _text(payload, "license_number").upper()
+    license_expiry = _text(payload, "license_expiry", maximum=40) or None
+    badge_number = _text(payload, "badge_number", maximum=80).upper()
+    badge_expiry = _text(payload, "badge_expiry", maximum=40) or None
+    police_verification_number = _text(payload, "police_verification_number", maximum=80).upper()
+    police_verification_expiry = _text(payload, "police_verification_expiry", maximum=40) or None
+    medical_certificate_number = _text(payload, "medical_certificate_number", maximum=80).upper()
+    medical_expiry = _text(payload, "medical_expiry", maximum=40) or None
+    dl_file_name = _text(payload, "dl_file_name", maximum=255)
+    dl_file_data = _text(payload, "dl_file_data")
+    badge_file_name = _text(payload, "badge_file_name", maximum=255)
+    badge_file_data = _text(payload, "badge_file_data")
+    pcc_file_name = _text(payload, "pcc_file_name", maximum=255)
+    pcc_file_data = _text(payload, "pcc_file_data")
+    medical_file_name = _text(payload, "medical_file_name", maximum=255)
+    medical_file_data = _text(payload, "medical_file_data")
+    notes = _text(payload, "notes", maximum=500)
+    status_val = _text(payload, "status") or "available"
+    if status_val not in ("available", "on_duty", "inactive", "suspended"):
+        status_val = "available"
+
+    conn.execute("""
+        INSERT INTO domain_drivers(
+            id, organization_id, user_id, full_name, phone, license_number, city, status,
+            driver_type, vehicle_registration, vehicle_group, license_expiry,
+            badge_number, badge_expiry, police_verification_number, police_verification_expiry,
+            medical_certificate_number, medical_expiry,
+            dl_file_name, dl_file_data, badge_file_name, badge_file_data,
+            pcc_file_name, pcc_file_data, medical_file_name, medical_file_data,
+            notes, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (
+            driver_id, org, linked_user_id, name, _text(payload, "phone"), license_number, _text(payload, "city"), status_val,
+            driver_type, vehicle_registration, vehicle_group, license_expiry,
+            badge_number, badge_expiry, police_verification_number, police_verification_expiry,
+            medical_certificate_number, medical_expiry,
+            dl_file_name, dl_file_data, badge_file_name, badge_file_data,
+            pcc_file_name, pcc_file_data, medical_file_name, medical_file_data,
+            notes, now, now
+        )
     )
     _audit(conn, user, "driver.created", "driver", driver_id, ip, {"linked_user_id": linked_user_id, "driver_type": driver_type})
+    return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_drivers WHERE id = ?", (driver_id,)).fetchone())}
+
+
+def _update_driver(conn, user, driver_id: str, payload: dict, ip: str):
+    org = _org(user)
+    _require_role(user)
+    row = _assert_owned(conn, "domain_drivers", driver_id, org)
+    now = now_iso()
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(domain_drivers)").fetchall()}
+    allowed_keys = [
+        "full_name", "phone", "license_number", "license_expiry", "city", "status", "driver_type",
+        "vehicle_registration", "vehicle_group",
+        "badge_number", "badge_expiry",
+        "police_verification_number", "police_verification_expiry",
+        "medical_certificate_number", "medical_expiry",
+        "dl_file_name", "dl_file_data",
+        "badge_file_name", "badge_file_data",
+        "pcc_file_name", "pcc_file_data",
+        "medical_file_name", "medical_file_data",
+        "notes"
+    ]
+    updates = []
+    values = []
+    for k in allowed_keys:
+        if k in payload and k in cols:
+            val = payload[k]
+            if k == "driver_type":
+                raw_type = str(val or "own").lower().strip()
+                val = raw_type if raw_type in ("own", "supplier", "dco") else "own"
+            elif k in ("license_number", "vehicle_registration", "badge_number", "police_verification_number", "medical_certificate_number"):
+                val = str(val or "").strip().upper()
+            elif k in ("dl_file_data", "badge_file_data", "pcc_file_data", "medical_file_data"):
+                val = str(val or "")
+            else:
+                val = str(val or "").strip()
+            updates.append(f"{k} = ?")
+            values.append(val)
+    if not updates:
+        return {"ok": True, "item": _serialize(row)}
+    updates.append("updated_at = ?")
+    values.append(now)
+    values.append(driver_id)
+    values.append(org)
+    conn.execute(f"UPDATE domain_drivers SET {', '.join(updates)} WHERE id = ? AND organization_id = ?", values)
+    _audit(conn, user, "driver.updated", "driver", driver_id, ip, {"updated_keys": [k for k in allowed_keys if k in payload]})
     return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_drivers WHERE id = ?", (driver_id,)).fetchone())}
 
 
@@ -1839,7 +1936,7 @@ def handle_domain(conn, user, method: str, raw_route: str, payload: dict, ip: st
                 }
             }
 
-    if len(parts) >= 4 and parts[2] in {"bookings", "duties", "invoices", "vehicles"}:
+    if len(parts) >= 4 and parts[2] in {"bookings", "duties", "invoices", "vehicles", "drivers"}:
         if parts[2] == "duties" and len(parts) == 5 and parts[4] == "proof" and method == "POST": return _create_duty_proof(conn, user, parts[3], payload, ip)
         if parts[2] == "duties" and len(parts) == 5 and parts[4] == "track" and method == "POST": return _create_track_point(conn, user, parts[3], payload, ip)
         if parts[2] == "duties" and len(parts) == 5 and parts[4] == "expenses" and method == "POST": return _create_expense(conn, user, parts[3], payload, ip)
@@ -1847,7 +1944,12 @@ def handle_domain(conn, user, method: str, raw_route: str, payload: dict, ip: st
             org = _org(user); _assert_owned(conn, "domain_duties", parts[3], org); return {"ok": True, "items": [_serialize(row, ("attachment_json",)) for row in conn.execute("SELECT * FROM domain_expenses WHERE organization_id = ? AND duty_id = ? ORDER BY created_at DESC", (org, parts[3])).fetchall()]}
 
         resource, entity_id = parts[2], parts[3]
+        if resource == "drivers" and method == "GET":
+            return {"ok": True, "item": _serialize(_assert_owned(conn, "domain_drivers", entity_id, _org(user)))}
+        if resource == "drivers" and method == "PATCH":
+            return _update_driver(conn, user, entity_id, payload, ip)
         if resource == "vehicles" and method == "GET":
+            return {"ok": True, "item": _vehicle(conn, entity_id, _org(user))}
             return {"ok": True, "item": _vehicle(conn, entity_id, _org(user))}
         if resource == "vehicles" and method == "PATCH":
             return _update_vehicle(conn, user, entity_id, payload, ip)

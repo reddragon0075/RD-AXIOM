@@ -694,7 +694,17 @@ def _soft_update(conn, user, route, method, payload, ip):
     org = _org(user); _staff(user)
     config = {
         "customers": ("domain_customers", ("name", "email", "phone", "gstin", "status")),
-        "drivers": ("domain_drivers", ("full_name", "phone", "license_number", "city", "status", "driver_type", "vehicle_registration", "vehicle_group")),
+        "drivers": ("domain_drivers", (
+            "full_name", "phone", "license_number", "license_expiry", "city", "status", "driver_type", "vehicle_registration", "vehicle_group",
+            "badge_number", "badge_expiry",
+            "police_verification_number", "police_verification_expiry",
+            "medical_certificate_number", "medical_expiry",
+            "dl_file_name", "dl_file_data",
+            "badge_file_name", "badge_file_data",
+            "pcc_file_name", "pcc_file_data",
+            "medical_file_name", "medical_file_data",
+            "notes"
+        )),
         "manufacturers": ("domain_manufacturers", ("name", "code", "country", "status")),
         "vehicles": ("domain_vehicles", (
             "registration_number", "vehicle_type", "vehicle_group", "make_model", "manufacturer", "model", "year", "city", "status",

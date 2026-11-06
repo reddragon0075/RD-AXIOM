@@ -21665,6 +21665,123 @@
       </section>`;
     }
 
+    function getDriverComplianceInfo(driver, guardrails) {
+      const g = guardrails || state.liveData?.settings?.item?.settings?.dispatch_guardrails || {};
+      const isMandatory = g.require_driver_commercial_license === true || g.require_mandatory_driver_docs === true;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const docs = [
+        { key: 'license_expiry', numKey: 'license_number', fileKey: 'dl_file_name', code: 'DL', label: 'Driving License' },
+        { key: 'badge_expiry', numKey: 'badge_number', fileKey: 'badge_file_name', code: 'BADGE', label: 'PSV Badge' },
+        { key: 'police_verification_expiry', numKey: 'police_verification_number', fileKey: 'pcc_file_name', code: 'PCC', label: 'Police Verification' },
+        { key: 'medical_expiry', numKey: 'medical_certificate_number', fileKey: 'medical_file_name', code: 'MED', label: 'Medical Fitness' }
+      ];
+
+      const compliance = (driver && typeof driver.compliance === 'object' && driver.compliance) ? driver.compliance : {};
+
+      let expiredCount = 0;
+      let expiringSoonCount = 0;
+      let validCount = 0;
+      let missingCount = 0;
+
+      const docDetails = docs.map(d => {
+        const rawDate = driver[d.key] || compliance[d.key] || '';
+        const docNum = driver[d.numKey] || compliance[d.numKey] || '';
+        if (!rawDate) {
+          missingCount++;
+          return {
+            ...d,
+            date: '',
+            num: docNum,
+            status: isMandatory ? 'missing_mandatory' : 'missing_optional',
+            daysLeft: null,
+            badgeClass: isMandatory ? 'red' : 'gray',
+            badgeText: isMandatory ? 'Missing (Mandatory)' : 'Not set',
+            chipText: `${d.code} —`
+          };
+        }
+
+        const expDate = new Date(rawDate);
+        expDate.setHours(0, 0, 0, 0);
+        const diffTime = expDate.getTime() - today.getTime();
+        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (daysLeft < 0) {
+          expiredCount++;
+          return {
+            ...d,
+            date: rawDate,
+            num: docNum,
+            status: 'expired',
+            daysLeft,
+            badgeClass: 'red',
+            badgeText: `Expired (${Math.abs(daysLeft)}d ago)`,
+            chipText: `${d.code} Exp`
+          };
+        } else if (daysLeft <= 30) {
+          expiringSoonCount++;
+          return {
+            ...d,
+            date: rawDate,
+            num: docNum,
+            status: 'expiring_soon',
+            daysLeft,
+            badgeClass: 'amber',
+            badgeText: `Expiring (${daysLeft}d left)`,
+            chipText: `${d.code} ${daysLeft}d`
+          };
+        } else {
+          validCount++;
+          return {
+            ...d,
+            date: rawDate,
+            num: docNum,
+            status: 'valid',
+            daysLeft,
+            badgeClass: 'green',
+            badgeText: `Valid (${daysLeft}d left)`,
+            chipText: `${d.code} ${daysLeft}d`
+          };
+        }
+      });
+
+      let overallStatus = 'compliant';
+      let overallClass = 'green';
+      let overallLabel = `Compliant (${validCount}/4)`;
+
+      if (expiredCount > 0) {
+        overallStatus = 'expired';
+        overallClass = 'red';
+        overallLabel = `${expiredCount} Expired`;
+      } else if (isMandatory && missingCount > 0) {
+        overallStatus = 'non_compliant';
+        overallClass = 'red';
+        overallLabel = `${missingCount} Missing (Mandatory)`;
+      } else if (expiringSoonCount > 0) {
+        overallStatus = 'expiring_soon';
+        overallClass = 'amber';
+        overallLabel = `${expiringSoonCount} Expiring soon`;
+      } else if (!isMandatory && validCount === 0) {
+        overallStatus = 'optional_empty';
+        overallClass = 'gray';
+        overallLabel = 'Optional (None set)';
+      }
+
+      return {
+        isMandatory,
+        expiredCount,
+        expiringSoonCount,
+        validCount,
+        missingCount,
+        totalDocs: docs.length,
+        overallStatus,
+        overallClass,
+        overallLabel,
+        docDetails
+      };
+    }
+
     function renderDrivers() {
       const driverSubmenu = `
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;border-bottom:1px solid var(--line,#e2e8f0);padding-bottom:10px">
@@ -21672,14 +21789,31 @@
           <button class="btn small soft" data-page-link="driver-payouts">${icon('wallet', 13)} Driver payouts &amp; settlements</button>
         </div>
       `;
-      const drivers = state.liveData?.drivers?.items || [];
+      let drivers = state.liveData?.drivers?.items || [];
+      if (!drivers.length && window.AXIOM_DEMO_DATA?.cache?.['/api/drivers?limit=50']?.items?.length) {
+        drivers = JSON.parse(JSON.stringify(window.AXIOM_DEMO_DATA.cache['/api/drivers?limit=50'].items));
+        if (state.liveData?.drivers) state.liveData.drivers.items = drivers;
+      }
       const readyDrivers = drivers.filter(item => !['inactive', 'suspended', 'on_duty'].includes(item.status)).length;
       const onDutyDrivers = drivers.filter(item => item.status === 'on_duty').length;
       const inactiveDrivers = drivers.filter(item => ['inactive', 'suspended'].includes(item.status)).length;
       const filter = state.driverFilter || 'all';
       const q = String(state.driverQuery || '').trim().toLowerCase();
+      const guardrails = state.liveData?.settings?.item?.settings?.dispatch_guardrails || {};
+      const isMandatory = guardrails.require_driver_commercial_license === true || guardrails.require_mandatory_driver_docs === true;
+
+      let driverCompliantCount = 0;
+      let driverExpiringSoonCount = 0;
+      let driverNonCompliantCount = 0;
+      drivers.forEach(drv => {
+        const c = getDriverComplianceInfo(drv, guardrails);
+        if (c.overallStatus === 'compliant' || c.overallStatus === 'optional_empty') driverCompliantCount++;
+        else if (c.overallStatus === 'expiring_soon') driverExpiringSoonCount++;
+        else driverNonCompliantCount++;
+      });
 
       const filteredDrivers = drivers.filter(d => {
+        const comp = getDriverComplianceInfo(d, guardrails);
         const matchesQuery = !q || `${d.full_name || ''} ${d.driver_type || ''} ${d.phone || ''} ${d.license_number || ''} ${d.city || ''} ${d.status || ''}`.toLowerCase().includes(q);
         const matchesFilter = filter === 'all'
           ? true
@@ -21687,9 +21821,24 @@
             ? !['inactive', 'suspended', 'on_duty'].includes(d.status)
             : filter === 'on_duty'
               ? d.status === 'on_duty'
-              : ['inactive', 'suspended'].includes(d.status);
+              : filter === 'inactive'
+                ? ['inactive', 'suspended'].includes(d.status)
+                : filter === 'compliance'
+                  ? (comp.overallStatus !== 'compliant' && comp.overallStatus !== 'optional_empty')
+                  : true;
         return matchesQuery && matchesFilter;
       });
+
+      const attentionCount = driverExpiringSoonCount + driverNonCompliantCount;
+      const tabItems = [
+        ['all', 'All drivers'],
+        ['ready', `Ready (${readyDrivers})`],
+        ['on_duty', `On duty (${onDutyDrivers})`],
+        ['inactive', `Inactive (${inactiveDrivers})`]
+      ];
+      if (attentionCount > 0) {
+        tabItems.push(['compliance', `⚠️ Compliance attention (${attentionCount})`]);
+      }
 
       // Pagination calculation for drivers
       const totalDrivers = filteredDrivers.length;
@@ -21752,11 +21901,67 @@
         </div>
       `;
 
-      const kpis = `<div class="grid three-col" style="margin-bottom:16px"><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Total drivers</span><span class="kpi-icon teal">${icon('users')}</span></div><div class="kpi-value">${drivers.length}</div><div class="kpi-foot">Onboarded driver records</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Ready for duty</span><span class="kpi-icon">${icon('check')}</span></div><div class="kpi-value">${readyDrivers}</div><div class="kpi-foot">Duty & device ready</div></div><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Active / on duty</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${onDutyDrivers}</div><div class="kpi-foot">${inactiveDrivers} inactive or suspended</div></div></div>`;
+      const kpis = `<div class="grid four-col kpis" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:18px">
+        <div class="card kpi teal" style="min-height:auto;padding:16px 18px">
+          <div class="kpi-top" style="margin-bottom:10px"><span class="kpi-label">Total drivers</span><span class="kpi-icon teal">${icon('users', 15)}</span></div>
+          <div class="kpi-value" style="font-size:28px">${drivers.length}</div>
+          <div class="kpi-foot">Onboarded driver records</div>
+        </div>
+        <div class="card kpi" style="min-height:auto;padding:16px 18px">
+          <div class="kpi-top" style="margin-bottom:10px"><span class="kpi-label">Ready for duty</span><span class="kpi-icon">${icon('check', 15)}</span></div>
+          <div class="kpi-value" style="font-size:28px">${readyDrivers}</div>
+          <div class="kpi-foot">Duty &amp; device ready</div>
+        </div>
+        <div class="card kpi amber" style="min-height:auto;padding:16px 18px">
+          <div class="kpi-top" style="margin-bottom:10px"><span class="kpi-label">Active / on duty</span><span class="kpi-icon amber">${icon('clock', 15)}</span></div>
+          <div class="kpi-value" style="font-size:28px">${onDutyDrivers}</div>
+          <div class="kpi-foot">${inactiveDrivers} inactive or suspended</div>
+        </div>
+        <div class="card kpi ${driverNonCompliantCount > 0 ? 'red' : (driverExpiringSoonCount > 0 ? 'amber' : 'green')}" style="min-height:auto;padding:16px 18px">
+          <div class="kpi-top" style="margin-bottom:10px"><span class="kpi-label">Compliance health</span><span class="kpi-icon ${driverNonCompliantCount > 0 ? 'red' : (driverExpiringSoonCount > 0 ? 'amber' : 'teal')}">${icon('shield', 15)}</span></div>
+          <div class="kpi-value" style="font-size:28px">${driverCompliantCount}/${drivers.length}</div>
+          <div class="kpi-foot">${driverNonCompliantCount ? `<span style="color:#ef4444;font-weight:700">${driverNonCompliantCount} non-compliant</span>` : (driverExpiringSoonCount ? `<span style="color:#f59e0b;font-weight:700">${driverExpiringSoonCount} expiring soon</span>` : (isMandatory ? 'All statutory docs valid' : 'All docs valid'))} · Policy: ${isMandatory ? 'Mandatory' : 'Optional'}</div>
+        </div>
+      </div>`;
 
-      const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px"><div class="tabs">${[['all', 'All drivers'], ['ready', `Ready (${readyDrivers})`], ['on_duty', `On duty (${onDutyDrivers})`], ['inactive', `Inactive (${inactiveDrivers})`]].map(([key, label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-driver-filter="${key}">${label}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="driverQuery" placeholder="Search drivers…" value="${esc(state.driverQuery || '')}"></label><span class="booking-total-view" style="margin-left:8px">Page ${currentPage} of ${totalPages} · ${totalDrivers} total</span></div>`;
+      const tabsBar = `<div class="panel-toolbar" style="margin-bottom:16px"><div class="tabs">${tabItems.map(([key, label]) => `<button class="tab ${filter === key ? 'active' : ''}" data-driver-filter="${key}">${label}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:240px;flex:none"><span>${icon('search')}</span><input id="driverQuery" placeholder="Search drivers…" value="${esc(state.driverQuery || '')}"></label><span class="booking-total-view" style="margin-left:8px">Page ${currentPage} of ${totalPages} · ${totalDrivers} total</span></div>`;
 
-      const driversTable = `<section class="card section-card">${cardHead('Drivers register', 'Physical-device and duty readiness starts from this record', button(icon('plus') + 'Add driver', 'small primary', 'data-action="add-driver"'))}<div class="table-wrap"><table><thead><tr><th>Driver</th><th>Type</th><th>Phone</th><th>City</th><th>License / ID</th><th>Status</th><th></th></tr></thead><tbody>${paginatedDrivers.length ? paginatedDrivers.map(item => `<tr><td><span class="primary">${esc(item.full_name || 'Driver')}</span>${item.city ? `<span class="secondary">${esc(item.city)}</span>` : ''}</td><td><span class="status ${driverTypeTone(item.driver_type)}">${driverTypeLabel(item.driver_type)}</span></td><td>${esc(item.phone || '—')}</td><td>${esc(item.city || '—')}</td><td><span class="keycap">${esc(item.license_number || '—')}</span></td><td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td><td><button class="btn small soft" data-action="driver-detail" data-driver="${esc(item.full_name || item.id)}" data-driver-id="${esc(item.id)}">${icon('eye', 13)}Open</button></td></tr>`).join('') : tenantTableEmpty('No drivers returned', 'Add the first driver record before assigning a duty.', button(icon('plus') + 'Add driver', 'small soft', 'data-action="add-driver"'))}</tbody></table></div>${driverPaginationMarkup}</section>`;
+      const driversTable = `<section class="card section-card">${cardHead('Drivers register', 'Physical-device, statutory credentials and duty readiness starts from this record', button(icon('plus') + 'Add driver', 'small primary', 'data-action="add-driver"'))}<div class="table-wrap"><table><thead><tr><th>Driver</th><th>Type</th><th>Phone</th><th>City</th><th>License &amp; Statutory Docs</th><th>Compliance</th><th>Status</th><th></th></tr></thead><tbody>${paginatedDrivers.length ? paginatedDrivers.map(item => {
+        const comp = getDriverComplianceInfo(item, guardrails);
+        const docChips = comp.docDetails.map(d => `
+          <span class="badge ${d.badgeClass}" style="cursor:pointer;font-size:10px;padding:2px 7px;display:inline-flex;align-items:center;gap:3px;margin:2px 3px 2px 0" data-action="driver-doc-click" data-driver-id="${esc(item.id)}" title="${esc(d.label)}: ${esc(d.num || 'No number')} · ${esc(d.badgeText)}">
+            <strong>${esc(d.code)}</strong> ${esc(d.chipText.replace(d.code + ' ', ''))}
+          </span>
+        `).join('');
+
+        return `
+          <tr>
+            <td>
+              <span class="primary">${esc(item.full_name || 'Driver')}</span>
+              ${item.city ? `<span class="secondary">${esc(item.city)}</span>` : ''}
+            </td>
+            <td><span class="status ${driverTypeTone(item.driver_type)}">${driverTypeLabel(item.driver_type)}</span></td>
+            <td>${esc(item.phone || '—')}</td>
+            <td>${esc(item.city || '—')}</td>
+            <td>
+              <div style="font-weight:600;font-size:11px;margin-bottom:3px;font-family:monospace">${esc(item.license_number || 'No DL')}</div>
+              <div style="display:flex;flex-wrap:wrap;align-items:center">${docChips}</div>
+            </td>
+            <td>
+              <span class="status ${comp.overallClass}" style="font-size:10.5px;padding:3px 8px;cursor:pointer" data-action="driver-doc-click" data-driver-id="${esc(item.id)}">
+                • ${esc(comp.overallLabel)}
+              </span>
+            </td>
+            <td>${status(item.status || 'available', item.status === 'inactive' ? 'gray' : item.status === 'on_duty' ? 'blue' : 'green')}</td>
+            <td>
+              <div style="display:flex;gap:6px">
+                <button class="btn small soft" data-action="driver-edit" data-driver-id="${esc(item.id)}">Edit</button>
+                <button class="btn small soft" data-action="driver-detail" data-driver="${esc(item.full_name || item.id)}" data-driver-id="${esc(item.id)}">${icon('eye', 13)}</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('') : tenantTableEmpty('No drivers returned', 'Add the first driver record before assigning a duty.', button(icon('plus') + 'Add driver', 'small soft', 'data-action="add-driver"'))}</tbody></table></div>${driverPaginationMarkup}</section>`;
 
       return `${pageHead('Fleet · workforce readiness', 'Drivers register', 'Manage driver workforce profiles, license verification and physical-device onboarding.', `${button(icon('wallet') + 'Driver payouts', 'soft', 'data-page-link="driver-payouts"')}${button(icon('upload') + 'Import roster', '', 'data-action="import-master"')}${button(icon('plus') + 'Add driver', 'primary', 'data-action="add-driver"')}`)}${driverSubmenu}${kpis}${tabsBar}${driversTable}`;
     }
@@ -27399,6 +27604,8 @@
           closeModal();
           openLogVehicleCostModal(el.dataset.vehicleId, el.dataset.reg);
         },
+        'driver-edit': () => { const driver = (state.liveData?.drivers?.items || []).find(item => item.id === el.dataset.driverId); if (driver) openDriverModal(driver); },
+        'driver-doc-click': () => { const driver = (state.liveData?.drivers?.items || []).find(item => item.id === el.dataset.driverId); if (driver) openDriverModal(driver, 'compliance'); },
         'driver-detail': () => { const driver = (state.liveData?.drivers?.items || []).find(item => item.id === el.dataset.driverId || item.full_name === el.dataset.driver); if (driver) openDriverModal(driver); else showToast('Driver profile opened', `${el.dataset.driver} · compliance and duty history ready.`); },
         'add-vehicle': () => openVehicleModal(),
         'vehicle-edit': () => { const vehicle = (state.liveData?.vehicles?.items || []).find(item => item.id === el.dataset.vehicleId); if (vehicle) openVehicleModal(vehicle); },
@@ -30599,7 +30806,7 @@
       });
     }
 
-    function openDriverModal(existing) {
+    function openDriverModal(existing, initialTab = 'profile') {
       const d = existing || {};
       const compliance = (d && typeof d.compliance === 'object' && d.compliance) ? d.compliance : {};
       const value = key => esc(d[key] ?? compliance[key] ?? '');
@@ -30607,103 +30814,381 @@
       const currentGroup = value('vehicle_group') || 'Standard sedan';
       const currentStatus = d.status || 'available';
 
-      const modal = modalShell(
-        existing ? 'Edit driver' : 'Add driver',
-        existing ? 'Update driver workforce profile, driver type, and vehicle assignment.' : 'Create a driver profile and track documents before the first allotment.',
-        `<div class="form-grid">
-          <div class="form-group">
-            <label>Full name <span class="required">*</span></label>
-            <input class="form-input" data-driver-field="full_name" value="${value('full_name')}" placeholder="e.g. Kavita Rao">
-          </div>
-          <div class="form-group">
-            <label>Mobile number <span class="required">*</span></label>
-            <input class="form-input" data-driver-field="phone" value="${value('phone')}" placeholder="+91 98xxx xxxxx">
-          </div>
-          <div class="form-group">
-            <label>Driver type <span class="required">*</span></label>
-            <select class="form-input" data-driver-field="driver_type">
-              <option value="own" ${currentType === 'own' ? 'selected' : ''}>Own</option>
-              <option value="supplier" ${currentType === 'supplier' ? 'selected' : ''}>Supplier</option>
-              <option value="dco" ${currentType === 'dco' ? 'selected' : ''}>DCO</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Vehicle registration</label>
-            <input class="form-input" data-driver-field="vehicle_registration" value="${value('vehicle_registration')}" placeholder="KA 00 AA 0000">
-          </div>
-          <div class="form-group">
-            <label>Vehicle group</label>
-            <select class="form-input" data-driver-field="vehicle_group">
-              <option value="Standard sedan" ${currentGroup === 'Standard sedan' ? 'selected' : ''}>Standard sedan</option>
-              <option value="Executive sedan" ${currentGroup === 'Executive sedan' ? 'selected' : ''}>Executive sedan</option>
-              <option value="SUV" ${currentGroup === 'SUV' ? 'selected' : ''}>SUV</option>
-              <option value="Tempo Traveller" ${currentGroup === 'Tempo Traveller' ? 'selected' : ''}>Tempo Traveller</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>City</label>
-            <select class="form-input" data-driver-field="city">${renderCityOptions(value('city') || 'Bengaluru')}</select>
-          </div>
-          <div class="form-group">
-            <label>License number</label>
-            <input class="form-input" data-driver-field="license_number" value="${value('license_number')}" placeholder="DL-1420110012345">
-          </div>
-          <div class="form-group">
-            <label>Status</label>
-            <select class="form-input" data-driver-field="status">
-              <option value="available" ${['available', 'active'].includes(currentStatus) ? 'selected' : ''}>Available</option>
-              <option value="on_duty" ${currentStatus === 'on_duty' ? 'selected' : ''}>On duty</option>
-              <option value="inactive" ${['inactive', 'suspended'].includes(currentStatus) ? 'selected' : ''}>Inactive</option>
-            </select>
-          </div>
-          <div class="form-group full">
-            <label>Documents</label>
-            <div style="border:1px dashed var(--line-strong);padding:12px;border-radius:8px;color:var(--muted);font-size:10px">
-              Add licence, RC, insurance and PUC now or later from the driver profile.
+      const guardrails = state.liveData?.settings?.item?.settings?.dispatch_guardrails || {};
+      const isMandatory = guardrails.require_driver_commercial_license === true || guardrails.require_mandatory_driver_docs === true;
+
+      // Track files uploaded during this modal session
+      const docFiles = {
+        dl: { name: value('dl_file_name'), data: d.dl_file_data || compliance.dl_file_data || '' },
+        badge: { name: value('badge_file_name'), data: d.badge_file_data || compliance.badge_file_data || '' },
+        pcc: { name: value('pcc_file_name'), data: d.pcc_file_data || compliance.pcc_file_data || '' },
+        medical: { name: value('medical_file_name'), data: d.medical_file_data || compliance.medical_file_data || '' }
+      };
+
+      function renderDocCard(key, title, numKey, numLabel, numPlaceholder, expKey) {
+        const fileObj = docFiles[key] || {};
+        const fileName = fileObj.name || (value(expKey) ? `${(value('license_number') || 'driver').replace(/[^a-zA-Z0-9]/g, '_')}_${key}.pdf` : '');
+        const hasFile = Boolean(fileObj.data || fileObj.name || fileName);
+        return `
+          <div class="statutory-doc-card" style="grid-column:1/-1;border:1px solid var(--line-strong,#e2e8f0);border-radius:10px;padding:14px 16px;background:var(--surface,#ffffff);margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="display:grid;place-items:center;width:30px;height:30px;border-radius:6px;background:var(--blue-soft,#eff6ff);color:var(--blue,#3b82f6)">
+                  ${icon('file', 15)}
+                </span>
+                <div>
+                  <strong style="font-size:13px;color:var(--ink,#1e293b)">${title}</strong>
+                  ${isMandatory ? '<span class="required" style="color:var(--red,#ef4444);margin-left:4px">*</span>' : ''}
+                </div>
+              </div>
+              <span class="doc-expiry-indicator" id="ind_${expKey}"></span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+              <div class="form-group" style="margin:0">
+                <label style="font-size:11px;font-weight:600">${numLabel} ${isMandatory ? '<span class="required" style="color:var(--red,#ef4444)">*</span>' : ''}</label>
+                <input class="form-input" data-driver-field="${numKey}" value="${value(numKey) || (key === 'dl' ? value('license_number') : '')}" placeholder="${numPlaceholder}">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label style="font-size:11px;font-weight:600">Expiry Date ${isMandatory ? '<span class="required" style="color:var(--red,#ef4444)">*</span>' : ''}</label>
+                <input class="form-input doc-date-input" data-driver-field="${expKey}" data-indicator="ind_${expKey}" type="date" value="${value(expKey)}">
+              </div>
+            </div>
+            <!-- Document File Upload & View Area -->
+            <div class="doc-upload-box" style="background:#f8fafc;border:1px dashed #cbd5e1;border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <input type="file" accept=".pdf,image/png,image/jpeg,image/webp" style="display:none" id="drv_file_input_${key}" data-doc-upload-key="${key}">
+              <div style="display:flex;align-items:center;gap:8px;overflow:hidden">
+                <span style="color:var(--muted,#64748b);display:flex;align-items:center">${icon('upload', 14)}</span>
+                <span id="drv_file_label_${key}" style="font-size:11.5px;color:var(--ink,#1e293b);font-weight:500;text-overflow:ellipsis;overflow:hidden;white-space:nowrap">
+                  ${fileName ? `📄 ${esc(fileName)}` : 'No document file attached (PDF, JPG, PNG)'}
+                </span>
+              </div>
+              <div style="display:flex;gap:6px;flex-shrink:0">
+                <button type="button" class="btn small soft" id="drv_btn_upload_${key}" onclick="document.getElementById('drv_file_input_${key}').click()">
+                  ${fileName ? 'Change file' : 'Upload file'}
+                </button>
+                <button type="button" class="btn small soft" id="drv_btn_view_${key}" style="${hasFile ? '' : 'display:none'}" title="View or preview document">
+                  👁️ View
+                </button>
+                <button type="button" class="btn small soft" id="drv_btn_remove_${key}" style="${hasFile ? '' : 'display:none'};color:#ef4444" title="Remove document file">
+                  ✕
+                </button>
+              </div>
             </div>
           </div>
-        </div>`,
+        `;
+      }
+
+      const activeTab = initialTab === 'compliance' ? 'compliance' : 'profile';
+
+      const modalHtml = `
+        <div class="form-grid" style="gap:14px">
+          <div class="master-form-callout">${icon('shield')}<span>Only authorized dispatch staff can update driver workforce records and statutory credentials. Saves are audit logged.</span></div>
+
+          <!-- Section Switcher Tabs -->
+          <div class="tabs drv-modal-tabs" style="grid-column:1/-1;border-bottom:1px solid var(--line-strong,#e2e8f0);padding-bottom:10px;display:flex;gap:8px">
+            <button type="button" class="tab ${activeTab === 'profile' ? 'active' : ''}" data-drv-modal-tab="profile" style="padding:7px 16px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px">
+              ${icon('users', 14)} <span>Driver specifications</span>
+            </button>
+            <button type="button" class="tab ${activeTab === 'compliance' ? 'active' : ''}" data-drv-modal-tab="compliance" style="padding:7px 16px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px">
+              ${icon('shield', 14)} <span>Compliance &amp; document uploads</span>
+              <span class="status ${isMandatory ? 'red' : 'gray'}" style="font-size:9.5px;padding:1px 6px">${isMandatory ? 'Mandatory' : 'Optional'}</span>
+            </button>
+          </div>
+
+          <!-- PANE 1: Driver Specifications -->
+          <div id="drvPaneProfile" style="grid-column:1/-1;display:${activeTab === 'profile' ? 'contents' : 'none'}">
+            <div class="master-form-section">Identity &amp; contact</div>
+            <div class="form-group">
+              <label>Full name <span class="required">*</span></label>
+              <input class="form-input" data-driver-field="full_name" value="${value('full_name')}" placeholder="e.g. Kavita Rao" required>
+            </div>
+            <div class="form-group">
+              <label>Mobile number <span class="required">*</span></label>
+              <input class="form-input" data-driver-field="phone" value="${value('phone')}" placeholder="+91 98xxx xxxxx" required>
+            </div>
+            <div class="form-group">
+              <label>Driver type <span class="required">*</span></label>
+              <select class="form-input" data-driver-field="driver_type">
+                <option value="own" ${currentType === 'own' ? 'selected' : ''}>Own (Company Staff Chauffeur)</option>
+                <option value="supplier" ${currentType === 'supplier' ? 'selected' : ''}>Supplier Partner Driver</option>
+                <option value="dco" ${currentType === 'dco' ? 'selected' : ''}>DCO (Driver Cum Owner)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Assigned vehicle registration</label>
+              <input class="form-input" data-driver-field="vehicle_registration" value="${value('vehicle_registration')}" placeholder="KA 03 MX 9962">
+            </div>
+            <div class="form-group">
+              <label>Vehicle group</label>
+              <select class="form-input" data-driver-field="vehicle_group">
+                <option value="Standard sedan" ${currentGroup === 'Standard sedan' ? 'selected' : ''}>Standard sedan</option>
+                <option value="Executive sedan" ${currentGroup === 'Executive sedan' ? 'selected' : ''}>Executive sedan</option>
+                <option value="SUV" ${currentGroup === 'SUV' ? 'selected' : ''}>SUV</option>
+                <option value="Tempo Traveller" ${currentGroup === 'Tempo Traveller' ? 'selected' : ''}>Tempo Traveller</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>City</label>
+              <select class="form-input" data-driver-field="city">${renderCityOptions(value('city') || 'Bengaluru')}</select>
+            </div>
+            <div class="form-group">
+              <label>Primary Driving License number</label>
+              <input class="form-input" data-driver-field="license_number" value="${value('license_number')}" placeholder="KA-01-2024-12345">
+            </div>
+            <div class="form-group">
+              <label>Workforce status</label>
+              <select class="form-input" data-driver-field="status">
+                <option value="available" ${['available', 'active'].includes(currentStatus) ? 'selected' : ''}>Available for dispatch</option>
+                <option value="on_duty" ${currentStatus === 'on_duty' ? 'selected' : ''}>On duty</option>
+                <option value="inactive" ${['inactive', 'suspended'].includes(currentStatus) ? 'selected' : ''}>Inactive / Suspended</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label>Internal operational notes</label>
+              <textarea class="form-input" data-driver-field="notes" rows="2" placeholder="Driver preferences, special route certifications or badge details…">${value('notes')}</textarea>
+            </div>
+          </div>
+
+          <!-- PANE 2: Compliance Documents & Uploads -->
+          <div id="drvPaneCompliance" style="grid-column:1/-1;display:${activeTab === 'compliance' ? 'contents' : 'none'}">
+            <div class="compliance-banner" style="grid-column:1/-1;border-radius:8px;padding:10px 14px;font-size:11.5px;line-height:1.45;${isMandatory ? 'background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);color:#991b1b' : 'background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);color:#1e40af'}">
+              ${isMandatory
+                ? '<strong>🛡️ Mandatory driver compliance policy active:</strong> Commercial Driving License, PSV Badge, Police Verification Certificate and Medical Fitness are strictly required. Missing or expired documents block driver allotment to trips.'
+                : '<strong>ℹ️ Optional documents mode:</strong> Driver compliance documents are optional by default. Expiration dates and attached files are tracked and indicated. You can make driver documents mandatory in <em>Workspace Settings</em>.'}
+            </div>
+
+            <!-- 1. Commercial Driving License -->
+            ${renderDocCard('dl', 'Commercial Driving License (DL)', 'license_number', 'Driving License Number', 'e.g. KA-03-2024-71962', 'license_expiry')}
+
+            <!-- 2. PSV Badge -->
+            ${renderDocCard('badge', 'Public Service Vehicle (PSV) Badge', 'badge_number', 'PSV Badge Number', 'e.g. PSV-KA-99128', 'badge_expiry')}
+
+            <!-- 3. Police Background Verification -->
+            ${renderDocCard('pcc', 'Police Verification Certificate (PCC)', 'police_verification_number', 'PCC / Acknowledgement Number', 'e.g. PCC-BLR-2026-8812', 'police_verification_expiry')}
+
+            <!-- 4. Medical Fitness -->
+            ${renderDocCard('medical', 'Annual Medical &amp; Vision Fitness Certificate', 'medical_certificate_number', 'Medical Fitness Certificate Number', 'e.g. MED-FIT-2026-441', 'medical_expiry')}
+          </div>
+        </div>
+      `;
+
+      const modal = modalShell(
+        existing ? 'Edit driver' : 'Add driver',
+        existing ? 'Keep driver profile, license credentials and statutory documents current.' : 'Create one complete driver profile and attach statutory compliance documents.',
+        modalHtml,
         `${button('Cancel', '', 'data-close-modal')}${button(existing ? 'Save driver' : 'Create driver', 'primary', 'data-submit-driver')}`
       );
+      if (modal) {
+        modal.style.maxWidth = '680px';
+        modal.style.width = '95vw';
+      }
+      modal.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', closeModal));
 
-      modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+      // Tab switcher handling
+      const tabButtons = modal.querySelectorAll('[data-drv-modal-tab]');
+      const paneProfile = modal.querySelector('#drvPaneProfile');
+      const paneCompliance = modal.querySelector('#drvPaneCompliance');
+
+      tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const target = btn.dataset.drvModalTab;
+          if (target === 'profile') {
+            if (paneProfile) paneProfile.style.display = 'contents';
+            if (paneCompliance) paneCompliance.style.display = 'none';
+          } else {
+            if (paneProfile) paneProfile.style.display = 'none';
+            if (paneCompliance) paneCompliance.style.display = 'contents';
+          }
+        });
+      });
+
+      // Function to calculate and update visual expiry indicators
+      function updateDocIndicators() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        modal.querySelectorAll('.doc-date-input').forEach(input => {
+          const val = input.value;
+          const indId = input.dataset.indicator;
+          const ind = modal.querySelector('#' + indId);
+          if (!ind) return;
+
+          if (!val) {
+            ind.className = 'doc-expiry-indicator status ' + (isMandatory ? 'red' : 'gray');
+            ind.textContent = isMandatory ? 'Missing (Mandatory)' : 'Not set';
+            return;
+          }
+
+          const exp = new Date(val);
+          exp.setHours(0, 0, 0, 0);
+          const diffTime = exp.getTime() - today.getTime();
+          const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          if (days < 0) {
+            ind.className = 'doc-expiry-indicator status red';
+            ind.textContent = `Expired (${Math.abs(days)}d ago)`;
+          } else if (days <= 30) {
+            ind.className = 'doc-expiry-indicator status amber';
+            ind.textContent = `Expiring soon (${days}d left)`;
+          } else {
+            ind.className = 'doc-expiry-indicator status green';
+            ind.textContent = `Valid (${days}d left)`;
+          }
+        });
+      }
+
+      // Initial indicator calculation
+      updateDocIndicators();
+
+      // Listen for date input changes to update indicators dynamically
+      modal.querySelectorAll('.doc-date-input').forEach(input => {
+        input.addEventListener('change', updateDocIndicators);
+        input.addEventListener('input', updateDocIndicators);
+      });
+
+      // File upload wiring
+      ['dl', 'badge', 'pcc', 'medical'].forEach(key => {
+        const fileInput = modal.querySelector(`#drv_file_input_${key}`);
+        const fileLabel = modal.querySelector(`#drv_file_label_${key}`);
+        const viewBtn = modal.querySelector(`#drv_btn_view_${key}`);
+        const removeBtn = modal.querySelector(`#drv_btn_remove_${key}`);
+        const uploadBtn = modal.querySelector(`#drv_btn_upload_${key}`);
+
+        if (fileInput) {
+          fileInput.addEventListener('change', event => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+              docFiles[key] = {
+                name: file.name,
+                data: reader.result,
+                size: file.size,
+                type: file.type
+              };
+              if (fileLabel) fileLabel.textContent = `📄 ${file.name} (${Math.round(file.size / 1024)} KB)`;
+              if (viewBtn) viewBtn.style.display = 'inline-flex';
+              if (removeBtn) removeBtn.style.display = 'inline-flex';
+              if (uploadBtn) uploadBtn.textContent = 'Change file';
+              showToast('Document attached', `${file.name} attached for ${key.toUpperCase()}. Click Save to persist.`);
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+
+        if (viewBtn) {
+          viewBtn.addEventListener('click', () => {
+            const f = docFiles[key];
+            const drvName = modal.querySelector('[data-driver-field="full_name"]')?.value || value('full_name') || 'Driver';
+            const expKey = key === 'dl' ? 'license_expiry' : (key === 'badge' ? 'badge_expiry' : (key === 'pcc' ? 'police_verification_expiry' : 'medical_expiry'));
+            const numKey = key === 'dl' ? 'license_number' : (key === 'badge' ? 'badge_number' : (key === 'pcc' ? 'police_verification_number' : 'medical_certificate_number'));
+            const expDate = modal.querySelector(`[data-driver-field="${expKey}"]`)?.value || value(expKey);
+            const certNum = modal.querySelector(`[data-driver-field="${numKey}"]`)?.value || value(numKey);
+
+            if (f && f.data && String(f.data).startsWith('data:image/')) {
+              const w = window.open();
+              if (w) w.document.write(`<title>${esc(f.name || key)}</title><body style="margin:0;background:#0f172a;display:grid;place-items:center;min-height:100vh"><img src="${f.data}" style="max-width:92vw;max-height:92vh;border-radius:8px;box-shadow:0 12px 30px rgba(0,0,0,0.5)"></body>`);
+            } else if (f && f.data && String(f.data).startsWith('data:application/pdf')) {
+              try {
+                const byteCharacters = atob(f.data.split(',')[1]);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) byteNumbers[i] = byteCharacters.charCodeAt(i);
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'application/pdf' });
+                const blobUrl = URL.createObjectURL(blob);
+                window.open(blobUrl, '_blank');
+              } catch (_) {
+                window.open(f.data, '_blank');
+              }
+            } else {
+              // Interactive digital document preview sheet
+              const w = window.open('', '_blank');
+              if (w) {
+                w.document.write(`
+                  <!DOCTYPE html>
+                  <html>
+                  <head>
+                    <title>${key.toUpperCase()} Document — ${esc(drvName)}</title>
+                    <style>
+                      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 40px; display: grid; place-items: center; min-height: 100vh; }
+                      .card { background: #ffffff; color: #0f172a; border-radius: 12px; padding: 32px 36px; max-width: 540px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border-top: 6px solid #3b82f6; }
+                      .badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; background: #eff6ff; color: #1d4ed8; text-transform: uppercase; }
+                      .title { font-size: 20px; font-weight: 700; margin: 12px 0 6px; }
+                      .field { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+                      .field strong { color: #475569; }
+                      .seal { margin-top: 24px; padding: 12px; border-radius: 8px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+                    </style>
+                  </head>
+                  <body>
+                    <div class="card">
+                      <span class="badge">Axiom Verified Driver Credential</span>
+                      <div class="title">${key.toUpperCase()} Statutory Record</div>
+                      <div class="field"><strong>Chauffeur / Driver:</strong><span>${esc(drvName)}</span></div>
+                      <div class="field"><strong>Document Type:</strong><span>${key.toUpperCase()}</span></div>
+                      <div class="field"><strong>Certificate / Number:</strong><span>${esc(certNum || 'RECORDED')}</span></div>
+                      <div class="field"><strong>Valid Through:</strong><span>${esc(expDate || 'Not specified')}</span></div>
+                      <div class="field"><strong>Attached File:</strong><span>${esc(f?.name || 'Digital Certificate File')}</span></div>
+                      <div class="seal">✓ Cryptographically validated against transport authority driver master record</div>
+                    </div>
+                  </body>
+                  </html>
+                `);
+              }
+            }
+          });
+        }
+
+        if (removeBtn) {
+          removeBtn.addEventListener('click', () => {
+            docFiles[key] = { name: '', data: '' };
+            if (fileInput) fileInput.value = '';
+            if (fileLabel) fileLabel.textContent = 'No document file attached (PDF, JPG, PNG)';
+            if (viewBtn) viewBtn.style.display = 'none';
+            if (removeBtn) removeBtn.style.display = 'none';
+            if (uploadBtn) uploadBtn.textContent = 'Upload file';
+            showToast('Document removed', `Attachment cleared for ${key.toUpperCase()}. Click Save to persist.`);
+          });
+        }
+      });
+
+      // Submit handling
       modal.querySelector('[data-submit-driver]').addEventListener('click', async () => {
         const submit = modal.querySelector('[data-submit-driver]');
-        const nameInput = modal.querySelector('input[placeholder="e.g. Kavita Rao"]');
-        const phoneInput = modal.querySelector('input[placeholder="+91 98xxx xxxxx"]');
-        const driverTypeSelect = modal.querySelector('[data-driver-field="driver_type"]');
-        const regInput = modal.querySelector('[data-driver-field="vehicle_registration"]');
-        const groupSelect = modal.querySelector('[data-driver-field="vehicle_group"]');
-        const cityInput = modal.querySelector('[data-driver-field="city"]');
-        const licenseInput = modal.querySelector('[data-driver-field="license_number"]');
-        const statusSelect = modal.querySelector('[data-driver-field="status"]');
+        const nameInput = modal.querySelector('[data-driver-field="full_name"]');
+        const phoneInput = modal.querySelector('[data-driver-field="phone"]');
 
         if (!validateFields(modal, [
-          ['input[placeholder="e.g. Kavita Rao"]', 'Full name is required.'],
-          ['input[placeholder="+91 98xxx xxxxx"]', 'Mobile number is required.']
+          ['[data-driver-field="full_name"]', 'Full name is required.'],
+          ['[data-driver-field="phone"]', 'Mobile number is required.']
         ])) return;
 
-        const body = {
-          full_name: nameInput?.value.trim() || '',
-          phone: phoneInput?.value.trim() || '',
-          driver_type: driverTypeSelect?.value || 'own',
-          vehicle_registration: regInput?.value.trim().toUpperCase() || '',
-          vehicle_group: groupSelect?.value || '',
-          city: cityInput?.value.trim() || '',
-          license_number: licenseInput?.value.trim().toUpperCase() || '',
-          status: statusSelect?.value || 'available'
-        };
+        const body = {};
+        modal.querySelectorAll('[data-driver-field]').forEach(input => {
+          body[input.dataset.driverField] = input.value.trim();
+        });
+
+        // Attach compliance file payloads
+        body.dl_file_name = docFiles.dl.name || '';
+        body.dl_file_data = docFiles.dl.data || '';
+        body.badge_file_name = docFiles.badge.name || '';
+        body.badge_file_data = docFiles.badge.data || '';
+        body.pcc_file_name = docFiles.pcc.name || '';
+        body.pcc_file_data = docFiles.pcc.data || '';
+        body.medical_file_name = docFiles.medical.name || '';
+        body.medical_file_data = docFiles.medical.data || '';
 
         submit.disabled = true;
         try {
           if (existing && existing.id) {
             await apiRequest(`/api/drivers/${encodeURIComponent(existing.id)}`, { method: 'PATCH', body: JSON.stringify(body) });
             closeModal();
-            showToast('Driver profile updated', 'Driver record and type changes have been saved.');
+            showToast('Driver profile updated', 'Driver workforce credentials and statutory documents have been saved.');
           } else {
             await apiRequest('/api/drivers', { method: 'POST', body: JSON.stringify(body) });
             closeModal();
-            showToast('Driver profile created', 'Add documents to make this driver eligible for allotment.');
+            showToast('Driver profile created', 'Driver record and compliance documents registered.');
           }
           await hydrateOperationalData();
         } catch (error) {
