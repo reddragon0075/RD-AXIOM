@@ -1095,6 +1095,7 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             duty = conn.execute("SELECT * FROM domain_duties WHERE id = ?", (duty_id,)).fetchone()
             if not duty:
                 raise APIError(404, f"Duty {duty_id} not found", "not_found")
+            duty_dict = dict(duty)
 
             # Check if duty is already invoiced / billed
             inv_row = conn.execute(
@@ -1103,12 +1104,12 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             ).fetchone()
             is_locked = bool(
                 inv_row
-                or duty.get("invoice_id")
-                or str(duty.get("invoice_status") or "").upper() in ("BILLED", "INVOICED")
-                or str(duty.get("status") or "").lower() in ("billed", "invoiced")
+                or duty_dict.get("invoice_id")
+                or str(duty_dict.get("invoice_status") or "").upper() in ("BILLED", "INVOICED")
+                or str(duty_dict.get("status") or "").lower() in ("billed", "invoiced")
             )
             if is_locked:
-                inv_no = inv_row["invoice_number"] if inv_row and inv_row["invoice_number"] else (duty.get("invoice_id") or "BILLED")
+                inv_no = inv_row["invoice_number"] if inv_row and inv_row["invoice_number"] else (duty_dict.get("invoice_id") or "BILLED")
                 raise APIError(403, f"Duty {duty_id} is already invoiced ({inv_no}). Details are locked for audit compliance and cannot be edited from driver app.", "duty_invoiced_locked")
             
             now_str = utc_now()
