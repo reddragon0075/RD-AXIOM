@@ -1273,6 +1273,10 @@ def _create_duty(conn, user, payload, ip):
                 if doc_field in vehicle.keys() and vehicle[doc_field]:
                     if str(vehicle[doc_field])[:10] < today_str:
                         raise DomainError(422, f"Cannot dispatch vehicle {vehicle_id}: Statutory {doc_field.replace('_expiry', '').upper()} expired on {vehicle[doc_field]}", "vehicle_compliance_document_expired")
+        else:
+            if "insurance_expiry" in vehicle.keys() and vehicle["insurance_expiry"]:
+                if str(vehicle["insurance_expiry"])[:10] < today_str:
+                    raise DomainError(422, f"Cannot dispatch vehicle {vehicle_id}: Commercial insurance expired on {vehicle['insurance_expiry']}", "vehicle_compliance_insurance_expired")
         active_veh_duty = conn.execute(
             "SELECT id FROM domain_duties WHERE organization_id = ? AND vehicle_id = ? AND status IN ('assigned', 'accepted', 'en_route', 'arrived', 'started', 'active')",
             (org, vehicle_id),

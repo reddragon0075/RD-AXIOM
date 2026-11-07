@@ -51,6 +51,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 MVP_DIR = BASE_DIR / "fleetline-mvp"
 for p in (BASE_DIR, MVP_DIR):
@@ -254,11 +257,10 @@ def run_integration_test():
         now_str = dt.datetime.now(dt.timezone.utc).isoformat()
         conn.execute("""
             INSERT OR REPLACE INTO domain_bookings (
-                id, trip_id, booking_reference, organization_id, customer_id, passenger_name, passenger_phone,
+                id, booking_reference, organization_id, customer_id, passenger_name, passenger_phone,
                 pickup_json, dropoff_json, scheduled_at, status, duty_type, vehicle_group_code, notes, created_at, updated_at
-            ) VALUES (?, ?, ?, 'org_falcon_fleet', 'cust_zenith_enterprise', ?, ?, ?, ?, ?, 'pending_approval', 'AIRPORT_TRANSFER', 'SEDAN', ?, ?, ?)
+            ) VALUES (?, ?, 'org_falcon_fleet', 'cust_zenith_enterprise', ?, ?, ?, ?, ?, 'pending_approval', 'AIRPORT_TRANSFER', 'SEDAN', ?, ?, ?)
         """, (
-            trip_id,
             trip_id,
             trip_id,
             booking_req_payload["passenger_name"],

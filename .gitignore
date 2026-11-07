@@ -28,3 +28,6 @@ temp_*/
 Axiom_Corporate/
 brag-output/
 uploads/
+
+.idea/
+**/.idea/

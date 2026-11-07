@@ -120,7 +120,7 @@ def audit_html_static_assets():
                 if src.startswith("http://") or src.startswith("https://") or src.startswith("//") or src.startswith("data:") or "${" in src:
                     continue
                 # Local path
-                clean_src = src.lstrip("/")
+                clean_src = src.split("?")[0].lstrip("/")
                 resolved = (f.parent / clean_src).resolve()
                 alt_resolved = (MVP_ROOT / clean_src).resolve()
                 alt2_resolved = (ROOT / clean_src).resolve()
@@ -131,7 +131,7 @@ def audit_html_static_assets():
             for href in re.findall(r"""<link[^>]+href=['"]([^'"]+)['"]""", content):
                 if href.startswith("http://") or href.startswith("https://") or href.startswith("//") or "manifest" in href or "${" in href:
                     continue
-                clean_href = href.lstrip("/")
+                clean_href = href.split("?")[0].lstrip("/")
                 resolved = (f.parent / clean_href).resolve()
                 alt_resolved = (MVP_ROOT / clean_href).resolve()
                 alt2_resolved = (ROOT / clean_href).resolve()
@@ -142,7 +142,7 @@ def audit_html_static_assets():
             for img in re.findall(r"""<img[^>]+src=['"]([^'"]+)['"]""", content):
                 if img.startswith("http://") or img.startswith("https://") or img.startswith("data:") or "${" in img:
                     continue
-                clean_img = img.lstrip("/")
+                clean_img = img.split("?")[0].lstrip("/")
                 resolved = (f.parent / clean_img).resolve()
                 alt_resolved = (MVP_ROOT / clean_img).resolve()
                 alt2_resolved = (ROOT / clean_img).resolve()
