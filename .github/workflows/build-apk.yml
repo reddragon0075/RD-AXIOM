@@ -12,6 +12,7 @@ on:
       - main
     paths:
       - 'driver-app/**'
+      - 'fleetline-mvp/driver-app/**'
       - '.github/workflows/build-apk.yml'
 
 permissions:
@@ -134,11 +135,10 @@ jobs:
           retention-days: 30
 
       - name: Publish to GitHub Releases
-        if: github.event.inputs.release_tag != ''
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.release_tag }}
-          name: Axiom Driver App ${{ github.event.inputs.release_tag }}
+          tag_name: ${{ github.event.inputs.release_tag || 'v1.0.0-driver' }}
+          name: Axiom Driver App ${{ github.event.inputs.release_tag || 'v1.0.0-driver' }}
           body: |
             ### 🚗 Axiom Fleet Driver Android APK
             
@@ -146,11 +146,12 @@ jobs:
             
             - **App:** Axiom Driver
             - **Package:** `com.axiom.driver`
-            - **Version:** ${{ github.event.inputs.release_tag }}
+            - **Release Tag:** ${{ github.event.inputs.release_tag || 'v1.0.0-driver' }}
             - **Features:**
               - Modern Uber-style Cockpit with Plus Jakarta Sans typography
               - Offline-first state persistence & digital duty slip closing
               - G2G 4-point odometer audit
+              - Passenger Start OTP verification guardrail
               - Camera receipt capture for tolls and parking
               - Option 2 Standby Radar & Next Scheduled Roster promotion
               - Embedded Leaflet & OpenStreetMap transport navigation

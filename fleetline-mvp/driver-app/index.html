@@ -1191,6 +1191,11 @@
 
       <div style="text-align:center; font-size:10px; color:#788f93;">
         Axiom Fleet · India Commercial Data Plane · 24/7 Road Assistance
+        <div style="margin-top:8px;">
+          <button type="button" id="btn-server-config" style="background:none; border:none; color:var(--accent); font-size:10px; cursor:pointer; text-decoration:underline;">
+            ⚙️ Server: <span id="current-server-display"></span>
+          </button>
+        </div>
       </div>
     </section>
 
@@ -1628,6 +1633,14 @@
   <text x="170" y="390" font-size="9" font-weight="800" text-anchor="middle" fill="#142126">★★★ RETAIN FOR SETTLEMENT ★★★</text>
 </svg>`);
 
+        function apiUrl(path) {
+      let base = localStorage.getItem('axiom_server_url') || '';
+      if (!base && (window.location.protocol === 'capacitor:' || (window.location.protocol === 'http:' && !window.location.port && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')))) {
+        base = 'http://192.168.29.236:4173';
+      }
+      return base ? `${base.replace(/\/+$/, '')}${path}` : path;
+    }
+
     const userKey = 'axiomfleet_driver_user';
 
     // State
@@ -1889,7 +1902,7 @@
           status: isAvailable ? 'available' : 'offline',
           phone: state.user?.phone || '+919845011234'
         };
-        await fetch('/api/mobile/driver/availability', {
+        await fetch(apiUrl('/api/mobile/driver/availability'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -2580,13 +2593,13 @@
       if (state.online) {
         try {
           const syncUrl = `/api/mobile/driver/duty/${encodeURIComponent(state.duty.id)}/status`;
-          let res = await fetch(syncUrl, {
+          let res = await fetch(apiUrl(syncUrl), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus, sync_origin: 'mobile_driver', idempotency_key: operation.idempotency_key, ...extraPayload })
           });
           if (!res.ok) {
-            await fetch(`/api/duties/${encodeURIComponent(state.duty.id)}`, {
+            await fetch(apiUrl(`/api/duties/${encodeURIComponent(state.duty.id)}`), {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ status: newStatus, idempotency_key: operation.idempotency_key, ...extraPayload })
@@ -3103,7 +3116,7 @@
         // 4. If online, sync to server
         if (state.online) {
           try {
-            await fetch(`/api/duties/${encodeURIComponent(dutyId)}/expenses`, {
+            await fetch(apiUrl(`/api/duties/${encodeURIComponent(dutyId)}/expenses`), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(operation.payload)
@@ -3231,7 +3244,7 @@
 
       // 1. Look up driver via live backend API
       try {
-        const loginRes = await fetch('/api/mobile/driver/login', {
+        const loginRes = await fetch(apiUrl('/api/mobile/driver/login'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone, otp })
@@ -3247,7 +3260,7 @@
 
       // 2. Fetch assigned duty for this driver from API
       try {
-        const dutyRes = await fetch(`/api/mobile/driver/duty?phone=${encodeURIComponent(phone)}&driver_id=${encodeURIComponent(driverId)}`);
+        const dutyRes = await fetch(apiUrl(`/api/mobile/driver/duty?phone=${encodeURIComponent(phone)}&driver_id=${encodeURIComponent(driverId)}`));
         if (dutyRes.ok) {
           const dutyData = await dutyRes.json();
           if (dutyData.has_duty && dutyData.duty) {
@@ -3303,7 +3316,7 @@
       if (!activeDuty && state.user && state.user.phone) {
         try {
           const cleanPhone = state.user.phone.replace(/\D/g, '');
-          const dutyRes = await fetch(`/api/mobile/driver/duty?phone=${encodeURIComponent(cleanPhone)}&driver_id=${encodeURIComponent(state.user.id || '')}`);
+          const dutyRes = await fetch(apiUrl(`/api/mobile/driver/duty?phone=${encodeURIComponent(cleanPhone)}&driver_id=${encodeURIComponent(state.user.id || '')}`));
           if (dutyRes.ok) {
             const dutyData = await dutyRes.json();
             if (dutyData.has_duty && dutyData.duty) {

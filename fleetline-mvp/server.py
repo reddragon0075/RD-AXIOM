@@ -895,8 +895,9 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
         self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=(self)")
-        self.send_header("Cross-Origin-Resource-Policy", "same-origin")
-        self.send_header("Content-Security-Policy", "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co https://*.supabase.in; worker-src 'self' blob:")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Request-ID, X-Axiom-Role, X-Axiom-Persona")
         if secure_cookie_enabled():
             self.send_header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
         req_id = getattr(self, "request_id", None) or self.headers.get("X-Request-ID") or new_id("req")
@@ -2240,12 +2241,12 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             self.send_error(405, "Method Not Allowed")
 
     def do_OPTIONS(self) -> None:  # noqa: N802 - stdlib handler API
-        if self._is_api():
-            self._handle_api("OPTIONS")
-        else:
-            self.send_response(204)
-            self.send_header("Content-Length", "0")
-            self.end_headers()
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Request-ID, X-Axiom-Role, X-Axiom-Persona")
+        self.send_header("Content-Length", "0")
+        self.end_headers()
 
 
 class AxiomFleetHTTPServer(ThreadingHTTPServer):
