@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  zeroauthy:
+    image: ghcr.io/occupysaas/zeroauthy:latest
+    container_name: axiom-zeroauthy
+    restart: unless-stopped
+    ports:
+      - "8443:8443"
+    environment:
+      - ZEROAUTHY_SERVER__LISTEN=:8443
+      - ZEROAUTHY_SERVER__SYSTEM_HOST=system.localhost:8443
+      - ZEROAUTHY_SERVER__TLS_SELF_SIGNED=true
+      - ZEROAUTHY_SECURITY__MASTER_KEY=k8Jv29wNmQrPxZ41sT7uYeDaBcEfGhIjKlMnOpQrStU=
+      - ZEROAUTHY_BOOTSTRAP__ADMIN_EMAIL=admin@axiomfleet.com
+    volumes:
+      - zeroauthy-data:/data
+
+volumes:
+  zeroauthy-data:
