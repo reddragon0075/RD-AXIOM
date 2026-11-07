@@ -17286,7 +17286,14 @@
         const amount = snapshot.total_paise ? formatAmount(Number(snapshot.total_paise) / 100) : '—';
         const time = d.reporting_at ? formatTime(d.reporting_at) : (booking.scheduled_at ? formatTime(booking.scheduled_at) : '—');
         const driverName = driver.full_name || (d.driver_id ? d.driver_id : 'Unallotted');
-        return { id: d.id, booking_id: d.booking_id, time, type: booking.duty_type || d.duty_type || 'Duty', customer: customer.name || booking.customer_name || 'Connected customer', passenger: booking.passenger_name || '—', route: `${booking.pickup?.label || 'Pickup'} → ${booking.dropoff?.label || 'Drop'}`, resource: driverName, vehicle: vehicle.registration_number || (d.vehicle_id ? d.vehicle_id : '—'), initials: driver.full_name ? driver.full_name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() : '', status: liveStatus(d.status), tone: liveTone(d.status), amount, city: booking.pickup?.label || driver.city || 'Live domain' };
+        const seedOtp = (function() {
+          const s = String(d.id || d.booking_id || '4821');
+          let h = 0;
+          for (let i = 0; i < s.length; i++) h = ((h << 5) - h) + s.charCodeAt(i);
+          return String(1000 + (Math.abs(h) % 9000));
+        })();
+        const startOtp = d.start_otp || booking.start_otp || seedOtp;
+        return { id: d.id, booking_id: d.booking_id, time, type: booking.duty_type || d.duty_type || 'Duty', customer: customer.name || booking.customer_name || 'Connected customer', passenger: booking.passenger_name || '—', route: `${booking.pickup?.label || 'Pickup'} → ${booking.dropoff?.label || 'Drop'}`, resource: driverName, vehicle: vehicle.registration_number || (d.vehicle_id ? d.vehicle_id : '—'), initials: driver.full_name ? driver.full_name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() : '', status: liveStatus(d.status), tone: liveTone(d.status), amount, city: booking.pickup?.label || driver.city || 'Live domain', start_otp: startOtp, otp_verified: Boolean(d.otp_verified) };
       });
     }
     function bookingRowsForDisplay() {
@@ -21151,7 +21158,7 @@
       const list = allRows.filter(row => (!query || [row.id, row.customer, row.passenger, row.route, row.resource, row.vehicle].join(' ').toLowerCase().includes(query)) && (filter === 'All duties' || (filter === 'Needs attention' ? row.status === 'Unallotted' : row.status === filter)));
       const resultLabel = `${list.length} result${list.length === 1 ? '' : 's'}`;
       const tabs = ['All duties', 'Needs attention', 'Dispatched', 'In progress', 'Completed'];
-      const rows = list.map(row => `<tr class="clickable-duty-row" data-duty-row-id="${esc(row.id)}" style="cursor:pointer" title="Click to open trip details for ${esc(row.id)}"><td><input class="checkbox duty-check" type="checkbox" value="${esc(row.id)}" ${state.selectedDuties.has(row.id) ? 'checked' : ''} aria-label="Select ${esc(row.id)}"></td><td><span class="primary">${esc(row.id)}</span><span class="secondary">${esc(row.time)} · ${esc(row.type)}</span></td><td><span class="primary">${esc(row.customer)}</span><span class="secondary route">${esc(row.route)}</span></td><td><span class="primary">${esc(row.resource)}</span><span class="secondary">${esc(row.vehicle)}</span></td><td>${status(row.status, row.tone)}</td><td>${esc(row.amount)}</td><td><button class="btn small icon" data-open-duty="${esc(row.id)}" aria-label="Open ${esc(row.id)}">${icon('eye')}</button></td></tr>`).join('');
+      const rows = list.map(row => `<tr class="clickable-duty-row" data-duty-row-id="${esc(row.id)}" style="cursor:pointer" title="Click to open trip details for ${esc(row.id)}"><td><input class="checkbox duty-check" type="checkbox" value="${esc(row.id)}" ${state.selectedDuties.has(row.id) ? 'checked' : ''} aria-label="Select ${esc(row.id)}"></td><td><span class="primary">${esc(row.id)}</span><span class="secondary">${esc(row.time)} · ${esc(row.type)}</span><div style="margin-top:2px"><span style="font-size:10.5px;font-family:monospace;font-weight:800;color:#1d4ed8;background:#eff6ff;padding:1px 6px;border-radius:4px;border:1px solid #bfdbfe" title="Passenger Ride Start OTP">OTP: ${esc(row.start_otp || '4821')}</span></div></td><td><span class="primary">${esc(row.customer)}</span><span class="secondary route">${esc(row.route)}</span></td><td><span class="primary">${esc(row.resource)}</span><span class="secondary">${esc(row.vehicle)}</span></td><td>${status(row.status, row.tone)}</td><td>${esc(row.amount)}</td><td><button class="btn small icon" data-open-duty="${esc(row.id)}" aria-label="Open ${esc(row.id)}">${icon('eye')}</button></td></tr>`).join('');
       return `${pageHead('Operations · Today', 'Duties board', 'Every booking, allotment and live duty in one tenant-scoped operating view.', `${button('⚡ Fare Simulator', 'soft', 'data-action="fare-simulator"')}${button(icon('upload') + 'Import', '', 'data-action="import"')}${button(icon('plus') + 'New booking', 'primary', 'data-action="new-booking"')}`)}<section class="card section-card"><div class="panel-toolbar"><div class="tabs">${tabs.map(tab => `<button class="tab ${filter === tab ? 'active' : ''}" data-duty-tab="${esc(tab)}">${tab}</button>`).join('')}</div><div class="toolbar-spacer"></div><label class="global-search" style="height:32px;max-width:220px;flex:none"><span>${icon('search')}</span><input id="dutyQuery" placeholder="Search duties…" value="${esc(state.dutyQuery || '')}"></label><span class="status blue">${resultLabel}</span></div>${state.selectedDuties.size ? `<div style="display:flex;align-items:center;gap:8px;padding:9px 16px;background:#f4f7ff;border-bottom:1px solid #e0e9fc"><span class="status blue">${state.selectedDuties.size} selected</span>${button(icon('car') + 'Assign driver', 'small soft', 'data-action="bulk-allot"')}${button(icon('archive') + 'Archive', 'small danger', 'data-action="bulk-duty-archive"')}${button('Clear', 'small', 'data-action="clear-selection"')}</div>` : ''}<div class="table-wrap"><table><thead><tr><th></th><th>Duty</th><th>Customer &amp; route</th><th>Resource</th><th>Status</th><th>Value</th><th></th></tr></thead><tbody>${rows || tenantTableEmpty('No duties match this view', 'Try a different filter or clear the search query.', button(icon('plus') + 'Create a booking', 'small soft', 'data-action="new-booking"'))}</tbody></table></div></section>`;
     }
 
@@ -26337,6 +26344,9 @@
                 ${toggle('require_driver_police_verification', 'Require police background verification certificate', 'Enforce active police verification certificate (PCC) on driver roster')}
                 ${toggle('require_driver_medical_fitness', 'Require annual medical &amp; vision fitness certificate', 'Audit driver annual medical clearance record before allotment')}
 
+                <div class="master-form-section" style="margin-top:20px">Ride verification &amp; passenger safety</div>
+                ${toggle('require_trip_start_otp', 'Require passenger OTP to start trip', 'Driver must enter passenger 4-digit ride OTP before starting the trip. Disabling allows 1-tap start.')}
+
                 <div class="master-form-section" style="margin-top:20px">Trip closure &amp; evidentiary audit</div>
                 ${toggle('require_odometer_photos', 'Mandatory G2G start &amp; close odometer photos', 'Chauffeur must upload clear cluster gauge odometer photos at garage start &amp; close')}
                 ${toggle('require_duty_slip_otp', 'Require passenger digital duty slip OTP', 'Duty closure requires 4-digit passenger mobile OTP confirmation')}
@@ -29867,6 +29877,15 @@
       const driverList = state.liveData?.drivers?.items || [];
       const vehicleList = state.liveData?.vehicles?.items || [];
 
+      // Start OTP resolution & status
+      const startOtp = duty.start_otp || item.start_otp || (function() {
+        const seed = String(duty.id || item.id || tripId || '4821');
+        let h = 0;
+        for (let i = 0; i < seed.length; i++) h = ((h << 5) - h) + seed.charCodeAt(i);
+        return String(1000 + (Math.abs(h) % 9000));
+      })();
+      const otpVerified = duty.otp_verified === 1 || duty.otp_verified === true || ['started', 'on_trip', 'in_progress', 'completed', 'billed'].includes(rawStatus.toLowerCase());
+
       // Stepper status logic
       const step1Done = true;
       const step2Done = hasDriver && hasVehicle;
@@ -29898,6 +29917,28 @@
             <div>
               <span style="display:inline-block;background:${statusBg};color:${statusColor};border:1px solid ${statusColor}40;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;letter-spacing:0.3px">
                 ● ${esc(statusText.toUpperCase())}
+              </span>
+            </div>
+          </div>
+
+          <!-- RIDE START OTP CARD (Vendor & Passenger Verification) -->
+          <div style="background:#eff6ff;border:1.5px dashed #3b82f6;border-radius:10px;padding:12px 18px;margin-bottom:16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:40px;height:40px;border-radius:8px;background:#dbeafe;color:#1d4ed8;display:grid;place-items:center;font-size:20px;font-weight:900">
+                🔑
+              </div>
+              <div>
+                <div style="font-size:11px;font-weight:800;color:#1e40af;text-transform:uppercase;letter-spacing:0.5px">Ride Start Verification OTP</div>
+                <div style="font-size:12px;color:#475569;margin-top:2px">Required by chauffeur at pickup to start trip &bull; Visible to dispatcher &amp; passenger</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="background:#ffffff;border:1.5px solid #93c5fd;padding:6px 14px;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,0.05);display:flex;align-items:center;gap:8px">
+                <span style="font-size:22px;font-weight:900;letter-spacing:4px;color:#1e3a8a;font-family:monospace">${esc(startOtp)}</span>
+                <button type="button" class="btn-copy-trip-id" data-copy-val="${esc(startOtp)}" title="Copy OTP" style="background:none;border:none;color:#2563eb;cursor:pointer;padding:2px 4px;font-size:13px;border-radius:4px">📋</button>
+              </div>
+              <span class="badge ${otpVerified ? 'success' : 'amber'}" style="font-size:11px;padding:5px 10px;font-weight:750;border-radius:6px">
+                ${otpVerified ? '✓ OTP Verified' : '⏳ Awaiting Start'}
               </span>
             </div>
           </div>
@@ -30782,6 +30823,13 @@
               <label>Chauffeur / Driver</label>
               <strong>${esc(driverName)}</strong>
               <span>Status: On Duty</span>
+            </div>
+            <div class="duty-slip-box" style="border:1.5px dashed #3b82f6;background:#eff6ff">
+              <label style="color:#1e40af;font-weight:700">Passenger Start OTP</label>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px">
+                <strong style="font-size:16px;font-family:monospace;letter-spacing:3px;color:#1e3a8a">${esc(duty.start_otp || item.start_otp || '4821')}</strong>
+                <span class="badge ${duty.otp_verified ? 'success' : 'amber'}" style="font-size:9.5px;padding:2px 6px">${duty.otp_verified ? '● Verified' : '⏳ Awaiting Start'}</span>
+              </div>
             </div>
           </div>
           <table class="duty-slip-table">

@@ -43,7 +43,7 @@ ACTION_TYPES = {
 
 
 def _add_columns(conn, table: str, columns: dict[str, str]) -> None:
-    existing = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+    existing = {row["name"] if hasattr(row, "keys") else row[1] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
     for name, definition in columns.items():
         if name not in existing:
             conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
@@ -79,6 +79,7 @@ def initialize_booking_parity_schema(conn) -> None:
         "driver_name": "TEXT",
         "vehicle_number": "TEXT",
         "supplier_name": "TEXT",
+        "start_otp": "TEXT",
     })
     _add_columns(conn, "domain_duties", {
         "arrival_at": "TEXT",
@@ -86,6 +87,9 @@ def initialize_booking_parity_schema(conn) -> None:
         "supplier_id": "TEXT",
         "allotment_mode": "TEXT NOT NULL DEFAULT 'owned'",
         "dispatch_id": "TEXT",
+        "start_otp": "TEXT",
+        "otp_verified": "INTEGER NOT NULL DEFAULT 0",
+        "otp_verified_at": "TEXT",
     })
     _add_columns(conn, "domain_invoices", {
         "fuel_surcharge_paise": "INTEGER NOT NULL DEFAULT 0",
@@ -305,6 +309,17 @@ def initialize_booking_parity_schema(conn) -> None:
     _add_columns(conn, "domain_booking_dispatches", {
         "network_vendor_profile_id": "TEXT",
     })
+    # Ensure start_otp is populated on existing duties and bookings
+    conn.execute("""
+        UPDATE domain_duties
+        SET start_otp = printf('%04d', (abs(random()) % 9000) + 1000)
+        WHERE start_otp IS NULL OR start_otp = ''
+    """)
+    conn.execute("""
+        UPDATE domain_bookings
+        SET start_otp = printf('%04d', (abs(random()) % 9000) + 1000)
+        WHERE start_otp IS NULL OR start_otp = ''
+    """)
 
 
 def _json(value, fallback):

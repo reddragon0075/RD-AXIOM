@@ -1776,7 +1776,10 @@
         dropoff_lat: 13.1986,
         dropoff_lng: 77.7066,
         vehicle: 'Toyota Innova Crysta (KA01AK4421)',
-        estimated_fare: 850
+        estimated_fare: 850,
+        start_otp: '4821',
+        require_trip_start_otp: true,
+        otp_verified: false
       };
     }
 
@@ -1805,7 +1808,8 @@
           // In B2B mobility, driver duties are auto-accepted on dispatch; next action is to arrive at pickup
           return { label: '»»» SLIDE TO ARRIVE', next: 'en_route', color: '#00b087' };
         case 'en_route':
-          return { label: '»»» SLIDE TO START TRIP', next: 'started', color: '#dafa5b', needsOtp: true };
+          const reqOtp = state.duty?.require_trip_start_otp !== false;
+          return { label: reqOtp ? '»»» SLIDE TO VERIFY OTP & START' : '»»» SLIDE TO START TRIP', next: 'started', color: '#dafa5b', needsOtp: reqOtp };
         case 'started':
           return { label: '»»» SLIDE TO COMPLETE TRIP', next: 'completed', color: '#00b087', needsProof: true };
         case 'completed':
@@ -2313,29 +2317,77 @@
         return;
       }
 
-      // Milestone 2: Verify Passenger OTP to start trip
+      // Milestone 2: Verify Passenger OTP to start trip (if required by policy)
       if (current === 'en_route') {
-        // Must verify Passenger OTP to start trip!
+        const requireOtp = state.duty?.require_trip_start_otp !== false;
+        if (!requireOtp) {
+          // Setting is OFF: 1-tap direct start without OTP
+          advanceDutyStatus('started');
+          showToast('Trip Started', 'Trip is in progress (OTP verification disabled by workspace policy).');
+          return;
+        }
+
+        // Setting is ON: Must verify passenger 4-digit OTP
+        const expectedOtp = String(state.duty?.start_otp || '4821');
+        const passengerName = state.duty?.passenger || 'Passenger';
+
         openModal(
           'Start Trip · Verify Passenger OTP',
           `
             <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">
-              Ask passenger Rahul Sharma for their 4-digit ride OTP.
+              Ask <strong>${passengerName}</strong> for their 4-digit ride verification OTP.
             </div>
             <label class="field">Passenger 4-Digit OTP
-              <input id="passenger-otp-input" type="tel" maxlength="4" placeholder="••••" style="text-align:center; font-size:24px; font-weight:900; letter-spacing:0.3em; height:50px; border:1.5px solid #d4ded8; border-radius:12px; outline:none;">
+              <input id="passenger-otp-input" type="tel" maxlength="4" placeholder="••••" style="text-align:center; font-size:26px; font-weight:900; letter-spacing:0.35em; height:52px; border:2px solid #000000; border-radius:12px; outline:none; background:#ffffff;">
             </label>
-            <div class="demo-hint" style="margin-top:10px;">💡 Demo passenger OTP: <strong>4421</strong></div>
+            <div id="otp-error-msg" style="display:none; color:#dc2626; font-size:11.5px; font-weight:700; margin-top:8px; text-align:center; background:#fee2e2; padding:6px 10px; border-radius:6px; border:1px solid #f87171;"></div>
+            <div class="demo-hint" style="margin-top:10px;">💡 Active Passenger Start OTP: <strong>${expectedOtp}</strong></div>
           `,
           `
             <button class="btn-cancel" data-close>Cancel</button>
-            <button class="btn-save" id="btn-confirm-start">Confirm & Start Trip</button>
+            <button class="btn-save" id="btn-confirm-start">Confirm &amp; Start Trip</button>
           `
         );
-        $('passenger-otp-input')?.focus();
-        $('btn-confirm-start')?.addEventListener('click', () => {
+        setTimeout(() => $('passenger-otp-input')?.focus(), 150);
+
+        const handleOtpSubmit = () => {
+          const inputEl = $('passenger-otp-input');
+          const errEl = $('otp-error-msg');
+          const enteredOtp = inputEl?.value.trim();
+
+          if (!enteredOtp || enteredOtp.length < 4) {
+            if (errEl) {
+              errEl.textContent = 'Please enter the complete 4-digit passenger OTP.';
+              errEl.style.display = 'block';
+            }
+            if (inputEl) {
+              inputEl.style.borderColor = '#dc2626';
+              inputEl.focus();
+            }
+            return;
+          }
+
+          if (enteredOtp !== expectedOtp) {
+            if (errEl) {
+              errEl.textContent = '❌ Invalid OTP. The code does not match. Please verify with passenger or dispatcher.';
+              errEl.style.display = 'block';
+            }
+            if (inputEl) {
+              inputEl.style.borderColor = '#dc2626';
+              inputEl.select();
+            }
+            return;
+          }
+
+          // OTP Validated!
           closeModal();
-          advanceDutyStatus('started');
+          advanceDutyStatus('started', { start_otp: enteredOtp });
+          showToast('OTP Verified', 'Passenger OTP verified. Trip has started.');
+        };
+
+        $('btn-confirm-start')?.addEventListener('click', handleOtpSubmit);
+        $('passenger-otp-input')?.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') handleOtpSubmit();
         });
         $('modal-card').querySelector('[data-close]')?.addEventListener('click', () => {
           closeModal();
@@ -2501,9 +2553,12 @@
       advanceDutyStatus(cfg.next);
     }
 
-    async function advanceDutyStatus(newStatus) {
+    async function advanceDutyStatus(newStatus, extraPayload = {}) {
       if (!state.duty) return;
       state.duty.status = newStatus;
+      if (extraPayload.start_otp) {
+        state.duty.otp_verified = true;
+      }
       saveActiveDuty(state.duty);
       updateCockpitUI();
 
@@ -2512,7 +2567,7 @@
         entity_type: 'duty',
         entity_id: state.duty.id,
         operation: 'status_transition',
-        payload: { status: newStatus, source: 'uber_cockpit' },
+        payload: { status: newStatus, source: 'uber_cockpit', ...extraPayload },
         idempotency_key: `mobile-${Date.now()}-${Math.random().toString(16).slice(2)}`,
         created_at: new Date().toISOString()
       };
@@ -2528,13 +2583,13 @@
           let res = await fetch(syncUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: newStatus, sync_origin: 'mobile_driver', idempotency_key: operation.idempotency_key })
+            body: JSON.stringify({ status: newStatus, sync_origin: 'mobile_driver', idempotency_key: operation.idempotency_key, ...extraPayload })
           });
           if (!res.ok) {
             await fetch(`/api/duties/${encodeURIComponent(state.duty.id)}`, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ status: newStatus, idempotency_key: operation.idempotency_key })
+              body: JSON.stringify({ status: newStatus, idempotency_key: operation.idempotency_key, ...extraPayload })
             });
           }
           state.queue = state.queue.filter(q => q.idempotency_key !== operation.idempotency_key);
