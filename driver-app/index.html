@@ -915,10 +915,11 @@
 
     /* Interactive Handle Zone: Large comfortable touch target */
     .sheet-handle-zone {
-      padding: 10px 0 8px;
-      cursor: grab;
+      padding: 14px 0 12px;
+      cursor: pointer;
       text-align: center;
       touch-action: none;
+      -webkit-touch-callout: none;
       background: #ffffff;
       border-radius: 24px 24px 0 0;
       position: sticky;
@@ -927,8 +928,12 @@
       user-select: none;
       -webkit-user-select: none;
     }
+    .sheet-handle, .sheet-drag-hint, .sheet-drag-hint * {
+      pointer-events: none;
+    }
     .sheet-handle-zone:active {
       cursor: grabbing;
+      background: #f8fafc;
     }
     .sheet-handle {
       width: 44px; height: 5px; border-radius: 99px;
@@ -1448,9 +1453,9 @@
       <!-- Bottom Sheet Cockpit Card -->
       <article class="bottom-sheet" id="bottom-sheet">
         <!-- Interactive Draggable Handle Zone -->
-        <div class="sheet-handle-zone" id="sheet-handle-zone" role="button" aria-label="Toggle map view" title="Drag or tap to clear map / view details">
+        <div class="sheet-handle-zone" id="sheet-handle-zone" role="button" aria-label="Toggle map view" title="Drag or tap to clear map / view details" onclick="toggleMapClearView(event)">
           <div class="sheet-handle"></div>
-          <div class="sheet-drag-hint" id="sheet-drag-hint">
+          <div class="sheet-drag-hint" id="sheet-drag-hint" onclick="toggleMapClearView(event)">
             <span id="sheet-hint-text">Swipe or tap down to clear map</span> <i>▾</i>
           </div>
         </div>
@@ -2672,8 +2677,8 @@
     }
 
         // ----------------------------------------------------
-    // UBER-STYLE BOTTOM SHEET DRAGGABLE CONTROLLER
-    // ----------------------------------------------------
+    // UBER-STYLE BOTTOM SHEET DRAGGABLE CONTROLLER (MOBILE & TOUCH OPTIMIZED)
+    // ----------------------------------------------------------------------
     function initBottomSheetDrag() {
       const sheet = document.getElementById('bottom-sheet');
       const handleZone = document.getElementById('sheet-handle-zone');
@@ -2686,7 +2691,7 @@
       let initialTranslate = 0;
       let isDragging = false;
       let isCollapsed = false;
-      let tapStartTime = 0;
+      let lastToggleTime = 0;
 
       function getPeekHeight() {
         return 102; // Visible height in peek mode
@@ -2709,53 +2714,74 @@
       }
 
       function setCollapsed(collapsed, animate = true) {
-        isCollapsed = collapsed;
-        if (!animate) {
-          sheet.classList.add('dragging');
+        isCollapsed = !!collapsed;
+        sheet.classList.remove('dragging');
+        if (animate) {
+          sheet.style.transition = 'transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1)';
         } else {
-          sheet.classList.remove('dragging');
+          sheet.style.transition = 'none';
         }
 
-        if (collapsed) {
+        const maxT = getMaxTranslate();
+        if (isCollapsed) {
           sheet.classList.add('collapsed');
-          sheet.style.transform = '';
+          sheet.style.transform = `translateY(${maxT}px)`;
           updateHint(true);
         } else {
           sheet.classList.remove('collapsed');
-          sheet.style.transform = '';
+          sheet.style.transform = 'translateY(0px)';
           updateHint(false);
         }
 
-        // Notify Leaflet map of resized container
         if (state.map) {
           setTimeout(() => state.map.invalidateSize(), 350);
         }
       }
 
-      // 1. Direct Tap on Handle Zone toggles collapse / expand immediately
-      handleZone.addEventListener('click', (e) => {
-        e.stopPropagation();
+      function toggleSheet() {
+        const now = Date.now();
+        if (now - lastToggleTime < 500) {
+          return; // Guard against synthetic click firing right after touchend
+        }
+        lastToggleTime = now;
         setCollapsed(!isCollapsed, true);
+      }
+
+      // Expose globally for direct onclick from HTML
+      window.toggleMapClearView = function(e) {
+        if (e) {
+          if (e.stopPropagation) e.stopPropagation();
+          if (e.preventDefault) e.preventDefault();
+        }
+        toggleSheet();
+      };
+
+      // Direct click fallback on handle zone (for desktop mouse clicks)
+      handleZone.addEventListener('click', (e) => {
+        window.toggleMapClearView(e);
       });
 
-      // Also if tapped anywhere on the peek bar while collapsed, expand it!
+      // When collapsed, tapping anywhere on the peek bar expands it back
       sheet.addEventListener('click', (e) => {
         if (isCollapsed) {
-          setCollapsed(false, true);
+          window.toggleMapClearView(e);
         }
       });
 
-      // 2. Drag Handlers
       function onStart(clientY) {
         startY = clientY;
         currentY = clientY;
-        tapStartTime = Date.now();
         isDragging = true;
         sheet.classList.add('dragging');
+        sheet.style.transition = 'none';
 
         const style = window.getComputedStyle(sheet);
-        const matrix = new DOMMatrixReadOnly(style.transform);
-        initialTranslate = matrix.m42 || 0;
+        try {
+          const matrix = new DOMMatrixReadOnly(style.transform);
+          initialTranslate = matrix.m42 || 0;
+        } catch (_) {
+          initialTranslate = isCollapsed ? getMaxTranslate() : 0;
+        }
         if (isCollapsed && initialTranslate === 0) {
           initialTranslate = getMaxTranslate();
         }
@@ -2781,51 +2807,61 @@
       function onEnd() {
         if (!isDragging) return;
         isDragging = false;
-        sheet.classList.remove('dragging');
 
         const deltaY = currentY - startY;
 
-        // If dragged more than 30px
-        if (Math.abs(deltaY) > 30) {
-          if (deltaY > 0) {
-            // Dragged down -> collapse to clear map
-            setCollapsed(true, true);
-          } else {
-            // Dragged up -> expand to show details
-            setCollapsed(false, true);
-          }
+        // 1. TAP DETECTION: If movement was very small (< 18px), user tapped to toggle!
+        if (Math.abs(deltaY) < 18) {
+          toggleSheet();
+          return;
+        }
+
+        // 2. SWIPE DETECTION:
+        if (deltaY > 20) {
+          lastToggleTime = Date.now();
+          setCollapsed(true, true);
+        } else if (deltaY < -20) {
+          lastToggleTime = Date.now();
+          setCollapsed(false, true);
         } else {
-          // Snap cleanly back to current state
           setCollapsed(isCollapsed, true);
         }
       }
 
-      // Touch Listeners (Mobile Phones)
+      // Touch Listeners
       handleZone.addEventListener('touchstart', (e) => {
-        onStart(e.touches[0].clientY);
+        if (e.touches && e.touches.length > 0) {
+          onStart(e.touches[0].clientY);
+        }
       }, { passive: true });
 
       sheet.addEventListener('touchstart', (e) => {
-        if (isCollapsed) {
+        if (isCollapsed && e.touches && e.touches.length > 0) {
           onStart(e.touches[0].clientY);
         }
       }, { passive: true });
 
       window.addEventListener('touchmove', (e) => {
-        if (isDragging) {
+        if (isDragging && e.touches && e.touches.length > 0) {
+          if (e.cancelable) e.preventDefault();
           onMove(e.touches[0].clientY);
         }
-      }, { passive: true });
+      }, { passive: false });
 
-      window.addEventListener('touchend', () => {
-        if (isDragging) onEnd();
+      window.addEventListener('touchend', (e) => {
+        if (isDragging) {
+          if (e.changedTouches && e.changedTouches[0]) {
+            currentY = e.changedTouches[0].clientY;
+          }
+          onEnd();
+        }
       }, { passive: true });
 
       window.addEventListener('touchcancel', () => {
         if (isDragging) onEnd();
-      }, { passive: true });
+      });
 
-      // Mouse Listeners (Desktop / Testing)
+      // Mouse Listeners for Desktop / Playwright
       handleZone.addEventListener('mousedown', (e) => {
         onStart(e.clientY);
         e.preventDefault();
