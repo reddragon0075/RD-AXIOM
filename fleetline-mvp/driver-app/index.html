@@ -203,17 +203,7 @@
     .btn-recenter:active { transform: scale(0.92); }
 
     /* Bottom Cockpit Card (Uber Driver Bottom Sheet) */
-    .bottom-sheet {
-      position: absolute; bottom: 58px; left: 0; right: 0; z-index: 20;
-      background: #ffffff; border-radius: 22px 22px 0 0;
-      box-shadow: 0 -8px 30px rgba(0,0,0,0.22);
-      padding: 10px 18px 16px; display: flex; flex-direction: column;
-      max-height: 55dvh; overflow-y: auto;
-    }
-    .sheet-handle {
-      width: 36px; height: 4px; border-radius: 99px;
-      background: #d5ded9; margin: 2px auto 10px;
-    }
+    /* Initial sheet base styles consolidated below */
     .trip-badge-bar {
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 8px;
@@ -732,19 +722,78 @@
     .btn-nav-fab:active { transform: scale(0.96); background: #262626; }
     .btn-nav-fab svg { width: 13px; height: 13px; fill: currentColor; }
 
-    /* Bottom Cockpit Card (Uber Driver Bottom Sheet) */
+    /* Bottom Cockpit Card (Uber Driver Bottom Sheet - Smooth Draggable & Collapsible) */
     .bottom-sheet {
       position: absolute; bottom: 62px; left: 0; right: 0; z-index: 20;
       background: #ffffff; border-radius: 24px 24px 0 0;
-      box-shadow: 0 -8px 36px rgba(0,0,0,0.14);
-      padding: 12px 18px 16px; display: flex; flex-direction: column;
-      max-height: 58dvh; overflow-y: auto;
+      box-shadow: 0 -8px 36px rgba(0,0,0,0.18);
+      padding: 0 18px 16px; display: flex; flex-direction: column;
+      max-height: 65dvh; overflow-y: auto;
       scrollbar-width: none; -ms-overflow-style: none;
+      transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1);
+      touch-action: pan-y;
+      will-change: transform;
     }
     .bottom-sheet::-webkit-scrollbar { display: none; }
+
+    /* Collapsed (Peek View) - 85% of screen clear for map */
+    .bottom-sheet.collapsed {
+      transform: translateY(calc(100% - 102px)) !important;
+      overflow-y: hidden !important;
+    }
+
+    /* While actively dragging: disable transition for 1:1 finger tracking */
+    .bottom-sheet.dragging {
+      transition: none !important;
+      user-select: none;
+    }
+
+    /* Interactive Handle Zone: Large comfortable touch target */
+    .sheet-handle-zone {
+      padding: 10px 0 8px;
+      cursor: grab;
+      text-align: center;
+      touch-action: none;
+      background: #ffffff;
+      border-radius: 24px 24px 0 0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .sheet-handle-zone:active {
+      cursor: grabbing;
+    }
     .sheet-handle {
-      width: 38px; height: 4px; border-radius: 99px;
-      background: #e0e0e0; margin: 0 auto 10px;
+      width: 44px; height: 5px; border-radius: 99px;
+      background: #cfd8d3; margin: 0 auto;
+      transition: background 0.2s, width 0.2s;
+    }
+    .sheet-handle-zone:hover .sheet-handle,
+    .sheet-handle-zone:active .sheet-handle {
+      background: #000000;
+      width: 52px;
+    }
+    .sheet-drag-hint {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #6d847a;
+      margin-top: 5px;
+      letter-spacing: 0.02em;
+    }
+    .sheet-drag-hint i {
+      font-style: normal;
+      font-size: 11px;
+      display: inline-block;
+      transition: transform 0.25s;
+    }
+    .bottom-sheet.collapsed .sheet-drag-hint i {
+      transform: rotate(180deg);
     }
 
     /* Segment Switch for Active vs Upcoming Roster */
@@ -1233,7 +1282,13 @@
 
       <!-- Bottom Sheet Cockpit Card -->
       <article class="bottom-sheet" id="bottom-sheet">
-        <div class="sheet-handle"></div>
+        <!-- Interactive Draggable Handle Zone -->
+        <div class="sheet-handle-zone" id="sheet-handle-zone" role="button" aria-label="Toggle map view" title="Drag or tap to clear map / view details">
+          <div class="sheet-handle"></div>
+          <div class="sheet-drag-hint" id="sheet-drag-hint">
+            <span id="sheet-hint-text">Swipe or tap down to clear map</span> <i>▾</i>
+          </div>
+        </div>
 
         <!-- Segment Switch: Active Run vs Upcoming Roster -->
         <div class="sheet-segment-switch">
@@ -2237,6 +2292,175 @@
       slideThumb.style.transform = 'translateX(0px)';
       slideProgress.style.width = '0%';
       state.sliderDragging = false;
+    }
+
+        // ----------------------------------------------------
+    // UBER-STYLE BOTTOM SHEET DRAGGABLE CONTROLLER
+    // ----------------------------------------------------
+    function initBottomSheetDrag() {
+      const sheet = document.getElementById('bottom-sheet');
+      const handleZone = document.getElementById('sheet-handle-zone');
+      const hintText = document.getElementById('sheet-hint-text');
+      if (!sheet || !handleZone || sheet._dragInitialized) return;
+      sheet._dragInitialized = true;
+
+      let startY = 0;
+      let currentY = 0;
+      let initialTranslate = 0;
+      let isDragging = false;
+      let isCollapsed = false;
+      let tapStartTime = 0;
+
+      function getPeekHeight() {
+        return 102; // Visible height in peek mode
+      }
+
+      function getSheetHeight() {
+        return sheet.offsetHeight || 380;
+      }
+
+      function getMaxTranslate() {
+        return Math.max(0, getSheetHeight() - getPeekHeight());
+      }
+
+      function updateHint(collapsed) {
+        if (hintText) {
+          hintText.textContent = collapsed
+            ? 'Swipe or tap up for trip details'
+            : 'Swipe or tap down to clear map';
+        }
+      }
+
+      function setCollapsed(collapsed, animate = true) {
+        isCollapsed = collapsed;
+        if (!animate) {
+          sheet.classList.add('dragging');
+        } else {
+          sheet.classList.remove('dragging');
+        }
+
+        if (collapsed) {
+          sheet.classList.add('collapsed');
+          sheet.style.transform = '';
+          updateHint(true);
+        } else {
+          sheet.classList.remove('collapsed');
+          sheet.style.transform = '';
+          updateHint(false);
+        }
+
+        // Notify Leaflet map of resized container
+        if (state.map) {
+          setTimeout(() => state.map.invalidateSize(), 350);
+        }
+      }
+
+      // 1. Direct Tap on Handle Zone toggles collapse / expand immediately
+      handleZone.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setCollapsed(!isCollapsed, true);
+      });
+
+      // Also if tapped anywhere on the peek bar while collapsed, expand it!
+      sheet.addEventListener('click', (e) => {
+        if (isCollapsed) {
+          setCollapsed(false, true);
+        }
+      });
+
+      // 2. Drag Handlers
+      function onStart(clientY) {
+        startY = clientY;
+        currentY = clientY;
+        tapStartTime = Date.now();
+        isDragging = true;
+        sheet.classList.add('dragging');
+
+        const style = window.getComputedStyle(sheet);
+        const matrix = new DOMMatrixReadOnly(style.transform);
+        initialTranslate = matrix.m42 || 0;
+        if (isCollapsed && initialTranslate === 0) {
+          initialTranslate = getMaxTranslate();
+        }
+      }
+
+      function onMove(clientY) {
+        if (!isDragging) return;
+        currentY = clientY;
+        const deltaY = currentY - startY;
+        let newTranslate = initialTranslate + deltaY;
+        const maxT = getMaxTranslate();
+
+        // Soft rubber-band resistance beyond boundaries
+        if (newTranslate < 0) {
+          newTranslate = newTranslate * 0.22;
+        } else if (newTranslate > maxT) {
+          newTranslate = maxT + (newTranslate - maxT) * 0.22;
+        }
+
+        sheet.style.transform = `translateY(${newTranslate}px)`;
+      }
+
+      function onEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        sheet.classList.remove('dragging');
+
+        const deltaY = currentY - startY;
+
+        // If dragged more than 30px
+        if (Math.abs(deltaY) > 30) {
+          if (deltaY > 0) {
+            // Dragged down -> collapse to clear map
+            setCollapsed(true, true);
+          } else {
+            // Dragged up -> expand to show details
+            setCollapsed(false, true);
+          }
+        } else {
+          // Snap cleanly back to current state
+          setCollapsed(isCollapsed, true);
+        }
+      }
+
+      // Touch Listeners (Mobile Phones)
+      handleZone.addEventListener('touchstart', (e) => {
+        onStart(e.touches[0].clientY);
+      }, { passive: true });
+
+      sheet.addEventListener('touchstart', (e) => {
+        if (isCollapsed) {
+          onStart(e.touches[0].clientY);
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchmove', (e) => {
+        if (isDragging) {
+          onMove(e.touches[0].clientY);
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchend', () => {
+        if (isDragging) onEnd();
+      }, { passive: true });
+
+      window.addEventListener('touchcancel', () => {
+        if (isDragging) onEnd();
+      }, { passive: true });
+
+      // Mouse Listeners (Desktop / Testing)
+      handleZone.addEventListener('mousedown', (e) => {
+        onStart(e.clientY);
+        e.preventDefault();
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (isDragging) onMove(e.clientY);
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDragging) onEnd();
+      });
     }
 
     function initSlider() {
@@ -3441,6 +3665,7 @@
 
       initMap();
       initSlider();
+      initBottomSheetDrag();
       updateCockpitUI();
       renderEarningsView();
       renderUpcomingRoster();
