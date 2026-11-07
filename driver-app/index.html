@@ -461,10 +461,10 @@
       position: absolute; left: 4px; width: 48px; height: 48px; border-radius: 50%;
       background: #dafa5b; color: #0e1a1e; display: grid; place-items: center;
       font-size: 18px; font-weight: 900; z-index: 3; cursor: grab;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3); touch-action: pan-y;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3); touch-action: none;
       transition: transform 0.05s ease-out;
     }
-    .slide-thumb:active { cursor: grabbing; transform: scale(1.04); }
+    .slide-thumb:active { cursor: grabbing; }
 
     /* ----------------------------------------------------
        EARNINGS SCREEN (Uber-style)
@@ -896,14 +896,13 @@
       max-height: 65dvh; overflow-y: auto;
       scrollbar-width: none; -ms-overflow-style: none;
       transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1);
-      touch-action: pan-y;
+      touch-action: none;
       will-change: transform;
     }
     .bottom-sheet::-webkit-scrollbar { display: none; }
 
     /* Collapsed (Peek View) - 85% of screen clear for map */
     .bottom-sheet.collapsed {
-      transform: translateY(calc(100% - 102px)) !important;
       overflow-y: hidden !important;
     }
 
@@ -918,15 +917,21 @@
       padding: 14px 0 12px;
       cursor: pointer;
       text-align: center;
-      touch-action: none;
+      touch-action: none !important;
       -webkit-touch-callout: none;
       background: #ffffff;
+      border: none;
+      width: 100%;
       border-radius: 24px 24px 0 0;
       position: sticky;
       top: 0;
       z-index: 10;
       user-select: none;
       -webkit-user-select: none;
+      display: block;
+    }
+    .sheet-handle-zone:active {
+      background: #f8fafc;
     }
     .sheet-handle, .sheet-drag-hint, .sheet-drag-hint * {
       pointer-events: none;
@@ -1097,10 +1102,10 @@
       position: absolute; left: 4px; width: 48px; height: 48px; border-radius: 50%;
       background: #ffffff; color: #000000; display: grid; place-items: center;
       font-size: 18px; font-weight: 900; z-index: 3; cursor: grab;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.25); touch-action: pan-y;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25); touch-action: none;
       transition: transform 0.05s ease-out;
     }
-    .slide-thumb:active { cursor: grabbing; transform: scale(1.04); }
+    .slide-thumb:active { cursor: grabbing; }
 
     /* BOTTOM TAB NAVIGATION BAR (4 TABS) */
     .bottom-tab-bar {
@@ -1453,12 +1458,12 @@
       <!-- Bottom Sheet Cockpit Card -->
       <article class="bottom-sheet" id="bottom-sheet">
         <!-- Interactive Draggable Handle Zone -->
-        <div class="sheet-handle-zone" id="sheet-handle-zone" role="button" aria-label="Toggle map view" title="Drag or tap to clear map / view details" onclick="toggleMapClearView(event)">
+        <button class="sheet-handle-zone" id="sheet-handle-zone" type="button" aria-label="Toggle map view" title="Drag or tap to clear map / view details" onclick="window.toggleMapClearView(event)">
           <div class="sheet-handle"></div>
           <div class="sheet-drag-hint" id="sheet-drag-hint" onclick="toggleMapClearView(event)">
             <span id="sheet-hint-text">Swipe or tap down to clear map</span> <i>▾</i>
           </div>
-        </div>
+        </button>
 
         <!-- Segment Switch: Active Run vs Upcoming Roster -->
         <div class="sheet-segment-switch">
@@ -2677,7 +2682,7 @@
     }
 
         // ----------------------------------------------------
-    // UBER-STYLE BOTTOM SHEET DRAGGABLE CONTROLLER (MOBILE & TOUCH OPTIMIZED)
+    // UBER-STYLE BOTTOM SHEET DRAGGABLE CONTROLLER (TOUCH & TAP VERIFIED)
     // ----------------------------------------------------------------------
     function initBottomSheetDrag() {
       const sheet = document.getElementById('bottom-sheet');
@@ -2716,11 +2721,7 @@
       function setCollapsed(collapsed, animate = true) {
         isCollapsed = !!collapsed;
         sheet.classList.remove('dragging');
-        if (animate) {
-          sheet.style.transition = 'transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1)';
-        } else {
-          sheet.style.transition = 'none';
-        }
+        sheet.style.transition = animate ? 'transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1)' : 'none';
 
         const maxT = getMaxTranslate();
         if (isCollapsed) {
@@ -2740,14 +2741,12 @@
 
       function toggleSheet() {
         const now = Date.now();
-        if (now - lastToggleTime < 500) {
-          return; // Guard against synthetic click firing right after touchend
-        }
+        if (now - lastToggleTime < 400) return;
         lastToggleTime = now;
         setCollapsed(!isCollapsed, true);
       }
 
-      // Expose globally for direct onclick from HTML
+      // Expose globally for HTML onclick
       window.toggleMapClearView = function(e) {
         if (e) {
           if (e.stopPropagation) e.stopPropagation();
@@ -2756,7 +2755,7 @@
         toggleSheet();
       };
 
-      // Direct click fallback on handle zone (for desktop mouse clicks)
+      // Native Click fallback
       handleZone.addEventListener('click', (e) => {
         window.toggleMapClearView(e);
       });
@@ -2775,16 +2774,8 @@
         sheet.classList.add('dragging');
         sheet.style.transition = 'none';
 
-        const style = window.getComputedStyle(sheet);
-        try {
-          const matrix = new DOMMatrixReadOnly(style.transform);
-          initialTranslate = matrix.m42 || 0;
-        } catch (_) {
-          initialTranslate = isCollapsed ? getMaxTranslate() : 0;
-        }
-        if (isCollapsed && initialTranslate === 0) {
-          initialTranslate = getMaxTranslate();
-        }
+        const maxT = getMaxTranslate();
+        initialTranslate = isCollapsed ? maxT : 0;
       }
 
       function onMove(clientY) {
@@ -2794,11 +2785,11 @@
         let newTranslate = initialTranslate + deltaY;
         const maxT = getMaxTranslate();
 
-        // Soft rubber-band resistance beyond boundaries
+        // Soft resistance outside boundaries
         if (newTranslate < 0) {
-          newTranslate = newTranslate * 0.22;
+          newTranslate = newTranslate * 0.2;
         } else if (newTranslate > maxT) {
-          newTranslate = maxT + (newTranslate - maxT) * 0.22;
+          newTranslate = maxT + (newTranslate - maxT) * 0.2;
         }
 
         sheet.style.transform = `translateY(${newTranslate}px)`;
@@ -2861,7 +2852,7 @@
         if (isDragging) onEnd();
       });
 
-      // Mouse Listeners for Desktop / Playwright
+      // Mouse Listeners
       handleZone.addEventListener('mousedown', (e) => {
         onStart(e.clientY);
         e.preventDefault();
@@ -2876,56 +2867,139 @@
       });
     }
 
+    // ----------------------------------------------------
+    // UBER "SLIDE TO CONFIRM" SLIDER (SMOOTH & DRIVER RESILIENT)
+    // ----------------------------------------------------
     function initSlider() {
-      const getClientX = e => (e.touches && e.touches[0] ? e.touches[0].clientX : e.clientX);
+      const wrap = document.getElementById('slider-wrap');
+      const thumb = document.getElementById('slide-thumb');
+      const prog = document.getElementById('slide-progress');
+      if (!wrap || !thumb || !prog || wrap._sliderInit) return;
+      wrap._sliderInit = true;
 
-      const onStart = e => {
+      let startX = 0;
+      let currentX = 0;
+      let isDragging = false;
+      let hasCompleted = false;
+
+      function getTrackWidth() {
+        return Math.max(120, (wrap.offsetWidth || 340) - 56);
+      }
+
+      function updateSlide(deltaX, animate = false) {
+        thumb.style.transition = animate ? 'transform 0.24s cubic-bezier(0.2, 0.9, 0.3, 1)' : 'none';
+        prog.style.transition = animate ? 'width 0.24s cubic-bezier(0.2, 0.9, 0.3, 1)' : 'none';
+        thumb.style.transform = `translateX(${deltaX}px)`;
+        const pct = Math.min(100, Math.max(0, (deltaX / getTrackWidth()) * 100));
+        prog.style.width = `${pct}%`;
+      }
+
+      function resetSlider() {
+        isDragging = false;
+        hasCompleted = false;
+        updateSlide(0, true);
+      }
+
+      function completeSlide() {
+        if (hasCompleted) return;
+        hasCompleted = true;
+        isDragging = false;
+        const maxW = getTrackWidth();
+        updateSlide(maxW, true);
+        if (navigator.vibrate) navigator.vibrate([40, 50, 40]);
+        setTimeout(() => {
+          triggerSlideAction();
+          setTimeout(resetSlider, 800);
+        }, 180);
+      }
+
+      function onStart(clientX) {
         if (!state.duty || state.duty.status === 'completed') return;
         if (state.duty.is_invoiced || state.duty.invoiced || state.duty.status === 'billed' || state.duty.status === 'invoiced' || state.duty.invoice_number) {
           showToast('Trip Invoiced & Locked', 'Milestones and details are locked once invoiced for tax and billing compliance.');
           return;
         }
-        state.sliderDragging = true;
-        state.sliderStartX = getClientX(e);
-        state.sliderWidth = sliderWrap.offsetWidth - state.sliderThumbWidth - 8;
-        e.preventDefault();
-      };
+        isDragging = true;
+        hasCompleted = false;
+        startX = clientX;
+        currentX = clientX;
+      }
 
-      const onMove = e => {
-        if (!state.sliderDragging) return;
-        const currentX = getClientX(e);
-        const deltaX = Math.max(0, Math.min(state.sliderWidth, currentX - state.sliderStartX));
-        slideThumb.style.transform = `translateX(${deltaX}px)`;
-        const percent = (deltaX / state.sliderWidth) * 100;
-        slideProgress.style.width = `${percent}%`;
-        e.preventDefault();
-      };
+      function onMove(clientX) {
+        if (!isDragging || hasCompleted) return;
+        currentX = clientX;
+        const maxW = getTrackWidth();
+        const deltaX = Math.max(0, Math.min(maxW, currentX - startX));
+        updateSlide(deltaX, false);
 
-      const onEnd = () => {
-        if (!state.sliderDragging) return;
-        state.sliderDragging = false;
-        const match = slideThumb.style.transform.match(/translateX\(([0-9.]+)px\)/);
-        const currentDelta = match ? parseFloat(match[1]) : 0;
+        // Auto-complete if dragged 55% of the way
+        if (deltaX >= maxW * 0.55) {
+          completeSlide();
+        }
+      }
 
-        if (currentDelta >= state.sliderWidth * 0.78) {
-          // Trigger the slide confirmation!
-          slideThumb.style.transform = `translateX(${state.sliderWidth}px)`;
-          slideProgress.style.width = '100%';
-          if (navigator.vibrate) navigator.vibrate([40, 50, 40]);
-          triggerSlideAction();
+      function onEnd() {
+        if (!isDragging || hasCompleted) return;
+        isDragging = false;
+        const maxW = getTrackWidth();
+        const deltaX = Math.max(0, currentX - startX);
+
+        if (deltaX >= maxW * 0.40) {
+          completeSlide();
         } else {
-          // Snap back
           resetSlider();
         }
-      };
+      }
 
-      slideThumb.addEventListener('touchstart', onStart, { passive: false });
-      window.addEventListener('touchmove', onMove, { passive: false });
-      window.addEventListener('touchend', onEnd);
+      // Touch tracking on entire wrap element
+      wrap.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches[0]) {
+          onStart(e.touches[0].clientX);
+        }
+      }, { passive: true });
 
-      slideThumb.addEventListener('mousedown', onStart);
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onEnd);
+      window.addEventListener('touchmove', (e) => {
+        if (isDragging && e.touches && e.touches[0]) {
+          if (e.cancelable) e.preventDefault();
+          onMove(e.touches[0].clientX);
+        }
+      }, { passive: false });
+
+      window.addEventListener('touchend', (e) => {
+        if (isDragging) {
+          if (e.changedTouches && e.changedTouches[0]) {
+            currentX = e.changedTouches[0].clientX;
+          }
+          onEnd();
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchcancel', () => {
+        if (isDragging) resetSlider();
+      });
+
+      // Mouse tracking
+      wrap.addEventListener('mousedown', (e) => {
+        onStart(e.clientX);
+        e.preventDefault();
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (isDragging) onMove(e.clientX);
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDragging) onEnd();
+      });
+
+      // Direct tap-to-slide confirmation for drivers on mobile
+      wrap.addEventListener('click', (e) => {
+        if (!isDragging && !hasCompleted) {
+          completeSlide();
+        }
+      });
+
+      window.resetSlider = resetSlider;
     }
 
     async function triggerSlideAction() {
