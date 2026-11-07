@@ -896,7 +896,7 @@
       max-height: 65dvh; overflow-y: auto;
       scrollbar-width: none; -ms-overflow-style: none;
       transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1);
-      touch-action: none;
+      touch-action: pan-y;
       will-change: transform;
     }
     .bottom-sheet::-webkit-scrollbar { display: none; }
@@ -938,6 +938,7 @@
     }
     .sheet-handle-zone:active {
       cursor: grabbing;
+      background: #f8fafc;
     }
     .sheet-handle {
       width: 44px; height: 5px; border-radius: 99px;
@@ -1457,9 +1458,9 @@
       <!-- Bottom Sheet Cockpit Card -->
       <article class="bottom-sheet" id="bottom-sheet">
         <!-- Interactive Draggable Handle Zone -->
-        <button class="sheet-handle-zone" id="sheet-handle-zone" type="button" aria-label="Toggle map view" title="Drag or tap to clear map / view details" onclick="window.toggleMapClearView(event)">
+        <button class="sheet-handle-zone" id="sheet-handle-zone" type="button" aria-label="Toggle map view" title="Drag or tap to clear map / view details">
           <div class="sheet-handle"></div>
-          <div class="sheet-drag-hint" id="sheet-drag-hint" onclick="toggleMapClearView(event)">
+          <div class="sheet-drag-hint" id="sheet-drag-hint">
             <span id="sheet-hint-text">Swipe or tap down to clear map</span> <i>▾</i>
           </div>
         </button>
@@ -2082,6 +2083,35 @@
       return base ? `${base.replace(/\/+$/, '')}${path}` : path;
     }
 
+    // Safe network fetch with timeout for mobile resilience
+    async function safeFetch(url, options = {}, timeoutMs = 2500) {
+      if (typeof AbortController === 'undefined') {
+        return fetch(url, options);
+      }
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timeoutId);
+        return res;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        throw err;
+      }
+    }
+
+    // Physical Device Error Reporting
+    window.onerror = function(msg, url, lineNo, colNo, error) {
+      console.warn('Driver App Error:', msg, lineNo, error);
+      try {
+        showToast('⚠️ App Notice', `${msg || 'Operation notice'}`);
+      } catch (_) {}
+      return false;
+    };
+    window.addEventListener('unhandledrejection', function(e) {
+      console.warn('Unhandled Promise Rejection:', e.reason);
+    });
+
     const userKey = 'axiomfleet_driver_user';
 
     // State
@@ -2379,6 +2409,14 @@
       }
     }
 
+    window.toggleDriverOnline = function(e) {
+      if (e) {
+        if (e.stopPropagation) e.stopPropagation();
+        if (e.preventDefault) e.preventDefault();
+      }
+      setDriverAvailability(!state.driverAvailable);
+    };
+
     // UBER-STYLE STANDBY RADAR & NEXT DUTY RENDERING (Option 2 Post-Trip Flow)
     function renderStandbyPanel() {
       const container = $('standby-next-duty-box');
@@ -2667,20 +2705,7 @@
       }
     }
 
-    // ----------------------------------------------------
-    // UBER "SLIDE TO CONFIRM" SLIDER INTERACTION
-    // ----------------------------------------------------
-    const sliderWrap = $('slider-wrap');
-    const slideThumb = $('slide-thumb');
-    const slideProgress = $('slide-progress');
-
-    function resetSlider() {
-      slideThumb.style.transform = 'translateX(0px)';
-      slideProgress.style.width = '0%';
-      state.sliderDragging = false;
-    }
-
-        // ----------------------------------------------------
+    // ----------------------------------------------------------------------
     // UBER-STYLE BOTTOM SHEET DRAGGABLE CONTROLLER (TOUCH & TAP VERIFIED)
     // ----------------------------------------------------------------------
     function initBottomSheetDrag() {
@@ -2696,17 +2721,18 @@
       let isDragging = false;
       let isCollapsed = false;
       let lastToggleTime = 0;
+      let isTouchActive = false;
 
       function getPeekHeight() {
         return 102; // Visible height in peek mode
       }
 
       function getSheetHeight() {
-        return sheet.offsetHeight || 380;
+        return sheet.offsetHeight || Math.round(window.innerHeight * 0.60) || 420;
       }
 
       function getMaxTranslate() {
-        return Math.max(0, getSheetHeight() - getPeekHeight());
+        return Math.max(120, getSheetHeight() - getPeekHeight());
       }
 
       function updateHint(collapsed) {
@@ -2740,7 +2766,7 @@
 
       function toggleSheet() {
         const now = Date.now();
-        if (now - lastToggleTime < 400) return;
+        if (now - lastToggleTime < 350) return;
         lastToggleTime = now;
         setCollapsed(!isCollapsed, true);
       }
@@ -2751,6 +2777,7 @@
           if (e.stopPropagation) e.stopPropagation();
           if (e.preventDefault) e.preventDefault();
         }
+        if (isTouchActive) return; // Prevent synthetic click double-toggle after touchend
         toggleSheet();
       };
 
@@ -2843,6 +2870,8 @@
           if (e.changedTouches && e.changedTouches[0]) {
             currentY = e.changedTouches[0].clientY;
           }
+          isTouchActive = true;
+          setTimeout(() => { isTouchActive = false; }, 500);
           onEnd();
         }
       }, { passive: true });
@@ -2911,6 +2940,12 @@
           setTimeout(resetSlider, 800);
         }, 180);
       }
+
+      window.completeSliderAction = function() {
+        if (!hasCompleted) {
+          completeSlide();
+        }
+      };
 
       function onStart(clientX) {
         if (!state.duty || state.duty.status === 'completed') return;
@@ -4410,46 +4445,125 @@
       enterApp(assignedDuty);
     });
 
+    function initAllCoreControls() {
+      // 1. Gesture Slider
+      try { initSlider(); } catch (e) { console.warn('initSlider err:', e); }
+
+      // 2. Bottom Sheet Draggable & Collapsible
+      try { initBottomSheetDrag(); } catch (e) { console.warn('initBottomSheetDrag err:', e); }
+
+      // 3. Online/Offline toggle
+      const btnOnline = $('btn-online-toggle');
+      if (btnOnline && !btnOnline._bound) {
+        btnOnline._bound = true;
+        btnOnline.addEventListener('click', (e) => {
+          e.stopPropagation();
+          setDriverAvailability(!state.driverAvailable);
+        });
+      }
+
+      // 4. Cockpit segment buttons
+      $('seg-btn-active')?.addEventListener('click', () => switchCockpitSegment('active'));
+      $('seg-btn-upcoming')?.addEventListener('click', () => switchCockpitSegment('upcoming'));
+      $('btn-preview-next-run')?.addEventListener('click', () => switchCockpitSegment('upcoming'));
+
+      // 5. Recenter Map FAB
+      const btnRecenter = $('btn-recenter');
+      if (btnRecenter && !btnRecenter._bound) {
+        btnRecenter._bound = true;
+        btnRecenter.addEventListener('click', async () => {
+          btnRecenter.style.transform = 'scale(0.85)';
+          showToast('📍 Acquiring GPS...', 'Requesting high-precision device location');
+          const livePos = await getDeviceLocation();
+          btnRecenter.style.transform = '';
+          if (livePos) {
+            applyNewLocation(livePos, true);
+            showToast('📍 GPS Locked', `Current Location: ${livePos[0].toFixed(4)}, ${livePos[1].toFixed(4)}`);
+          } else if (state.driverMarker && state.map) {
+            state.map.setView(state.driverMarker.getLatLng(), 15, { animate: true });
+            showToast('GPS Alert', 'Location unavailable. Ensure GPS is enabled on your phone.');
+          }
+        });
+      }
+
+      // 6. SOS Button
+      const btnSos = $('btn-sos');
+      if (btnSos && !btnSos._bound) {
+        btnSos._bound = true;
+        btnSos.addEventListener('click', () => {
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
+          showToast('🚨 SOS Emergency Signal Sent', 'Axiom 24/7 Security Operations Room & Fleet Supervisor notified.');
+        });
+      }
+
+      // 7. Initial Online UI Pill state
+      updateOnlinePillUI();
+    }
+
     async function enterApp(initialDuty = null) {
       $('login-screen').classList.add('hidden');
       $('cockpit-view').classList.remove('hidden');
       $('bottom-tab-bar').classList.remove('hidden');
 
-      let activeDuty = initialDuty;
-      if (!activeDuty && state.user && state.user.phone) {
-        try {
-          const cleanPhone = state.user.phone.replace(/\D/g, '');
-          const dutyRes = await fetch(apiUrl(`/api/mobile/driver/duty?phone=${encodeURIComponent(cleanPhone)}&driver_id=${encodeURIComponent(state.user.id || '')}`));
-          if (dutyRes.ok) {
-            const dutyData = await dutyRes.json();
-            if (dutyData.has_duty && dutyData.duty) {
-              activeDuty = dutyData.duty;
-            }
-          }
-        } catch (_) {}
-      }
-
-      state.duty = activeDuty || loadActiveDuty() || defaultDemoDuty();
+      // 1. Establish duty synchronously from local storage or default demo
+      state.duty = initialDuty || loadActiveDuty() || defaultDemoDuty();
       saveActiveDuty(state.duty);
 
-      initMap();
-      initSlider();
-      initBottomSheetDrag();
-      loadDriverCompliance();
-      startDutyPolling();
-      if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission().catch(() => {});
-      }
+      // 2. Core UI controls initialized immediately
+      initAllCoreControls();
+
+      // 3. Render Cockpit views synchronously
       updateCockpitUI();
       renderEarningsView();
       renderUpcomingRoster();
       updateQueueBadge();
-
       updateOnlinePillUI();
-      $('btn-online-toggle')?.addEventListener('click', () => setDriverAvailability(!state.driverAvailable));
-      $('seg-btn-active')?.addEventListener('click', () => switchCockpitSegment('active'));
-      $('seg-btn-upcoming')?.addEventListener('click', () => switchCockpitSegment('upcoming'));
-      $('btn-preview-next-run')?.addEventListener('click', () => switchCockpitSegment('upcoming'));
+
+      // 4. Safe Leaflet Map initialization
+      try {
+        initMap();
+      } catch (err) {
+        console.warn('Map initialization warning:', err);
+      }
+
+      // 5. Background non-blocking network duty check (timeout 2.5s)
+      if (!initialDuty && state.user && state.user.phone) {
+        (async () => {
+          try {
+            const cleanPhone = state.user.phone.replace(/\D/g, '');
+            const dutyRes = await safeFetch(apiUrl(`/api/mobile/driver/duty?phone=${encodeURIComponent(cleanPhone)}&driver_id=${encodeURIComponent(state.user.id || '')}`), {}, 2500);
+            if (dutyRes.ok) {
+              const dutyData = await dutyRes.json();
+              if (dutyData.has_duty && dutyData.duty) {
+                state.duty = dutyData.duty;
+                saveActiveDuty(state.duty);
+                updateCockpitUI();
+                if (state.map) updateMapForDuty(state.duty);
+              }
+            }
+          } catch (_) {}
+        })();
+      }
+
+      // 6. Background non-blocking compliance loading
+      (async () => {
+        try {
+          await loadDriverCompliance();
+        } catch (_) {}
+      })();
+
+      // 7. Background duty polling
+      try {
+        startDutyPolling();
+      } catch (_) {}
+
+      // 8. Safe notification permission request
+      try {
+        if (typeof Notification !== 'undefined' && Notification.permission === 'default' && typeof Notification.requestPermission === 'function') {
+          const req = Notification.requestPermission(() => {});
+          if (req && typeof req.catch === 'function') req.catch(() => {});
+        }
+      } catch (_) {}
 
       showToast(state.driverAvailable ? 'Driver Online' : 'Driver Offline', `Welcome to Cockpit, ${state.user?.full_name?.split(' ')[0] || 'Captain'}.`);
       window.axiomDriver = {
@@ -4474,6 +4588,12 @@
           updateCockpitUI();
         }
       };
+    }
+
+    // Immediate synchronous initialization for all controls & gestures
+    initAllCoreControls();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initAllCoreControls);
     }
 
     // Auto-login if previously saved session exists
