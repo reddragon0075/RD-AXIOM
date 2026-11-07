@@ -202,6 +202,171 @@
     }
     .btn-recenter:active { transform: scale(0.92); }
 
+    
+    /* ====================================================
+       COMPLIANCE DOCUMENTS & STATUTORY CREDENTIALS
+       ==================================================== */
+    .compliance-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-top: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .compliance-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .compliance-doc-title {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .compliance-status-pill {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .compliance-status-pill.valid {
+      background: #f0fdf4;
+      color: #16a34a;
+      border: 1px solid #bbf7d0;
+    }
+    .compliance-status-pill.pending {
+      background: #fefce8;
+      color: #ca8a04;
+      border: 1px solid #fef08a;
+    }
+    .compliance-doc-meta {
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+    .compliance-doc-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-doc-action {
+      flex: 1;
+      height: 32px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .btn-doc-action.upload {
+      background: #f1f5f9;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+    }
+    .btn-doc-action.upload:active {
+      background: #e2e8f0;
+    }
+    .btn-doc-action.view {
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+    }
+    .btn-doc-action.view:active {
+      background: #dbeafe;
+    }
+
+    /* ====================================================
+       NEW TRIP DISPATCH POPUP MODAL
+       ==================================================== */
+    .new-trip-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(9, 18, 21, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      animation: fadeIn 0.25s ease-out;
+    }
+    .new-trip-popup {
+      background: #ffffff;
+      border-radius: 24px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+      padding: 20px 20px 22px;
+      text-align: center;
+      border: 2px solid #06C167;
+      animation: slideUpPopup 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideUpPopup {
+      from { transform: translateY(50px) scale(0.92); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .new-trip-pulse-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #e8f8f0;
+      color: #06C167;
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .new-trip-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #000000;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+    .new-trip-passenger-card {
+      background: #f8faf9;
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin: 12px 0 14px;
+      text-align: left;
+      border: 1px solid #eef2f0;
+    }
+    .btn-accept-trip-pulse {
+      width: 100%;
+      height: 52px;
+      background: #000000;
+      color: #ffffff;
+      border: none;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      transition: transform 0.15s;
+    }
+    .btn-accept-trip-pulse:active {
+      transform: scale(0.97);
+    }
+
     /* Bottom Cockpit Card (Uber Driver Bottom Sheet) */
     /* Initial sheet base styles consolidated below */
     .trip-badge-bar {
@@ -1603,6 +1768,104 @@
         </div>
       </div>
 
+      <!-- ==========================================
+           STATUTORY COMPLIANCE & VENDOR PORTAL SYNC
+           ========================================== -->
+      <div class="weekly-payout-box" style="margin-top:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div>
+            <strong style="font-size:13px; color:#0f172a;">Statutory Compliance Documents</strong>
+            <div style="font-size:10px; color:var(--muted);">Syncs directly with Axiom Vendor Portal</div>
+          </div>
+          <span style="font-size:10px; font-weight:800; background:#f0fdf4; color:#15803d; padding:2px 7px; border-radius:4px; border:1px solid #bbf7d0;">
+            Portal Synced
+          </span>
+        </div>
+        <div style="font-size:10.5px; color:#64748b; line-height:1.4; margin-bottom:12px;">
+          Upload documents required for commercial corporate dispatch. Verified documents are instantly visible in the fleet operations dashboard.
+        </div>
+
+        <!-- 1. Commercial Driving License -->
+        <div class="compliance-card">
+          <div class="compliance-card-header">
+            <span class="compliance-doc-title">🪪 Commercial Driving License (DL)</span>
+            <span class="compliance-status-pill pending" id="status-badge-dl">Pending</span>
+          </div>
+          <div class="compliance-doc-meta" id="meta-dl">
+            License No: <strong id="val-dl-num">--</strong> · Expiry: <strong id="val-dl-exp">--</strong>
+            <div id="file-dl-status" style="margin-top:2px; font-size:10px; color:#475569;">No document attached</div>
+          </div>
+          <div class="compliance-doc-actions">
+            <button type="button" class="btn-doc-action upload" onclick="openComplianceUpload('dl', 'Commercial Driving License', 'License Number (e.g. DL-KA01-2024-998811)')">
+              📷 Upload / Update
+            </button>
+            <button type="button" class="btn-doc-action view hidden" id="btn-view-dl" onclick="viewComplianceDoc('dl')">
+              👁️ View
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Public Service Vehicle Badge -->
+        <div class="compliance-card">
+          <div class="compliance-card-header">
+            <span class="compliance-doc-title">🛡️ Public Service Vehicle (PSV) Badge</span>
+            <span class="compliance-status-pill pending" id="status-badge-badge">Pending</span>
+          </div>
+          <div class="compliance-doc-meta" id="meta-badge">
+            Badge No: <strong id="val-badge-num">--</strong> · Expiry: <strong id="val-badge-exp">--</strong>
+            <div id="file-badge-status" style="margin-top:2px; font-size:10px; color:#475569;">No document attached</div>
+          </div>
+          <div class="compliance-doc-actions">
+            <button type="button" class="btn-doc-action upload" onclick="openComplianceUpload('badge', 'PSV Badge', 'Badge Number (e.g. BDG-HYD-44910)')">
+              📷 Upload / Update
+            </button>
+            <button type="button" class="btn-doc-action view hidden" id="btn-view-badge" onclick="viewComplianceDoc('badge')">
+              👁️ View
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Police Background Verification -->
+        <div class="compliance-card">
+          <div class="compliance-card-header">
+            <span class="compliance-doc-title">👮 Police Verification Certificate (PCC)</span>
+            <span class="compliance-status-pill pending" id="status-badge-pcc">Pending</span>
+          </div>
+          <div class="compliance-doc-meta" id="meta-pcc">
+            PCC Ref: <strong id="val-pcc-num">--</strong> · Expiry: <strong id="val-pcc-exp">--</strong>
+            <div id="file-pcc-status" style="margin-top:2px; font-size:10px; color:#475569;">No document attached</div>
+          </div>
+          <div class="compliance-doc-actions">
+            <button type="button" class="btn-doc-action upload" onclick="openComplianceUpload('pcc', 'Police Verification Certificate', 'PCC Acknowledgement / Ref Number')">
+              📷 Upload / Update
+            </button>
+            <button type="button" class="btn-doc-action view hidden" id="btn-view-pcc" onclick="viewComplianceDoc('pcc')">
+              👁️ View
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. Medical Fitness Certificate -->
+        <div class="compliance-card">
+          <div class="compliance-card-header">
+            <span class="compliance-doc-title">🩺 Medical Fitness Certificate</span>
+            <span class="compliance-status-pill pending" id="status-badge-medical">Pending</span>
+          </div>
+          <div class="compliance-doc-meta" id="meta-medical">
+            Cert No: <strong id="val-medical-num">--</strong> · Expiry: <strong id="val-medical-exp">--</strong>
+            <div id="file-medical-status" style="margin-top:2px; font-size:10px; color:#475569;">No document attached</div>
+          </div>
+          <div class="compliance-doc-actions">
+            <button type="button" class="btn-doc-action upload" onclick="openComplianceUpload('medical', 'Medical Fitness Certificate', 'Doctor Registration / Certificate Number')">
+              📷 Upload / Update
+            </button>
+            <button type="button" class="btn-doc-action view hidden" id="btn-view-medical" onclick="viewComplianceDoc('medical')">
+              👁️ View
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- App Version & Device Diagnostics Card -->
       <div class="weekly-payout-box" style="margin-top:12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0;">
@@ -1675,6 +1938,92 @@
         <span id="toast-body">Details</span>
       </div>
     </div>
+
+  
+  <!-- ==========================================
+       MODAL 1: COMPLIANCE DOCUMENT UPLOADER
+       ========================================== -->
+  <div class="modal-backdrop hidden" id="compliance-modal">
+    <div class="modal-card" style="max-height:85dvh; overflow-y:auto;">
+      <div class="modal-head">
+        <h3 id="compliance-modal-title">Upload Statutory Document</h3>
+        <button class="close-btn" type="button" onclick="closeComplianceModal()">✕</button>
+      </div>
+      <p class="modal-sub" id="compliance-modal-sub">Document will be encrypted and synced with the vendor dispatch portal.</p>
+
+      <form id="compliance-upload-form" onsubmit="handleComplianceFormSubmit(event)">
+        <input type="hidden" id="comp-doc-type">
+
+        <label class="field" style="margin-bottom:12px;">Document Number
+          <input type="text" id="comp-doc-number" placeholder="Enter document number" required>
+        </label>
+
+        <label class="field" style="margin-bottom:12px;">Expiry Date
+          <input type="date" id="comp-doc-expiry" required>
+        </label>
+
+        <label class="field" style="margin-bottom:14px;">Attach Document (Photo or PDF)
+          <div id="comp-dropzone" style="border:2px dashed #b2ddd1; background:#f4faf6; border-radius:12px; padding:16px 14px; text-align:center; cursor:pointer;" onclick="document.getElementById('comp-file-input').click()">
+            <input type="file" id="comp-file-input" accept="image/*,.pdf" style="display:none;" onchange="handleComplianceFilePicked(event)">
+            <div id="comp-dropzone-prompt">
+              <div style="font-size:24px; margin-bottom:4px;">📄</div>
+              <div style="font-size:12px; font-weight:800; color:#0e1a1e;">Tap to capture photo or pick PDF</div>
+              <div style="font-size:10px; color:var(--muted); margin-top:2px;">JPG, PNG, WebP, or PDF up to 10MB</div>
+            </div>
+            <div id="comp-file-preview" style="display:none; align-items:center; justify-content:center; gap:8px;">
+              <span id="comp-file-name" style="font-size:12px; font-weight:800; color:#0b7847;"></span>
+              <button type="button" style="background:none; border:none; color:#ef4444; font-size:14px; cursor:pointer;" onclick="clearComplianceFile(event)">✕</button>
+            </div>
+          </div>
+        </label>
+
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <button type="button" class="secondary-btn" style="flex:1; height:46px;" onclick="closeComplianceModal()">Cancel</button>
+          <button type="submit" class="primary-btn" id="btn-save-compliance" style="flex:2; height:46px;">Save & Sync to Portal →</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 2: DOCUMENT VIEWER PREVIEW
+       ========================================== -->
+  <div class="modal-backdrop hidden" id="doc-viewer-modal">
+    <div class="modal-card" style="max-height:88dvh; display:flex; flex-direction:column;">
+      <div class="modal-head">
+        <h3 id="doc-viewer-title">Document Preview</h3>
+        <button class="close-btn" type="button" onclick="document.getElementById('doc-viewer-modal').classList.add('hidden')">✕</button>
+      </div>
+      <div id="doc-viewer-content" style="flex:1; min-height:280px; max-height:60dvh; overflow:auto; background:#f8fafc; border-radius:12px; display:grid; place-items:center; padding:10px;">
+        <!-- Image or PDF rendered here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 3: INCOMING NEW TRIP ALERT (DISPATCH)
+       ========================================== -->
+  <div class="new-trip-overlay hidden" id="new-trip-modal">
+    <div class="new-trip-popup">
+      <div class="new-trip-pulse-badge">
+        <span style="font-size:14px; animation:spin 2s linear infinite;">●</span> New Corporate Dispatch
+      </div>
+      <h2 class="new-trip-title" id="alert-passenger-name">Rahul Sharma</h2>
+      <div style="font-size:12px; color:#475569; font-weight:700; margin-bottom:8px;">★ 4.9 · Axiom Corporate Transfer</div>
+
+      <div class="new-trip-passenger-card">
+        <div style="font-size:10px; font-weight:800; color:#059669; text-transform:uppercase; margin-bottom:3px;">📍 Pickup Location</div>
+        <div style="font-size:12px; font-weight:800; color:#0f172a; margin-bottom:8px;" id="alert-pickup-addr">100ft Road, Indiranagar, Bengaluru</div>
+        
+        <div style="font-size:10px; font-weight:800; color:#2563eb; text-transform:uppercase; margin-bottom:3px;">🏁 Destination</div>
+        <div style="font-size:12px; font-weight:800; color:#0f172a;" id="alert-dropoff-addr">Kempegowda Int. Airport (BLR) T1</div>
+      </div>
+
+      <button type="button" class="btn-accept-trip-pulse" id="btn-accept-new-trip" onclick="acceptIncomingTrip()">
+        ACCEPT & VIEW NAVIGATION ➜
+      </button>
+    </div>
+  </div>
 
   </main>
 
@@ -2946,7 +3295,287 @@
       }
     }
 
-    async function initMap() {
+    // ====================================================
+    // STATUTORY COMPLIANCE DOCUMENT CONTROLLER
+    // ====================================================
+    let complianceData = null;
+    let currentUploadedFileData = '';
+    let currentUploadedFileName = '';
+
+    async function loadDriverCompliance() {
+      const phone = state.user?.phone || '9876543210';
+      const driverId = state.user?.id || '';
+      try {
+        const res = await fetch(apiUrl(`/api/mobile/driver/compliance?phone=${encodeURIComponent(phone)}&driver_id=${encodeURIComponent(driverId)}`));
+        const data = await res.json();
+        if (data && data.ok) {
+          complianceData = data.compliance;
+          renderComplianceUI(data.compliance);
+        }
+      } catch (e) {
+        console.warn('Failed to load compliance records:', e);
+      }
+    }
+
+    function renderComplianceUI(comp) {
+      if (!comp) return;
+      const docs = ['dl', 'badge', 'pcc', 'medical'];
+      docs.forEach(key => {
+        const item = comp[key] || {};
+        const badge = document.getElementById(`status-badge-${key}`);
+        const valNum = document.getElementById(`val-${key}-num`);
+        const valExp = document.getElementById(`val-${key}-exp`);
+        const fileStatus = document.getElementById(`file-${key}-status`);
+        const btnView = document.getElementById(`btn-view-${key}`);
+
+        if (valNum) valNum.textContent = item.number || '--';
+        if (valExp) valExp.textContent = item.expiry || '--';
+        
+        const hasDoc = Boolean(item.number || item.expiry || item.has_file);
+        if (badge) {
+          badge.textContent = hasDoc ? '🟢 Synced' : 'Pending';
+          badge.className = `compliance-status-pill ${hasDoc ? 'valid' : 'pending'}`;
+        }
+        if (fileStatus) {
+          fileStatus.textContent = item.file_name ? `📄 ${item.file_name}` : (item.has_file ? '📄 Document on file' : 'No document attached');
+        }
+        if (btnView) {
+          btnView.classList.toggle('hidden', !item.has_file && !item.file_data);
+        }
+      });
+    }
+
+    window.openComplianceUpload = function(docType, title, numPlaceholder) {
+      $('comp-doc-type').value = docType;
+      $('compliance-modal-title').textContent = `Upload ${title}`;
+      $('comp-doc-number').placeholder = numPlaceholder;
+      
+      const item = (complianceData && complianceData[docType]) || {};
+      $('comp-doc-number').value = item.number || '';
+      $('comp-doc-expiry').value = item.expiry || '';
+      
+      currentUploadedFileData = item.file_data || '';
+      currentUploadedFileName = item.file_name || '';
+      updateCompliancePreviewUI();
+
+      $('compliance-modal').classList.remove('hidden');
+    };
+
+    window.closeComplianceModal = function() {
+      $('compliance-modal').classList.add('hidden');
+    };
+
+    window.handleComplianceFilePicked = function(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      currentUploadedFileName = file.name;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        currentUploadedFileData = evt.target.result;
+        updateCompliancePreviewUI();
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.clearComplianceFile = function(e) {
+      if (e) e.stopPropagation();
+      currentUploadedFileData = '';
+      currentUploadedFileName = '';
+      $('comp-file-input').value = '';
+      updateCompliancePreviewUI();
+    };
+
+    function updateCompliancePreviewUI() {
+      const promptEl = $('comp-dropzone-prompt');
+      const previewEl = $('comp-file-preview');
+      const nameEl = $('comp-file-name');
+      if (currentUploadedFileName) {
+        if (promptEl) promptEl.style.display = 'none';
+        if (previewEl) previewEl.style.display = 'flex';
+        if (nameEl) nameEl.textContent = `📄 ${currentUploadedFileName}`;
+      } else {
+        if (promptEl) promptEl.style.display = 'block';
+        if (previewEl) previewEl.style.display = 'none';
+      }
+    }
+
+    window.handleComplianceFormSubmit = async function(e) {
+      e.preventDefault();
+      const docType = $('comp-doc-type').value;
+      const number = $('comp-doc-number').value.trim();
+      const expiry = $('comp-doc-expiry').value.trim();
+      const saveBtn = $('btn-save-compliance');
+
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Syncing with Portal...';
+      }
+
+      try {
+        const payload = {
+          driver_id: state.user?.id || '',
+          phone: state.user?.phone || '9876543210',
+          doc_type: docType,
+          number: number,
+          expiry: expiry,
+          file_name: currentUploadedFileName,
+          file_data: currentUploadedFileData
+        };
+
+        const res = await fetch(apiUrl('/api/mobile/driver/compliance'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data && data.ok) {
+          showToast('Compliance Synced', `${docType.toUpperCase()} document updated & reflected in Vendor Portal!`);
+          closeComplianceModal();
+          await loadDriverCompliance();
+        } else {
+          showToast('Sync Error', data.message || 'Could not sync document');
+        }
+      } catch (err) {
+        showToast('Network Error', 'Check connection to backend server');
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save & Sync to Portal →';
+        }
+      }
+    };
+
+    window.viewComplianceDoc = function(docType) {
+      const item = (complianceData && complianceData[docType]) || {};
+      const fileData = item.file_data;
+      const fileName = item.file_name || `${docType}.pdf`;
+      const viewerTitle = $('doc-viewer-title');
+      const viewerContent = $('doc-viewer-content');
+
+      if (viewerTitle) viewerTitle.textContent = `Preview: ${fileName}`;
+      if (viewerContent) {
+        if (fileData && fileData.startsWith('data:image/')) {
+          viewerContent.innerHTML = `<img src="${fileData}" style="max-width:100%; max-height:55dvh; border-radius:8px; object-fit:contain;">`;
+        } else if (fileData && fileData.startsWith('data:application/pdf')) {
+          viewerContent.innerHTML = `<iframe src="${fileData}" style="width:100%; height:55dvh; border:none; border-radius:8px;"></iframe>`;
+        } else {
+          viewerContent.innerHTML = `<div style="text-align:center; padding:20px;">
+            <div style="font-size:36px; margin-bottom:8px;">📄</div>
+            <strong>${fileName}</strong>
+            <div style="font-size:11px; color:#64748b; margin-top:4px;">Verified statutory document on file in Vendor Portal.</div>
+          </div>`;
+        }
+      }
+      $('doc-viewer-modal').classList.remove('hidden');
+    };
+
+    // ====================================================
+    // REAL-TIME NEW TRIP NOTIFICATION & AUDIO DISPATCH
+    // ====================================================
+    let dutyPollTimer = null;
+    let lastKnownDutyId = null;
+
+    function playNewTripChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+        
+        // Chime tone 1 (587.33 Hz - D5)
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.frequency.setValueAtTime(587.33, now);
+        gain1.gain.setValueAtTime(0.25, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.35);
+
+        // Chime tone 2 (880.00 Hz - A5)
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.frequency.setValueAtTime(880.00, now + 0.16);
+        gain2.gain.setValueAtTime(0.35, now + 0.16);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.16);
+        osc2.stop(now + 0.65);
+      } catch (e) {
+        console.warn('AudioContext chime error:', e);
+      }
+    }
+
+    window.triggerNewTripNotification = function(d) { triggerNewTripNotification(d); };
+    function triggerNewTripNotification(duty) {
+      // 1. Play alert chime
+      playNewTripChime();
+
+      // 2. Vibrate phone (haptic rhythm)
+      if (navigator.vibrate) {
+        navigator.vibrate([300, 150, 300, 150, 500]);
+      }
+
+      // 3. System Status Bar Notification
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification('🚖 New Trip Assigned! (Axiom Fleet)', {
+            body: `${duty.passenger_name || 'Passenger'} · Pickup: ${duty.pickup || 'Reporting Point'}`,
+            icon: 'icon-192.png',
+            tag: `axiom-trip-${duty.id}`
+          });
+        } catch (_) {}
+      }
+
+      // 4. In-App High-Visibility Modal Popup
+      if ($('alert-passenger-name')) $('alert-passenger-name').textContent = duty.passenger_name || 'Corporate Passenger';
+      if ($('alert-pickup-addr')) $('alert-pickup-addr').textContent = duty.pickup || 'Reporting Location';
+      if ($('alert-dropoff-addr')) $('alert-dropoff-addr').textContent = duty.dropoff || 'Destination';
+      $('new-trip-modal')?.classList.remove('hidden');
+
+      showToast('🚖 New Trip Assigned!', `${duty.passenger_name || 'Passenger'} · Tap to open navigation`);
+    }
+
+    window.acceptIncomingTrip = function() {
+      $('new-trip-modal')?.classList.add('hidden');
+      switchTab('cockpit');
+      if (state.duty && state.map) {
+        updateCockpitUI();
+        updateMapForDuty(state.duty);
+      }
+    };
+
+    function startDutyPolling() {
+      if (dutyPollTimer) clearInterval(dutyPollTimer);
+      lastKnownDutyId = state.duty?.id || null;
+
+      dutyPollTimer = setInterval(async () => {
+        if (!state.online || !state.user) return;
+        const phone = state.user.phone || '9876543210';
+        const driverId = state.user.id || '';
+        try {
+          const res = await fetch(apiUrl(`/api/mobile/driver/duty?phone=${encodeURIComponent(phone)}&driver_id=${encodeURIComponent(driverId)}`));
+          const data = await res.json();
+          if (data && data.ok && data.has_duty && data.duty) {
+            const incoming = data.duty;
+            const isFreshDuty = (!lastKnownDutyId && incoming.id) || (lastKnownDutyId && lastKnownDutyId !== incoming.id) || (state.duty && state.duty.status === 'completed' && incoming.status !== 'completed');
+
+            if (isFreshDuty) {
+              lastKnownDutyId = incoming.id;
+              state.duty = incoming;
+              saveActiveDuty(state.duty);
+              triggerNewTripNotification(incoming);
+              updateCockpitUI();
+              if (state.map) updateMapForDuty(incoming);
+            }
+          }
+        } catch (_) {}
+      }, 6000);
+    }
+
+    function initMap() {
       if (state.map || typeof L === 'undefined') return;
 
       // Initial center (Duty pickup, saved location, or Hyderabad default)
@@ -3504,6 +4133,9 @@
       $('sync-view').classList.toggle('hidden', tab !== 'sync');
       $('profile-view').classList.toggle('hidden', tab !== 'profile');
 
+      if (tab === 'profile') {
+        loadDriverCompliance();
+      }
       if (tab === 'cockpit' && state.map) {
         setTimeout(() => state.map.invalidateSize(), 150);
       } else if (tab === 'earnings') {
@@ -3694,6 +4326,11 @@
       initMap();
       initSlider();
       initBottomSheetDrag();
+      loadDriverCompliance();
+      startDutyPolling();
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {});
+      }
       updateCockpitUI();
       renderEarningsView();
       renderUpcomingRoster();

@@ -1281,6 +1281,167 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 "updated_at": now_str
             })
 
+    def _api_mobile_driver_compliance(self, method: str) -> None:
+        if method == "GET":
+            query = urlsplit(self.path).query
+            params = parse_qs(query)
+            raw_phone = params.get("phone", [""])[0]
+            digits = "".join(filter(str.isdigit, raw_phone))
+            if len(digits) > 10:
+                digits = digits[-10:]
+            driver_id = params.get("driver_id", [""])[0]
+
+            with db_connection() as conn:
+                driver = None
+                if driver_id:
+                    driver = conn.execute("SELECT * FROM domain_drivers WHERE id = ?", (driver_id,)).fetchone()
+                if not driver and digits:
+                    driver = conn.execute(
+                        "SELECT * FROM domain_drivers WHERE replace(replace(replace(replace(phone, ' ', ''), '-', ''), '+91', ''), '(', '') LIKE ? LIMIT 1",
+                        (f"%{digits}%",)
+                    ).fetchone()
+
+                if not driver:
+                    self._json(200, {
+                        "ok": True,
+                        "found": False,
+                        "driver_id": driver_id or f"drv_{digits}",
+                        "compliance": {
+                            "dl": {"number": "", "expiry": "", "file_name": "", "has_file": False, "status": "pending"},
+                            "badge": {"number": "", "expiry": "", "file_name": "", "has_file": False, "status": "pending"},
+                            "pcc": {"number": "", "expiry": "", "file_name": "", "has_file": False, "status": "pending"},
+                            "medical": {"number": "", "expiry": "", "file_name": "", "has_file": False, "status": "pending"}
+                        }
+                    })
+                    return
+
+                d = dict(driver)
+                def get_doc_status(num, exp, file_data):
+                    if not num and not exp and not file_data:
+                        return "pending"
+                    return "valid"
+
+                self._json(200, {
+                    "ok": True,
+                    "found": True,
+                    "driver_id": d["id"],
+                    "full_name": d["full_name"],
+                    "phone": d["phone"],
+                    "vehicle": d.get("vehicle_registration") or "KA01AK4421",
+                    "compliance": {
+                        "dl": {
+                            "number": d.get("license_number") or "",
+                            "expiry": d.get("license_expiry") or "",
+                            "file_name": d.get("dl_file_name") or "",
+                            "file_data": d.get("dl_file_data") or "",
+                            "has_file": bool(d.get("dl_file_data") or d.get("dl_file_name")),
+                            "status": get_doc_status(d.get("license_number"), d.get("license_expiry"), d.get("dl_file_data"))
+                        },
+                        "badge": {
+                            "number": d.get("badge_number") or "",
+                            "expiry": d.get("badge_expiry") or "",
+                            "file_name": d.get("badge_file_name") or "",
+                            "file_data": d.get("badge_file_data") or "",
+                            "has_file": bool(d.get("badge_file_data") or d.get("badge_file_name")),
+                            "status": get_doc_status(d.get("badge_number"), d.get("badge_expiry"), d.get("badge_file_data"))
+                        },
+                        "pcc": {
+                            "number": d.get("police_verification_number") or "",
+                            "expiry": d.get("police_verification_expiry") or "",
+                            "file_name": d.get("pcc_file_name") or "",
+                            "file_data": d.get("pcc_file_data") or "",
+                            "has_file": bool(d.get("pcc_file_data") or d.get("pcc_file_name")),
+                            "status": get_doc_status(d.get("police_verification_number"), d.get("police_verification_expiry"), d.get("pcc_file_data"))
+                        },
+                        "medical": {
+                            "number": d.get("medical_certificate_number") or "",
+                            "expiry": d.get("medical_expiry") or "",
+                            "file_name": d.get("medical_file_name") or "",
+                            "file_data": d.get("medical_file_data") or "",
+                            "has_file": bool(d.get("medical_file_data") or d.get("medical_file_name")),
+                            "status": get_doc_status(d.get("medical_certificate_number"), d.get("medical_expiry"), d.get("medical_file_data"))
+                        }
+                    }
+                })
+
+        elif method in ("POST", "PATCH"):
+            payload = self._read_json()
+            raw_phone = str(payload.get("phone") or "").strip()
+            digits = "".join(filter(str.isdigit, raw_phone))
+            if len(digits) > 10:
+                digits = digits[-10:]
+            driver_id = str(payload.get("driver_id") or "").strip()
+            doc_type = str(payload.get("doc_type") or "").strip().lower()
+            number = str(payload.get("number") or "").strip()
+            expiry = str(payload.get("expiry") or "").strip()
+            file_name = str(payload.get("file_name") or "").strip()
+            file_data = str(payload.get("file_data") or "").strip()
+
+            with db_connection() as conn:
+                driver = None
+                if driver_id:
+                    driver = conn.execute("SELECT * FROM domain_drivers WHERE id = ?", (driver_id,)).fetchone()
+                if not driver and digits:
+                    driver = conn.execute(
+                        "SELECT * FROM domain_drivers WHERE replace(replace(replace(replace(phone, ' ', ''), '-', ''), '+91', ''), '(', '') LIKE ? LIMIT 1",
+                        (f"%{digits}%",)
+                    ).fetchone()
+
+                if not driver:
+                    target_id = driver_id or f"drv_{digits}"
+                    conn.execute("""
+                        INSERT INTO domain_drivers(id, organization_id, full_name, phone, status, created_at, updated_at)
+                        VALUES (?, 'org_axiom_logistics', ?, ?, 'available', datetime('now'), datetime('now'))
+                    """, (target_id, payload.get("full_name") or f"Captain ({digits[-4:]})", f"+91 {digits}"))
+                    target_driver_id = target_id
+                else:
+                    target_driver_id = driver["id"]
+
+                updates = ["updated_at = datetime('now')"]
+                params = []
+
+                if doc_type == "dl":
+                    if number: updates.append("license_number = ?"); params.append(number)
+                    if expiry: updates.append("license_expiry = ?"); params.append(expiry)
+                    if file_name: updates.append("dl_file_name = ?"); params.append(file_name)
+                    if file_data: updates.append("dl_file_data = ?"); params.append(file_data)
+                elif doc_type == "badge":
+                    if number: updates.append("badge_number = ?"); params.append(number)
+                    if expiry: updates.append("badge_expiry = ?"); params.append(expiry)
+                    if file_name: updates.append("badge_file_name = ?"); params.append(file_name)
+                    if file_data: updates.append("badge_file_data = ?"); params.append(file_data)
+                elif doc_type == "pcc":
+                    if number: updates.append("police_verification_number = ?"); params.append(number)
+                    if expiry: updates.append("police_verification_expiry = ?"); params.append(expiry)
+                    if file_name: updates.append("pcc_file_name = ?"); params.append(file_name)
+                    if file_data: updates.append("pcc_file_data = ?"); params.append(file_data)
+                elif doc_type == "medical":
+                    if number: updates.append("medical_certificate_number = ?"); params.append(number)
+                    if expiry: updates.append("medical_expiry = ?"); params.append(expiry)
+                    if file_name: updates.append("medical_file_name = ?"); params.append(file_name)
+                    if file_data: updates.append("medical_file_data = ?"); params.append(file_data)
+
+                params.append(target_driver_id)
+                conn.execute(f"UPDATE domain_drivers SET {', '.join(updates)} WHERE id = ?", params)
+
+                # Sync to domain_documents audit registry
+                if file_name or file_data:
+                    doc_id = f"doc_{target_driver_id}_{doc_type}"
+                    conn.execute("""
+                        INSERT INTO domain_documents(id, organization_id, entity_type, entity_id, document_type, file_name, storage_path, status, expires_at, created_at, updated_at)
+                        VALUES (?, 'org_axiom_logistics', 'driver', ?, ?, ?, ?, 'active', ?, datetime('now'), datetime('now'))
+                        ON CONFLICT(id) DO UPDATE SET
+                            file_name = excluded.file_name,
+                            expires_at = excluded.expires_at,
+                            updated_at = datetime('now')
+                    """, (doc_id, target_driver_id, doc_type.upper(), file_name, file_data[:100], expiry or None))
+
+                self._json(200, {
+                    "ok": True,
+                    "message": f"{doc_type.upper()} compliance document updated & synced with dispatch portal successfully",
+                    "driver_id": target_driver_id
+                })
+
     def _api_health(self) -> None:
         self._json(200, {"ok": True, "status": "alive", "service": "axiom-fleet-backend", "storage": "sqlite", "time": utc_now()})
 
@@ -2083,6 +2244,8 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 self._api_mobile_driver_update_duty(route, method)
             elif route == "/api/mobile/driver/availability" and method in {"GET", "POST", "PATCH"}:
                 self._api_mobile_driver_availability(method)
+            elif route == "/api/mobile/driver/compliance" and method in {"GET", "POST", "PATCH"}:
+                self._api_mobile_driver_compliance(method)
             elif route in ("/api/health", "/health/live") and method == "GET":
                 self._api_health()
             elif route in ("/api/health/ready", "/health/ready") and method == "GET":
