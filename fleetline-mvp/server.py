@@ -1649,7 +1649,11 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
             return
 
         data = self._read_json()
-        email = normalize_email(data.get("email") or "reddragon0075@gmail.com")
+        raw_email = (data.get("email") or "").strip()
+        if not raw_email or "@" not in raw_email:
+            self._json(400, {"ok": False, "error": "A valid email address is required for ZeroAuthy SSO federation."})
+            return
+        email = normalize_email(raw_email)
         full_name = str(data.get("full_name") or data.get("name") or "").strip()
         role = clean_text(data.get("role") or "vendor", "role", maximum=20).lower()
         if role not in ROLES:

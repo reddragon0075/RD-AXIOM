@@ -44,3 +44,4 @@ In Axiom:
 
 ## 3. Built-in Sovereign Fallback
 When Docker or an external ZeroAuthy server is not running locally, Axiom's embedded sovereign engine handles the ZeroAuthy OIDC handshake seamlessly, allowing 1-click SSO login without external dependencies.
+
