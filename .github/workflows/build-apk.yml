@@ -52,7 +52,7 @@ jobs:
       - name: Install Capacitor CLI & Android Tooling
         run: |
           npm init -y
-          npm install --save @capacitor/core@6.2.0 @capacitor/cli@6.2.0 @capacitor/android@6.2.0 --no-audit --no-fund
+          npm install --save @capacitor/core@6.2.0 @capacitor/cli@6.2.0 @capacitor/android@6.2.0 @capacitor/geolocation@6.0.0 --no-audit --no-fund
 
       - name: Initialize Capacitor Configuration
         run: |

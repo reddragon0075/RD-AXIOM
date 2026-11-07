@@ -2614,17 +2614,99 @@
     // ----------------------------------------------------
     // LEAFLET MAP INITIALIZATION (100% Free & Local)
     // ----------------------------------------------------
-    function initMap() {
+    // REAL-TIME GPS & LEAFLET MAP TRACKING ENGINE
+    // ----------------------------------------------------
+    let locationWatchId = null;
+    let initialFixAcquired = false;
+
+    async function getDeviceLocation() {
+      // 1. Try Capacitor Native Android Geolocation Plugin
+      if (window.Capacitor?.Plugins?.Geolocation) {
+        try {
+          const perm = await window.Capacitor.Plugins.Geolocation.checkPermissions();
+          if (perm.location !== 'granted') {
+            const req = await window.Capacitor.Plugins.Geolocation.requestPermissions();
+            if (req.location !== 'granted') {
+              showToast('Location Permission', 'Please allow location permission in phone Settings.');
+              return null;
+            }
+          }
+          const pos = await window.Capacitor.Plugins.Geolocation.getCurrentPosition({
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 3000
+          });
+          if (pos && pos.coords) {
+            return [pos.coords.latitude, pos.coords.longitude];
+          }
+        } catch (e) {
+          console.warn('Capacitor Geolocation error, falling back to navigator:', e);
+        }
+      }
+
+      // 2. Standard navigator.geolocation (Web & Android WebView)
+      if (navigator.geolocation) {
+        return new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => resolve([pos.coords.latitude, pos.coords.longitude]),
+            (err) => {
+              console.warn('navigator.geolocation error:', err.message);
+              resolve(null);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+          );
+        });
+      }
+
+      return null;
+    }
+
+    function applyNewLocation(coords, shouldPan = false) {
+      if (!coords || !Array.isArray(coords)) return;
+      state.currentLocation = coords;
+      if (state.driverMarker) {
+        state.driverMarker.setLatLng(coords);
+      }
+      if (state.map && (shouldPan || !initialFixAcquired)) {
+        initialFixAcquired = true;
+        state.map.setView(coords, Math.max(state.map.getZoom(), 15), { animate: true });
+      }
+    }
+
+    function startLiveLocationTracking() {
+      if (locationWatchId !== null) return;
+
+      if (window.Capacitor?.Plugins?.Geolocation) {
+        window.Capacitor.Plugins.Geolocation.watchPosition(
+          { enableHighAccuracy: true },
+          (pos) => {
+            if (pos && pos.coords) {
+              applyNewLocation([pos.coords.latitude, pos.coords.longitude], false);
+            }
+          }
+        ).then(id => { locationWatchId = id; }).catch(() => {});
+      } else if (navigator.geolocation) {
+        locationWatchId = navigator.geolocation.watchPosition(
+          (pos) => applyNewLocation([pos.coords.latitude, pos.coords.longitude], false),
+          (err) => console.warn('watchPosition error:', err),
+          { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
+        );
+      }
+    }
+
+    async function initMap() {
       if (state.map || typeof L === 'undefined') return;
 
-      const driverPos = [12.9716, 77.6412]; // Indiranagar
-      const pickupPos = [12.9784, 77.6408]; // 100ft Rd
-      const dropoffPos = [13.1986, 77.7066]; // BLR Airport
+      // Initial center (Duty pickup, saved location, or Hyderabad default)
+      let startPos = state.currentLocation || [17.3850, 78.4867];
+      if (state.duty?.pickup_lat && state.duty?.pickup_lng) {
+        startPos = [state.duty.pickup_lat, state.duty.pickup_lng];
+      }
 
       state.map = L.map('uber-map', {
         zoomControl: false,
         attributionControl: false
-      }).setView(driverPos, 14);
+      }).setView(startPos, 14);
 
       // OpenStreetMap High-Quality Clean Tiles (100% Free, No Watermark)
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -2639,17 +2721,36 @@
         iconSize: [36, 36],
         iconAnchor: [18, 18]
       });
-      state.driverMarker = L.marker(driverPos, { icon: driverIcon }).addTo(state.map);
+      state.driverMarker = L.marker(startPos, { icon: driverIcon }).addTo(state.map);
 
       // Render initial markers for duty
       updateMapForDuty(state.duty);
 
-      // Recenter button click
-      $('btn-recenter')?.addEventListener('click', () => {
-        if (state.map && state.driverMarker) {
+      // Recenter button click: fetches real live GPS and pans smoothly!
+      $('btn-recenter')?.addEventListener('click', async () => {
+        const btn = $('btn-recenter');
+        if (btn) btn.style.transform = 'scale(0.85)';
+        showToast('📍 Acquiring GPS...', 'Requesting high-precision device location');
+        const livePos = await getDeviceLocation();
+        if (btn) btn.style.transform = '';
+        if (livePos) {
+          applyNewLocation(livePos, true);
+          showToast('📍 GPS Locked', `Current Location: ${livePos[0].toFixed(4)}, ${livePos[1].toFixed(4)}`);
+        } else if (state.driverMarker) {
           state.map.setView(state.driverMarker.getLatLng(), 15, { animate: true });
+          showToast('GPS Alert', 'Location unavailable. Ensure GPS is enabled on your phone.');
         }
       });
+
+      // Query real device location immediately on load
+      getDeviceLocation().then(livePos => {
+        if (livePos) {
+          applyNewLocation(livePos, true);
+        }
+      });
+
+      // Start continuous GPS tracking
+      startLiveLocationTracking();
     }
 
     function clearRouteMarkers() {
@@ -2667,9 +2768,9 @@
         }
         return;
       }
-      const driverPos = state.driverMarker ? state.driverMarker.getLatLng() : [12.9716, 77.6412];
-      const pickupPos = [duty.pickup_lat || 12.9784, duty.pickup_lng || 77.6408];
-      const dropoffPos = [duty.dropoff_lat || 13.1986, duty.dropoff_lng || 77.7066];
+      const driverPos = state.driverMarker ? state.driverMarker.getLatLng() : (state.currentLocation || [17.3850, 78.4867]);
+      const pickupPos = (duty.pickup_lat && duty.pickup_lng) ? [duty.pickup_lat, duty.pickup_lng] : [driverPos.lat || driverPos[0], driverPos.lng || driverPos[1]];
+      const dropoffPos = (duty.dropoff_lat && duty.dropoff_lng) ? [duty.dropoff_lat, duty.dropoff_lng] : null;
 
       // Pickup Marker
       const pickupIcon = L.divIcon({
@@ -2679,15 +2780,20 @@
       });
       state.pickupMarker = L.marker(pickupPos, { icon: pickupIcon }).addTo(state.map);
 
-      // Dropoff Marker
-      const dropoffIcon = L.divIcon({
-        html: '<div style="background:#111; color:#06C167; font-weight:900; font-size:12px; width:28px; height:28px; border-radius:8px; border:2px solid #06C167; display:grid; place-items:center; box-shadow:0 3px 8px rgba(0,0,0,0.3);">D</div>',
-        iconSize: [28, 28]
-      });
-      state.dropoffMarker = L.marker(dropoffPos, { icon: dropoffIcon }).addTo(state.map);
+      // Dropoff Marker (if available)
+      if (dropoffPos) {
+        const dropoffIcon = L.divIcon({
+          html: '<div style="background:#111; color:#06C167; font-weight:900; font-size:12px; width:28px; height:28px; border-radius:8px; border:2px solid #06C167; display:grid; place-items:center; box-shadow:0 3px 8px rgba(0,0,0,0.3);">D</div>',
+          iconSize: [28, 28]
+        });
+        state.dropoffMarker = L.marker(dropoffPos, { icon: dropoffIcon }).addTo(state.map);
+      }
 
-      // Polyline route
-      state.routeLine = L.polyline([driverPos, pickupPos, [13.0358, 77.5970], dropoffPos], {
+      // Polyline route from driver to pickup (and dropoff)
+      const routePoints = [driverPos, pickupPos];
+      if (dropoffPos) routePoints.push(dropoffPos);
+
+      state.routeLine = L.polyline(routePoints, {
         color: '#000000',
         weight: 4,
         opacity: 0.85,
@@ -2696,8 +2802,12 @@
         dashArray: '2, 6'
       }).addTo(state.map);
 
-      // Fit driver and pickup in frame
-      state.map.fitBounds(L.latLngBounds([driverPos, pickupPos]), { padding: [80, 80] });
+      // Fit bounds
+      try {
+        state.map.fitBounds(L.latLngBounds(routePoints), { padding: [80, 80] });
+      } catch (e) {
+        state.map.setView(driverPos, 15);
+      }
     }
 
     // ----------------------------------------------------
