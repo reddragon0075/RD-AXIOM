@@ -1013,7 +1013,7 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
                 LEFT JOIN domain_bookings b ON b.id = d.booking_id
                 LEFT JOIN domain_customers c ON c.id = b.customer_id
                 LEFT JOIN domain_vehicles v ON v.id = d.vehicle_id
-                WHERE d.driver_id = ? AND d.status NOT IN ('cancelled', 'completed')
+                WHERE d.driver_id = ? AND d.status NOT IN ('cancelled', 'completed', 'invoiced', 'closed', 'settled')
                 ORDER BY d.reporting_at ASC LIMIT 1
             """, (driver_id,)).fetchone()
             
