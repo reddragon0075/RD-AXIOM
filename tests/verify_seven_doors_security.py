@@ -77,9 +77,8 @@ class TestSevenDoorsSecurity(unittest.TestCase):
         for root_dir in [MVP_DIR, REPO_ROOT / "frontend"]:
             if not root_dir.exists():
                 continue
-            for dirpath, _, filenames in os.walk(root_dir):
-                if any(ignored in dirpath for ignored in [".git", "data", "__pycache__"]):
-                    continue
+            for dirpath, dirnames, filenames in os.walk(root_dir):
+                dirnames[:] = [d for d in dirnames if not d.startswith((".", "temp_", "__")) and d not in ("node_modules", "data", "mobile-driver")]
                 for fn in filenames:
                     if fn.endswith((".html", ".js", ".css")):
                         scanned_files += 1

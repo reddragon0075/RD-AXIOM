@@ -895,7 +895,16 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
         self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=(self)")
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Content-Security-Policy", "default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: *.tile.openstreetmap.org; connect-src 'self' https: http: ws:;")
+        
+        origin = self.headers.get("Origin", "").strip().rstrip("/")
+        allowed = configured_origins()
+        if origin and (origin in allowed or not is_production()):
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
+        else:
+            self.send_header("Access-Control-Allow-Origin", "*")
+            
         self.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Request-ID, X-Axiom-Role, X-Axiom-Persona")
         if secure_cookie_enabled():
@@ -2308,19 +2317,35 @@ class AxiomFleetHandler(SimpleHTTPRequestHandler):
         if not requested:
             requested = "index.html"
         
+        # Block dotfile / directory traversal segments
+        parts = Path(requested).parts
+        if any(p.startswith(".") for p in parts):
+            return None
+
+        # Block sensitive server files and databases from direct static download
+        blocked_exts = {".sqlite", ".sqlite3", ".db", ".py", ".env", ".pem", ".key", ".log", ".sh", ".yml", ".yaml"}
+
         # 1. Check in ROOT (fleetline-mvp)
-        cand = (ROOT / requested).resolve()
-        if cand.is_dir():
-            cand = cand / "index.html"
-        if cand.is_file():
-            return cand
-            
+        try:
+            cand = (ROOT / requested).resolve()
+            if cand.is_relative_to(ROOT):
+                if cand.is_dir():
+                    cand = cand / "index.html"
+                if cand.is_file() and cand.suffix.lower() not in blocked_exts:
+                    return cand
+        except (ValueError, RuntimeError):
+            pass
+
         # 2. Check in ROOT.parent (workspace root)
-        cand_ws = (ROOT.parent / requested).resolve()
-        if cand_ws.is_dir():
-            cand_ws = cand_ws / "index.html"
-        if cand_ws.is_file():
-            return cand_ws
+        try:
+            cand_ws = (ROOT.parent / requested).resolve()
+            if cand_ws.is_relative_to(ROOT.parent):
+                if cand_ws.is_dir():
+                    cand_ws = cand_ws / "index.html"
+                if cand_ws.is_file() and cand_ws.suffix.lower() not in blocked_exts:
+                    return cand_ws
+        except (ValueError, RuntimeError):
+            pass
 
         return None
 
