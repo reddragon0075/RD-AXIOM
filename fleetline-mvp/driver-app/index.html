@@ -912,16 +912,18 @@
       user-select: none;
     }
 
-    /* Interactive Handle Zone: Large comfortable touch target */
+    /* Interactive Handle Zone: Large comfortable touch target spanning full card width */
     .sheet-handle-zone {
-      padding: 14px 0 12px;
+      margin: 0 -18px;
+      padding: 16px 18px 12px;
+      width: calc(100% + 36px);
+      min-height: 56px;
       cursor: pointer;
       text-align: center;
       touch-action: none !important;
       -webkit-touch-callout: none;
       background: #ffffff;
       border: none;
-      width: 100%;
       border-radius: 24px 24px 0 0;
       position: sticky;
       top: 0;
@@ -929,16 +931,11 @@
       user-select: none;
       -webkit-user-select: none;
       display: block;
+      transition: background 0.15s, transform 0.15s;
     }
     .sheet-handle-zone:active {
       background: #f8fafc;
-    }
-    .sheet-handle, .sheet-drag-hint, .sheet-drag-hint * {
-      pointer-events: none;
-    }
-    .sheet-handle-zone:active {
-      cursor: grabbing;
-      background: #f8fafc;
+      transform: scale(0.99);
     }
     .sheet-handle {
       width: 44px; height: 5px; border-radius: 99px;
@@ -951,15 +948,20 @@
       width: 52px;
     }
     .sheet-drag-hint {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
-      font-size: 10px;
+      gap: 6px;
+      font-size: 11px;
       font-weight: 700;
-      color: #6d847a;
-      margin-top: 5px;
+      color: #0f172a;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      padding: 4px 14px;
+      margin-top: 6px;
       letter-spacing: 0.02em;
+      transition: all 0.2s;
     }
     .sheet-drag-hint i {
       font-style: normal;
@@ -1432,7 +1434,7 @@
 
       <!-- Top Floating Bar: Online Toggle + Today Earnings + SOS -->
       <header class="top-floating-bar">
-        <button class="online-toggle-pill" id="btn-online-toggle" type="button" aria-label="Toggle Online Status">
+        <button class="online-toggle-pill" id="btn-online-toggle" type="button" onclick="window.toggleDriverOnline(event)" aria-label="Toggle Online Status">
           <i class="status-dot"></i>
           <span id="online-text">ONLINE</span>
         </button>
@@ -1457,8 +1459,8 @@
 
       <!-- Bottom Sheet Cockpit Card -->
       <article class="bottom-sheet" id="bottom-sheet">
-        <!-- Interactive Draggable Handle Zone -->
-        <button class="sheet-handle-zone" id="sheet-handle-zone" type="button" aria-label="Toggle map view" title="Drag or tap to clear map / view details">
+        <!-- Interactive Draggable Handle Zone (Full Width Comfortable Touch Target) -->
+        <button class="sheet-handle-zone" id="sheet-handle-zone" type="button" onclick="window.toggleMapClearView(event)" aria-label="Toggle map view" title="Drag or tap to clear map / view details">
           <div class="sheet-handle"></div>
           <div class="sheet-drag-hint" id="sheet-drag-hint">
             <span id="sheet-hint-text">Swipe or tap down to clear map</span> <i>▾</i>
@@ -2409,11 +2411,15 @@
       }
     }
 
+    let lastOnlineToggleTime = 0;
     window.toggleDriverOnline = function(e) {
       if (e) {
         if (e.stopPropagation) e.stopPropagation();
         if (e.preventDefault) e.preventDefault();
       }
+      const now = Date.now();
+      if (now - lastOnlineToggleTime < 300) return;
+      lastOnlineToggleTime = now;
       setDriverAvailability(!state.driverAvailable);
     };
 
@@ -2716,12 +2722,14 @@
       sheet._dragInitialized = true;
 
       let startY = 0;
+      let startX = 0;
       let currentY = 0;
+      let currentX = 0;
+      let startTime = 0;
       let initialTranslate = 0;
       let isDragging = false;
       let isCollapsed = false;
       let lastToggleTime = 0;
-      let isTouchActive = false;
 
       function getPeekHeight() {
         return 102; // Visible height in peek mode
@@ -2766,8 +2774,11 @@
 
       function toggleSheet() {
         const now = Date.now();
-        if (now - lastToggleTime < 350) return;
+        if (now - lastToggleTime < 240) return;
         lastToggleTime = now;
+        if (navigator.vibrate) {
+          try { navigator.vibrate(25); } catch (_) {}
+        }
         setCollapsed(!isCollapsed, true);
       }
 
@@ -2777,7 +2788,6 @@
           if (e.stopPropagation) e.stopPropagation();
           if (e.preventDefault) e.preventDefault();
         }
-        if (isTouchActive) return; // Prevent synthetic click double-toggle after touchend
         toggleSheet();
       };
 
@@ -2793,20 +2803,30 @@
         }
       });
 
-      function onStart(clientY) {
-        startY = clientY;
-        currentY = clientY;
+      // Unified Pointer Events (works flawlessly for touch, stylus, mouse without synthetic event leakage)
+      function onPointerStart(clientY, clientX, target, pointerId) {
         isDragging = true;
-        sheet.classList.add('dragging');
-        sheet.style.transition = 'none';
+        startY = clientY;
+        startX = clientX;
+        currentY = clientY;
+        currentX = clientX;
+        startTime = Date.now();
 
         const maxT = getMaxTranslate();
         initialTranslate = isCollapsed ? maxT : 0;
+
+        sheet.classList.add('dragging');
+        sheet.style.transition = 'none';
+
+        if (pointerId !== undefined && target && target.setPointerCapture) {
+          try { target.setPointerCapture(pointerId); } catch (_) {}
+        }
       }
 
-      function onMove(clientY) {
+      function onPointerMove(clientY, clientX) {
         if (!isDragging) return;
         currentY = clientY;
+        currentX = clientX;
         const deltaY = currentY - startY;
         let newTranslate = initialTranslate + deltaY;
         const maxT = getMaxTranslate();
@@ -2821,78 +2841,86 @@
         sheet.style.transform = `translateY(${newTranslate}px)`;
       }
 
-      function onEnd() {
+      function onPointerEnd(clientY, clientX, target, pointerId) {
         if (!isDragging) return;
         isDragging = false;
+        sheet.classList.remove('dragging');
 
+        if (pointerId !== undefined && target && target.releasePointerCapture) {
+          try { target.releasePointerCapture(pointerId); } catch (_) {}
+        }
+
+        if (clientY !== undefined) currentY = clientY;
         const deltaY = currentY - startY;
+        const elapsed = Math.max(1, Date.now() - startTime);
+        const velocity = deltaY / elapsed;
 
-        // 1. TAP DETECTION: If movement was very small (< 18px), user tapped to toggle!
-        if (Math.abs(deltaY) < 18) {
+        // 1. TAP DETECTION: Small displacement & quick release (<450ms)
+        if (Math.abs(deltaY) < 24 && elapsed < 450) {
           toggleSheet();
           return;
         }
 
-        // 2. SWIPE DETECTION:
-        if (deltaY > 20) {
+        // 2. SWIPE DOWN: Positive delta > 25px OR downward velocity
+        if (deltaY > 25 || velocity > 0.3) {
           lastToggleTime = Date.now();
+          if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
           setCollapsed(true, true);
-        } else if (deltaY < -20) {
-          lastToggleTime = Date.now();
-          setCollapsed(false, true);
-        } else {
-          setCollapsed(isCollapsed, true);
+          return;
         }
+
+        // 3. SWIPE UP: Negative delta < -25px OR upward velocity
+        if (deltaY < -25 || velocity < -0.3) {
+          lastToggleTime = Date.now();
+          if (navigator.vibrate) try { navigator.vibrate(20); } catch (_) {}
+          setCollapsed(false, true);
+          return;
+        }
+
+        // Otherwise snap back to stable state
+        setCollapsed(isCollapsed, true);
       }
 
-      // Touch Listeners
-      handleZone.addEventListener('touchstart', (e) => {
-        if (e.touches && e.touches.length > 0) {
-          onStart(e.touches[0].clientY);
-        }
-      }, { passive: true });
-
-      sheet.addEventListener('touchstart', (e) => {
-        if (isCollapsed && e.touches && e.touches.length > 0) {
-          onStart(e.touches[0].clientY);
-        }
-      }, { passive: true });
-
-      window.addEventListener('touchmove', (e) => {
-        if (isDragging && e.touches && e.touches.length > 0) {
-          if (e.cancelable) e.preventDefault();
-          onMove(e.touches[0].clientY);
-        }
-      }, { passive: false });
-
-      window.addEventListener('touchend', (e) => {
-        if (isDragging) {
-          if (e.changedTouches && e.changedTouches[0]) {
-            currentY = e.changedTouches[0].clientY;
+      if (window.PointerEvent) {
+        handleZone.addEventListener('pointerdown', (e) => {
+          if (e.button !== undefined && e.button !== 0) return;
+          onPointerStart(e.clientY, e.clientX, e.currentTarget, e.pointerId);
+        });
+        handleZone.addEventListener('pointermove', (e) => {
+          onPointerMove(e.clientY, e.clientX);
+        });
+        handleZone.addEventListener('pointerup', (e) => {
+          onPointerEnd(e.clientY, e.clientX, e.currentTarget, e.pointerId);
+        });
+        handleZone.addEventListener('pointercancel', (e) => {
+          onPointerEnd(e.clientY, e.clientX, e.currentTarget, e.pointerId);
+        });
+      } else {
+        // Touch fallback for legacy WebViews
+        handleZone.addEventListener('touchstart', (e) => {
+          if (e.touches && e.touches[0]) {
+            onPointerStart(e.touches[0].clientY, e.touches[0].clientX);
           }
-          isTouchActive = true;
-          setTimeout(() => { isTouchActive = false; }, 500);
-          onEnd();
-        }
-      }, { passive: true });
+        }, { passive: true });
 
-      window.addEventListener('touchcancel', () => {
-        if (isDragging) onEnd();
-      });
+        window.addEventListener('touchmove', (e) => {
+          if (isDragging && e.touches && e.touches[0]) {
+            if (e.cancelable) e.preventDefault();
+            onPointerMove(e.touches[0].clientY, e.touches[0].clientX);
+          }
+        }, { passive: false });
 
-      // Mouse Listeners
-      handleZone.addEventListener('mousedown', (e) => {
-        onStart(e.clientY);
-        e.preventDefault();
-      });
+        window.addEventListener('touchend', (e) => {
+          if (isDragging) {
+            const touch = e.changedTouches ? e.changedTouches[0] : null;
+            onPointerEnd(touch ? touch.clientY : currentY, touch ? touch.clientX : currentX);
+          }
+        }, { passive: true });
 
-      window.addEventListener('mousemove', (e) => {
-        if (isDragging) onMove(e.clientY);
-      });
-
-      window.addEventListener('mouseup', () => {
-        if (isDragging) onEnd();
-      });
+        window.addEventListener('touchcancel', () => {
+          if (isDragging) onPointerEnd();
+        });
+      }
     }
 
     // ----------------------------------------------------
@@ -2985,46 +3013,65 @@
         }
       }
 
-      // Touch tracking on entire wrap element
-      wrap.addEventListener('touchstart', (e) => {
-        if (e.touches && e.touches[0]) {
-          onStart(e.touches[0].clientX);
-        }
-      }, { passive: true });
-
-      window.addEventListener('touchmove', (e) => {
-        if (isDragging && e.touches && e.touches[0]) {
-          if (e.cancelable) e.preventDefault();
-          onMove(e.touches[0].clientX);
-        }
-      }, { passive: false });
-
-      window.addEventListener('touchend', (e) => {
-        if (isDragging) {
-          if (e.changedTouches && e.changedTouches[0]) {
-            currentX = e.changedTouches[0].clientX;
-          }
+      if (window.PointerEvent) {
+        wrap.addEventListener('pointerdown', (e) => {
+          if (e.button !== undefined && e.button !== 0) return;
+          onStart(e.clientX);
+          try { wrap.setPointerCapture(e.pointerId); } catch (_) {}
+        });
+        wrap.addEventListener('pointermove', (e) => {
+          onMove(e.clientX);
+        });
+        wrap.addEventListener('pointerup', (e) => {
+          try { wrap.releasePointerCapture(e.pointerId); } catch (_) {}
           onEnd();
-        }
-      }, { passive: true });
+        });
+        wrap.addEventListener('pointercancel', (e) => {
+          try { wrap.releasePointerCapture(e.pointerId); } catch (_) {}
+          resetSlider();
+        });
+      } else {
+        // Touch tracking on entire wrap element for legacy WebViews
+        wrap.addEventListener('touchstart', (e) => {
+          if (e.touches && e.touches[0]) {
+            onStart(e.touches[0].clientX);
+          }
+        }, { passive: true });
 
-      window.addEventListener('touchcancel', () => {
-        if (isDragging) resetSlider();
-      });
+        window.addEventListener('touchmove', (e) => {
+          if (isDragging && e.touches && e.touches[0]) {
+            if (e.cancelable) e.preventDefault();
+            onMove(e.touches[0].clientX);
+          }
+        }, { passive: false });
 
-      // Mouse tracking
-      wrap.addEventListener('mousedown', (e) => {
-        onStart(e.clientX);
-        e.preventDefault();
-      });
+        window.addEventListener('touchend', (e) => {
+          if (isDragging) {
+            if (e.changedTouches && e.changedTouches[0]) {
+              currentX = e.changedTouches[0].clientX;
+            }
+            onEnd();
+          }
+        }, { passive: true });
 
-      window.addEventListener('mousemove', (e) => {
-        if (isDragging) onMove(e.clientX);
-      });
+        window.addEventListener('touchcancel', () => {
+          if (isDragging) resetSlider();
+        });
 
-      window.addEventListener('mouseup', () => {
-        if (isDragging) onEnd();
-      });
+        // Mouse tracking fallback
+        wrap.addEventListener('mousedown', (e) => {
+          onStart(e.clientX);
+          e.preventDefault();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (isDragging) onMove(e.clientX);
+        });
+
+        window.addEventListener('mouseup', () => {
+          if (isDragging) onEnd();
+        });
+      }
 
       // Direct tap-to-slide confirmation for drivers on mobile
       wrap.addEventListener('click', (e) => {
@@ -4457,8 +4504,7 @@
       if (btnOnline && !btnOnline._bound) {
         btnOnline._bound = true;
         btnOnline.addEventListener('click', (e) => {
-          e.stopPropagation();
-          setDriverAvailability(!state.driverAvailable);
+          window.toggleDriverOnline(e);
         });
       }
 
