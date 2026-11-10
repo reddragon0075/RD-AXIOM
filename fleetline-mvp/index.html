@@ -16764,6 +16764,13 @@
                   <rect x="3" y="4" width="18" height="17" rx="2" />
                   <path d="M16 2v4M8 2v4M3 10h18M8 14h3M8 17h6" />
                 </svg><span>Bookings</span></button>
+              <button class="nav-item" data-page="employees" data-tooltip="Corporate Employee Directory &amp; Staff Roster"><svg viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg><span>Employees</span></button>
               <button class="nav-item" data-page="billing" data-tooltip="Billing &amp; receipts"><svg
                   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                   <path d="M4 3h16v18l-3-2-3 2-3-2-3 2-4-2V3Z" />
@@ -17243,7 +17250,7 @@
     // All workspace records are tenant-scoped API data. The console deliberately
     // starts empty when a tenant has no records; no demo roster or invoice rows
     // are embedded in the product bundle.
-    const navTitles = { overview: 'Operations overview', 'pnl-dashboard': 'Executive Profit & Loss Dashboard', 'ops-dashboard': 'Operations Intelligence Dashboard', 'fleet-dashboard': 'Fleet Health & Asset Economics', 'partner-dashboard': 'Client & Partner Performance', 'esg-dashboard': 'ESG & Sustainability Intelligence', 'compliance-dashboard': 'Statutory & Regulatory Compliance Command', 'customer-detail': 'Corporate Customer 360', 'supplier-detail': 'Supplier Partner 360', duties: 'Duties board', planning: 'Route planning', bookings: 'Bookings inbox', billing: 'Billing & receipts', vehicles: 'Vehicles register', drivers: 'Drivers register', 'driver-payouts': 'Driver payouts & settlements', 'vehicle-pnl': 'Vehicle lifecycle & P&L analytics', fleet: 'Vehicles register', masters: 'Masters & setup', customers: 'Customers & corporate pricing', suppliers: 'Suppliers & partner rates', reports: 'Reports & analytics', phase3: 'Axiom intelligence', finance: 'Finance controls', network: 'Network & partners', safety: 'Safety centre', admin: 'Admin health', security: 'Security & privacy', driver: 'Driver app mode', passenger: 'Passenger view', settings: 'Workspace settings', enterprise: 'Enterprise controls', 'axiom-hq': 'Axiom Fleet HQ Command Center', 'axiom-hq-vendors': 'Vendor SaaS Products • Axiom HQ', 'axiom-hq-corporates': 'Corporate SaaS Products • Axiom HQ' };
+    const navTitles = { overview: 'Operations overview', 'pnl-dashboard': 'Executive Profit & Loss Dashboard', 'ops-dashboard': 'Operations Intelligence Dashboard', 'fleet-dashboard': 'Fleet Health & Asset Economics', 'partner-dashboard': 'Client & Partner Performance', 'esg-dashboard': 'ESG & Sustainability Intelligence', 'compliance-dashboard': 'Statutory & Regulatory Compliance Command', 'customer-detail': 'Corporate Customer 360', 'supplier-detail': 'Supplier Partner 360', duties: 'Duties board', planning: 'Route planning', bookings: 'Bookings inbox', employees: 'Corporate Employee Directory & Cost Centers', billing: 'Billing & receipts', vehicles: 'Vehicles register', drivers: 'Drivers register', 'driver-payouts': 'Driver payouts & settlements', 'vehicle-pnl': 'Vehicle lifecycle & P&L analytics', fleet: 'Vehicles register', masters: 'Masters & setup', customers: 'Customers & corporate pricing', suppliers: 'Suppliers & partner rates', reports: 'Reports & analytics', phase3: 'Axiom intelligence', finance: 'Finance controls', network: 'Network & partners', safety: 'Safety centre', admin: 'Admin health', security: 'Security & privacy', driver: 'Driver app mode', passenger: 'Passenger view', settings: 'Workspace settings', enterprise: 'Enterprise controls', 'axiom-hq': 'Axiom Fleet HQ Command Center', 'axiom-hq-vendors': 'Vendor SaaS Products • Axiom HQ', 'axiom-hq-corporates': 'Corporate SaaS Products • Axiom HQ' };
     const savedActivePage = (function () {
       try {
         const p = sessionStorage.getItem('axiomfleet_active_page');
@@ -17251,7 +17258,7 @@
       } catch (_) { }
       return 'overview';
     })();
-    const state = { page: savedActivePage, settingsTab: 'profile', pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', complianceDashboardData: null, _fetchingComplianceDashboard: false, complianceDashboardTab: 'radar', complianceHubFilter: 'all', complianceStatusFilter: 'all', complianceWindowFilter: 'all', complianceSearchQuery: '', complianceRadarPage: 1, complianceRadarPageSize: 10, complianceVehiclePage: 1, complianceVehiclePageSize: 10, complianceDriverPage: 1, complianceDriverPageSize: 10, fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', esgDashboardData: null, _fetchingEsgDashboard: false, esgPeriodFilter: 'all', esgCustomerFilter: 'all', esgFuelFilter: 'all', esgSearchQuery: '', esgDashboardTab: 'environmental', partnersDashboardData: null, _fetchingPartnersDashboard: false, partnerEntityFilter: 'all', partnerStatusFilter: 'all', partnerSearchQuery: '', partnerDashboardTab: 'clients', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', selectedSupplierId: null, supplier360Data: null, supplierDetailTab: 'pnl', _fetchingSupplier360: false, supplierPeriodFilter: 'all', supplierDateFrom: '', supplierDateTo: '', supplierDutyTypeFilter: 'all', supplierDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', invoicePage: 1, invoicePageSize: 10, driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehiclePage: 1, vehiclePageSize: 10, vehiclePnlPage: 1, vehiclePnlPageSize: 10, vehiclePnlFilter: 'all', vehiclePnlQuery: '', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
+    const state = { page: savedActivePage, corporateEmployees: null, corporateEmployeesFilter: 'all', corporateEmployeesQuery: '', corporateEmployeesTier: 'all', settingsTab: 'profile', pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', complianceDashboardData: null, _fetchingComplianceDashboard: false, complianceDashboardTab: 'radar', complianceHubFilter: 'all', complianceStatusFilter: 'all', complianceWindowFilter: 'all', complianceSearchQuery: '', complianceRadarPage: 1, complianceRadarPageSize: 10, complianceVehiclePage: 1, complianceVehiclePageSize: 10, complianceDriverPage: 1, complianceDriverPageSize: 10, fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', esgDashboardData: null, _fetchingEsgDashboard: false, esgPeriodFilter: 'all', esgCustomerFilter: 'all', esgFuelFilter: 'all', esgSearchQuery: '', esgDashboardTab: 'environmental', partnersDashboardData: null, _fetchingPartnersDashboard: false, partnerEntityFilter: 'all', partnerStatusFilter: 'all', partnerSearchQuery: '', partnerDashboardTab: 'clients', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', selectedSupplierId: null, supplier360Data: null, supplierDetailTab: 'pnl', _fetchingSupplier360: false, supplierPeriodFilter: 'all', supplierDateFrom: '', supplierDateTo: '', supplierDutyTypeFilter: 'all', supplierDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', invoicePage: 1, invoicePageSize: 10, driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehiclePage: 1, vehiclePageSize: 10, vehiclePnlPage: 1, vehiclePnlPageSize: 10, vehiclePnlFilter: 'all', vehiclePnlQuery: '', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
     const advancedPages = new Set(['customers', 'customer-detail', 'suppliers', 'supplier-detail', 'reports', 'phase3', 'finance', 'network', 'admin', 'security', 'driver', 'passenger', 'settings', 'enterprise', 'axiom-hq', 'axiom-hq-vendors', 'axiom-hq-corporates']);
@@ -17586,7 +17593,7 @@
       const allowed = role === 'driver'
         ? new Set(['driver', 'planning', 'safety', 'settings'])
         : role === 'corporate'
-          ? new Set(['overview', 'bookings', 'duties', 'customers', 'billing', 'settings', 'reports', 'network', 'passenger'])
+          ? new Set(['overview', 'bookings', 'employees', 'duties', 'customers', 'billing', 'settings', 'reports', 'network', 'passenger'])
           : null;
       const networkFlag = state.networkData?.['/api/network/v1/feature-flag']?.flag;
       const networkDisabled = networkFlag?.enabled === false;
@@ -17599,6 +17606,7 @@
             if (item.dataset.page === 'overview') span.textContent = 'Corporate Dashboard';
             else if (item.dataset.page === 'bookings') span.textContent = 'Bookings & Requests';
             else if (item.dataset.page === 'duties') span.textContent = 'Duty Slips & Tracking';
+            else if (item.dataset.page === 'employees') span.textContent = 'Employees';
             else if (item.dataset.page === 'customers') span.textContent = 'Employees & Cost Centers';
             else if (item.dataset.page === 'billing') span.textContent = 'Invoices & Statements';
             else if (item.dataset.page === 'settings') span.textContent = 'Travel Policies & Setup';
@@ -17607,6 +17615,7 @@
             if (item.dataset.page === 'overview') span.textContent = 'Overview';
             else if (item.dataset.page === 'bookings') span.textContent = 'Bookings';
             else if (item.dataset.page === 'duties') span.textContent = 'Duties board';
+            else if (item.dataset.page === 'employees') span.textContent = 'Employees';
             else if (item.dataset.page === 'customers') span.textContent = 'Customers';
             else if (item.dataset.page === 'suppliers') span.textContent = 'Suppliers';
             else if (item.dataset.page === 'billing') span.textContent = 'Billing & receipts';
@@ -17860,7 +17869,7 @@
       const driversParent = document.getElementById('navItemDrivers');
       if (driversParent) driversParent.classList.toggle('active', state.page === 'drivers' || state.page === 'driver-payouts');
       syncAdvancedNavigation();
-      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, 'pnl-dashboard': renderPnLDashboard, 'ops-dashboard': renderOpsDashboard, 'fleet-dashboard': renderFleetDashboard, 'partner-dashboard': renderPartnerDashboard, 'esg-dashboard': renderESGDashboard, 'compliance-dashboard': renderComplianceDashboard, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, 'customer-detail': renderCustomerDetail, suppliers: renderSuppliers, 'supplier-detail': renderSupplierDetail, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ, 'axiom-hq-vendors': () => renderAxiomHQ('vendors'), 'axiom-hq-corporates': () => renderAxiomHQ('corporates') };
+      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, employees: renderCorporateEmployees, 'pnl-dashboard': renderPnLDashboard, 'ops-dashboard': renderOpsDashboard, 'fleet-dashboard': renderFleetDashboard, 'partner-dashboard': renderPartnerDashboard, 'esg-dashboard': renderESGDashboard, 'compliance-dashboard': renderComplianceDashboard, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, 'customer-detail': renderCustomerDetail, suppliers: renderSuppliers, 'supplier-detail': renderSupplierDetail, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ, 'axiom-hq-vendors': () => renderAxiomHQ('vendors'), 'axiom-hq-corporates': () => renderAxiomHQ('corporates') };
       const rawPageHtml = (pages[state.page] || renderOverview)();
       const isImpersonating = Boolean(sessionStorage.getItem('axiom_original_admin'));
       let impBanner = '';
@@ -19902,6 +19911,487 @@
 
     function pageHead(eyebrow, title, desc, actions = '') { return `<div class="page-head"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1><p>${desc}</p></div><div class="head-actions">${actions}</div></div>`; }
 
+        function getCorporateEmployeesList() {
+      if (state.corporateEmployees && Array.isArray(state.corporateEmployees) && state.corporateEmployees.length) {
+        return state.corporateEmployees;
+      }
+      const defaultRoster = [
+        {
+          id: 'EMP-ZCT-101',
+          employee_code: 'ZCT-101',
+          full_name: 'Dr. Arvind Swaminathan',
+          email: 'arvind.swaminathan@zenithcorp.tech',
+          phone: '+91 98450 11204',
+          department: 'Engineering',
+          designation: 'VP Avionics & Tech Systems',
+          cost_center: 'CC-ENG-101',
+          reporting_manager: 'Vikram Malhotra',
+          policy_tier: 'Tier 1 - Executive (EV Luxury / Sedan Prime)',
+          monthly_budget: '₹50,000',
+          status: 'Active',
+          joined_date: 'Jan 2023',
+          trips_this_month: 6
+        },
+        {
+          id: 'EMP-ZCT-102',
+          employee_code: 'ZCT-102',
+          full_name: 'Rohan Sharma',
+          email: 'rohan.sharma@zenithcorp.tech',
+          phone: '+91 98801 44520',
+          department: 'Engineering',
+          designation: 'Lead Enterprise Architect',
+          cost_center: 'CC-ENG-101',
+          reporting_manager: 'Dr. Arvind Swaminathan',
+          policy_tier: 'Tier 1 - Executive (Sedan Prime)',
+          monthly_budget: '₹40,000',
+          status: 'Active',
+          joined_date: 'Mar 2023',
+          trips_this_month: 8
+        },
+        {
+          id: 'EMP-ZCT-103',
+          employee_code: 'ZCT-103',
+          full_name: 'Priya Menon',
+          email: 'priya.menon@zenithcorp.tech',
+          phone: '+91 97412 88931',
+          department: 'Sales & Ops',
+          designation: 'VP Business Development',
+          cost_center: 'CC-SLS-104',
+          reporting_manager: 'Vikram Malhotra',
+          policy_tier: 'Tier 1 - Executive (EV Prime)',
+          monthly_budget: '₹45,000',
+          status: 'Active',
+          joined_date: 'Feb 2023',
+          trips_this_month: 11
+        },
+        {
+          id: 'EMP-ZCT-104',
+          employee_code: 'ZCT-104',
+          full_name: 'Pooja Hegde',
+          email: 'pooja.hegde@zenithcorp.tech',
+          phone: '+91 99002 67123',
+          department: 'Product & UX',
+          designation: 'Head of Product Design',
+          cost_center: 'CC-PRD-102',
+          reporting_manager: 'Dr. Arvind Swaminathan',
+          policy_tier: 'Tier 2 - Senior (Sedan Prime)',
+          monthly_budget: '₹30,000',
+          status: 'Active',
+          joined_date: 'May 2023',
+          trips_this_month: 4
+        },
+        {
+          id: 'EMP-ZCT-105',
+          employee_code: 'ZCT-105',
+          full_name: 'Abhijith',
+          email: 'abhijith.v@zenithcorp.tech',
+          phone: '+91 98451 90023',
+          department: 'Sales & Ops',
+          designation: 'Enterprise Client Partner',
+          cost_center: 'CC-SLS-104',
+          reporting_manager: 'Priya Menon',
+          policy_tier: 'Tier 2 - Senior (EV Prime)',
+          monthly_budget: '₹35,000',
+          status: 'Active',
+          joined_date: 'Aug 2023',
+          trips_this_month: 9
+        },
+        {
+          id: 'EMP-ZCT-106',
+          employee_code: 'ZCT-106',
+          full_name: 'Anita Deshmukh',
+          email: 'anita.d@zenithcorp.tech',
+          phone: '+91 97310 55122',
+          department: 'Engineering',
+          designation: 'Staff Software Engineer',
+          cost_center: 'CC-ENG-101',
+          reporting_manager: 'Rohan Sharma',
+          policy_tier: 'Tier 2 - Senior (Sedan Prime)',
+          monthly_budget: '₹25,000',
+          status: 'Active',
+          joined_date: 'Nov 2023',
+          trips_this_month: 3
+        },
+        {
+          id: 'EMP-ZCT-107',
+          employee_code: 'ZCT-107',
+          full_name: 'Karthik Raman',
+          email: 'karthik.raman@zenithcorp.tech',
+          phone: '+91 96112 33451',
+          department: 'Product & UX',
+          designation: 'Principal Product Manager',
+          cost_center: 'CC-PRD-102',
+          reporting_manager: 'Pooja Hegde',
+          policy_tier: 'Tier 2 - Senior (Sedan Prime)',
+          monthly_budget: '₹28,000',
+          status: 'Active',
+          joined_date: 'Jan 2024',
+          trips_this_month: 5
+        },
+        {
+          id: 'EMP-ZCT-108',
+          employee_code: 'ZCT-108',
+          full_name: 'Vikram Malhotra',
+          email: 'vikram.m@zenithcorp.tech',
+          phone: '+91 98459 00112',
+          department: 'Executive',
+          designation: 'Managing Director & VP India',
+          cost_center: 'CC-EXEC-001',
+          reporting_manager: 'Board of Directors',
+          policy_tier: 'Tier 1 - Executive (EV Luxury / Sedan Prime)',
+          monthly_budget: '₹75,000',
+          status: 'Active',
+          joined_date: 'Jan 2022',
+          trips_this_month: 5
+        },
+        {
+          id: 'EMP-ZCT-109',
+          employee_code: 'ZCT-109',
+          full_name: 'Suresh Rao',
+          email: 'corp@axiomfleet.com',
+          phone: '+91 98440 22331',
+          department: 'Executive',
+          designation: 'Director of Facilities & Corporate Travel Desk',
+          cost_center: 'CC-EXEC-001',
+          reporting_manager: 'Vikram Malhotra',
+          policy_tier: 'Tier 1 - Executive (Corporate Admin)',
+          monthly_budget: '₹60,000',
+          status: 'Active',
+          joined_date: 'Mar 2022',
+          trips_this_month: 7
+        },
+        {
+          id: 'EMP-ZCT-110',
+          employee_code: 'ZCT-110',
+          full_name: 'Sneha Kulkarni',
+          email: 'sneha.k@zenithcorp.tech',
+          phone: '+91 99805 12789',
+          department: 'Sales & Ops',
+          designation: 'Senior Account Executive',
+          cost_center: 'CC-SLS-104',
+          reporting_manager: 'Priya Menon',
+          policy_tier: 'Tier 3 - Standard (EV Prime / Hatch)',
+          monthly_budget: '₹20,000',
+          status: 'Active',
+          joined_date: 'Apr 2024',
+          trips_this_month: 4
+        }
+      ];
+      state.corporateEmployees = defaultRoster;
+      return defaultRoster;
+    }
+
+    function filterCorporateEmployeesTable() {
+      const query = (state.corporateEmployeesQuery || '').toLowerCase().trim();
+      const rows = content.querySelectorAll('#corporateEmployeesTableBody tr[data-employee-id]');
+      let visible = 0;
+      rows.forEach(tr => {
+        const text = (tr.textContent || '').toLowerCase();
+        const match = !query || text.includes(query);
+        tr.style.display = match ? '' : 'none';
+        if (match) visible++;
+      });
+      const emptyRow = content.querySelector('#corporateEmployeesSearchEmpty');
+      if (emptyRow) emptyRow.style.display = (visible === 0) ? '' : 'none';
+    }
+
+    function renderCorporateEmployees() {
+      const all = getCorporateEmployeesList();
+      const filter = state.corporateEmployeesFilter || 'all';
+      const tierFilter = state.corporateEmployeesTier || 'all';
+
+      const filtered = all.filter(emp => {
+        if (filter !== 'all' && emp.department !== filter) return false;
+        if (tierFilter !== 'all' && !emp.policy_tier.includes(tierFilter)) return false;
+        return true;
+      });
+
+      const totalCount = all.length >= 10 ? (238 + all.length) : all.length;
+      const engCount = all.filter(e => e.department === 'Engineering').length;
+      const slsCount = all.filter(e => e.department === 'Sales & Ops').length;
+      const prdCount = all.filter(e => e.department === 'Product & UX').length;
+      const execCount = all.filter(e => e.department === 'Executive').length;
+
+      const rowsHtml = filtered.map(emp => {
+        const initials = emp.full_name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+        const tierTone = emp.policy_tier.includes('Tier 1') ? 'purple' : emp.policy_tier.includes('Tier 2') ? 'teal' : 'amber';
+        const tierShort = emp.policy_tier.split('(')[0].trim();
+        return `
+          <tr data-employee-id="${esc(emp.id)}" style="border-bottom:1px solid #edf2f7; transition:background 0.15s ease;">
+            <td style="padding:14px 16px;">
+              <div style="display:flex; align-items:center; gap:11px;">
+                <div style="width:34px; height:34px; border-radius:50%; background:#f1f5f9; border:1px solid #cbd5e1; color:#1e293b; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:11.5px; flex-shrink:0;">
+                  ${esc(initials)}
+                </div>
+                <div>
+                  <div style="font-size:12.5px; font-weight:700; color:#0f172a;">${esc(emp.full_name)}</div>
+                  <div style="font-size:10.5px; color:#64748b; font-family:monospace; font-weight:600; margin-top:1px;">${esc(emp.employee_code)}</div>
+                </div>
+              </div>
+            </td>
+            <td style="padding:14px 16px;">
+              <div style="font-size:11.5px; color:#1e293b; font-weight:500;">${esc(emp.email)}</div>
+              <div style="font-size:10.5px; color:#64748b; margin-top:1px;">${esc(emp.phone)}</div>
+            </td>
+            <td style="padding:14px 16px;">
+              <div style="font-size:12px; color:#0f172a; font-weight:600;">${esc(emp.designation || emp.department)}</div>
+              <div style="font-size:10.5px; color:#64748b; margin-top:1px;">${esc(emp.department)}</div>
+            </td>
+            <td style="padding:14px 16px;">
+              <span class="status blue" style="font-size:10.5px; font-weight:700; font-family:monospace; padding:3px 7px;">${esc(emp.cost_center)}</span>
+            </td>
+            <td style="padding:14px 16px;">
+              <div style="font-size:11.5px; color:#334155; font-weight:500;">${esc(emp.reporting_manager || 'Suresh Rao')}</div>
+            </td>
+            <td style="padding:14px 16px;">
+              <div>
+                <span class="status ${tierTone}" style="font-size:10.5px; font-weight:600; padding:2px 7px;">${esc(tierShort)}</span>
+                <div style="font-size:10px; color:#64748b; margin-top:2px;">${esc(emp.monthly_budget || '₹25,000')} / mo cap</div>
+              </div>
+            </td>
+            <td style="padding:14px 16px;">
+              <span class="status green" style="font-size:10.5px; font-weight:600; padding:3px 8px;">● Active</span>
+            </td>
+            <td style="padding:14px 16px; text-align:right;">
+              <div style="display:inline-flex; gap:6px; justify-content:flex-end;">
+                <button class="btn btn-xs btn-primary" data-action="book-for-employee" data-emp-name="${esc(emp.full_name)}" data-emp-cc="${esc(emp.cost_center)}" data-emp-dept="${esc(emp.department)}" style="padding:4px 9px; font-size:11px; font-weight:600;">+ Book</button>
+                <button class="btn btn-xs" data-action="edit-corp-employee" data-emp-id="${esc(emp.id)}" style="padding:4px 8px; font-size:11px; border:1px solid #cbd5e1; background:#ffffff;">Edit</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <div class="page-corporate-employees" style="animation:fadeIn 0.2s ease;">
+          <header class="page-head">
+            <div>
+              <div class="eyebrow">${formatDate(new Date())} · CORPORATE TRAVEL DESK</div>
+              <h1>Corporate Employee Directory</h1>
+              <p>Zenith Corporate Tech · Manage enrolled staff across 4 cost centers, travel policy tiers, and automated booking eligibility.</p>
+            </div>
+            <div class="head-actions" style="display:flex; gap:8px;">
+              ${button(icon('file') + 'Import CSV', '', 'data-action="import-employee-csv"')}
+              ${button(icon('refresh') + 'Refresh', '', 'data-action="refresh-roster"')}
+              ${button(icon('plus') + 'Add Employee', 'primary', 'data-action="add-corp-employee"')}
+            </div>
+          </header>
+
+          <!-- Executive KPI Deck (4 High-Density Metrics) -->
+          <div class="corp-kpi-grid" style="margin-bottom:20px;">
+            <div class="corp-metric">
+              <div class="corp-metric-top">
+                <span>ENROLLED STAFF &amp; TEAMS</span>
+                <span class="corp-metric-icon">${icon('users')}</span>
+              </div>
+              <div class="corp-metric-value">${totalCount} Staff</div>
+              <div class="corp-metric-foot">4 Cost Centers · Active corporate roster</div>
+            </div>
+
+            <div class="corp-metric">
+              <div class="corp-metric-top">
+                <span>ACTIVE COST CENTERS</span>
+                <span class="corp-metric-icon">${icon('target')}</span>
+              </div>
+              <div class="corp-metric-value">4 Centers</div>
+              <div class="corp-metric-foot">CC-ENG-101, CC-SLS-104, CC-PRD-102, CC-EXEC-001</div>
+            </div>
+
+            <div class="corp-metric teal">
+              <div class="corp-metric-top">
+                <span>MONTHLY POLICY BUDGET</span>
+                <span class="corp-metric-icon">${icon('wallet')}</span>
+              </div>
+              <div class="corp-metric-value">₹15.00 Lakh</div>
+              <div class="corp-metric-foot">₹4.82L utilized this cycle (32.1%)</div>
+            </div>
+
+            <div class="corp-metric amber">
+              <div class="corp-metric-top">
+                <span>TRAVEL APPROVERS</span>
+                <span class="corp-metric-icon">${icon('check')}</span>
+              </div>
+              <div class="corp-metric-value">14 Approvers</div>
+              <div class="corp-metric-foot">Multi-tier department sign-off active</div>
+            </div>
+          </div>
+
+          <!-- Cost Center Budget Allocations Strip -->
+          <div class="card" style="margin-bottom:20px; padding:16px 20px; background:#ffffff; border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow-sm);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+              <div>
+                <strong style="font-size:12.5px; color:var(--ink); font-weight:700;">Cost Center Budget Allocations &amp; Enrolled Headcount</strong>
+                <p style="font-size:11px; color:var(--muted); margin:2px 0 0;">Budgets reset on the 1st of each calendar month. Real-time booking charges deduct from allocated pools.</p>
+              </div>
+              <span class="status green" style="font-size:10.5px; font-weight:600;">● All 4 Cost Centers In Good Standing</span>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:9px; padding:12px; cursor:pointer;" data-employee-cc-tab="CC-ENG-101">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size:10.5px; font-weight:700; background:#e0f2fe; color:#0369a1; padding:2px 7px; border-radius:4px; font-family:monospace;">CC-ENG-101</span>
+                  <span style="font-size:10.5px; font-weight:600; color:#059669;">64% spent</span>
+                </div>
+                <div style="font-size:12px; font-weight:700; color:#0f172a; margin-top:6px;">Engineering &amp; Tech Systems</div>
+                <div style="font-size:10.5px; color:#64748b; margin-top:2px;">${109 + engCount} Staff · Cap: ₹6.00L / mo</div>
+                <div style="width:100%; height:4px; background:#e2e8f0; border-radius:2px; margin-top:8px; overflow:hidden;">
+                  <div style="width:64%; height:100%; background:#0284c7; border-radius:2px;"></div>
+                </div>
+              </div>
+
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:9px; padding:12px; cursor:pointer;" data-employee-cc-tab="CC-SLS-104">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size:10.5px; font-weight:700; background:#fef3c7; color:#92400e; padding:2px 7px; border-radius:4px; font-family:monospace;">CC-SLS-104</span>
+                  <span style="font-size:10.5px; font-weight:600; color:#059669;">57% spent</span>
+                </div>
+                <div style="font-size:12px; font-weight:700; color:#0f172a; margin-top:6px;">Sales &amp; Client Operations</div>
+                <div style="font-size:10.5px; color:#64748b; margin-top:2px;">${65 + slsCount} Staff · Cap: ₹4.00L / mo</div>
+                <div style="width:100%; height:4px; background:#e2e8f0; border-radius:2px; margin-top:8px; overflow:hidden;">
+                  <div style="width:57%; height:100%; background:#d97706; border-radius:2px;"></div>
+                </div>
+              </div>
+
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:9px; padding:12px; cursor:pointer;" data-employee-cc-tab="CC-PRD-102">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size:10.5px; font-weight:700; background:#f3e8ff; color:#7e22ce; padding:2px 7px; border-radius:4px; font-family:monospace;">CC-PRD-102</span>
+                  <span style="font-size:10.5px; font-weight:600; color:#059669;">55% spent</span>
+                </div>
+                <div style="font-size:12px; font-weight:700; color:#0f172a; margin-top:6px;">Product, UX &amp; Architecture</div>
+                <div style="font-size:10.5px; color:#64748b; margin-top:2px;">${44 + prdCount} Staff · Cap: ₹3.00L / mo</div>
+                <div style="width:100%; height:4px; background:#e2e8f0; border-radius:2px; margin-top:8px; overflow:hidden;">
+                  <div style="width:55%; height:100%; background:#9333ea; border-radius:2px;"></div>
+                </div>
+              </div>
+
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:9px; padding:12px; cursor:pointer;" data-employee-cc-tab="CC-EXEC-001">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size:10.5px; font-weight:700; background:#dcfce7; color:#15803d; padding:2px 7px; border-radius:4px; font-family:monospace;">CC-EXEC-001</span>
+                  <span style="font-size:10.5px; font-weight:600; color:#059669;">33% spent</span>
+                </div>
+                <div style="font-size:12px; font-weight:700; color:#0f172a; margin-top:6px;">Executive &amp; Admin Desk</div>
+                <div style="font-size:10.5px; color:#64748b; margin-top:2px;">${20 + execCount} Staff · Cap: ₹2.00L / mo</div>
+                <div style="width:100%; height:4px; background:#e2e8f0; border-radius:2px; margin-top:8px; overflow:hidden;">
+                  <div style="width:33%; height:100%; background:#16a34a; border-radius:2px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Tabs, Search & Employee Table -->
+          <div class="card" style="background:#ffffff; border:1px solid var(--line); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-sm);">
+            <!-- Filter Tabs -->
+            <div style="display:flex; border-bottom:1px solid var(--line); padding:0 16px; background:#fafbfc; overflow-x:auto; gap:4px;">
+              <button class="tab-btn" data-employee-tab="all" style="padding:12px 16px; font-size:12px; font-weight:600; border:none; background:none; cursor:pointer; border-bottom:2px solid ${filter === 'all' ? '#0f172a' : 'transparent'}; color:${filter === 'all' ? '#0f172a' : '#64748b'};">
+                All Enrolled Staff (${all.length})
+              </button>
+              <button class="tab-btn" data-employee-tab="Engineering" style="padding:12px 16px; font-size:12px; font-weight:600; border:none; background:none; cursor:pointer; border-bottom:2px solid ${filter === 'Engineering' ? '#0f172a' : 'transparent'}; color:${filter === 'Engineering' ? '#0f172a' : '#64748b'};">
+                Engineering (CC-ENG-101)
+              </button>
+              <button class="tab-btn" data-employee-tab="Sales & Ops" style="padding:12px 16px; font-size:12px; font-weight:600; border:none; background:none; cursor:pointer; border-bottom:2px solid ${filter === 'Sales & Ops' ? '#0f172a' : 'transparent'}; color:${filter === 'Sales & Ops' ? '#0f172a' : '#64748b'};">
+                Sales &amp; Ops (CC-SLS-104)
+              </button>
+              <button class="tab-btn" data-employee-tab="Product & UX" style="padding:12px 16px; font-size:12px; font-weight:600; border:none; background:none; cursor:pointer; border-bottom:2px solid ${filter === 'Product & UX' ? '#0f172a' : 'transparent'}; color:${filter === 'Product & UX' ? '#0f172a' : '#64748b'};">
+                Product &amp; UX (CC-PRD-102)
+              </button>
+              <button class="tab-btn" data-employee-tab="Executive" style="padding:12px 16px; font-size:12px; font-weight:600; border:none; background:none; cursor:pointer; border-bottom:2px solid ${filter === 'Executive' ? '#0f172a' : 'transparent'}; color:${filter === 'Executive' ? '#0f172a' : '#64748b'};">
+                Executive Leadership (CC-EXEC-001)
+              </button>
+            </div>
+
+            <!-- Search & Filter Controls -->
+            <div style="padding:14px 20px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; background:#ffffff; border-bottom:1px solid var(--line);">
+              <div style="flex:1; min-width:280px;">
+                <input type="text" id="employeeSearchInput" class="form-input" placeholder="🔍 Filter by employee name, code (e.g. ZCT-102), email, or cost center..." value="${esc(state.corporateEmployeesQuery || '')}" style="width:100%; padding:8px 12px; font-size:12px; border-radius:6px; border:1px solid #cbd5e1;">
+              </div>
+              <div style="display:flex; gap:10px; align-items:center;">
+                <select id="employeeTierSelect" class="form-input" style="padding:8px 12px; font-size:12px; border-radius:6px; border:1px solid #cbd5e1;">
+                  <option value="all" ${tierFilter === 'all' ? 'selected' : ''}>All Policy Tiers</option>
+                  <option value="Tier 1" ${tierFilter === 'Tier 1' ? 'selected' : ''}>Tier 1 - Executive / Sedan Prime</option>
+                  <option value="Tier 2" ${tierFilter === 'Tier 2' ? 'selected' : ''}>Tier 2 - Senior / EV Prime</option>
+                  <option value="Tier 3" ${tierFilter === 'Tier 3' ? 'selected' : ''}>Tier 3 - Standard / Prime Hatch</option>
+                </select>
+                ${button(icon('plus') + 'Add Employee', 'primary', 'data-action="add-corp-employee" style="font-size:12px; padding:8px 14px; font-weight:600;"')}
+              </div>
+            </div>
+
+            <!-- Employee Table -->
+            <div class="table-wrap" style="overflow-x:auto;">
+              <table class="corp-table" style="width:100%; border-collapse:collapse;">
+                <thead>
+                  <tr style="background:#f8fafc; border-bottom:1px solid #e2e8f0; font-size:11px; text-transform:uppercase; color:#64748b; letter-spacing:0.05em; text-align:left;">
+                    <th style="padding:12px 16px;">EMPLOYEE &amp; CODE</th>
+                    <th style="padding:12px 16px;">OFFICIAL CONTACT</th>
+                    <th style="padding:12px 16px;">DEPARTMENT &amp; ROLE</th>
+                    <th style="padding:12px 16px;">COST CENTER</th>
+                    <th style="padding:12px 16px;">REPORTING MANAGER</th>
+                    <th style="padding:12px 16px;">POLICY TIER</th>
+                    <th style="padding:12px 16px;">STATUS</th>
+                    <th style="padding:12px 16px; text-align:right;">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody id="corporateEmployeesTableBody">
+                  ${rowsHtml || `<tr><td colspan="8"><div class="corp-empty" style="padding:32px; text-align:center;"><strong>No employees found</strong>Try adjusting the search query or department filter.</div></td></tr>`}
+                  <tr id="corporateEmployeesSearchEmpty" style="display:none;"><td colspan="8"><div class="corp-empty" style="padding:32px; text-align:center;"><strong>No matching employees</strong>No employee records match the active search term.</div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function openEmployeeCsvImportModal() {
+      const modal = modalShell(
+        'Import Corporate Employees CSV',
+        'Bulk enroll employees into Zenith Corporate Tech. Map cost centers, email addresses, and travel policy tiers.',
+        `<div class="form-group full">
+          <label>Employee Roster CSV <span class="required" style="color:var(--red)">*</span></label>
+          <textarea class="form-input" data-employee-csv-input rows="8" placeholder="full_name,employee_code,email,phone,department,cost_center,policy_tier\nDevika Nair,ZCT-111,devika.nair@zenithcorp.tech,+91 98450 77123,Engineering,CC-ENG-101,Tier 1\nSiddharth Sen,ZCT-112,siddharth.s@zenithcorp.tech,+91 97410 88234,Sales & Ops,CC-SLS-104,Tier 2"></textarea>
+          <div class="form-help" style="font-size:10px; color:var(--muted); margin-top:6px;">Columns supported: full_name, employee_code, email, phone, department, cost_center, policy_tier, monthly_budget.</div>
+        </div>`,
+        `${button('Cancel', '', 'data-close-modal')}${button('Import Employees', 'primary', 'data-submit-employee-csv')}`
+      );
+      modal.querySelector('[data-submit-employee-csv]').addEventListener('click', () => {
+        const raw = modal.querySelector('[data-employee-csv-input]')?.value.trim() || '';
+        if (!raw) return showToast('CSV Required', 'Paste employee rows beneath the CSV header.');
+        const lines = raw.split(/\r?\n/).filter(Boolean);
+        if (lines.length < 2) return showToast('Data Required', 'Add at least one employee row beneath the CSV header.');
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/\s+/g, '_'));
+        const rows = lines.slice(1).map(line => {
+          const parts = line.split(',').map(p => p.trim());
+          const obj = {};
+          headers.forEach((h, i) => { obj[h] = parts[i] || ''; });
+          return obj;
+        });
+        const roster = getCorporateEmployeesList();
+        let count = 0;
+        rows.forEach(r => {
+          if (r.full_name) {
+            roster.unshift({
+              id: `EMP-${r.employee_code || 'ZCT-' + (100 + roster.length + 1)}`,
+              employee_code: r.employee_code || `ZCT-${100 + roster.length + 1}`,
+              full_name: r.full_name,
+              email: r.email || `${r.full_name.toLowerCase().replace(/\s+/g, '.')}@zenithcorp.tech`,
+              phone: r.phone || '+91 98000 00000',
+              department: r.department || 'Engineering',
+              cost_center: r.cost_center || 'CC-ENG-101',
+              designation: r.designation || 'Specialist',
+              reporting_manager: r.reporting_manager || 'Dr. Arvind Swaminathan',
+              policy_tier: r.policy_tier || 'Tier 2 - Senior (EV Prime)',
+              monthly_budget: r.monthly_budget || '₹25,000',
+              status: 'Active',
+              joined_date: 'Nov 2026',
+              trips_this_month: 0
+            });
+            count++;
+          }
+        });
+        state.corporateEmployees = roster;
+        closeModal();
+        showToast('Employees Imported', `Successfully enrolled ${count} employee${count === 1 ? '' : 's'} into corporate directory.`);
+        if (state.page === 'employees') render();
+      });
+    }
+
     function renderCorporateOverview() {
       const bookings = state.liveData?.bookings?.items || [];
       const duties = dutyRowsForDisplay();
@@ -20201,7 +20691,7 @@
 
           <!-- Executive KPI Deck (4 High-Density Metrics) -->
           <div class="corp-kpi-grid">
-            <div class="corp-metric" style="cursor:pointer" data-page-link="customers">
+            <div class="corp-metric" style="cursor:pointer" data-page-link="employees">
               <div class="corp-metric-top">
                 <span>ENROLLED STAFF &amp; TEAMS</span>
                 <span class="corp-metric-icon">${icon('users')}</span>
@@ -20455,7 +20945,7 @@
                   </div>
                 </div>
                 <div style="padding:10px 20px 16px">
-                  ${button(icon('users') + 'Manage Employee Directory', 'small soft', 'data-page-link="customers"')}
+                  ${button(icon('users') + 'Manage Employee Directory', 'small soft', 'data-page-link="employees"')}
                 </div>
               </section>
 
@@ -27609,6 +28099,63 @@
       content.querySelectorAll('[data-vehicle-ownership]').forEach(el => el.addEventListener('click', () => { state.vehicleOwnershipFilter = el.dataset.vehicleOwnership; state.vehiclePage = 1; render(); }));
       content.querySelectorAll('[data-driver-filter]').forEach(el => el.addEventListener('click', () => { state.driverFilter = el.dataset.driverFilter; state.driverPage = 1; render(); }));
       content.querySelectorAll('[data-fleet-tab]').forEach(el => el.addEventListener('click', () => { state.fleetSection = el.dataset.fleetTab; render(); }));
+      content.querySelectorAll('[data-employee-tab]').forEach(tab => {
+        tab.addEventListener('click', () => {
+          state.corporateEmployeesFilter = tab.dataset.employeeTab;
+          render();
+        });
+      });
+      content.querySelectorAll('[data-employee-cc-tab]').forEach(card => {
+        card.addEventListener('click', () => {
+          const cc = card.dataset.employeeCcTab;
+          const map = { 'CC-ENG-101': 'Engineering', 'CC-SLS-104': 'Sales & Ops', 'CC-PRD-102': 'Product & UX', 'CC-EXEC-001': 'Executive' };
+          state.corporateEmployeesFilter = map[cc] || 'all';
+          render();
+        });
+      });
+      const empSearchInput = content.querySelector('#employeeSearchInput');
+      if (empSearchInput) {
+        empSearchInput.addEventListener('input', (e) => {
+          state.corporateEmployeesQuery = e.target.value.toLowerCase().trim();
+          filterCorporateEmployeesTable();
+        });
+      }
+      const empTierSelect = content.querySelector('#employeeTierSelect');
+      if (empTierSelect) {
+        empTierSelect.addEventListener('change', (e) => {
+          state.corporateEmployeesTier = e.target.value;
+          render();
+        });
+      }
+      content.querySelectorAll('[data-action="book-for-employee"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          openBookingModal({
+            passenger: btn.dataset.empName,
+            customer: 'Zenith Corporate Tech',
+            cost_center: btn.dataset.empCc,
+            department: btn.dataset.empDept
+          });
+        });
+      });
+      content.querySelectorAll('[data-action="edit-corp-employee"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const list = getCorporateEmployeesList();
+          const emp = list.find(e => e.id === btn.dataset.empId);
+          if (emp) openCorporateEmployeeModal(emp);
+        });
+      });
+      content.querySelectorAll('[data-action="import-employee-csv"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          openEmployeeCsvImportModal();
+        });
+      });
+      content.querySelectorAll('[data-action="refresh-roster"]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          await hydrateOperationalData();
+          showToast('Roster Refreshed', 'Corporate directory synchronized with policy engine.');
+          render();
+        });
+      });
       content.querySelectorAll('[data-cust-page-tab]').forEach(el => el.addEventListener('click', () => { state.customerDetailTab = el.dataset.custPageTab; render(); }));
       content.querySelectorAll('[data-supp-page-tab]').forEach(el => el.addEventListener('click', () => { state.supplierDetailTab = el.dataset.suppPageTab; render(); }));
       content.querySelector('#suppPageBtnSaveSettings')?.addEventListener('click', async () => {
@@ -29577,7 +30124,8 @@
         'open-customer-detail': () => openCustomerDetailPage(el?.dataset?.customerId),
         'open-supplier-detail': () => openSupplierDetailPage(el?.dataset?.supplierId),
         'back-to-suppliers': () => { state.page = 'suppliers'; try { window.location.hash = '#suppliers'; } catch (_) { } render(); },
-        'add-corp-employee': () => openCorporateEmployeeModal(el?.dataset?.customerId || state.selectedCustomerId),
+        'add-corp-employee': () => openCorporateEmployeeModal(),
+        'add-employee': () => openCorporateEmployeeModal(),
         'open-customer-profile': () => openCustomerDetailPage(el?.dataset?.customerId),
         'back-to-customers': () => {
           state.page = 'customers';
@@ -30162,7 +30710,161 @@
       });
     }
 
-    function openCorporateEmployeeModal(defaultCustomerId = null) {
+    function openCorporateEmployeeModal(arg = null) {
+      const isCorporateDesk = currentUser?.role === 'corporate' || state.page === 'employees';
+      const existing = (arg && typeof arg === 'object' && arg.full_name) ? arg : null;
+      const defaultCustomerId = (typeof arg === 'string') ? arg : null;
+
+      if (isCorporateDesk) {
+        const isEdit = Boolean(existing);
+        const currentList = getCorporateEmployeesList();
+        const nextNum = 100 + currentList.length + 1;
+        const defaultCode = isEdit ? existing.employee_code : `ZCT-${nextNum}`;
+
+        const bodyHtml = `
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Full Name <span class="required" style="color:var(--red)">*</span></label>
+              <input class="form-input" data-employee-field="full_name" placeholder="e.g. Devika Nair" value="${esc(isEdit ? existing.full_name : '')}">
+            </div>
+            <div class="form-group">
+              <label>Employee Code / ID <span class="required" style="color:var(--red)">*</span></label>
+              <input class="form-input" data-employee-field="employee_code" placeholder="e.g. ZCT-111" value="${esc(defaultCode)}">
+            </div>
+            <div class="form-group">
+              <label>Official Corporate Email <span class="required" style="color:var(--red)">*</span></label>
+              <input class="form-input" data-employee-field="email" type="email" placeholder="e.g. devika.nair@zenithcorp.tech" value="${esc(isEdit ? existing.email : '')}">
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input class="form-input" data-employee-field="phone" placeholder="+91 98xxx xxxxx" value="${esc(isEdit ? existing.phone : '')}">
+            </div>
+            <div class="form-group">
+              <label>Department <span class="required" style="color:var(--red)">*</span></label>
+              <select class="form-input" data-employee-field="department">
+                <option value="Engineering" ${isEdit && existing.department === 'Engineering' ? 'selected' : ''}>Engineering &amp; Tech Systems</option>
+                <option value="Sales & Ops" ${isEdit && existing.department === 'Sales & Ops' ? 'selected' : ''}>Sales &amp; Client Operations</option>
+                <option value="Product & UX" ${isEdit && existing.department === 'Product & UX' ? 'selected' : ''}>Product, UX &amp; Architecture</option>
+                <option value="Executive" ${isEdit && existing.department === 'Executive' ? 'selected' : ''}>Executive Leadership &amp; Admin</option>
+                <option value="Finance & HR" ${isEdit && existing.department === 'Finance & HR' ? 'selected' : ''}>Finance &amp; Human Resources</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Cost Center Attribution <span class="required" style="color:var(--red)">*</span></label>
+              <select class="form-input" data-employee-field="cost_center">
+                <option value="CC-ENG-101" ${isEdit && existing.cost_center === 'CC-ENG-101' ? 'selected' : ''}>CC-ENG-101 (Engineering - Tech Systems)</option>
+                <option value="CC-SLS-104" ${isEdit && existing.cost_center === 'CC-SLS-104' ? 'selected' : ''}>CC-SLS-104 (Sales &amp; Client Operations)</option>
+                <option value="CC-PRD-102" ${isEdit && existing.cost_center === 'CC-PRD-102' ? 'selected' : ''}>CC-PRD-102 (Product &amp; Design Architecture)</option>
+                <option value="CC-EXEC-001" ${isEdit && existing.cost_center === 'CC-EXEC-001' ? 'selected' : ''}>CC-EXEC-001 (Executive Leadership &amp; Facilities)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Designation / Job Title</label>
+              <input class="form-input" data-employee-field="designation" placeholder="e.g. Senior Staff Engineer" value="${esc(isEdit ? (existing.designation || '') : '')}">
+            </div>
+            <div class="form-group">
+              <label>Reporting Manager / Sign-off Approver</label>
+              <select class="form-input" data-employee-field="reporting_manager">
+                <option value="Dr. Arvind Swaminathan" ${isEdit && existing.reporting_manager === 'Dr. Arvind Swaminathan' ? 'selected' : ''}>Dr. Arvind Swaminathan (VP Avionics)</option>
+                <option value="Priya Menon" ${isEdit && existing.reporting_manager === 'Priya Menon' ? 'selected' : ''}>Priya Menon (VP Business Dev)</option>
+                <option value="Pooja Hegde" ${isEdit && existing.reporting_manager === 'Pooja Hegde' ? 'selected' : ''}>Pooja Hegde (Head of Design)</option>
+                <option value="Vikram Malhotra" ${isEdit && existing.reporting_manager === 'Vikram Malhotra' ? 'selected' : ''}>Vikram Malhotra (Managing Director)</option>
+                <option value="Suresh Rao" ${isEdit && existing.reporting_manager === 'Suresh Rao' ? 'selected' : ''}>Suresh Rao (Travel Desk Director)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Travel Policy Tier</label>
+              <select class="form-input" data-employee-field="policy_tier">
+                <option value="Tier 1 - Executive (EV Luxury / Sedan Prime)" ${isEdit && existing.policy_tier?.includes('Tier 1') ? 'selected' : ''}>Tier 1 - Executive (EV Luxury / Sedan Prime)</option>
+                <option value="Tier 2 - Senior (EV Prime / Compact Sedan)" ${(!isEdit || existing.policy_tier?.includes('Tier 2')) ? 'selected' : ''}>Tier 2 - Senior (EV Prime / Compact Sedan)</option>
+                <option value="Tier 3 - Standard (Economy Hatch / EV City)" ${isEdit && existing.policy_tier?.includes('Tier 3') ? 'selected' : ''}>Tier 3 - Standard (Economy Hatch / EV City)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Monthly Travel Allowance (Cap)</label>
+              <input class="form-input" data-employee-field="monthly_budget" placeholder="e.g. ₹25,000" value="${esc(isEdit ? (existing.monthly_budget || '₹25,000') : '₹25,000')}">
+            </div>
+          </div>
+        `;
+
+        const modal = modalShell(
+          isEdit ? 'Edit Corporate Employee Profile' : 'Add Corporate Employee to Roster',
+          'Enroll employee under Zenith Corporate Tech travel policy, allocate cost center budget, and authorize automated bookings.',
+          bodyHtml,
+          `${button('Cancel', '', 'data-close-modal')}${button(isEdit ? 'Save Changes' : 'Enroll Employee', 'primary', 'data-submit-corporate-employee')}`
+        );
+
+        modal.querySelector('[data-submit-corporate-employee]').addEventListener('click', async () => {
+          if (!validateFields(modal, [
+            ['[data-employee-field="full_name"]', 'Full name is required.'],
+            ['[data-employee-field="email"]', 'Official email is required.']
+          ])) return;
+
+          const read = key => modal.querySelector(`[data-employee-field="${key}"]`)?.value.trim() || '';
+          const submit = modal.querySelector('[data-submit-corporate-employee]');
+          submit.disabled = true;
+
+          try {
+            const code = read('employee_code') || defaultCode;
+            const empData = {
+              id: isEdit ? existing.id : `EMP-${code}`,
+              employee_code: code,
+              full_name: read('full_name'),
+              email: read('email'),
+              phone: read('phone') || '+91 98000 00000',
+              department: read('department') || 'Engineering',
+              cost_center: read('cost_center') || 'CC-ENG-101',
+              designation: read('designation') || 'Team Member',
+              reporting_manager: read('reporting_manager') || 'Dr. Arvind Swaminathan',
+              policy_tier: read('policy_tier') || 'Tier 2 - Senior (EV Prime)',
+              monthly_budget: read('monthly_budget') || '₹25,000',
+              status: 'Active',
+              joined_date: isEdit ? (existing.joined_date || 'Nov 2026') : 'Nov 2026',
+              trips_this_month: isEdit ? (existing.trips_this_month || 0) : 0
+            };
+
+            const roster = getCorporateEmployeesList();
+            if (isEdit) {
+              const idx = roster.findIndex(e => e.id === existing.id || e.employee_code === existing.employee_code);
+              if (idx !== -1) roster[idx] = { ...roster[idx], ...empData };
+            } else {
+              roster.unshift(empData);
+            }
+            state.corporateEmployees = roster;
+
+            try {
+              await apiRequest('/api/employees', {
+                method: 'POST',
+                body: JSON.stringify({
+                  full_name: empData.full_name,
+                  employee_code: empData.employee_code,
+                  email: empData.email,
+                  phone: empData.phone,
+                  department: empData.department,
+                  cost_center: empData.cost_center,
+                  customer_id: 'cust-zenith-corp'
+                })
+              });
+            } catch (_) { }
+
+            closeModal();
+            showToast(
+              isEdit ? 'Employee Profile Updated' : 'Employee Successfully Enrolled',
+              `${empData.full_name} (${empData.employee_code}) is registered under ${empData.cost_center}.`
+            );
+
+            if (state.page === 'employees' || state.page === 'overview') {
+              render();
+            }
+          } catch (err) {
+            submit.disabled = false;
+            showToast('Could not save employee', err.message);
+          }
+        });
+        return;
+      }
+
+      // Vendor fallback
       const customers = state.liveData?.customers?.items || [];
       const selectedCid = defaultCustomerId || state.selectedCustomerId || '';
       const customerOptions = customers.map(c => `<option value="${esc(c.id)}" ${c.id === selectedCid ? 'selected' : ''}>${esc(c.name || c.id)}</option>`).join('');
