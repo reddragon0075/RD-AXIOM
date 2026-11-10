@@ -21720,10 +21720,6 @@
     function renderBookings() {
       const isCorp = currentUser?.role === 'corporate';
       const allRows = bookingRowsForDisplay();
-      const activeTab = state.bookingTab || (isCorp ? 'Pending Approvals' : 'Needs Attention');
-      const query = String(state.bookingQuery || '').trim().toLowerCase();
-      const dateFrom = state.bookingDateFrom || '';
-      const dateTo = state.bookingDateTo || '';
 
       const bookingTabs = isCorp ? [
         'Pending Approvals',
@@ -21738,6 +21734,18 @@
         'Allotted',
         'Dispatched',
         'Completed',
+        'Billed',
+        'Cancelled',
+        'All'
+      ];
+
+      const activeTab = (isCorp && (!state.bookingTab || !bookingTabs.includes(state.bookingTab)))
+        ? 'Pending Approvals'
+        : (state.bookingTab && bookingTabs.includes(state.bookingTab) ? state.bookingTab : (isCorp ? 'Pending Approvals' : 'Needs Attention'));
+      state.bookingTab = activeTab;
+      const query = String(state.bookingQuery || '').trim().toLowerCase();
+      const dateFrom = state.bookingDateFrom || '';
+      const dateTo = state.bookingDateTo || '';
         'Billed',
         'Cancelled',
         'All'
