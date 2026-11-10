@@ -18,6 +18,18 @@
   <script type="text/javascript">
     (function () {
       try {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function (registrations) {
+            for (var i = 0; i < registrations.length; i++) registrations[i].unregister();
+          });
+        }
+        if ('caches' in window) {
+          caches.keys().then(function (keys) {
+            for (var j = 0; j < keys.length; j++) caches.delete(keys[j]);
+          });
+        }
+      } catch (_) { }
+      try {
         var h = location.hash || '';
         var u = localStorage.getItem('axiomfleet_user');
         var isPublic = /#(about-us|blogs|newsroom|careers|contact-us|success-stories|terms|privacy|disclaimer|refund|home|login)/.test(h);
@@ -33574,7 +33586,10 @@
       appShell.style.display = 'flex';
 
       const targetHash = isStaff && state.page === 'axiom-hq' ? '#axiom-hq' : (state.page && state.page !== 'overview' ? '#' + state.page : '#app');
-      if (updateHash && location.hash !== targetHash) history.replaceState(null, '', targetHash);
+      if (updateHash && location.hash !== targetHash) {
+        try { history.replaceState(null, '', targetHash); } catch (_) { }
+        try { if (location.hash !== targetHash) window.location.hash = targetHash; } catch (_) { }
+      }
       state.hydration = { status: 'loading', error: '' };
       render();
       hydrateOperationalData();
@@ -33755,7 +33770,14 @@
       showToast('Signed out', 'Your workspace is locked until the next sign-in.');
     }
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/driver-sw.js').then(reg => { try { reg.update(); } catch (_) { } }).catch(() => { });
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        for (let r of regs) r.unregister();
+      }).catch(() => { });
+      if ('caches' in window) {
+        caches.keys().then(keys => {
+          for (let k of keys) caches.delete(k);
+        }).catch(() => { });
+      }
     }
     async function initAuth() {
       const route = location.hash.replace('#', '');
@@ -33926,6 +33948,16 @@
           });
           if (response?.user) {
             applyCurrentUser(response.user);
+            document.documentElement.classList.add('is-app-mode');
+            if (authScreen) {
+              authScreen.classList.remove('open');
+              authScreen.setAttribute('aria-hidden', 'true');
+              authScreen.style.display = 'none';
+            }
+            if (appShell) {
+              appShell.classList.add('is-visible');
+              appShell.style.display = 'flex';
+            }
             await showApp();
             showToast('Signed In', `Switched to persona: ${response.user.full_name}.`);
           }
@@ -33948,6 +33980,16 @@
         const response = await apiRequest('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
         if (response?.user) {
           applyCurrentUser(response.user);
+          document.documentElement.classList.add('is-app-mode');
+          if (authScreen) {
+            authScreen.classList.remove('open');
+            authScreen.setAttribute('aria-hidden', 'true');
+            authScreen.style.display = 'none';
+          }
+          if (appShell) {
+            appShell.classList.add('is-visible');
+            appShell.style.display = 'flex';
+          }
           await showApp();
           showToast('Welcome back', `Signed in as ${response.user.full_name || 'Vendor Owner'}.`);
         } else {

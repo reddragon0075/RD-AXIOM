@@ -13,9 +13,9 @@
       ]
     },
     {
-      "source": "/(index.html|driver-sw.js|demo_fleet_data.js|driver-manifest.json|driver-app.*)?",
+      "source": "/(|index.html|driver-sw.js|demo_fleet_data.js|driver-manifest.json|driver-app.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate, max-age=0" }
       ]
     }
   ],
