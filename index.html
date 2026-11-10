@@ -36191,15 +36191,15 @@
             rName = 'Employee';
             rIcon = '👤';
           } else {
-            rName = 'Corporate Admin';
+            rName = 'Admin';
             rIcon = '🛡️';
           }
         } else if (user.role === 'vendor') {
           if (user.email?.includes('dispatcher') || user.full_name?.includes('Dispatcher')) {
-            rName = 'Ops Dispatcher';
+            rName = 'Dispatcher';
             rIcon = '⚡';
           } else {
-            rName = 'Vendor Owner';
+            rName = 'Owner';
             rIcon = '👔';
           }
         } else if (user.role === 'driver') {
