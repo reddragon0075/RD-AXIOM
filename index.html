@@ -34270,6 +34270,7 @@
 
     function applyCurrentUser(user) {
       currentUser = user;
+      try { window.currentUser = user; } catch (_) { }
       if (user) {
         try { localStorage.setItem('axiomfleet_user', JSON.stringify(user)); } catch (_) { }
         try {
@@ -34326,12 +34327,14 @@
         const msg = String(err?.message || '').toLowerCase();
         if (status === 401 || msg.includes('unauthorized') || msg.includes('sign in required')) {
           currentUser = null;
+      try { window.currentUser = null; } catch (_) { }
           try { localStorage.removeItem('axiomfleet_user'); } catch (_) { }
           document.documentElement.classList.remove('is-app-mode');
           return false;
         }
         if (stored) return true;
         currentUser = null;
+      try { window.currentUser = null; } catch (_) { }
         return false;
       }
       return Boolean(currentUser);
@@ -34601,6 +34604,7 @@
     async function logout() {
       try { await apiRequest('/api/auth/logout', { method: 'POST' }); } catch (_) { /* still clear the local view */ }
       currentUser = null;
+      try { window.currentUser = null; } catch (_) { }
       try {
         localStorage.removeItem('axiomfleet_user');
         localStorage.removeItem('axiomfleet_supabase_session');
@@ -34615,6 +34619,11 @@
       showLogin();
       showToast('Signed out', 'Your workspace is locked until the next sign-in.');
     }
+    window.logout = logout;
+    window.showLogin = showLogin;
+    window.showApp = showApp;
+    window.showHome = showHome;
+    window.state = state;
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(regs => {
         for (let r of regs) r.unregister();
