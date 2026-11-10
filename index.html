@@ -3609,6 +3609,10 @@
       text-decoration: underline;
     }
 
+    .toast-recovery[hidden] {
+      display: none !important;
+    }
+
     .phase3-report-toolbar {
       display: flex;
       gap: 10px;
@@ -33255,26 +33259,41 @@
       const isDemo = Boolean(currentUser?.is_demo || !isLocalHostEnv);
       const reqMethod = (options.method || 'GET').toUpperCase();
 
-      if (path === '/api/auth/login' && reqMethod === 'POST') {
+      if ((path === '/api/auth/login' || path === '/api/auth/zeroauthy/login') && reqMethod === 'POST') {
         let bodyObj = {};
         try { bodyObj = JSON.parse(options.body || '{}'); } catch (_) { }
         const email = (bodyObj.email || '').toLowerCase();
-        const isCorp = email.includes('zenith') || email.includes('mgr') || email.includes('corp');
-        const isDriver = email.includes('driver');
-        let user = isCorp
-          ? window.AXIOM_DEMO_DATA?.corp_user
-          : (isDriver ? { id: 'usr_driver_1', email: 'driver@axiomfleet.com', full_name: 'Vikramaditya Rao', role: 'driver', organization: { id: 'org_axiom_logistics', name: 'Axiom Fleet Logistics', type: 'vendor' } } : window.AXIOM_DEMO_DATA?.user);
-        if (!user) {
+        const role = bodyObj.role || (email.includes('zenith') || email.includes('mgr') || email.includes('corp') ? 'corporate' : (email.includes('driver') ? 'driver' : 'vendor'));
+        const name = bodyObj.name || (role === 'corporate' ? 'Suresh Rao' : (role === 'driver' ? 'Imran Khan' : 'Abhijith Vijayan'));
+        let user;
+        if (role === 'corporate' || email.includes('zenith') || email.includes('mgr') || email.includes('corp')) {
+          user = window.AXIOM_DEMO_DATA?.corp_user || {
+            id: 'usr_corp_demo',
+            email: email || 'corp@axiomfleet.com',
+            full_name: name || 'Suresh Rao',
+            role: 'corporate',
+            organization: { id: 'org_zenith_corp', name: 'Zenith Corporate Tech', type: 'corporate' }
+          };
+        } else if (role === 'driver' || email.includes('driver')) {
           user = {
+            id: 'usr_driver_1',
+            email: email || 'driver@axiomfleet.com',
+            full_name: name || 'Imran Khan',
+            role: 'driver',
+            organization: { id: 'org_axiom_logistics', name: 'Axiom Fleet Logistics', type: 'vendor' }
+          };
+        } else {
+          user = window.AXIOM_DEMO_DATA?.user || {
             id: 'usr_demo_owner',
             email: email || 'reddragon0075@gmail.com',
-            full_name: 'Abhijith Vijayan',
+            full_name: name || 'Abhijith Vijayan',
             role: 'vendor',
             organization: { id: 'org_axiom_logistics', name: 'Axiom Fleet Logistics', type: 'vendor' }
           };
         }
         user = JSON.parse(JSON.stringify(user));
         user.is_demo = true;
+        if (name && (!user.full_name || user.full_name === 'Abhijith Vijayan' && name !== 'Abhijith Vijayan')) user.full_name = name;
         return { ok: true, access_token: 'tok_demo_' + Date.now(), user: user };
       }
 
@@ -33526,7 +33545,9 @@
       publicPages.classList.remove('open');
       authScreen.classList.add('open');
       authScreen.setAttribute('aria-hidden', 'false');
+      authScreen.style.display = '';
       appShell.classList.remove('is-visible');
+      appShell.style.display = 'none';
       setAuthMode('login');
       if (updateHash && location.hash !== '#login') history.replaceState(null, '', '#login');
       window.scrollTo({ top: 0, behavior: 'instant' });
@@ -33548,7 +33569,9 @@
       publicPages.classList.remove('open');
       authScreen.classList.remove('open');
       authScreen.setAttribute('aria-hidden', 'true');
+      authScreen.style.display = 'none';
       appShell.classList.add('is-visible');
+      appShell.style.display = 'flex';
 
       const targetHash = isStaff && state.page === 'axiom-hq' ? '#axiom-hq' : (state.page && state.page !== 'overview' ? '#' + state.page : '#app');
       if (updateHash && location.hash !== targetHash) history.replaceState(null, '', targetHash);
