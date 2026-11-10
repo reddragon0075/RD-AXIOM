@@ -646,7 +646,7 @@
 
     .master-card-icon {
       width: 28px;
-      height: 28px;
+      height: 29px;
       display: grid;
       place-items: center;
       border-radius: 8px;
@@ -1260,7 +1260,7 @@
     .btn.small {
       height: 29px;
       padding: 0 9px;
-      font-size: 10.5px;
+      font-size: 11px;
       border-radius: 6px;
     }
 
@@ -12371,7 +12371,7 @@
       justify-content: center;
       gap: 5px;
       height: 28px;
-      padding: 0 8px;
+      padding: 0 10px;
       border-radius: 9999px;
       font-size: 10px;
       font-weight: 700;
@@ -17436,14 +17436,14 @@
           <!-- Portal Chip (Vendor / Corporate) -->
           <button type="button" class="portal-chip portal-badge corporate" id="sidebarPortalBadge" title="Active Portal Environment (Click to switch)">
             <span class="portal-indicator-dot"></span>
-            <span class="portal-chip-text" id="sidebarPortalName">Corporate Portal</span>
+            <span class="portal-chip-text" id="sidebarPortalName">Corporate</span>
             <svg class="portal-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
           </button>
 
           <!-- Role Chip (Admin / Manager / Employee) -->
           <button type="button" class="portal-chip role-badge" id="sidebarRoleBadge" title="Active User Role (Click to switch view)">
             <span class="role-icon" id="sidebarRoleIcon">🛡️</span>
-            <span class="role-chip-text" id="sidebarRoleName">Corporate Admin</span>
+            <span class="role-chip-text" id="sidebarRoleName">Admin</span>
             <svg class="portal-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
           </button>
         </div>
@@ -36166,13 +36166,13 @@
         const roleNameEl = document.getElementById('sidebarRoleName');
         const roleIconEl = document.getElementById('sidebarRoleIcon');
 
-        let pName = 'Corporate Portal';
+        let pName = 'Corporate';
         let pClass = 'corporate';
         if (user.role === 'vendor') {
-          pName = 'Vendor Portal';
+          pName = 'Vendor';
           pClass = 'vendor';
         } else if (user.role === 'driver') {
-          pName = 'Driver Portal';
+          pName = 'Driver';
           pClass = 'driver';
         }
 
@@ -36180,12 +36180,12 @@
           try { return sessionStorage.getItem('corporate_active_role'); } catch (_) { return null; }
         })() || 'admin';
 
-        let rName = 'Corporate Admin';
+        let rName = 'Admin';
         let rIcon = '🛡️';
 
         if (user.role === 'corporate') {
           if (activeCorpRole === 'manager') {
-            rName = 'Dept Manager';
+            rName = 'Manager';
             rIcon = '👔';
           } else if (activeCorpRole === 'employee') {
             rName = 'Employee';
