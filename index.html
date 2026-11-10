@@ -35122,7 +35122,8 @@
             if (typeof window.showLogin === 'function') {
               window.showLogin();
               setTimeout(() => {
-                const roleBtn = document.querySelector(`[data-demo-role="${role}"]`) ||
+                const roleBtn = document.querySelector(`[data-login-role="${role}"]`) ||
+                  document.querySelector(`[data-demo-role="${role}"]`) ||
                   document.querySelector(`.demo-btn[data-role="${role}"]`) ||
                   document.querySelector(`button[data-role="${role}"]`);
                 if (roleBtn) roleBtn.click();
