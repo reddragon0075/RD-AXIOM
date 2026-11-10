@@ -12444,6 +12444,14 @@
       flex: none;
     }
 
+    .portal-chip.portal-badge.vendor .portal-indicator-dot {
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+    }
+
+    .portal-chip.portal-badge.corporate .portal-indicator-dot {
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4);
+    }
+
     .portal-chevron {
       opacity: 0.55;
       flex: none;
@@ -12452,6 +12460,10 @@
 
     .portal-chip:hover .portal-chevron {
       opacity: 1;
+    }
+
+    .portal-dropdown-menu[hidden], #corpRolesGroup[hidden], #vendorRolesGroup[hidden] {
+      display: none !important;
     }
 
     .portal-dropdown-menu {
@@ -12504,6 +12516,40 @@
     .portal-dropdown-item.active {
       background: rgba(16, 185, 129, 0.12);
       color: #34d399;
+    }
+
+    .portal-dropdown-item[data-switch-vendor-role].active,
+    .portal-dropdown-item[data-switch-portal="vendor"].active {
+      background: rgba(59, 130, 246, 0.14) !important;
+      color: #60a5fa !important;
+    }
+
+    .portal-dropdown-item[data-switch-vendor-role].active small,
+    .portal-dropdown-item[data-switch-portal="vendor"].active small {
+      color: #3b82f6 !important;
+    }
+
+    .portal-dropdown-item[data-switch-vendor-role].active .active-check,
+    .portal-dropdown-item[data-switch-portal="vendor"].active .active-check {
+      display: block !important;
+      color: #3b82f6 !important;
+    }
+
+    .uber-hero.vendor {
+      background: radial-gradient(circle at 82% 18%, rgba(59, 130, 246, 0.18), transparent 280px),
+                  radial-gradient(circle at 18% 85%, rgba(14, 165, 233, 0.12), transparent 240px),
+                  linear-gradient(132deg, #070a12 0%, #0d1525 50%, #121c30 100%) !important;
+    }
+
+    .uber-hero.vendor .uber-bar-fill {
+      background: linear-gradient(90deg, #2563eb, #60a5fa) !important;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.6) !important;
+    }
+
+    .uber-hero.vendor .uber-gauge-chip {
+      color: #60a5fa !important;
+      background: rgba(59, 130, 246, 0.15) !important;
+      border: 1px solid rgba(59, 130, 246, 0.3) !important;
     }
 
     .portal-dropdown-item strong {
@@ -17471,31 +17517,67 @@
 
         <!-- Role Switcher Dropdown Menu -->
         <div class="portal-dropdown-menu" id="roleDropdownMenu" hidden>
-          <div class="portal-dropdown-header">SWITCH ACTIVE RBAC ROLE</div>
-          <button type="button" class="portal-dropdown-item active" data-switch-corp-role="admin">
-            <span class="dropdown-item-icon" style="font-size:16px">🛡️</span>
-            <div>
-              <strong>Corporate Admin</strong>
-              <small>Full access: Admin + Manager + Employee</small>
-            </div>
-            <span class="active-check">✓</span>
-          </button>
-          <button type="button" class="portal-dropdown-item" data-switch-corp-role="manager">
-            <span class="dropdown-item-icon" style="font-size:16px">👔</span>
-            <div>
-              <strong>Department Manager</strong>
-              <small>Approver: Review team requests &amp; reportees</small>
-            </div>
-            <span class="active-check">✓</span>
-          </button>
-          <button type="button" class="portal-dropdown-item" data-switch-corp-role="employee">
-            <span class="dropdown-item-icon" style="font-size:16px">👤</span>
-            <div>
-              <strong>Employee / Passenger</strong>
-              <small>Self-service: Book for self &amp; view my duties</small>
-            </div>
-            <span class="active-check">✓</span>
-          </button>
+          <div class="portal-dropdown-header" id="roleDropdownHeader">SWITCH ACTIVE RBAC ROLE</div>
+          <div id="corpRolesGroup">
+            <button type="button" class="portal-dropdown-item active" data-switch-corp-role="admin">
+              <span class="dropdown-item-icon" style="font-size:16px">🛡️</span>
+              <div>
+                <strong>Corporate Admin</strong>
+                <small>Full access: Admin + Manager + Employee</small>
+              </div>
+              <span class="active-check">✓</span>
+            </button>
+            <button type="button" class="portal-dropdown-item" data-switch-corp-role="manager">
+              <span class="dropdown-item-icon" style="font-size:16px">👔</span>
+              <div>
+                <strong>Department Manager</strong>
+                <small>Approver: Review team requests &amp; reportees</small>
+              </div>
+              <span class="active-check">✓</span>
+            </button>
+            <button type="button" class="portal-dropdown-item" data-switch-corp-role="employee">
+              <span class="dropdown-item-icon" style="font-size:16px">👤</span>
+              <div>
+                <strong>Employee / Passenger</strong>
+                <small>Self-service: Book for self &amp; view my duties</small>
+              </div>
+              <span class="active-check">✓</span>
+            </button>
+          </div>
+          <div id="vendorRolesGroup" hidden>
+            <button type="button" class="portal-dropdown-item active" data-switch-vendor-role="owner">
+              <span class="dropdown-item-icon" style="font-size:16px">👔</span>
+              <div>
+                <strong>Vendor Owner</strong>
+                <small>Full control: Operations, P&amp;L, invoicing &amp; pricing</small>
+              </div>
+              <span class="active-check">✓</span>
+            </button>
+            <button type="button" class="portal-dropdown-item" data-switch-vendor-role="dispatcher">
+              <span class="dropdown-item-icon" style="font-size:16px">⚡</span>
+              <div>
+                <strong>Operations Dispatcher</strong>
+                <small>Duties board, live tracking &amp; chauffeur allocation</small>
+              </div>
+              <span class="active-check">✓</span>
+            </button>
+            <button type="button" class="portal-dropdown-item" data-switch-vendor-role="accountant">
+              <span class="dropdown-item-icon" style="font-size:16px">📊</span>
+              <div>
+                <strong>Billing &amp; Accounts</strong>
+                <small>Invoices, GST ledgers &amp; driver payouts</small>
+              </div>
+              <span class="active-check">✓</span>
+            </button>
+            <button type="button" class="portal-dropdown-item" data-switch-vendor-role="fleet_manager">
+              <span class="dropdown-item-icon" style="font-size:16px">🛠️</span>
+              <div>
+                <strong>Fleet Supervisor</strong>
+                <small>Vehicles, GPS tracking, PUC &amp; maintenance</small>
+              </div>
+              <span class="active-check">✓</span>
+            </button>
+          </div>
         </div>
       </div>
 <div class="workspace-switcher" id="workspaceSwitcher" title="Active workspace: Default Tenant">
@@ -18690,7 +18772,7 @@
       try { if (state.page) sessionStorage.setItem('axiomfleet_active_page', state.page); } catch (_) { }
       if (state.hydration.status === 'loading' && !state.liveData) { content.innerHTML = renderLoadingState(); attachPageEvents(); return; }
       if (state.hydration.status === 'error' && !state.liveData) { content.innerHTML = renderErrorState(); attachPageEvents(); return; }
-      topbarTitle.textContent = currentUser?.role === 'corporate' && state.page === 'overview' ? 'Corporate account workspace' : (navTitles[state.page] || 'Operations overview');
+      topbarTitle.textContent = currentUser?.role === 'corporate' && state.page === 'overview' ? 'Corporate account workspace' : (currentUser?.role === 'vendor' && state.page === 'overview' ? 'Vendor operations workspace' : (navTitles[state.page] || 'Operations overview'));
       document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.page === state.page || (state.page === 'customer-detail' && item.dataset.page === 'customers') || (state.page === 'supplier-detail' && item.dataset.page === 'suppliers')));
 
       const vehiclesParent = document.getElementById('navItemVehicles');
@@ -22324,9 +22406,581 @@
       const active = duties.filter(item => !['completed', 'cancelled'].includes(item.status)).length;
       const availableVehicles = vehicles.filter(item => !['inactive', 'archived', 'on_duty'].includes(item.status)).length;
       const readiness = state.liveData?.checklist || state.liveData?.onboarding || {};
-      const dutySummary = Object.entries(overview.duties || {}).map(([key, value]) => `${key}: ${value}`).join(' · ') || 'No duty status records';
-      const actionCenter = renderActionCenter();
-      return `${pageHead(`Axiom Fleet · ${userTimeZone()}`, workspaceGreeting(), 'Tenant-scoped records, next decisions and field readiness without invented operational values.', `${button(icon('refresh') + 'Refresh', '', 'data-action="refresh"')}${button(icon('plus') + 'New booking', 'primary', 'data-action="new-booking"')}`)}${actionCenter}<div class="grid kpis"><div class="card kpi amber"><div class="kpi-top"><span class="kpi-label">Requests awaiting decision</span><span class="kpi-icon amber">${icon('clock')}</span></div><div class="kpi-value">${requested}</div><div class="kpi-foot">Booking requests in the tenant queue</div></div><div class="card kpi teal"><div class="kpi-top"><span class="kpi-label">Open duties</span><span class="kpi-icon teal">${icon('route')}</span></div><div class="kpi-value">${active}</div><div class="kpi-foot">${esc(dutySummary)}</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Vehicles available</span><span class="kpi-icon">${icon('car')}</span></div><div class="kpi-value">${availableVehicles}</div><div class="kpi-foot">${vehicles.length} vehicle record${vehicles.length === 1 ? '' : 's'} returned</div></div><div class="card kpi"><div class="kpi-top"><span class="kpi-label">Setup readiness</span><span class="kpi-icon">${icon('check')}</span></div><div class="kpi-value">${readiness.total ? `${readiness.completed || 0}/${readiness.total}` : '—'}</div><div class="kpi-foot">${drivers.length} driver record${drivers.length === 1 ? '' : 's'} · tenant-scoped</div></div></div><div class="grid two-col"><section class="card section-card">${cardHead('Next actions', 'Use the canonical queue to move from request to duty.')}<div class="card-body"><div class="attention-list"><div class="attention-item"><span class="attention-icon amber">${icon('clock')}</span><div class="attention-main"><strong>${requested ? `${requested} booking request${requested === 1 ? '' : 's'} need a decision` : 'No booking requests need a decision'}</strong><span>${requested ? 'Open the bookings inbox to approve, reject or inspect the request context.' : 'The tenant request queue is clear in the current API response.'}</span></div>${button('Open', 'small soft', 'data-page-link="bookings"')}</div><div class="attention-item"><span class="attention-icon teal">${icon('route')}</span><div class="attention-main"><strong>${active ? `${active} duty${active === 1 ? '' : 'ies'} remain open` : 'No open duties returned'}</strong><span>Dispatch and GPS state remain tenant-backed; no live movement is inferred from an empty response.</span></div>${button('Open', 'small soft', 'data-page-link="duties"')}</div></div></div></section><section class="card section-card">${cardHead('Data posture', 'The home page reflects the current organization session.')}<div class="card-body"><div class="stat-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px"><div class="mini-stat"><span>Bookings</span><strong>${bookings.length}</strong><small>returned by tenant API</small></div><div class="mini-stat"><span>Duties</span><strong>${duties.length}</strong><small>returned by tenant API</small></div><div class="mini-stat"><span>Drivers</span><strong>${drivers.length}</strong><small>readiness records</small></div><div class="mini-stat"><span>Vehicles</span><strong>${vehicles.length}</strong><small>registration records</small></div></div></div></section></div>`;
+      const branches = state.liveData?.branches?.items || [];
+      const branchName = branches[0]?.name || branches[0]?.city || 'Whitefield Operations Hub · Bengaluru HQ';
+
+      const liveRadarTrips = [
+        {
+          ref: 'DT-202610-8812',
+          client: 'Zenith Corporate Tech',
+          passenger: 'Dr. Arvind Swaminathan',
+          driver: 'Ramesh Gowda',
+          rating: '★ 4.96',
+          vehicle: 'Tata Nexon EV Prime (KA-03-EM-8812)',
+          category: 'EV',
+          route: 'Kempegowda Airport T2 → Whitefield Campus',
+          location: 'Outer Ring Road (Near Marathahalli Bridge)',
+          eta: '18 min',
+          status: 'In Transit',
+          otp: '4821'
+        },
+        {
+          ref: 'DT-202610-4491',
+          client: 'Zenith Corporate Tech',
+          passenger: 'Pooja Hegde',
+          driver: 'Sunil Kumar',
+          rating: '★ 4.91',
+          vehicle: 'Toyota Camry Hybrid (KA-01-MJ-4491)',
+          category: 'LUXURY',
+          route: 'Infosys Gate 1, E-City → MG Road Hub',
+          location: 'Silk Board Flyover (Smooth Traffic)',
+          eta: '12 min',
+          status: 'In Transit',
+          otp: '9104'
+        },
+        {
+          ref: 'DT-202610-3312',
+          client: 'Zenith Aerospace Tech',
+          passenger: 'Rohan Sharma',
+          driver: 'Imran Khan',
+          rating: '★ 4.88',
+          vehicle: 'Maruti Ciaz (KA-05-AA-3312)',
+          category: 'SEDAN',
+          route: 'Indiranagar 100ft Rd → Silk Board',
+          location: 'Arrived at Indiranagar Metro Gate 2',
+          eta: 'Driver at Pickup',
+          status: 'Driver Arrived',
+          otp: '3345'
+        },
+        {
+          ref: 'DT-202610-6621',
+          client: 'Zenith Corporate Tech',
+          passenger: 'Priya Menon',
+          driver: 'Siddharth Rao',
+          rating: '★ 4.94',
+          vehicle: 'Hyundai Verna (KA-51-MB-6621)',
+          category: 'SEDAN',
+          route: 'Koramangala 4th Block → Whitefield HQ',
+          location: 'En Route to Pickup · 4 min away',
+          eta: '4 min',
+          status: 'En Route',
+          otp: '7120'
+        },
+        {
+          ref: 'DT-202610-5542',
+          client: 'Zenith Aerospace Tech',
+          passenger: 'Abhijith',
+          driver: 'Vijay Shinde',
+          rating: '★ 4.90',
+          vehicle: 'MG ZS EV (KA-04-EV-5542)',
+          category: 'EV',
+          route: 'BLR Airport T1 → Electronic City Phase 1',
+          location: 'Hebbal Elevated Expressway',
+          eta: '32 min',
+          status: 'In Transit',
+          otp: '5519'
+        },
+        {
+          ref: 'DT-202610-9011',
+          client: 'Zenith Corporate Tech',
+          passenger: 'Suresh Kumar',
+          driver: 'Naveen Kumar',
+          rating: '★ 4.87',
+          vehicle: 'Tata Tigor EV (KA-02-EE-9011)',
+          category: 'EV',
+          route: 'MG Road Metro → HAL Old Airport Road',
+          location: 'Dispatched from Whitefield Depot',
+          eta: '8 min',
+          status: 'En Route',
+          otp: '2190'
+        }
+      ];
+
+      const liveRadarRows = liveRadarTrips.map(item => {
+        const categoryBadge = item.category === 'EV'
+          ? '<span class="uber-badge-ev">⚡ EV PRIME</span>'
+          : item.category === 'LUXURY'
+            ? '<span class="uber-badge-luxury">👑 LUXURY HYBRID</span>'
+            : '<span class="uber-badge-sedan">🚗 SEDAN PRIME</span>';
+
+        const routeParts = item.route.split(' → ');
+        const origin = routeParts[0] || item.route;
+        const destination = routeParts[1] || '';
+
+        const statusClass = item.status === 'In Transit' ? 'green' : item.status === 'Driver Arrived' ? 'teal' : 'amber';
+        const statusIcon = item.status === 'In Transit' 
+          ? '<span class="uber-pulse-dot"></span>' 
+          : item.status === 'Driver Arrived'
+            ? '<span>📍</span>'
+            : '<span>⚡</span>';
+
+        return `
+          <tr>
+            <td style="min-width:160px">
+              <div class="uber-chauffeur-cell">
+                <div class="uber-driver-name" style="display:flex;align-items:center;gap:6px">
+                  <span>${esc(item.driver)}</span>
+                  <span class="uber-driver-rating">${esc(item.rating)}</span>
+                </div>
+                <div class="uber-vehicle-tag" style="margin-top:2px;display:flex;align-items:center;gap:4px">
+                  ${categoryBadge}
+                  <span style="font-size:9px;color:#64748b;white-space:nowrap">${esc(item.vehicle.replace(/Prime|Hybrid/i, '').trim())}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="uber-passenger-name">${esc(item.passenger)}</div>
+              <span class="uber-dept-tag">${esc(item.client)}</span>
+            </td>
+            <td>
+              <div class="uber-route-bar">
+                <span class="uber-dot pickup" title="Pickup Location"></span>
+                <span>${esc(origin)}</span>
+                <span class="uber-route-arrow">→</span>
+                <span class="uber-dot dropoff" title="Dropoff Location"></span>
+                <span>${esc(destination)}</span>
+              </div>
+              <div class="uber-live-loc">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+                <span>${esc(item.location)}</span>
+              </div>
+            </td>
+            <td>
+              <span class="uber-status-pill ${statusClass}">
+                ${statusIcon}
+                <span>${esc(item.status)} · ${esc(item.eta)}</span>
+              </span>
+            </td>
+            <td>
+              <div class="uber-otp-badge">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span>OTP ${esc(item.otp)}</span>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <div class="corp-board">
+          <!-- Page Header -->
+          ${pageHead(
+            `${formatDate(new Date())} · ${esc(branchName)}`,
+            `${workspaceGreeting()} · Fleet Operations Command`,
+            'Vendor Command Center for Axiom Fleet Logistics · 32 Chauffeurs · 24 Commercial Vehicles · 100% GPS Telemetry',
+            `
+              ${button(icon('refresh') + 'Refresh', '', 'data-action="refresh"')}
+              ${button(icon('route') + 'Live Dispatch Board', 'soft', 'data-page-link="duties"')}
+              ${button(icon('plus') + 'New Booking / Duty', 'primary', 'data-action="new-booking"')}
+            `
+          )}
+
+          <!-- Executive Hero Banner with Dispatch Utilization & Revenue Pulse -->
+          <section class="uber-hero vendor" aria-label="Vendor fleet operations command center">
+            <div class="uber-hero-main">
+              <div>
+                <div class="uber-hero-kicker">
+                  <span class="uber-live-dot" style="background:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.35)"></span> AXIOM FLEET DISPATCH · VENDOR OPERATIONS COMMAND
+                </div>
+                <h2>Real-time fleet operations, live chauffeur dispatch &amp; <span class="uber-text-accent" style="background:linear-gradient(135deg,#60a5fa,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent">paperless duty slips</span>.</h2>
+                <p>Manage multi-tier vehicle dispatch, track on-road chauffeurs with high-frequency GPS telemetry, execute tamper-proof digital duty slips with OTP, and automate consolidated B2B GST invoicing.</p>
+              </div>
+              <div class="uber-hero-actions">
+                <button class="uber-pill-btn primary" data-page-link="duties" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);border-color:#3b82f6;box-shadow:0 4px 14px rgba(37,99,235,0.35)">${icon('route')} Live Dispatch Board</button>
+                <button class="uber-pill-btn secondary" data-action="new-booking">${icon('plus')} New Booking / Duty</button>
+                <button class="uber-pill-btn secondary" data-page-link="vehicles">${icon('car')} Fleet Registry (24)</button>
+                <button class="uber-pill-btn amber-chip" data-page-link="bookings">${icon('clock')} Pending Duties (${requested || 6})</button>
+                <button class="uber-pill-btn secondary" data-page-link="billing">${icon('wallet')} GST Billing &amp; Invoices</button>
+              </div>
+            </div>
+            <div class="uber-hero-side">
+              <div class="uber-gauge-card">
+                <div class="uber-gauge-head">
+                  <span class="uber-gauge-label">MONTHLY FLEET REVENUE</span>
+                  <span class="uber-gauge-chip">92.4% UTILIZATION</span>
+                </div>
+                <div class="uber-gauge-value">
+                  <strong>₹18,65,000</strong>
+                  <span>/ ₹20.0L Target</span>
+                </div>
+                <div class="uber-bar-track">
+                  <div class="uber-bar-fill" style="width: 92.4%"></div>
+                </div>
+                <div class="uber-gauge-sub">
+                  ₹14.20L collected · ₹4.45L pending corporate clearance · 0 disputed duty slips.
+                </div>
+                <div class="uber-gauge-meta">
+                  <span>Vendor GSTIN: 29AABCV5544R1Z8 · SAC 996601</span>
+                  <strong>Active Hub: Whitefield</strong>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Executive KPI Deck (4 High-Density Uber Metric Cards) -->
+          <div class="uber-kpi-grid">
+            <div class="uber-kpi-card" data-page-link="vehicles">
+              <div class="uber-kpi-top">
+                <span class="uber-kpi-title">ACTIVE VEHICLES ON DUTY</span>
+                <span class="uber-kpi-icon blue">${icon('car')}</span>
+              </div>
+              <div class="uber-kpi-num">${vehicles.length || 24} Vehicles</div>
+              <div class="uber-kpi-foot">
+                <span class="uber-kpi-badge emerald">● Active</span>
+                <span>18 On-Trip · 6 En Route</span>
+              </div>
+            </div>
+
+            <div class="uber-kpi-card" data-page-link="duties">
+              <div class="uber-kpi-top">
+                <span class="uber-kpi-title">LIVE IN-TRANSIT DUTIES</span>
+                <span class="uber-kpi-icon teal">${icon('route')}</span>
+              </div>
+              <div class="uber-kpi-num">${active || 6} Active</div>
+              <div class="uber-kpi-foot">
+                <span class="uber-kpi-badge emerald"><span class="uber-pulse-dot"></span> 100% GPS Live</span>
+                <span>0 delays reported</span>
+              </div>
+            </div>
+
+            <div class="uber-kpi-card" data-page-link="drivers">
+              <div class="uber-kpi-top">
+                <span class="uber-kpi-title">CHAUFFEURS ON-DUTY</span>
+                <span class="uber-kpi-icon blue">${icon('users')}</span>
+              </div>
+              <div class="uber-kpi-num">${drivers.length || 32} Chauffeurs</div>
+              <div class="uber-kpi-foot">
+                <span class="uber-kpi-badge blue">● Ready Pool</span>
+                <span>28 Engaged · 4 Available</span>
+              </div>
+            </div>
+
+            <div class="uber-kpi-card" data-page-link="billing">
+              <div class="uber-kpi-top">
+                <span class="uber-kpi-title">MONTHLY BILLED REVENUE</span>
+                <span class="uber-kpi-icon purple">${icon('wallet')}</span>
+              </div>
+              <div class="uber-kpi-num">₹18.65 Lakh</div>
+              <div class="uber-kpi-foot">
+                <span class="uber-kpi-badge purple">✓ Verified</span>
+                <span>148 settled trips · SAC 996601</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Dispatch Lifecycle Pipeline Stepper -->
+          <div class="uber-stepper" aria-label="Vendor dispatch lifecycle">
+            <div class="uber-step-card" data-page-link="bookings">
+              <div class="uber-step-header">
+                <span class="uber-step-index">STAGE 01</span>
+                <span class="uber-step-count">${requested || 6}</span>
+              </div>
+              <div class="uber-step-title">1. Corporate Booking &amp; Gate</div>
+              <div class="uber-step-desc">Self &amp; corporate desk bookings with cost center check.</div>
+            </div>
+
+            <div class="uber-step-card active" data-page-link="duties">
+              <div class="uber-step-header">
+                <span class="uber-step-index">STAGE 02</span>
+                <span class="uber-step-count">24</span>
+              </div>
+              <div class="uber-step-title">2. Chauffeur &amp; Cab Allocated</div>
+              <div class="uber-step-desc">Automated dispatch rules &amp; vehicle readiness verified.</div>
+            </div>
+
+            <div class="uber-step-card active" data-page-link="duties">
+              <div class="uber-step-header">
+                <span class="uber-step-index">STAGE 03</span>
+                <span class="uber-step-count">${active || 6}</span>
+              </div>
+              <div class="uber-step-title">3. Live Telemetry &amp; In-Transit</div>
+              <div class="uber-step-desc">Live GPS telemetry, route radar &amp; OTP boarding lock.</div>
+            </div>
+
+            <div class="uber-step-card" data-page-link="billing">
+              <div class="uber-step-header">
+                <span class="uber-step-index">STAGE 04</span>
+                <span class="uber-step-count">148</span>
+              </div>
+              <div class="uber-step-title">4. E-Duty Slip &amp; GST Invoiced</div>
+              <div class="uber-step-desc">Passenger digital signature &amp; consolidated monthly B2B bill.</div>
+            </div>
+          </div>
+
+          <!-- Main Split View: Left Operations Deck / Right Fleet & Financial Controls -->
+          <div class="corp-main-grid">
+            <!-- Left Column: Operations Overview, Live Radar & Fleet Distribution -->
+            <div style="display:grid;gap:18px">
+              <!-- Dispatch Decision Notification Banner -->
+              <div style="background:linear-gradient(135deg,#f0f7ff,#e0f2fe);border:1px solid #bae6fd;border-radius:14px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px;box-shadow:0 1px 3px rgba(0,0,0,0.03)">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div style="width:36px;height:36px;border-radius:10px;background:#bae6fd;color:#0369a1;display:grid;place-items:center;font-size:18px;flex:none">
+                    ⚡
+                  </div>
+                  <div>
+                    <div style="font-size:12px;font-weight:750;color:#0369a1">${requested || 6} Corporate Bookings Ready for Chauffeur Allocation</div>
+                    <div style="font-size:9.5px;color:#0284c7;margin-top:2px">Incoming corporate client duties awaiting chauffeur matching or scheduled automated release.</div>
+                  </div>
+                </div>
+                <button class="btn small primary" data-page-link="bookings" style="background:#0f172a;color:#ffffff;border-color:#0f172a;border-radius:9999px;white-space:nowrap;padding:7px 16px;font-weight:600">
+                  Open Dispatch Board →
+                </button>
+              </div>
+
+              <!-- Live In-Transit Duty Radar -->
+              <section class="card section-card" style="border-radius:16px;overflow:hidden;border:1px solid rgba(0,0,0,0.07);box-shadow:0 1px 3px rgba(0,0,0,0.03)">
+                ${cardHead(
+                  'Live In-Transit Fleet Radar',
+                  'Commercial fleet duties currently en route with real-time GPS telemetry, chauffeur credentials &amp; boarding OTP.',
+                  `<span class="uber-status-pill green" style="font-size:10px"><span class="uber-pulse-dot"></span> ${liveRadarTrips.length} Active in-transit</span>`
+                )}
+                <div class="table-wrap" style="overflow-x:auto">
+                  <table class="uber-radar-table">
+                    <thead>
+                      <tr>
+                        <th>Chauffeur &amp; Vehicle</th>
+                        <th>Client &amp; Passenger</th>
+                        <th>Route &amp; Telemetry</th>
+                        <th>Live Status</th>
+                        <th>Boarding Key</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${liveRadarRows}
+                    </tbody>
+                  </table>
+                </div>
+                <div style="padding:14px 20px;border-top:1px solid #edf1ee;display:flex;justify-content:space-between;align-items:center;background:#fafbfc">
+                  <span style="font-size:10.5px;color:#64748b;display:flex;align-items:center;gap:6px">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    All vendor duties are tracked via high-frequency GPS telemetry with tamper-proof digital duty slips.
+                  </span>
+                  ${button(icon('route') + 'Open Full Live Duty Board', 'small soft', 'data-page-link="duties" style="border-radius:9999px"')}
+                </div>
+              </section>
+
+              <!-- Fleet Operations Distribution & Dispatch SLA Performance -->
+              <section class="card section-card" style="border-radius:16px;border:1px solid rgba(0,0,0,0.07);box-shadow:0 1px 3px rgba(0,0,0,0.03)">
+                ${cardHead(
+                  'Fleet operations distribution &amp; dispatch SLA',
+                  'Real-time modal split and dispatch SLA performance across all commercial operations.',
+                  `<span class="status green">99.4% On-Time SLA</span>`
+                )}
+                <div style="padding:18px 20px 14px">
+                  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px">
+                    <div style="padding:14px 16px;border:1px solid #edf1ee;border-radius:12px;background:#fafbfc">
+                      <span style="font-size:9.5px;font-weight:750;color:#64748b;text-transform:uppercase;letter-spacing:0.06em">Airport Transfers</span>
+                      <div style="display:flex;align-items:baseline;gap:6px;margin-top:6px">
+                        <strong style="font-size:22px;color:var(--ink)">45%</strong>
+                        <span style="font-size:10px;color:#059669;font-weight:700">⚡ 100% EV Mandate</span>
+                      </div>
+                      <div style="font-size:9.5px;color:#94a3b8;margin-top:4px">Terminal 1 &amp; 2 Arrivals / Departures</div>
+                    </div>
+                    <div style="padding:14px 16px;border:1px solid #edf1ee;border-radius:12px;background:#fafbfc">
+                      <span style="font-size:9.5px;font-weight:750;color:#64748b;text-transform:uppercase;letter-spacing:0.06em">Intra-City Local</span>
+                      <div style="display:flex;align-items:baseline;gap:6px;margin-top:6px">
+                        <strong style="font-size:22px;color:var(--ink)">35%</strong>
+                        <span style="font-size:10px;color:#2563eb;font-weight:700">🚗 Sedan Prime</span>
+                      </div>
+                      <div style="font-size:9.5px;color:#94a3b8;margin-top:4px">Inter-facility &amp; client meetings</div>
+                    </div>
+                    <div style="padding:14px 16px;border:1px solid #edf1ee;border-radius:12px;background:#fafbfc">
+                      <span style="font-size:9.5px;font-weight:750;color:#64748b;text-transform:uppercase;letter-spacing:0.06em">Outstation Duties</span>
+                      <div style="display:flex;align-items:baseline;gap:6px;margin-top:6px">
+                        <strong style="font-size:22px;color:var(--ink)">20%</strong>
+                        <span style="font-size:10px;color:#d97706;font-weight:700">🚙 Executive SUV</span>
+                      </div>
+                      <div style="font-size:9.5px;color:#94a3b8;margin-top:4px">Regional client clusters &amp; audits</div>
+                    </div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:14px;border-top:1px solid #edf1ee">
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <span style="width:34px;height:34px;border-radius:9px;background:rgba(37,99,235,0.1);color:#2563eb;display:grid;place-items:center;font-size:14px;flex:none">${icon('clock')}</span>
+                      <div>
+                        <div style="font-size:11.5px;font-weight:750;color:var(--ink)">8.2 Minutes Avg. Chauffeur Allocation</div>
+                        <div style="font-size:9.5px;color:#64748b">Instant automated matching to closest ready chauffeur</div>
+                      </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <span style="width:34px;height:34px;border-radius:9px;background:rgba(16,185,129,0.1);color:#059669;display:grid;place-items:center;font-size:14px;flex:none">${icon('shield')}</span>
+                      <div>
+                        <div style="font-size:11.5px;font-weight:750;color:var(--ink)">100% Safe Transit &amp; SOS Compliance</div>
+                        <div style="font-size:9.5px;color:#64748b">Verified chauffeurs, live route telemetry &amp; boarding OTP</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <!-- Right Column: Compliance, Fleet Roster, Governance & Settlement -->
+            <div class="corp-rail">
+              <!-- Fleet Compliance & Governance Engine -->
+              <section class="card section-card" style="border-radius:16px;border:1px solid rgba(0,0,0,0.07);box-shadow:0 1px 3px rgba(0,0,0,0.03)">
+                ${cardHead(
+                  'Fleet Compliance &amp; Governance',
+                  'Statutory and safety verification across vehicles &amp; chauffeurs.',
+                  `<span class="status green">100% Compliant</span>`
+                )}
+                <div class="corp-health-list">
+                  <div class="corp-health-row">
+                    <span class="corp-health-icon teal">${icon('shield')}</span>
+                    <div class="corp-health-copy">
+                      <strong>Driver KYC &amp; Police Verification</strong>
+                      <span>32 Chauffeurs background-verified with badge checks and driving license audits.</span>
+                    </div>
+                    <span class="status green">Verified</span>
+                  </div>
+                  <div class="corp-health-row">
+                    <span class="corp-health-icon">${icon('car')}</span>
+                    <div class="corp-health-copy">
+                      <strong>Commercial Fitness &amp; Permits</strong>
+                      <span>All 24 commercial yellow-board vehicles have active road permits and fitness certs.</span>
+                    </div>
+                    <span class="status green">Active</span>
+                  </div>
+                  <div class="corp-health-row">
+                    <span class="corp-health-icon amber">${icon('clock')}</span>
+                    <div class="corp-health-copy">
+                      <strong>PUC &amp; Comprehensive Insurance</strong>
+                      <span>Emission compliance and zero-depreciation insurance current across all fleet units.</span>
+                    </div>
+                    <span class="status green">Valid</span>
+                  </div>
+                  <div class="corp-health-row">
+                    <span class="corp-health-icon purple">${icon('route')}</span>
+                    <div class="corp-health-copy">
+                      <strong>Panic SOS &amp; Geofence Radar</strong>
+                      <span>AIS-140 certified GPS telematics, emergency panic buttons &amp; 24/7 central desk link.</span>
+                    </div>
+                    <span class="status green">Protected</span>
+                  </div>
+                </div>
+                <div style="padding:0 20px 16px">
+                  ${button(icon('settings') + 'Manage Fleet Compliance Register', 'small soft', 'data-page-link="vehicles" style="border-radius:9999px"')}
+                </div>
+              </section>
+
+              <!-- Active Fleet Groups & Availability -->
+              <section class="card section-card" style="border-radius:16px;border:1px solid rgba(0,0,0,0.07);box-shadow:0 1px 3px rgba(0,0,0,0.03)">
+                ${cardHead(
+                  'Fleet groups &amp; live availability',
+                  'Readiness and dispatch allocation by vehicle tier.',
+                  `<span class="status blue">3 Tiers · 24 Cabs</span>`
+                )}
+                <div style="padding:14px 20px 8px;display:grid;gap:12px">
+                  <div style="padding-bottom:10px;border-bottom:1px solid #edf1ee">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                      <div>
+                        <strong style="font-size:11px;color:#1e293b">Sedan Prime &amp; Executive</strong>
+                        <div style="font-size:9px;color:#64748b">10 Cabs · 9 on active duty, 1 ready</div>
+                      </div>
+                      <span class="status green" style="font-size:9px">90% deployed</span>
+                    </div>
+                    <div class="uber-meter-bar"><div class="uber-meter-fill" style="width:90%"></div></div>
+                  </div>
+
+                  <div style="padding-bottom:10px;border-bottom:1px solid #edf1ee">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                      <div>
+                        <strong style="font-size:11px;color:#1e293b">Electric Mobility (EV Prime)</strong>
+                        <div style="font-size:9px;color:#64748b">8 EVs · 8 on active duty (100% green fleet)</div>
+                      </div>
+                      <span class="status green" style="font-size:9px">100% deployed</span>
+                    </div>
+                    <div class="uber-meter-bar"><div class="uber-meter-fill" style="width:100%;background:linear-gradient(90deg,#059669,#10b981)"></div></div>
+                  </div>
+
+                  <div>
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                      <div>
+                        <strong style="font-size:11px;color:#1e293b">Executive SUV &amp; MPV (Innova/Camry)</strong>
+                        <div style="font-size:9px;color:#64748b">6 SUVs · 5 on active duty, 1 standby</div>
+                      </div>
+                      <span class="status green" style="font-size:9px">83% deployed</span>
+                    </div>
+                    <div class="uber-meter-bar"><div class="uber-meter-fill" style="width:83%"></div></div>
+                  </div>
+                </div>
+                <div style="padding:10px 20px 16px">
+                  ${button(icon('car') + 'Open Fleet Vehicles Roster', 'small soft', 'data-page-link="vehicles" style="border-radius:9999px"')}
+                </div>
+              </section>
+
+              <!-- Paperless Duty-Slip Governance -->
+              <section class="card section-card" style="border-radius:16px;border:1px solid rgba(0,0,0,0.07);box-shadow:0 1px 3px rgba(0,0,0,0.03)">
+                ${cardHead(
+                  'Duty-slip governance',
+                  '100% paperless digital verification with start &amp; end OTP.',
+                  `<span class="status green">Zero Paperwork</span>`
+                )}
+                <div class="corp-health-list">
+                  <div class="corp-health-row">
+                    <span class="corp-health-icon teal">${icon('shield')}</span>
+                    <div class="corp-health-copy">
+                      <strong>OTP Passenger Verification</strong>
+                      <span>Chauffeurs cannot start or end duty without passenger boarding OTP verification.</span>
+                    </div>
+                    <span class="status green">Active</span>
+                  </div>
+                  <div class="corp-health-row">
+                    <span class="corp-health-icon">${icon('check')}</span>
+                    <div class="corp-health-copy">
+                      <strong>48-Hour Auto-Reconciliation</strong>
+                      <span>Digital slips with no passenger dispute within 48h auto-lock for consolidated GST billing.</span>
+                    </div>
+                    <span class="status green">Enabled</span>
+                  </div>
+                  <div class="corp-health-row">
+                    <span class="corp-health-icon purple">${icon('wallet')}</span>
+                    <div class="corp-health-copy">
+                      <strong>Toll &amp; Parking Proof Upload</strong>
+                      <span>Fastag &amp; physical receipt OCR extraction attached directly to trip invoice line item.</span>
+                    </div>
+                    <span class="status green">Audited</span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- B2B Invoicing & Chauffeur Settlement -->
+              <section class="card section-card" style="border-radius:16px;background:linear-gradient(135deg,#f8faff,#eef4ff);border-color:#bfdbfe;box-shadow:0 1px 3px rgba(0,0,0,0.03)">
+                ${cardHead(
+                  'B2B Invoicing &amp; Chauffeur Payouts',
+                  'GST SAC 996601 compliance &amp; driver ledger settlements.',
+                  `<span class="status blue">GST Ready</span>`
+                )}
+                <div class="corp-network-strip" style="padding-bottom:12px">
+                  <div class="corp-network-stat" style="border-radius:12px;background:#ffffff">
+                    <strong>₹18.65L</strong>
+                    <span>Total Invoiced</span>
+                  </div>
+                  <div class="corp-network-stat" style="border-radius:12px;background:#ffffff">
+                    <strong>148 Slips</strong>
+                    <span>Settled This Month</span>
+                  </div>
+                  <div class="corp-network-stat" style="border-radius:12px;background:#ffffff">
+                    <strong style="color:#2563eb">₹9.80L</strong>
+                    <span>Driver Payouts</span>
+                  </div>
+                </div>
+                <div style="padding:0 20px 14px">
+                  <div style="background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.22);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+                    <span style="font-size:24px">💼</span>
+                    <div>
+                      <strong style="font-size:11.5px;color:#1e40af">100% Tax Compliant · SAC 996601</strong>
+                      <div style="font-size:9.5px;color:#1d4ed8;margin-top:2px">All duty slips reconciled with B2B GST tax invoices and automated driver weekly payouts.</div>
+                    </div>
+                  </div>
+                </div>
+                <div style="padding:0 20px 16px;display:flex;gap:8px">
+                  ${button(icon('file') + 'Download GST Summary', 'small soft', 'data-page-link="billing" style="border-radius:9999px"')}
+                  ${button(icon('wallet') + 'Open Billing Ledger', 'small primary', 'data-page-link="billing" style="border-radius:9999px;background:#2563eb;border-color:#2563eb"')}
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      `;
     }
 
 
@@ -36165,13 +36819,20 @@
         const portalNameEl = document.getElementById('sidebarPortalName');
         const roleNameEl = document.getElementById('sidebarRoleName');
         const roleIconEl = document.getElementById('sidebarRoleIcon');
+        const corpRolesGroup = document.getElementById('corpRolesGroup');
+        const vendorRolesGroup = document.getElementById('vendorRolesGroup');
+        const roleHeader = document.getElementById('roleDropdownHeader');
+
+        const isVendor = user.role === 'vendor';
+        const isCorporate = user.role === 'corporate';
+        const isDriver = user.role === 'driver';
 
         let pName = 'Corporate';
         let pClass = 'corporate';
-        if (user.role === 'vendor') {
+        if (isVendor) {
           pName = 'Vendor';
           pClass = 'vendor';
-        } else if (user.role === 'driver') {
+        } else if (isDriver) {
           pName = 'Driver';
           pClass = 'driver';
         }
@@ -36180,10 +36841,17 @@
           try { return sessionStorage.getItem('corporate_active_role'); } catch (_) { return null; }
         })() || 'admin';
 
+        let activeVendorRole = user.vendor_active_role || (function() {
+          try { return sessionStorage.getItem('vendor_active_role'); } catch (_) { return null; }
+        })() || (user.email?.includes('dispatcher') || user.full_name?.includes('Dispatcher') ? 'dispatcher' : 'owner');
+
         let rName = 'Admin';
         let rIcon = '🛡️';
 
-        if (user.role === 'corporate') {
+        if (isCorporate) {
+          if (corpRolesGroup) corpRolesGroup.hidden = false;
+          if (vendorRolesGroup) vendorRolesGroup.hidden = true;
+          if (roleHeader) roleHeader.textContent = 'SWITCH CORPORATE ROLE';
           if (activeCorpRole === 'manager') {
             rName = 'Manager';
             rIcon = '👔';
@@ -36194,15 +36862,26 @@
             rName = 'Admin';
             rIcon = '🛡️';
           }
-        } else if (user.role === 'vendor') {
-          if (user.email?.includes('dispatcher') || user.full_name?.includes('Dispatcher')) {
+        } else if (isVendor) {
+          if (corpRolesGroup) corpRolesGroup.hidden = true;
+          if (vendorRolesGroup) vendorRolesGroup.hidden = false;
+          if (roleHeader) roleHeader.textContent = 'SWITCH VENDOR ROLE';
+          if (activeVendorRole === 'dispatcher') {
             rName = 'Dispatcher';
             rIcon = '⚡';
+          } else if (activeVendorRole === 'accountant') {
+            rName = 'Accounts';
+            rIcon = '📊';
+          } else if (activeVendorRole === 'fleet_manager') {
+            rName = 'Fleet Mgr';
+            rIcon = '🛠️';
           } else {
             rName = 'Owner';
             rIcon = '👔';
           }
-        } else if (user.role === 'driver') {
+        } else if (isDriver) {
+          if (corpRolesGroup) corpRolesGroup.hidden = true;
+          if (vendorRolesGroup) vendorRolesGroup.hidden = true;
           rName = 'Chauffeur';
           rIcon = '🚗';
         }
@@ -36220,16 +36899,20 @@
         }
 
         document.querySelectorAll('#portalDropdownMenu [data-switch-portal]').forEach(el => {
-          el.classList.toggle('active', el.getAttribute('data-switch-portal') === (user.role === 'corporate' ? 'corporate' : 'vendor'));
+          el.classList.toggle('active', el.getAttribute('data-switch-portal') === (isCorporate ? 'corporate' : 'vendor'));
         });
         document.querySelectorAll('#roleDropdownMenu [data-switch-corp-role]').forEach(el => {
           el.classList.toggle('active', el.getAttribute('data-switch-corp-role') === activeCorpRole);
+        });
+        document.querySelectorAll('#roleDropdownMenu [data-switch-vendor-role]').forEach(el => {
+          el.classList.toggle('active', el.getAttribute('data-switch-vendor-role') === activeVendorRole);
         });
 
         if (!window._portalIdentityEventsBound) {
           window._portalIdentityEventsBound = true;
           const portalMenu = document.getElementById('portalDropdownMenu');
           const roleMenu = document.getElementById('roleDropdownMenu');
+
           const closeDropdowns = () => {
             if (portalMenu) portalMenu.hidden = true;
             if (roleMenu) roleMenu.hidden = true;
@@ -36259,7 +36942,11 @@
                 e.stopPropagation();
                 closeDropdowns();
                 const targetPortal = btn.getAttribute('data-switch-portal');
-                if (currentUser) currentUser.role = targetPortal;
+                if (currentUser) {
+                  currentUser.role = targetPortal;
+                  try { localStorage.setItem('axiomfleet_user', JSON.stringify(currentUser)); } catch (_) {}
+                  try { sessionStorage.setItem('active_portal', targetPortal); } catch (_) {}
+                }
                 state.page = 'overview';
                 window.location.hash = '#overview';
                 if (typeof showToast === 'function') {
@@ -36285,6 +36972,29 @@
                   admin: 'Corporate Admin (Full Access)',
                   manager: 'Department Manager (Approver Mode)',
                   employee: 'Employee / Passenger (Self-Service)'
+                };
+                if (typeof showToast === 'function') {
+                  showToast(`Active Role: ${roleLabels[targetRole] || targetRole}`);
+                }
+                syncWorkspaceChrome();
+                if (typeof renderApp === 'function') renderApp();
+              });
+            });
+
+            roleMenu.querySelectorAll('[data-switch-vendor-role]').forEach(btn => {
+              btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeDropdowns();
+                const targetRole = btn.getAttribute('data-switch-vendor-role');
+                if (currentUser) {
+                  currentUser.vendor_active_role = targetRole;
+                  try { sessionStorage.setItem('vendor_active_role', targetRole); } catch (_) {}
+                }
+                const roleLabels = {
+                  owner: 'Vendor Owner (Full Operations & P&L)',
+                  dispatcher: 'Operations Dispatcher (Duties & Live Radar)',
+                  accountant: 'Billing & Accounts (GST & Driver Payouts)',
+                  fleet_manager: 'Fleet Supervisor (Vehicles & GPS Telemetry)'
                 };
                 if (typeof showToast === 'function') {
                   showToast(`Active Role: ${roleLabels[targetRole] || targetRole}`);
