@@ -12348,7 +12348,200 @@
       margin-bottom: 3px;
     }
 
-        /* =========================================================
+            /* =========================================================
+       Sidebar Active Portal & Role Identity Indicator (<portal> <role>)
+       ========================================================= */
+    .sidebar-portal-identity {
+      position: relative;
+      margin: 10px 14px 4px;
+      z-index: 25;
+    }
+
+    .portal-identity-chips {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .portal-chip {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      height: 28px;
+      padding: 0 8px;
+      border-radius: 9999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid transparent;
+      outline: none;
+      min-width: 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .portal-chip .portal-chip-text,
+    .portal-chip .role-chip-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .portal-chip.portal-badge.corporate {
+      background: rgba(16, 185, 129, 0.14);
+      color: #34d399;
+      border-color: rgba(16, 185, 129, 0.32);
+    }
+
+    .portal-chip.portal-badge.corporate:hover {
+      background: rgba(16, 185, 129, 0.22);
+      border-color: rgba(16, 185, 129, 0.55);
+      transform: translateY(-1px);
+    }
+
+    .portal-chip.portal-badge.vendor {
+      background: rgba(59, 130, 246, 0.14);
+      color: #60a5fa;
+      border-color: rgba(59, 130, 246, 0.32);
+    }
+
+    .portal-chip.portal-badge.vendor:hover {
+      background: rgba(59, 130, 246, 0.22);
+      border-color: rgba(59, 130, 246, 0.55);
+      transform: translateY(-1px);
+    }
+
+    .portal-chip.portal-badge.driver {
+      background: rgba(245, 158, 11, 0.14);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.32);
+    }
+
+    .portal-chip.role-badge {
+      background: rgba(255, 255, 255, 0.07);
+      color: #f1f5f9;
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+
+    .portal-chip.role-badge:hover {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.28);
+      transform: translateY(-1px);
+    }
+
+    .portal-indicator-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+      animation: uber-pulse 2s infinite;
+      flex: none;
+    }
+
+    .portal-chevron {
+      opacity: 0.55;
+      flex: none;
+      transition: transform 0.2s ease;
+    }
+
+    .portal-chip:hover .portal-chevron {
+      opacity: 1;
+    }
+
+    .portal-dropdown-menu {
+      position: absolute;
+      top: 34px;
+      left: 0;
+      right: 0;
+      background: #0b0f19;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(16px);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      animation: fadeInDown 0.15s ease-out;
+    }
+
+    .portal-dropdown-header {
+      padding: 6px 8px 4px;
+      font-size: 8.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #64748b;
+    }
+
+    .portal-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      color: #cbd5e1;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      transition: all 0.15s ease;
+    }
+
+    .portal-dropdown-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+    }
+
+    .portal-dropdown-item.active {
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+    }
+
+    .portal-dropdown-item strong {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .portal-dropdown-item small {
+      display: block;
+      font-size: 9px;
+      color: #64748b;
+      margin-top: 2px;
+      line-height: 1.25;
+    }
+
+    .portal-dropdown-item.active small {
+      color: #059669;
+    }
+
+    .portal-dropdown-item .active-check {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 800;
+      color: #10b981;
+      display: none;
+    }
+
+    .portal-dropdown-item.active .active-check {
+      display: block;
+    }
+
+    .sidebar.collapsed .sidebar-portal-identity {
+      display: none !important;
+    }
+
+/* =========================================================
        Uber-Grade Corporate Executive Workspace (Flagship UI)
        ========================================================= */
     .uber-hero {
@@ -17237,7 +17430,75 @@
           </svg>
         </button>
       </div>
-      <div class="workspace-switcher" id="workspaceSwitcher" title="Active workspace: Default Tenant">
+            <!-- Active Portal & Role Identity Indicator (<portal> <which role>) -->
+      <div class="sidebar-portal-identity" id="sidebarPortalIdentity">
+        <div class="portal-identity-chips">
+          <!-- Portal Chip (Vendor / Corporate) -->
+          <button type="button" class="portal-chip portal-badge corporate" id="sidebarPortalBadge" title="Active Portal Environment (Click to switch)">
+            <span class="portal-indicator-dot"></span>
+            <span class="portal-chip-text" id="sidebarPortalName">Corporate Portal</span>
+            <svg class="portal-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+
+          <!-- Role Chip (Admin / Manager / Employee) -->
+          <button type="button" class="portal-chip role-badge" id="sidebarRoleBadge" title="Active User Role (Click to switch view)">
+            <span class="role-icon" id="sidebarRoleIcon">🛡️</span>
+            <span class="role-chip-text" id="sidebarRoleName">Corporate Admin</span>
+            <svg class="portal-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+        </div>
+
+        <!-- Portal Switcher Dropdown Menu -->
+        <div class="portal-dropdown-menu" id="portalDropdownMenu" hidden>
+          <div class="portal-dropdown-header">SWITCH PORTAL WORKSPACE</div>
+          <button type="button" class="portal-dropdown-item active" data-switch-portal="corporate">
+            <span class="dropdown-item-icon" style="font-size:16px">🏛️</span>
+            <div>
+              <strong>Corporate Portal</strong>
+              <small>Enterprise travel desk, staff booking &amp; GST</small>
+            </div>
+            <span class="active-check">✓</span>
+          </button>
+          <button type="button" class="portal-dropdown-item" data-switch-portal="vendor">
+            <span class="dropdown-item-icon" style="font-size:16px">🚗</span>
+            <div>
+              <strong>Vendor Fleet Portal</strong>
+              <small>Fleet dispatch, chauffeurs, vehicles &amp; duties</small>
+            </div>
+            <span class="active-check">✓</span>
+          </button>
+        </div>
+
+        <!-- Role Switcher Dropdown Menu -->
+        <div class="portal-dropdown-menu" id="roleDropdownMenu" hidden>
+          <div class="portal-dropdown-header">SWITCH ACTIVE RBAC ROLE</div>
+          <button type="button" class="portal-dropdown-item active" data-switch-corp-role="admin">
+            <span class="dropdown-item-icon" style="font-size:16px">🛡️</span>
+            <div>
+              <strong>Corporate Admin</strong>
+              <small>Full access: Admin + Manager + Employee</small>
+            </div>
+            <span class="active-check">✓</span>
+          </button>
+          <button type="button" class="portal-dropdown-item" data-switch-corp-role="manager">
+            <span class="dropdown-item-icon" style="font-size:16px">👔</span>
+            <div>
+              <strong>Department Manager</strong>
+              <small>Approver: Review team requests &amp; reportees</small>
+            </div>
+            <span class="active-check">✓</span>
+          </button>
+          <button type="button" class="portal-dropdown-item" data-switch-corp-role="employee">
+            <span class="dropdown-item-icon" style="font-size:16px">👤</span>
+            <div>
+              <strong>Employee / Passenger</strong>
+              <small>Self-service: Book for self &amp; view my duties</small>
+            </div>
+            <span class="active-check">✓</span>
+          </button>
+        </div>
+      </div>
+<div class="workspace-switcher" id="workspaceSwitcher" title="Active workspace: Default Tenant">
         <span class="workspace-label">Workspace</span>
         <div class="workspace-name"><span><i class="workspace-dot"></i> <span
               id="workspaceName">Workspace</span></span><svg class="workspace-chevron" width="13" height="13"
@@ -35897,7 +36158,145 @@
       const roleLabel = ROLE_LABELS[user.role] || user.role || 'Workspace';
       const initials = (user.full_name || 'Axiom Fleet').split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() || 'AF';
       const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
-      setText('workspaceName', workspaceName);
+            // Update sidebar portal (<portal>) & role (<which role>) identity indicators
+      (function updateSidebarPortalAndRole() {
+        const portalBadge = document.getElementById('sidebarPortalBadge');
+        const roleBadge = document.getElementById('sidebarRoleBadge');
+        const portalNameEl = document.getElementById('sidebarPortalName');
+        const roleNameEl = document.getElementById('sidebarRoleName');
+        const roleIconEl = document.getElementById('sidebarRoleIcon');
+
+        let pName = 'Corporate Portal';
+        let pClass = 'corporate';
+        if (user.role === 'vendor') {
+          pName = 'Vendor Portal';
+          pClass = 'vendor';
+        } else if (user.role === 'driver') {
+          pName = 'Driver Portal';
+          pClass = 'driver';
+        }
+
+        let activeCorpRole = user.corporate_active_role || (function() {
+          try { return sessionStorage.getItem('corporate_active_role'); } catch (_) { return null; }
+        })() || 'admin';
+
+        let rName = 'Corporate Admin';
+        let rIcon = '🛡️';
+
+        if (user.role === 'corporate') {
+          if (activeCorpRole === 'manager') {
+            rName = 'Dept Manager';
+            rIcon = '👔';
+          } else if (activeCorpRole === 'employee') {
+            rName = 'Employee';
+            rIcon = '👤';
+          } else {
+            rName = 'Corporate Admin';
+            rIcon = '🛡️';
+          }
+        } else if (user.role === 'vendor') {
+          if (user.email?.includes('dispatcher') || user.full_name?.includes('Dispatcher')) {
+            rName = 'Ops Dispatcher';
+            rIcon = '⚡';
+          } else {
+            rName = 'Vendor Owner';
+            rIcon = '👔';
+          }
+        } else if (user.role === 'driver') {
+          rName = 'Chauffeur';
+          rIcon = '🚗';
+        }
+
+        if (portalNameEl) portalNameEl.textContent = pName;
+        if (roleNameEl) roleNameEl.textContent = rName;
+        if (roleIconEl) roleIconEl.textContent = rIcon;
+
+        if (portalBadge) {
+          portalBadge.className = `portal-chip portal-badge ${pClass}`;
+          portalBadge.title = `Current Portal: ${pName} (Click to switch)`;
+        }
+        if (roleBadge) {
+          roleBadge.title = `Current Role: ${rName} (Click to switch)`;
+        }
+
+        document.querySelectorAll('#portalDropdownMenu [data-switch-portal]').forEach(el => {
+          el.classList.toggle('active', el.getAttribute('data-switch-portal') === (user.role === 'corporate' ? 'corporate' : 'vendor'));
+        });
+        document.querySelectorAll('#roleDropdownMenu [data-switch-corp-role]').forEach(el => {
+          el.classList.toggle('active', el.getAttribute('data-switch-corp-role') === activeCorpRole);
+        });
+
+        if (!window._portalIdentityEventsBound) {
+          window._portalIdentityEventsBound = true;
+          const portalMenu = document.getElementById('portalDropdownMenu');
+          const roleMenu = document.getElementById('roleDropdownMenu');
+          const closeDropdowns = () => {
+            if (portalMenu) portalMenu.hidden = true;
+            if (roleMenu) roleMenu.hidden = true;
+          };
+
+          if (portalBadge) {
+            portalBadge.addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (roleMenu) roleMenu.hidden = true;
+              if (portalMenu) portalMenu.hidden = !portalMenu.hidden;
+            });
+          }
+
+          if (roleBadge) {
+            roleBadge.addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (portalMenu) portalMenu.hidden = true;
+              if (roleMenu) roleMenu.hidden = !roleMenu.hidden;
+            });
+          }
+
+          document.addEventListener('click', closeDropdowns);
+
+          if (portalMenu) {
+            portalMenu.querySelectorAll('[data-switch-portal]').forEach(btn => {
+              btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeDropdowns();
+                const targetPortal = btn.getAttribute('data-switch-portal');
+                if (currentUser) currentUser.role = targetPortal;
+                state.page = 'overview';
+                window.location.hash = '#overview';
+                if (typeof showToast === 'function') {
+                  showToast(targetPortal === 'corporate' ? 'Switched to Corporate Mobility Portal' : 'Switched to Vendor Fleet Portal');
+                }
+                syncWorkspaceChrome();
+                if (typeof renderApp === 'function') renderApp();
+              });
+            });
+          }
+
+          if (roleMenu) {
+            roleMenu.querySelectorAll('[data-switch-corp-role]').forEach(btn => {
+              btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeDropdowns();
+                const targetRole = btn.getAttribute('data-switch-corp-role');
+                if (currentUser) {
+                  currentUser.corporate_active_role = targetRole;
+                  try { sessionStorage.setItem('corporate_active_role', targetRole); } catch (_) {}
+                }
+                const roleLabels = {
+                  admin: 'Corporate Admin (Full Access)',
+                  manager: 'Department Manager (Approver Mode)',
+                  employee: 'Employee / Passenger (Self-Service)'
+                };
+                if (typeof showToast === 'function') {
+                  showToast(`Active Role: ${roleLabels[targetRole] || targetRole}`);
+                }
+                syncWorkspaceChrome();
+                if (typeof renderApp === 'function') renderApp();
+              });
+            });
+          }
+        }
+      })();
+setText('workspaceName', workspaceName);
       setText('branchName', branchName);
       setText('branchCrumb', branchName);
       setText('roleCrumb', `${roleLabel} console`);
