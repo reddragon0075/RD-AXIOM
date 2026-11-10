@@ -12348,18 +12348,585 @@
       margin-bottom: 3px;
     }
 
+        /* =========================================================
+       Uber-Grade Corporate Executive Workspace (Flagship UI)
+       ========================================================= */
+    .uber-hero {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.68fr);
+      min-height: 224px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      background: radial-gradient(circle at 82% 18%, rgba(16, 185, 129, 0.14), transparent 280px),
+                  radial-gradient(circle at 18% 85%, rgba(99, 102, 241, 0.1), transparent 240px),
+                  linear-gradient(132deg, #070a12 0%, #0d1525 50%, #121c30 100%);
+      color: #f8fafc;
+      box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.35);
+    }
+    .uber-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.14;
+      background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.15) 1px, transparent 1px),
+                        linear-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: linear-gradient(90deg, #000 25%, transparent 85%);
+    }
+    .uber-hero-main {
+      position: relative;
+      z-index: 1;
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .uber-hero-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 9.5px;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 4px 11px;
+      border-radius: 9999px;
+      width: fit-content;
+    }
+    .uber-live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35);
+      animation: uber-beacon-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes uber-beacon-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.85); }
+    }
+    .uber-hero h2 {
+      margin: 12px 0 8px;
+      font-size: 27px;
+      line-height: 1.15;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.03em;
+    }
+    .uber-hero h2 .uber-text-accent {
+      color: #34d399;
+      font-style: normal;
+    }
+    .uber-hero p {
+      margin: 0;
+      color: #94a3b8;
+      font-size: 11.5px;
+      line-height: 1.55;
+      max-width: 640px;
+    }
+    .uber-hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .uber-pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      height: 38px;
+      padding: 0 18px;
+      border-radius: 9999px;
+      font-size: 11.5px;
+      font-weight: 650;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid transparent;
+      user-select: none;
+    }
+    .uber-pill-btn.primary {
+      background: #10b981;
+      color: #042f2e;
+      border-color: #34d399;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+    .uber-pill-btn.primary:hover {
+      background: #34d399;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5);
+    }
+    .uber-pill-btn.secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #f1f5f9;
+      border-color: rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(8px);
+    }
+    .uber-pill-btn.secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.28);
+      transform: translateY(-1px);
+    }
+    .uber-pill-btn.amber-chip {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+    .uber-pill-btn.amber-chip:hover {
+      background: rgba(245, 158, 11, 0.25);
+      transform: translateY(-1px);
+    }
+    .uber-hero-side {
+      position: relative;
+      z-index: 1;
+      padding: 24px 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+    }
+    .uber-gauge-card {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 18px 20px;
+    }
+    .uber-gauge-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .uber-gauge-label {
+      font-size: 9.5px;
+      font-weight: 750;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .uber-gauge-chip {
+      font-size: 9.5px;
+      font-weight: 750;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.15);
+      padding: 2px 8px;
+      border-radius: 9999px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .uber-gauge-value {
+      margin-top: 10px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .uber-gauge-value strong {
+      font-size: 27px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.04em;
+    }
+    .uber-gauge-value span {
+      font-size: 11.5px;
+      color: #64748b;
+      font-weight: 500;
+    }
+    .uber-bar-track {
+      height: 7px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.1);
+      margin-top: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+    .uber-bar-fill {
+      height: 100%;
+      border-radius: 9999px;
+      background: linear-gradient(90deg, #10b981, #34d399);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+    }
+    .uber-gauge-sub {
+      margin-top: 11px;
+      font-size: 10px;
+      color: #94a3b8;
+      line-height: 1.45;
+    }
+    .uber-gauge-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 11px;
+      padding-top: 11px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 9px;
+      color: #64748b;
+    }
+    .uber-gauge-meta strong {
+      color: #e2e8f0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* KPI Deck */
+    .uber-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 13px;
+    }
+    .uber-kpi-card {
+      position: relative;
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.07);
+      border-radius: 16px;
+      padding: 18px 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 6px 16px rgba(0, 0, 0, 0.02);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 126px;
+    }
+    .uber-kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.08);
+      border-color: rgba(0, 0, 0, 0.12);
+    }
+    .uber-kpi-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .uber-kpi-title {
+      font-size: 10px;
+      font-weight: 750;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .uber-kpi-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      background: #f1f5f9;
+      color: #475569;
+    }
+    .uber-kpi-icon.blue { background: #eff6ff; color: #2563eb; }
+    .uber-kpi-icon.amber { background: #fffbeb; color: #d97706; }
+    .uber-kpi-icon.teal { background: #ecfdf5; color: #059669; }
+    .uber-kpi-icon.purple { background: #f5f3ff; color: #7c3aed; }
+    .uber-kpi-num {
+      margin-top: 12px;
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    .uber-kpi-foot {
+      margin-top: 10px;
+      font-size: 10px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .uber-kpi-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 9999px;
+    }
+    .uber-kpi-badge.emerald { background: #ecfdf5; color: #059669; }
+    .uber-kpi-badge.amber { background: #fffbeb; color: #d97706; }
+    .uber-kpi-badge.purple { background: #f5f3ff; color: #7c3aed; }
+
+    /* Stepper Lifecycle */
+    .uber-stepper {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      background: #ffffff;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(0, 0, 0, 0.07);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+    .uber-step-card {
+      position: relative;
+      padding: 13px 15px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .uber-step-card:hover {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+      transform: translateY(-1px);
+    }
+    .uber-step-card.active {
+      background: #ffffff;
+      border-color: #10b981;
+      box-shadow: 0 0 0 1px #10b981, 0 4px 14px rgba(16, 185, 129, 0.08);
+    }
+    .uber-step-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 7px;
+    }
+    .uber-step-index {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #94a3b8;
+    }
+    .uber-step-count {
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      background: #e2e8f0;
+      color: #334155;
+    }
+    .uber-step-card.active .uber-step-count {
+      background: #ecfdf5;
+      color: #059669;
+    }
+    .uber-step-title {
+      font-size: 11.5px;
+      font-weight: 750;
+      color: #0f172a;
+      letter-spacing: -0.01em;
+    }
+    .uber-step-desc {
+      margin-top: 4px;
+      font-size: 9.5px;
+      color: #64748b;
+      line-height: 1.4;
+    }
+
+    /* Live Duty Radar Table */
+    .uber-radar-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 11.5px;
+    }
+    .uber-radar-table th {
+      background: #f8fafc;
+      padding: 11px 16px;
+      font-size: 9.5px;
+      font-weight: 750;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+    .uber-radar-table td {
+      padding: 13px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+      background: #ffffff;
+      transition: background 0.15s ease;
+    }
+    .uber-radar-table tr:hover td {
+      background: #f8fafc;
+    }
+    .uber-chauffeur-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .uber-driver-name {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 750;
+      color: #0f172a;
+      font-size: 11.5px;
+    }
+    .uber-driver-rating {
+      font-size: 8.5px;
+      font-weight: 700;
+      color: #d97706;
+      background: #fffbeb;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border: 1px solid #fef3c7;
+    }
+    .uber-vehicle-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 9.5px;
+      color: #475569;
+    }
+    .uber-badge-ev {
+      font-size: 8px;
+      font-weight: 750;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .uber-badge-sedan {
+      font-size: 8px;
+      font-weight: 750;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+    }
+    .uber-badge-luxury {
+      font-size: 8px;
+      font-weight: 750;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #f5f3ff;
+      color: #7c3aed;
+      border: 1px solid rgba(124, 58, 237, 0.25);
+    }
+    .uber-passenger-name {
+      font-weight: 750;
+      color: #0f172a;
+      font-size: 11.5px;
+    }
+    .uber-dept-tag {
+      display: inline-block;
+      margin-top: 2px;
+      font-size: 9px;
+      font-weight: 600;
+      color: #4f46e5;
+      background: #eef2ff;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .uber-route-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .uber-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex: none;
+    }
+    .uber-dot.pickup { background: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25); }
+    .uber-dot.dropoff { background: #0f172a; border-radius: 1px; }
+    .uber-route-arrow { color: #94a3b8; font-size: 10px; }
+    .uber-live-loc {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 3px;
+      font-size: 9px;
+      color: #059669;
+      font-weight: 550;
+    }
+    .uber-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 9px;
+      border-radius: 9999px;
+      font-size: 9.5px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .uber-status-pill.green {
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .uber-status-pill.amber {
+      background: #fffbeb;
+      color: #b45309;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .uber-status-pill.teal {
+      background: #f0fdfa;
+      color: #0f766e;
+      border: 1px solid rgba(20, 184, 166, 0.3);
+    }
+    .uber-pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35);
+      animation: uber-beacon-pulse 1.8s infinite;
+    }
+    .uber-otp-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #0f172a;
+      color: #34d399;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 4px 9px;
+      border-radius: 7px;
+      letter-spacing: 0.05em;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+    .uber-meter-bar {
+      height: 5px;
+      border-radius: 9999px;
+      background: #e2e8f0;
+      margin-top: 5px;
+      overflow: hidden;
+    }
+    .uber-meter-fill {
+      height: 100%;
+      border-radius: 9999px;
+      background: #10b981;
+    }
+
     @media (max-width:1050px) {
-      .corp-kpi-grid {
+      .corp-kpi-grid,
+      .uber-kpi-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .corp-hero {
+      .corp-hero,
+      .uber-hero {
         grid-template-columns: 1fr;
       }
 
-      .corp-hero-side {
-        border-top: 1px solid rgba(219, 240, 215, .14);
+      .corp-hero-side,
+      .uber-hero-side {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
         border-left: 0;
+      }
+
+      .uber-stepper {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .corp-main-grid {
@@ -20879,46 +21446,6 @@
         { id: 'BK-202610-459B35', booking_reference: 'BK-202610-459B35', passenger_name: 'Suresh Kumar', dept: 'Engineering (CC-ENG-101)', category: 'EV Prime', pickup: { label: 'MG Road Metro Station' }, dropoff: { label: 'HAL Old Airport Road' }, purpose: 'Server Facility Maintenance', scheduled_at: new Date(Date.now() + 21600000).toISOString(), fare: '₹490', policy_ok: true }
       ]).slice(0, 6);
 
-      const approvalRows = enrichedApprovals.map((item, idx) => {
-        const costCenterTag = item.dept || (idx % 2 === 0 ? 'Engineering (CC-ENG-101)' : 'Sales & Ops (CC-SLS-104)');
-        const categoryTag = item.category || (idx === 2 ? 'EV Luxury' : idx % 2 === 0 ? 'Sedan Prime' : 'EV Prime');
-        const purposeText = item.purpose || (item.duty_type === 'airport' ? 'Airport Flight Transfer' : 'Client On-Site Consultation');
-        const fareText = item.fare || (item.estimated_client_fare_inr ? `₹${item.estimated_client_fare_inr}` : `₹${650 + idx * 320}`);
-        const ref = item.booking_reference || item.id || `BK-${idx + 101}`;
-        const pass = item.passenger_name || 'Assigned Staff';
-        const pLoc = item.pickup?.label || 'Pickup Location';
-        const dLoc = item.dropoff?.label || 'Drop Location';
-        const sched = item.scheduled_at ? formatDateTime(item.scheduled_at) : 'Today, 2:30 PM';
-
-        return `<tr>
-          <td>
-            <div style="font-family:monospace;font-weight:700;color:var(--ink);font-size:11px">${esc(ref)}</div>
-            <span style="display:inline-block;margin-top:3px;padding:2px 6px;border-radius:4px;font-size:8px;font-weight:700;background:rgba(99,102,241,0.1);color:#4f46e5;text-transform:uppercase">${esc(categoryTag)}</span>
-          </td>
-          <td>
-            <div style="font-weight:700;color:var(--ink);font-size:11.5px">${esc(pass)}</div>
-            <div style="color:#64748b;font-size:9px;margin-top:2px">${esc(costCenterTag)}</div>
-          </td>
-          <td class="route" style="max-width:210px">
-            <div style="color:#334155;font-weight:600;font-size:10.5px">${esc(pLoc)} <span style="color:#10b981">→</span> ${esc(dLoc)}</div>
-            <small style="color:#94a3b8;font-size:9px;display:block;margin-top:2px">${esc(purposeText)}</small>
-          </td>
-          <td style="white-space:nowrap;font-size:10px;color:#475569">
-            <div>${esc(sched)}</div>
-            <strong style="color:var(--ink);font-size:10px;margin-top:2px;display:block">${esc(fareText)}</strong>
-          </td>
-          <td>
-            <span class="status green" style="display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:600">✓ In Policy</span>
-          </td>
-          <td>
-            <div style="display:flex;gap:6px;justify-content:flex-end">
-              <button class="btn btn-xs" data-corp-approve="${esc(item.id)}" style="background:#10b981;color:#fff;font-weight:700;border-radius:6px;padding:5px 12px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px;box-shadow:0 1px 3px rgba(16,185,129,0.3);transition:all 0.15s ease">✓ Approve</button>
-              <button class="btn btn-xs" data-corp-reject="${esc(item.id)}" style="background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.3);font-weight:600;border-radius:6px;padding:5px 10px;cursor:pointer">✕ Reject</button>
-            </div>
-          </td>
-        </tr>`;
-      }).join('');
-
       // Enriched live in-transit duties for the Executive Radar
       const liveRadarTrips = [
         {
@@ -20926,6 +21453,7 @@
           passenger: 'Dr. Arvind Swaminathan',
           dept: 'Executive / Leadership',
           driver: 'Ramesh Gowda',
+          rating: '★ 4.96',
           vehicle: 'Tata Nexon EV Prime (KA-03-EM-8812)',
           route: 'Kempegowda Airport T2 → Whitefield Campus',
           location: 'Outer Ring Road (Near Marathahalli Bridge)',
@@ -20939,6 +21467,7 @@
           passenger: 'Pooja Hegde',
           dept: 'Sales & Ops',
           driver: 'Sunil Kumar',
+          rating: '★ 4.91',
           vehicle: 'Toyota Camry Hybrid (KA-01-MJ-4491)',
           route: 'Infosys Gate 1, E-City → MG Road Hub',
           location: 'Silk Board Flyover (Smooth Traffic)',
@@ -20952,6 +21481,7 @@
           passenger: 'Rohan Sharma',
           dept: 'Engineering',
           driver: 'Imran Khan',
+          rating: '★ 4.88',
           vehicle: 'Maruti Ciaz (KA-05-AA-3312)',
           route: 'Indiranagar 100ft Rd → Silk Board',
           location: 'Arrived at Indiranagar Metro Gate 2',
@@ -20965,6 +21495,7 @@
           passenger: 'Priya Menon',
           dept: 'Product & UX',
           driver: 'Siddharth Rao',
+          rating: '★ 4.94',
           vehicle: 'Hyundai Verna (KA-51-MB-6621)',
           route: 'Koramangala 4th Block → Whitefield HQ',
           location: 'En Route to Pickup · 4 min away',
@@ -20978,6 +21509,7 @@
           passenger: 'Abhijith',
           dept: 'Enterprise Sales',
           driver: 'Vijay Shinde',
+          rating: '★ 4.90',
           vehicle: 'MG ZS EV (KA-04-EV-5542)',
           route: 'BLR Airport T1 → Electronic City Phase 1',
           location: 'Hebbal Elevated Expressway',
@@ -20991,6 +21523,7 @@
           passenger: 'Suresh Kumar',
           dept: 'Engineering & DevOps',
           driver: 'Naveen Kumar',
+          rating: '★ 4.87',
           vehicle: 'Tata Tigor EV (KA-02-EE-9011)',
           route: 'MG Road Metro → HAL Old Airport Road',
           location: 'Dispatched from Whitefield Depot',
@@ -21001,30 +21534,71 @@
         }
       ];
 
-      const liveRadarRows = liveRadarTrips.map(item => `
-        <tr>
-          <td>
-            <div style="font-weight:700;color:var(--ink);font-size:11px">${esc(item.driver)}</div>
-            <div style="color:#64748b;font-size:9px;margin-top:2px">${esc(item.vehicle)}</div>
-          </td>
-          <td>
-            <div style="font-weight:700;color:var(--ink);font-size:11px">${esc(item.passenger)}</div>
-            <span style="display:inline-block;margin-top:2px;font-size:8px;font-weight:600;color:#6366f1">${esc(item.dept)}</span>
-          </td>
-          <td class="route" style="max-width:200px">
-            <div style="font-size:10px;font-weight:600;color:#334155">${esc(item.route)}</div>
-            <small style="color:#059669;font-size:8.5px;display:block;margin-top:2px">📍 ${esc(item.location)}</small>
-          </td>
-          <td>
-            <span class="status ${item.tone}" style="font-size:9px;padding:3px 7px">${esc(item.status)} · ${esc(item.eta)}</span>
-          </td>
-          <td>
-            <div style="background:rgba(218,250,91,0.15);border:1px solid rgba(218,250,91,0.4);border-radius:6px;padding:3px 8px;font-family:monospace;font-size:10px;font-weight:800;color:#2c5234;display:inline-block;text-align:center">
-              OTP: ${esc(item.otp)}
-            </div>
-          </td>
-        </tr>
-      `).join('');
+      const liveRadarRows = liveRadarTrips.map(item => {
+        const categoryBadge = item.vehicle.includes('EV') 
+          ? '<span class="uber-badge-ev">⚡ EV PRIME</span>'
+          : item.vehicle.includes('Camry') || item.vehicle.includes('Luxury')
+            ? '<span class="uber-badge-luxury">👑 LUXURY HYBRID</span>'
+            : '<span class="uber-badge-sedan">🚗 SEDAN PRIME</span>';
+        
+        const rating = item.rating || '★ 4.92';
+        const routeParts = item.route.split(' → ');
+        const origin = routeParts[0] || item.route;
+        const destination = routeParts[1] || '';
+
+        const statusClass = item.status === 'In Transit' ? 'green' : item.status === 'Driver Arrived' ? 'teal' : 'amber';
+        const statusIcon = item.status === 'In Transit' 
+          ? '<span class="uber-pulse-dot"></span>' 
+          : item.status === 'Driver Arrived'
+            ? '<span>📍</span>'
+            : '<span>⚡</span>';
+
+        return `
+          <tr>
+            <td>
+              <div class="uber-chauffeur-cell">
+                <div class="uber-driver-name">
+                  ${esc(item.driver)}
+                  <span class="uber-driver-rating">${esc(rating)}</span>
+                </div>
+                <div class="uber-vehicle-tag">
+                  ${categoryBadge}
+                  <span>${esc(item.vehicle)}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="uber-passenger-name">${esc(item.passenger)}</div>
+              <span class="uber-dept-tag">${esc(item.dept)}</span>
+            </td>
+            <td>
+              <div class="uber-route-bar">
+                <span class="uber-dot pickup" title="Pickup Location"></span>
+                <span>${esc(origin)}</span>
+                <span class="uber-route-arrow">→</span>
+                <span class="uber-dot dropoff" title="Dropoff Location"></span>
+                <span>${esc(destination)}</span>
+              </div>
+              <div class="uber-live-loc">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+                <span>${esc(item.location)}</span>
+              </div>
+            </td>
+            <td>
+              <span class="uber-status-pill ${statusClass}">
+                ${statusIcon}
+                <span>${esc(item.status)} · ${esc(item.eta)}</span>
+              </span>
+            </td>
+            <td>
+              <div class="uber-otp-badge">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span>OTP ${esc(item.otp)}</span>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
 
       return `
         <div class="corp-board">
@@ -21041,112 +21615,142 @@
           )}
 
           <!-- Executive Hero Banner with Budget & ESG Pulse -->
-          <section class="corp-hero" aria-label="Corporate tenant command center">
-            <div class="corp-hero-main">
-              <div class="corp-kicker">
-                <i></i> ZENITH CORPORATE TECH · TIER-1 MANAGED ENTERPRISE
+          <section class="uber-hero" aria-label="Corporate tenant command center">
+            <div class="uber-hero-main">
+              <div>
+                <div class="uber-hero-kicker">
+                  <span class="uber-live-dot"></span> ZENITH CORPORATE MOBILITY · TIER-1 MANAGED ENTERPRISE
+                </div>
+                <h2>Automated corporate travel, live tracking &amp; <span class="uber-text-accent">paperless duty slips</span>.</h2>
+                <p>Empower 248 employees and travel managers to book rides within policy, track vehicle dispatch in real time, verify digital duty slips with OTP, and consolidate GST billing without manual spreadsheets.</p>
               </div>
-              <h2>Automated corporate travel, live tracking &amp; <em>paperless duty slips</em>.</h2>
-              <p>Empower employees and travel managers to book rides within policy, track vehicle dispatch in real time, verify digital duty slips with OTP, and consolidate GST billing without manual spreadsheets.</p>
-              <div class="corp-hero-actions">
-                ${button(icon('plus') + 'Book for Self', 'primary', 'data-action="book-self"')}
-                ${button(icon('users') + 'Book for Employee / Guest', '', 'data-action="book-employee"')}
-                ${button(icon('check') + `Pending Approvals (${enrichedApprovals.length})`, '', 'data-page-link="bookings"')}
-                ${button(icon('wallet') + 'Consolidated Invoices', '', 'data-page-link="billing"')}
+              <div class="uber-hero-actions">
+                <button class="uber-pill-btn primary" data-action="book-self">${icon('plus')} Book for Self</button>
+                <button class="uber-pill-btn secondary" data-action="book-employee">${icon('users')} Book for Employee / Guest</button>
+                <button class="uber-pill-btn amber-chip" data-page-link="bookings">${icon('check')} Pending Approvals (${enrichedApprovals.length})</button>
+                <button class="uber-pill-btn secondary" data-page-link="billing">${icon('wallet')} Consolidated Invoices</button>
               </div>
             </div>
-            <div class="corp-hero-side">
-              <div class="corp-side-kicker">MONTHLY TRAVEL SPEND</div>
-              <div class="corp-side-value">
-                <strong>₹8,42,500</strong>
-                <span>56.1% OF CAP</span>
-              </div>
-              <div class="corp-progress">
-                <span style="width: 56.1%"></span>
-              </div>
-              <div class="corp-side-note">
-                ₹6,57,500 remaining of ₹15.0L monthly budget cap. 100% on-policy compliance.
-              </div>
-              <div class="corp-sync-line">
-                <span>GST SAC 996601 · Karnataka HQ</span>
-                <strong>29AABCZ9876K1Z9</strong>
+            <div class="uber-hero-side">
+              <div class="uber-gauge-card">
+                <div class="uber-gauge-head">
+                  <span class="uber-gauge-label">MONTHLY TRAVEL SPEND</span>
+                  <span class="uber-gauge-chip">56.1% OF CAP</span>
+                </div>
+                <div class="uber-gauge-value">
+                  <strong>₹8,42,500</strong>
+                  <span>/ ₹15.0L Cap</span>
+                </div>
+                <div class="uber-bar-track">
+                  <div class="uber-bar-fill" style="width: 56.1%"></div>
+                </div>
+                <div class="uber-gauge-sub">
+                  ₹6,57,500 remaining of ₹15.0L monthly budget cap. 100% on-policy compliance.
+                </div>
+                <div class="uber-gauge-meta">
+                  <span>GST SAC 996601 · Karnataka HQ</span>
+                  <strong>29AABCZ9876K1Z9</strong>
+                </div>
               </div>
             </div>
           </section>
 
-          <!-- Executive KPI Deck (4 High-Density Metrics) -->
-          <div class="corp-kpi-grid">
-            <div class="corp-metric" style="cursor:pointer" data-page-link="employees">
-              <div class="corp-metric-top">
-                <span>ENROLLED STAFF &amp; TEAMS</span>
-                <span class="corp-metric-icon">${icon('users')}</span>
+          <!-- Executive KPI Deck (4 High-Density Uber Metric Cards) -->
+          <div class="uber-kpi-grid">
+            <div class="uber-kpi-card" data-page-link="employees">
+              <div class="uber-kpi-top">
+                <span class="uber-kpi-title">ENROLLED STAFF &amp; TEAMS</span>
+                <span class="uber-kpi-icon blue">${icon('users')}</span>
               </div>
-              <div class="corp-metric-value">248 Staff</div>
-              <div class="corp-metric-foot">4 Cost Centers · Active corporate roster</div>
+              <div class="uber-kpi-num">248 Staff</div>
+              <div class="uber-kpi-foot">
+                <span class="uber-kpi-badge emerald">● Active</span>
+                <span>4 Cost Centers · Active roster</span>
+              </div>
             </div>
 
-            <div class="corp-metric amber" style="cursor:pointer" data-page-link="bookings">
-              <div class="corp-metric-top">
-                <span>PENDING APPROVALS</span>
-                <span class="corp-metric-icon">${icon('clock')}</span>
+            <div class="uber-kpi-card" data-page-link="bookings">
+              <div class="uber-kpi-top">
+                <span class="uber-kpi-title">PENDING APPROVALS</span>
+                <span class="uber-kpi-icon amber">${icon('clock')}</span>
               </div>
-              <div class="corp-metric-value">${enrichedApprovals.length} Requests</div>
-              <div class="corp-metric-foot">Requires travel desk sign-off · Avg 14m response</div>
+              <div class="uber-kpi-num">${enrichedApprovals.length} Requests</div>
+              <div class="uber-kpi-foot">
+                <span class="uber-kpi-badge amber">⚡ Needs Sign-off</span>
+                <span>Avg 14m desk response</span>
+              </div>
             </div>
 
-            <div class="corp-metric teal" style="cursor:pointer" data-page-link="duties">
-              <div class="corp-metric-top">
-                <span>LIVE IN-TRANSIT TRIPS</span>
-                <span class="corp-metric-icon">${icon('route')}</span>
+            <div class="uber-kpi-card" data-page-link="duties">
+              <div class="uber-kpi-top">
+                <span class="uber-kpi-title">LIVE IN-TRANSIT TRIPS</span>
+                <span class="uber-kpi-icon teal">${icon('route')}</span>
               </div>
-              <div class="corp-metric-value">${liveRadarTrips.length} Active</div>
-              <div class="corp-metric-foot">100% GPS tracked · 0 delays reported</div>
+              <div class="uber-kpi-num">${liveRadarTrips.length} Active</div>
+              <div class="uber-kpi-foot">
+                <span class="uber-kpi-badge emerald"><span class="uber-pulse-dot"></span> 100% GPS Live</span>
+                <span>0 delays reported</span>
+              </div>
             </div>
 
-            <div class="corp-metric purple" style="cursor:pointer" data-page-link="billing">
-              <div class="corp-metric-top">
-                <span>MONTHLY INVOICED VALUE</span>
-                <span class="corp-metric-icon">${icon('wallet')}</span>
+            <div class="uber-kpi-card" data-page-link="billing">
+              <div class="uber-kpi-top">
+                <span class="uber-kpi-title">MONTHLY INVOICED VALUE</span>
+                <span class="uber-kpi-icon purple">${icon('wallet')}</span>
               </div>
-              <div class="corp-metric-value">₹8.42 Lakh</div>
-              <div class="corp-metric-foot">${invoiceCount} settled trips · 8 unbilled e-slips</div>
+              <div class="uber-kpi-num">₹8.42 Lakh</div>
+              <div class="uber-kpi-foot">
+                <span class="uber-kpi-badge purple">✓ Verified</span>
+                <span>${invoiceCount} settled trips · 8 unbilled e-slips</span>
+              </div>
             </div>
           </div>
 
           <!-- Interactive Corporate Booking Lifecycle Stepper -->
-          <section class="network-lifecycle" aria-label="Corporate trip lifecycle" style="margin-top:2px">
-            <div class="network-stage" style="cursor:pointer" data-page-link="bookings">
-              <span class="network-stage-number">STAGE 01</span>
-              <span class="network-stage-value">${enrichedApprovals.length}</span>
-              <strong>1. Request &amp; Policy Gate</strong>
-              <span>Self &amp; delegated bookings with cost center attribution.</span>
+          <div class="uber-stepper" aria-label="Corporate trip lifecycle">
+            <div class="uber-step-card" data-page-link="bookings">
+              <div class="uber-step-header">
+                <span class="uber-step-index">STAGE 01</span>
+                <span class="uber-step-count">${enrichedApprovals.length}</span>
+              </div>
+              <div class="uber-step-title">1. Request &amp; Policy Gate</div>
+              <div class="uber-step-desc">Self &amp; delegated bookings with department cost center attribution.</div>
             </div>
-            <div class="network-stage" style="cursor:pointer" data-page-link="bookings">
-              <span class="network-stage-number">STAGE 02</span>
-              <span class="network-stage-value" style="color:#10b981">28</span>
-              <strong>2. Approved &amp; Dispatched</strong>
-              <span>Automated policy rules &amp; manager authorization cleared.</span>
+
+            <div class="uber-step-card active" data-page-link="bookings">
+              <div class="uber-step-header">
+                <span class="uber-step-index">STAGE 02</span>
+                <span class="uber-step-count">28</span>
+              </div>
+              <div class="uber-step-title">2. Approved &amp; Dispatched</div>
+              <div class="uber-step-desc">Automated policy rules &amp; manager authorization cleared.</div>
             </div>
-            <div class="network-stage" style="cursor:pointer" data-page-link="duties">
-              <span class="network-stage-number">STAGE 03</span>
-              <span class="network-stage-value">${liveRadarTrips.length}</span>
-              <strong>3. Live Duty &amp; Chauffeur</strong>
-              <span>Live driver telemetry, route radar &amp; OTP boarding lock.</span>
+
+            <div class="uber-step-card active" data-page-link="duties">
+              <div class="uber-step-header">
+                <span class="uber-step-index">STAGE 03</span>
+                <span class="uber-step-count">${liveRadarTrips.length}</span>
+              </div>
+              <div class="uber-step-title">3. Live Duty &amp; Chauffeur</div>
+              <div class="uber-step-desc">Live driver telemetry, route radar &amp; OTP boarding lock.</div>
             </div>
-            <div class="network-stage" style="cursor:pointer" data-page-link="billing">
-              <span class="network-stage-number">STAGE 04</span>
-              <span class="network-stage-value">${invoiceCount}</span>
-              <strong>4. E-Duty Slip &amp; GST Bill</strong>
-              <span>Passenger digital signature &amp; consolidated monthly B2B bill.</span>
+
+            <div class="uber-step-card" data-page-link="billing">
+              <div class="uber-step-header">
+                <span class="uber-step-index">STAGE 04</span>
+                <span class="uber-step-count">${invoiceCount}</span>
+              </div>
+              <div class="uber-step-title">4. E-Duty Slip &amp; GST Bill</div>
+              <div class="uber-step-desc">Passenger digital signature &amp; consolidated monthly B2B bill.</div>
             </div>
-          </section>
+          </div>
 
           <!-- Main Split View: Left Operations Deck / Right Policy & Financial Controls -->
           <div class="corp-main-grid">
             <!-- Left Column: Operations Overview, Live Radar & Travel Analytics -->
             <div style="display:grid;gap:18px">
               <!-- Executive Decision Notification Banner -->
-              <div style="background:linear-gradient(135deg,#fffdf7,#fef3c7);border:1px solid #fde68a;border-radius:14px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px;box-shadow:var(--shadow-sm)">
+              <div style="background:linear-gradient(135deg,#fffdf7,#fef3c7);border:1px solid #fde68a;border-radius:14px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px;box-shadow:0 1px 3px rgba(0,0,0,0.03)">
                 <div style="display:flex;align-items:center;gap:12px">
                   <div style="width:36px;height:36px;border-radius:10px;background:#fef08a;color:#854d0e;display:grid;place-items:center;font-size:18px;flex:none">
                     ⏳
@@ -21156,20 +21760,20 @@
                     <div style="font-size:9.5px;color:#a16207;margin-top:2px">Trips requiring manager sign-off or policy exception review are managed under Bookings &amp; Requests.</div>
                   </div>
                 </div>
-                <button class="btn small primary" data-page-link="bookings" style="background:#d97706;border-color:#b45309;white-space:nowrap;padding:7px 14px">
+                <button class="btn small primary" data-page-link="bookings" style="background:#0f172a;color:#ffffff;border-color:#0f172a;border-radius:9999px;white-space:nowrap;padding:7px 16px;font-weight:600">
                   Review in Bookings &amp; Requests →
                 </button>
               </div>
 
               <!-- Live In-Transit Duty Radar -->
-              <section class="card section-card">
+              <section class="card section-card" style="border-radius:16px;overflow:hidden;border:1px solid rgba(0,0,0,0.07);box-shadow:0 1px 3px rgba(0,0,0,0.03)">
                 ${cardHead(
-                  'Live in-transit trips radar',
-                  'Executive rides currently en route with real-time GPS, chauffeur details &amp; boarding OTP.',
-                  `<span class="status teal" style="font-weight:700">${liveRadarTrips.length} active in-transit</span>`
+                  'Live In-Transit Trips Radar',
+                  'Executive rides currently en route with real-time GPS telemetry, chauffeur credentials &amp; boarding OTP.',
+                  `<span class="uber-status-pill green" style="font-size:10px"><span class="uber-pulse-dot"></span> ${liveRadarTrips.length} Active in-transit</span>`
                 )}
-                <div class="table-wrap">
-                  <table class="corp-table">
+                <div class="table-wrap" style="overflow-x:auto">
+                  <table class="uber-radar-table">
                     <thead>
                       <tr>
                         <th>Chauffeur &amp; Vehicle</th>
@@ -21184,14 +21788,17 @@
                     </tbody>
                   </table>
                 </div>
-                <div style="padding:12px 20px;border-top:1px solid #edf1ee;display:flex;justify-content:space-between;align-items:center;background:#fafbfc">
-                  <span style="font-size:10px;color:#64748b">All corporate duties are tracked via high-frequency GPS telemetry with tamper-proof digital duty slips.</span>
-                  ${button(icon('route') + 'Open Full Live Duty Board', 'small soft', 'data-page-link="duties"')}
+                <div style="padding:14px 20px;border-top:1px solid #edf1ee;display:flex;justify-content:space-between;align-items:center;background:#fafbfc">
+                  <span style="font-size:10.5px;color:#64748b;display:flex;align-items:center;gap:6px">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    All corporate duties are tracked via high-frequency GPS telemetry with tamper-proof digital duty slips.
+                  </span>
+                  ${button(icon('route') + 'Open Full Live Duty Board', 'small soft', 'data-page-link="duties" style="border-radius:9999px"')}
                 </div>
               </section>
 
               <!-- Corporate Travel Modal Split & Operational SLA Performance -->
-              <section class="card section-card">
+              <section class="card section-card" style="border-radius:16px;border:1px solid rgba(0,0,0,0.07);box-shadow:0 1px 3px rgba(0,0,0,0.03)">
                 ${cardHead(
                   'Corporate travel distribution &amp; dispatch SLA',
                   'Real-time modal split and dispatch SLA performance across all enterprise trips.',
@@ -21199,44 +21806,44 @@
                 )}
                 <div style="padding:18px 20px 14px">
                   <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px">
-                    <div style="padding:12px 14px;border:1px solid #edf1ee;border-radius:12px;background:#fafbfc">
-                      <span style="font-size:9px;font-weight:750;color:#64748b;text-transform:uppercase;letter-spacing:0.05em">Airport Transfers</span>
+                    <div style="padding:14px 16px;border:1px solid #edf1ee;border-radius:12px;background:#fafbfc">
+                      <span style="font-size:9.5px;font-weight:750;color:#64748b;text-transform:uppercase;letter-spacing:0.06em">Airport Transfers</span>
                       <div style="display:flex;align-items:baseline;gap:6px;margin-top:6px">
-                        <strong style="font-size:20px;color:var(--ink)">45%</strong>
-                        <span style="font-size:10px;color:#059669;font-weight:600">100% EV Mandate</span>
+                        <strong style="font-size:22px;color:var(--ink)">45%</strong>
+                        <span style="font-size:10px;color:#059669;font-weight:700">⚡ 100% EV Mandate</span>
                       </div>
-                      <div style="font-size:9px;color:#94a3b8;margin-top:4px">Terminal 1 &amp; 2 Arrivals / Departures</div>
+                      <div style="font-size:9.5px;color:#94a3b8;margin-top:4px">Terminal 1 &amp; 2 Arrivals / Departures</div>
                     </div>
-                    <div style="padding:12px 14px;border:1px solid #edf1ee;border-radius:12px;background:#fafbfc">
-                      <span style="font-size:9px;font-weight:750;color:#64748b;text-transform:uppercase;letter-spacing:0.05em">Intra-City Local</span>
+                    <div style="padding:14px 16px;border:1px solid #edf1ee;border-radius:12px;background:#fafbfc">
+                      <span style="font-size:9.5px;font-weight:750;color:#64748b;text-transform:uppercase;letter-spacing:0.06em">Intra-City Local</span>
                       <div style="display:flex;align-items:baseline;gap:6px;margin-top:6px">
-                        <strong style="font-size:20px;color:var(--ink)">35%</strong>
-                        <span style="font-size:10px;color:#4f46e5;font-weight:600">Sedan Prime</span>
+                        <strong style="font-size:22px;color:var(--ink)">35%</strong>
+                        <span style="font-size:10px;color:#4f46e5;font-weight:700">🚗 Sedan Prime</span>
                       </div>
-                      <div style="font-size:9px;color:#94a3b8;margin-top:4px">Inter-facility &amp; client meetings</div>
+                      <div style="font-size:9.5px;color:#94a3b8;margin-top:4px">Inter-facility &amp; client meetings</div>
                     </div>
-                    <div style="padding:12px 14px;border:1px solid #edf1ee;border-radius:12px;background:#fafbfc">
-                      <span style="font-size:9px;font-weight:750;color:#64748b;text-transform:uppercase;letter-spacing:0.05em">Outstation Duties</span>
+                    <div style="padding:14px 16px;border:1px solid #edf1ee;border-radius:12px;background:#fafbfc">
+                      <span style="font-size:9.5px;font-weight:750;color:#64748b;text-transform:uppercase;letter-spacing:0.06em">Outstation Duties</span>
                       <div style="display:flex;align-items:baseline;gap:6px;margin-top:6px">
-                        <strong style="font-size:20px;color:var(--ink)">20%</strong>
-                        <span style="font-size:10px;color:#d97706;font-weight:600">Executive SUV</span>
+                        <strong style="font-size:22px;color:var(--ink)">20%</strong>
+                        <span style="font-size:10px;color:#d97706;font-weight:700">🚙 Executive SUV</span>
                       </div>
-                      <div style="font-size:9px;color:#94a3b8;margin-top:4px">Regional client clusters &amp; audits</div>
+                      <div style="font-size:9.5px;color:#94a3b8;margin-top:4px">Regional client clusters &amp; audits</div>
                     </div>
                   </div>
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:14px;border-top:1px solid #edf1ee">
                     <div style="display:flex;align-items:center;gap:10px">
-                      <span style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,0.1);color:#059669;display:grid;place-items:center;font-size:14px;flex:none">${icon('clock')}</span>
+                      <span style="width:34px;height:34px;border-radius:9px;background:rgba(16,185,129,0.1);color:#059669;display:grid;place-items:center;font-size:14px;flex:none">${icon('clock')}</span>
                       <div>
-                        <div style="font-size:11px;font-weight:700;color:var(--ink)">8.2 Minutes Avg. Chauffeur Dispatch</div>
-                        <div style="font-size:9px;color:#64748b">From travel request approval to chauffeur allocation</div>
+                        <div style="font-size:11.5px;font-weight:750;color:var(--ink)">8.2 Minutes Avg. Chauffeur Dispatch</div>
+                        <div style="font-size:9.5px;color:#64748b">From travel request approval to chauffeur allocation</div>
                       </div>
                     </div>
                     <div style="display:flex;align-items:center;gap:10px">
-                      <span style="width:32px;height:32px;border-radius:8px;background:rgba(99,102,241,0.1);color:#4f46e5;display:grid;place-items:center;font-size:14px;flex:none">${icon('shield')}</span>
+                      <span style="width:34px;height:34px;border-radius:9px;background:rgba(99,102,241,0.1);color:#4f46e5;display:grid;place-items:center;font-size:14px;flex:none">${icon('shield')}</span>
                       <div>
-                        <div style="font-size:11px;font-weight:700;color:var(--ink)">100% Safe Transit &amp; SOS Compliance</div>
-                        <div style="font-size:9px;color:#64748b">Verified chauffeurs, live route telemetry &amp; boarding OTP</div>
+                        <div style="font-size:11.5px;font-weight:750;color:var(--ink)">100% Safe Transit &amp; SOS Compliance</div>
+                        <div style="font-size:9.5px;color:#64748b">Verified chauffeurs, live route telemetry &amp; boarding OTP</div>
                       </div>
                     </div>
                   </div>
@@ -21247,7 +21854,7 @@
             <!-- Right Column: Policies, Cost Centers, Governance & ESG -->
             <div class="corp-rail">
               <!-- Corporate Policy Engine -->
-              <section class="card section-card">
+              <section class="card section-card" style="border-radius:16px;border:1px solid rgba(0,0,0,0.07);box-shadow:0 1px 3px rgba(0,0,0,0.03)">
                 ${cardHead(
                   'Corporate Policy Engine',
                   'Automated travel governance enforced on all employee bookings.',
@@ -21288,54 +21895,69 @@
                   </div>
                 </div>
                 <div style="padding:0 20px 16px">
-                  ${button(icon('settings') + 'Configure Travel Rules &amp; Caps', 'small soft', 'data-page-link="settings"')}
+                  ${button(icon('settings') + 'Configure Travel Rules &amp; Caps', 'small soft', 'data-page-link="settings" style="border-radius:9999px"')}
                 </div>
               </section>
 
               <!-- Cost Centers & Headcount Breakdown -->
-              <section class="card section-card">
+              <section class="card section-card" style="border-radius:16px;border:1px solid rgba(0,0,0,0.07);box-shadow:0 1px 3px rgba(0,0,0,0.03)">
                 ${cardHead(
                   'Cost centers &amp; headcount',
                   'Budget utilization across active business departments.',
                   `<span class="status blue">4 Centers · 248 Staff</span>`
                 )}
-                <div style="padding:14px 20px 8px;display:grid;gap:11px">
-                  <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:9px;border-bottom:1px solid #edf1ee">
-                    <div>
-                      <strong style="font-size:11px;color:#1e293b">Engineering &amp; Tech (CC-ENG-101)</strong>
-                      <div style="font-size:9px;color:#64748b">112 Members · ₹3.84L / ₹6.0L budget</div>
+                <div style="padding:14px 20px 8px;display:grid;gap:12px">
+                  <div style="padding-bottom:10px;border-bottom:1px solid #edf1ee">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                      <div>
+                        <strong style="font-size:11px;color:#1e293b">Engineering &amp; Tech (CC-ENG-101)</strong>
+                        <div style="font-size:9px;color:#64748b">112 Members · ₹3.84L / ₹6.0L budget</div>
+                      </div>
+                      <span class="status green" style="font-size:9px">64% spent</span>
                     </div>
-                    <span class="status green" style="font-size:9px">64% spent</span>
+                    <div class="uber-meter-bar"><div class="uber-meter-fill" style="width:64%"></div></div>
                   </div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:9px;border-bottom:1px solid #edf1ee">
-                    <div>
-                      <strong style="font-size:11px;color:#1e293b">Sales &amp; Field Ops (CC-SLS-104)</strong>
-                      <div style="font-size:9px;color:#64748b">68 Members · ₹2.28L / ₹4.0L budget</div>
+
+                  <div style="padding-bottom:10px;border-bottom:1px solid #edf1ee">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                      <div>
+                        <strong style="font-size:11px;color:#1e293b">Sales &amp; Field Ops (CC-SLS-104)</strong>
+                        <div style="font-size:9px;color:#64748b">68 Members · ₹2.28L / ₹4.0L budget</div>
+                      </div>
+                      <span class="status green" style="font-size:9px">57% spent</span>
                     </div>
-                    <span class="status green" style="font-size:9px">57% spent</span>
+                    <div class="uber-meter-bar"><div class="uber-meter-fill" style="width:57%"></div></div>
                   </div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:9px;border-bottom:1px solid #edf1ee">
-                    <div>
-                      <strong style="font-size:11px;color:#1e293b">Product &amp; UX (CC-PRD-102)</strong>
-                      <div style="font-size:9px;color:#64748b">46 Members · ₹1.65L / ₹3.0L budget</div>
+
+                  <div style="padding-bottom:10px;border-bottom:1px solid #edf1ee">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                      <div>
+                        <strong style="font-size:11px;color:#1e293b">Product &amp; UX (CC-PRD-102)</strong>
+                        <div style="font-size:9px;color:#64748b">46 Members · ₹1.65L / ₹3.0L budget</div>
+                      </div>
+                      <span class="status green" style="font-size:9px">55% spent</span>
                     </div>
-                    <span class="status green" style="font-size:9px">55% spent</span>
+                    <div class="uber-meter-bar"><div class="uber-meter-fill" style="width:55%"></div></div>
                   </div>
-                  <div style="display:flex;justify-content:space-between;align-items:center">
-                    <div>
-                      <strong style="font-size:11px;color:#1e293b">Executive &amp; C-Suite (CC-EXEC-001)</strong>
-                      <div style="font-size:9px;color:#64748b">22 Members · ₹0.65L / ₹2.0L budget</div>
+
+                  <div>
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                      <div>
+                        <strong style="font-size:11px;color:#1e293b">Executive &amp; C-Suite (CC-EXEC-001)</strong>
+                        <div style="font-size:9px;color:#64748b">22 Members · ₹0.65L / ₹2.0L budget</div>
+                      </div>
+                      <span class="status green" style="font-size:9px">33% spent</span>
                     </div>
-                    <span class="status green" style="font-size:9px">33% spent</span>
+                    <div class="uber-meter-bar"><div class="uber-meter-fill" style="width:33%"></div></div>
                   </div>
                 </div>
                 <div style="padding:10px 20px 16px">
-                  ${button(icon('users') + 'Manage Employee Directory', 'small soft', 'data-page-link="employees"')}
+                  ${button(icon('users') + 'Manage Employee Directory', 'small soft', 'data-page-link="employees" style="border-radius:9999px"')}
                 </div>
               </section>
 
               <!-- Paperless Duty-Slip Governance -->
-              <section class="card section-card">
+              <section class="card section-card" style="border-radius:16px;border:1px solid rgba(0,0,0,0.07);box-shadow:0 1px 3px rgba(0,0,0,0.03)">
                 ${cardHead(
                   'Duty-slip governance',
                   '100% paperless digital verification with start &amp; end OTP.',
@@ -21370,38 +21992,38 @@
               </section>
 
               <!-- Consolidated B2B Billing & ESG Impact -->
-              <section class="card section-card" style="background:linear-gradient(135deg,#fcfef9,#f5f9ee);border-color:#cad9c7">
+              <section class="card section-card" style="border-radius:16px;background:linear-gradient(135deg,#fcfef9,#f5f9ee);border-color:#cad9c7;box-shadow:0 1px 3px rgba(0,0,0,0.03)">
                 ${cardHead(
                   'Consolidated B2B billing &amp; ESG',
                   'GST SAC 996601 compliance &amp; green fleet sustainability score.',
                   `<span class="status purple">GST Ready</span>`
                 )}
                 <div class="corp-network-strip" style="padding-bottom:12px">
-                  <div class="corp-network-stat">
+                  <div class="corp-network-stat" style="border-radius:12px;background:#ffffff">
                     <strong>₹8.42L</strong>
                     <span>Invoiced (34 Trips)</span>
                   </div>
-                  <div class="corp-network-stat">
+                  <div class="corp-network-stat" style="border-radius:12px;background:#ffffff">
                     <strong>8 Slips</strong>
                     <span>Unbilled (₹18,450)</span>
                   </div>
-                  <div class="corp-network-stat">
+                  <div class="corp-network-stat" style="border-radius:12px;background:#ffffff">
                     <strong style="color:#059669">68.4%</strong>
                     <span>EV Fleet Mix</span>
                   </div>
                 </div>
                 <div style="padding:0 20px 14px">
-                  <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:11px">
-                    <span style="font-size:22px">🌱</span>
+                  <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+                    <span style="font-size:24px">🌱</span>
                     <div>
-                      <strong style="font-size:11px;color:#065f46">1,420 kg CO₂ Emissions Saved</strong>
-                      <div style="font-size:9px;color:#047857">14,800 green electric kilometers logged this month by Zenith travelers.</div>
+                      <strong style="font-size:11.5px;color:#065f46">1,420 kg CO₂ Emissions Saved</strong>
+                      <div style="font-size:9.5px;color:#047857;margin-top:2px">14,800 green electric kilometers logged this month by Zenith travelers.</div>
                     </div>
                   </div>
                 </div>
                 <div style="padding:0 20px 16px;display:flex;gap:8px">
-                  ${button(icon('file') + 'Download GST Invoice', 'small soft', 'data-page-link="billing"')}
-                  ${button(icon('wallet') + 'Open Billing Ledger', 'small', 'data-page-link="billing"')}
+                  ${button(icon('file') + 'Download GST Invoice', 'small soft', 'data-page-link="billing" style="border-radius:9999px"')}
+                  ${button(icon('wallet') + 'Open Billing Ledger', 'small', 'data-page-link="billing" style="border-radius:9999px"')}
                 </div>
               </section>
             </div>
