@@ -21746,10 +21746,6 @@
       const query = String(state.bookingQuery || '').trim().toLowerCase();
       const dateFrom = state.bookingDateFrom || '';
       const dateTo = state.bookingDateTo || '';
-        'Billed',
-        'Cancelled',
-        'All'
-      ];
 
       // Corporate approvals dataset: check real pending bookings or provide high-fidelity enterprise items
       const rawBookings = state.liveData?.bookings?.items || [];
