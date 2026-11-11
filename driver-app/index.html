@@ -1378,15 +1378,16 @@
       </div>
 
       <form class="login-card" id="login-form">
-        <!-- Vernacular Language Selector (English, हिंदी, ಕನ್ನಡ, தமிழ்) -->
-        <div class="lang-selector-strip" style="display:flex; gap:6px; margin-bottom:14px; background:#f1f5f9; padding:4px; border-radius:10px;">
-          <button type="button" class="lang-btn active" data-lang="en" style="flex:1; border:none; background:#000000; color:#ffffff; font-size:11px; font-weight:750; padding:6px 0; border-radius:7px; cursor:pointer;">English</button>
-          <button type="button" class="lang-btn" data-lang="hi" style="flex:1; border:none; background:transparent; color:#475569; font-size:11px; font-weight:750; padding:6px 0; border-radius:7px; cursor:pointer;">हिंदी</button>
-          <button type="button" class="lang-btn" data-lang="kn" style="flex:1; border:none; background:transparent; color:#475569; font-size:11px; font-weight:750; padding:6px 0; border-radius:7px; cursor:pointer;">ಕನ್ನಡ</button>
-          <button type="button" class="lang-btn" data-lang="ta" style="flex:1; border:none; background:transparent; color:#475569; font-size:11px; font-weight:750; padding:6px 0; border-radius:7px; cursor:pointer;">தமிழ்</button>
+        <!-- 10-Language Native Modal Trigger -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <h2 id="login-title" style="margin:0; font-size:20px; font-weight:800; letter-spacing:-0.03em;">Driver Sign In</h2>
+          <button type="button" id="btn-open-lang-modal" style="display:inline-flex; align-items:center; gap:6px; background:#f1f5f9; border:1px solid #cbd5e1; color:#0f172a; padding:6px 12px; border-radius:999px; font-size:11.5px; font-weight:750; cursor:pointer;">
+            <span>🌐</span>
+            <span id="current-lang-label">English</span>
+            <span style="font-size:9px; opacity:0.6;">▾</span>
+          </button>
         </div>
 
-        <h2 id="login-title">Driver Sign In</h2>
         <p class="sub" id="auth-sub">Enter your 10-digit registered mobile number to receive a verification OTP.</p>
 
         <!-- Step 1: Mobile Phone Input -->
@@ -1422,6 +1423,22 @@
           Axiom Driver is offline-resilient. All duty actions queue locally and replay automatically.
         </div>
       </form>
+
+      <!-- Language Picker Bottom Sheet Modal (10 Indian Languages + English) -->
+      <div id="modal-lang-picker" class="hidden" style="position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.65); backdrop-filter:blur(4px); display:flex; align-items:flex-end; justify-content:center;">
+        <div style="width:100%; max-width:500px; background:#ffffff; border-radius:24px 24px 0 0; padding:22px 20px 32px; box-shadow:0 -10px 30px rgba(0,0,0,0.25);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div>
+              <div style="font-size:16px; font-weight:800; color:#0f172a;">Select Language / भाषा चुनें</div>
+              <div style="font-size:11px; color:#64748b;">Choose your preferred regional language</div>
+            </div>
+            <button type="button" id="btn-close-lang-modal" style="background:#f1f5f9; border:none; width:32px; height:32px; border-radius:50%; font-size:14px; font-weight:bold; cursor:pointer; display:grid; place-items:center;">✕</button>
+          </div>
+          <div id="lang-grid" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; max-height:55vh; overflow-y:auto; padding-right:4px;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
 
       <div style="text-align:center; font-size:10px; color:#788f93;">
         Axiom Fleet · India Commercial Data Plane · 24/7 Road Assistance
@@ -4433,10 +4450,11 @@
     }
 
     // ----------------------------------------------------
-    // VERNACULAR I18N SUPPORT (English, हिंदी, ಕನ್ನಡ, தமிழ்)
+    // 10-LANGUAGE VERNACULAR I18N SYSTEM (India Fleet Corridors)
     // ----------------------------------------------------
     const DRIVER_I18N = {
       en: {
+        code: "en", name: "English", native: "English", region: "All Corridors",
         title: "Driver Sign In",
         sub: "Enter your 10-digit registered mobile number to receive a verification OTP.",
         phoneLabel: "Registered Mobile Number",
@@ -4448,6 +4466,7 @@
         offlineNotice: "Axiom Driver is offline-resilient. All duty actions queue locally and replay automatically."
       },
       hi: {
+        code: "hi", name: "Hindi", native: "हिन्दी", region: "Delhi-NCR, UP, MP, HR, RJ",
         title: "ड्राइवर साइन इन",
         sub: "सत्यापन OTP प्राप्त करने के लिए अपना 10-अंकों का पंजीकृत मोबाइल नंबर दर्ज करें।",
         phoneLabel: "पंजीकृत मोबाइल नंबर",
@@ -4459,6 +4478,7 @@
         offlineNotice: "एक्जिओम ड्राइवर ऑफलाइन-सक्षम है। सभी ड्यूटी क्रियाएं स्थानीय रूप से सुरक्षित रहती हैं।"
       },
       kn: {
+        code: "kn", name: "Kannada", native: "ಕನ್ನಡ", region: "Bengaluru, Mysuru, Hubballi",
         title: "ಚಾಲಕ ಸೈನ್ ಇನ್",
         sub: "ಪರಿಶೀಲನೆ OTP ಪಡೆಯಲು ನಿಮ್ಮ 10-ಅಂಕಿಯ ನೋಂದಾಯಿತ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ.",
         phoneLabel: "ನೋಂದಾಯಿತ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ",
@@ -4466,10 +4486,11 @@
         otpSent: "OTP ಕಳುಹಿಸಲಾಗಿದೆ:",
         otpLabel: "4-ಅಂಕಿಯ ಕೋಡ್ ನಮೂದಿಸಿ",
         demoHint: "💡 ಟೆಸ್ಟ್ ಕೋಡ್: <strong>2026</strong> (ಯಾವುದೇ 4 ಅಂಕಿಗಳು)",
-        verifyBtn: "ದೃಢೀಕರಿಸಿ ಮತ್ತು ಕಾಕ್‌ಪಿಟ್ ತೆರೆಯಿರಿ →",
-        offlineNotice: "ಆಕ್ಸಿಯೋಮ್ ಡ್ರೈವರ್ ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ. ಎಲ್ಲಾ ಡೇಟಾ ಸ್ಥಳೀಯವಾಗಿ ಸಂಗ್ರಹವಾಗುತ್ತದೆ."
+        verifyBtn: "ದೃಢೀಕರಿಸಿ & ಕಾಕ್‌ಪಿಟ್ ತೆರೆಯಿರಿ →",
+        offlineNotice: "ಆಕ್ಸಿಯೋಮ್ ಡ್ರೈವರ್ ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ."
       },
       ta: {
+        code: "ta", name: "Tamil", native: "தமிழ்", region: "Chennai, Coimbatore, Madurai",
         title: "ஓட்டுநர் உள்நுழைவு",
         sub: "சரிபார்ப்பு OTP பெற உங்கள் 10-இலக்க பதிவுசெய்யப்பட்ட மொபைல் எண்ணை உள்ளிடவும்.",
         phoneLabel: "பதிவுசெய்யப்பட்ட மொபைல் எண்",
@@ -4479,8 +4500,118 @@
         demoHint: "💡 சோதனை குறியீடு: <strong>2026</strong> (ஏதேனும் 4 இலக்கங்கள்)",
         verifyBtn: "சரிபார்த்து காக்பிட்டைத் திற →",
         offlineNotice: "ஆக்ஸியோம் டிரைவர் ஆஃப்லைனில் செயல்படும் திறன் கொண்டது."
+      },
+      te: {
+        code: "te", name: "Telugu", native: "తెలుగు", region: "Hyderabad, Cyberabad, Vizag",
+        title: "డ్రైవర్ సైన్ ఇన్",
+        sub: "ధృవీకరణ OTP ని అందుకోవడానికి మీ 10-అంకెల నమోదిత మొబైల్ నంబర్‌ను నమోదు చేయండి.",
+        phoneLabel: "నమోదిత మొబైల్ సంఖ్య",
+        getOtpBtn: "ధృవీకరణ OTP పొందండి →",
+        otpSent: "OTP పంపబడింది:",
+        otpLabel: "4-అంకెల కోడ్‌ను నమోదు చేయండి",
+        demoHint: "💡 పరీక్ష కోడ్: <strong>2026</strong> (ఏదైనా 4 అంకెలు)",
+        verifyBtn: "ధృవీకరించి కాక్‌పిట్ తెరవండి →",
+        offlineNotice: "ఆక్సియోమ్ డ్రైవర్ ఆఫ్‌లైన్‌లో కూడా సజావుగా పనిచేస్తుంది."
+      },
+      mr: {
+        code: "mr", name: "Marathi", native: "मराठी", region: "Mumbai, Pune, Nagpur, Nashik",
+        title: "ड्रायव्हर साइन इन",
+        sub: "पडताळणी OTP मिळवण्यासाठी आपला 10-अंकी नोंदणीकृत मोबाईल नंबर टाका.",
+        phoneLabel: "नोंदणीकृत मोबाईल नंबर",
+        getOtpBtn: "पडताळणी OTP मिळवा →",
+        otpSent: "OTP पाठवला आहे:",
+        otpLabel: "4-अंकी कोड टाका",
+        demoHint: "💡 चाचणी कोड: <strong>2026</strong> (किंवा कोणतेही 4 अंक)",
+        verifyBtn: "पडताळणी करा आणि कॉकपिट उघडा →",
+        offlineNotice: "अ‍ॅक्सिओम ड्रायव्हर पूर्णपणे ऑफलाइन-सक्षम आहे."
+      },
+      gu: {
+        code: "gu", name: "Gujarati", native: "ગુજરાતી", region: "Ahmedabad, Surat, GIFT City",
+        title: "ડ્રાઈવર સાઇન ઇન",
+        sub: "ચકાસણી OTP મેળવવા માટે તમારો 10-અંકનો રજિસ્ટર્ડ મોબાઈલ નંબર દાખલ કરો.",
+        phoneLabel: "રજિસ્ટર્ડ મોબાઈલ નંબર",
+        getOtpBtn: "ચકાસણી OTP મેળવો →",
+        otpSent: "OTP મોકલ્યો છે:",
+        otpLabel: "4-અંકનો કોડ દાખલ કરો",
+        demoHint: "💡 ટેસ્ટ કોડ: <strong>2026</strong> (કોઈપણ 4 અંકો)",
+        verifyBtn: "ચકાસો અને કૉકપિટ ખોલો →",
+        offlineNotice: "એક્સિઓમ ડ્રાઇવર ઑફલાઇન સક્ષમ છે."
+      },
+      bn: {
+        code: "bn", name: "Bengali", native: "বাংলা", region: "Kolkata, Siliguri, Asansol",
+        title: "ড্রাইভার সাইন ইন",
+        sub: "যাচাইকরণ OTP পেতে আপনার 10-সংখ্যার নিবন্ধিত মোবাইল নম্বর লিখুন।",
+        phoneLabel: "নিবন্ধিত মোবাইল নম্বর",
+        getOtpBtn: "যাচাইকরণ OTP পান →",
+        otpSent: "OTP পাঠানো হয়েছে:",
+        otpLabel: "4-সংখ্যার কোড লিখুন",
+        demoHint: "💡 টেস্ট কোড: <strong>2026</strong> (যেকোনো 4 সংখ্যা)",
+        verifyBtn: "যাচাই করুন এবং ককপিট খুলুন →",
+        offlineNotice: "অ্যাক্সিওম ড্রাইভার অফলাইনেও কার্যকর।"
+      },
+      ml: {
+        code: "ml", name: "Malayalam", native: "മലയാളം", region: "Kochi Infopark, Technopark",
+        title: "ഡ്രൈവർ സൈൻ ഇൻ",
+        sub: "സ്ഥിരീകരണ OTP ലഭിക്കുന്നതിന് നിങ്ങളുടെ 10 അക്ക രജിസ്റ്റർ ചെയ്ത മൊബൈൽ നമ്പർ നൽകുക.",
+        phoneLabel: "രജിസ്റ്റർ ചെയ്ത മൊബൈൽ നമ്പർ",
+        getOtpBtn: "സ്ഥിരീകരണ OTP നേടുക →",
+        otpSent: "OTP അയച്ചു:",
+        otpLabel: "4 അക്ക കോഡ് നൽകുക",
+        demoHint: "💡 ടെസ്റ്റ് കോഡ്: <strong>2026</strong> (ഏതെങ്കിലും 4 അക്കങ്ങൾ)",
+        verifyBtn: "സ്ഥിരീകരിച്ച് കോക്ക്പിറ്റ് തുറക്കുക →",
+        offlineNotice: "ആക്സിയം ഡ്രൈവർ ഓഫ്‌ലൈൻ പിന്തുണയുള്ളതാണ്."
+      },
+      pa: {
+        code: "pa", name: "Punjabi", native: "ਪੰਜਾਬੀ", region: "Chandigarh, Mohali, Amritsar",
+        title: "ਡਰਾਈਵਰ ਸਾਈਨ ਇਨ",
+        sub: "ਤਸਦੀਕ OTP ਪ੍ਰਾਪਤ ਕਰਨ ਲਈ ਆਪਣਾ 10-ਅੰਕਾਂ ਦਾ ਰਜਿਸਟਰਡ ਮੋਬਾਈਲ ਨੰਬਰ ਦਰਜ ਕਰੋ।",
+        phoneLabel: "ਰਜਿਸਟਰਡ ਮੋਬਾਈਲ ਨੰਬਰ",
+        getOtpBtn: "ਤਸਦੀਕ OTP ਪ੍ਰਾਪਤ ਕਰੋ →",
+        otpSent: "OTP ਭੇਜਿਆ ਗਿਆ:",
+        otpLabel: "4-ਅੰਕਾਂ ਦਾ ਕੋਡ ਦਰਜ ਕਰੋ",
+        demoHint: "💡 ਟੈਸਟ ਕੋਡ: <strong>2026</strong> (ਜਾਂ ਕੋਈ ਵੀ 4 ਅੰਕ)",
+        verifyBtn: "ਤਸਦੀਕ ਕਰੋ ਅਤੇ ਕਾਕਪਿਟ ਖੋਲ੍ਹੋ →",
+        offlineNotice: "ਐਕਸੀਅਮ ਡਰਾਈਵਰ ਔਫਲਾਈਨ ਵਿੱਚ ਵੀ ਕੰਮ ਕਰਦਾ ਹੈ।"
+      },
+      or: {
+        code: "or", name: "Odia", native: "ଓଡ଼ିଆ", region: "Bhubaneswar, Cuttack IT Belt",
+        title: "ଡ୍ରାଇଭର ସାଇନ୍ ଇନ୍",
+        sub: "ଯାଞ୍ଚ OTP ପାଇବା ପାଇଁ ଆପଣଙ୍କ ୧୦-ଅଙ୍କ ବିଶିଷ୍ଟ ପଞ୍ଜୀକୃତ ମୋବାଇଲ୍ ନମ୍ବର ପ୍ରବେଶ କରନ୍ତୁ।",
+        phoneLabel: "ପଞ୍ଜୀକୃତ ମୋବାଇଲ୍ ନମ୍ବର",
+        getOtpBtn: "ଯାଞ୍ଚ OTP ପ୍ରାପ୍ତ କରନ୍ତୁ →",
+        otpSent: "OTP ପଠାଯାଇଛି:",
+        otpLabel: "୪-ଅଙ୍କ ବିଶିଷ୍ଟ କୋଡ୍ ପ୍ରବେଶ କରନ୍ତୁ",
+        demoHint: "💡 ଟେଷ୍ଟ୍ କୋଡ୍: <strong>2026</strong> (ଯେକୌଣସି ୪ ଅଙ୍କ)",
+        verifyBtn: "ଯାଞ୍ଚ କରନ୍ତୁ ଏବଂ କକପିଟ୍ ଖୋଲନ୍ତୁ →",
+        offlineNotice: "ଆକ୍ସିଅମ୍ ଡ୍ରାଇଭର୍ ଅଫଲାଇନ୍-ସକ୍ଷମ ଅଟେ।"
       }
     };
+
+    function renderLanguageGrid(currentLang) {
+      const grid = $('lang-grid');
+      if (!grid) return;
+      grid.innerHTML = Object.values(DRIVER_I18N).map(l => {
+        const isActive = l.code === currentLang;
+        return `
+          <button type="button" class="lang-card-btn" data-lang-code="${l.code}" style="text-align:left; padding:12px; border-radius:12px; border:1.5px solid ${isActive ? '#0f172a' : '#e2e8f0'}; background:${isActive ? '#f8fafc' : '#ffffff'}; cursor:pointer; transition:all 0.15s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:15px; font-weight:800; color:${isActive ? '#0f172a' : '#1e293b'};">${l.native}</span>
+              ${isActive ? '<span style="font-size:12px; color:#10b981;">✓</span>' : ''}
+            </div>
+            <div style="font-size:11.5px; font-weight:600; color:#64748b; margin-top:2px;">${l.name}</div>
+            <div style="font-size:9.5px; color:#94a3b8; margin-top:4px;">${l.region}</div>
+          </button>
+        `;
+      }).join('');
+
+      grid.querySelectorAll('.lang-card-btn').forEach(card => {
+        card.addEventListener('click', () => {
+          const selected = card.dataset.langCode;
+          applyDriverLanguage(selected);
+          $('modal-lang-picker')?.classList.add('hidden');
+        });
+      });
+    }
 
     function applyDriverLanguage(lang) {
       const t = DRIVER_I18N[lang] || DRIVER_I18N.en;
@@ -4491,25 +4622,26 @@
       if ($('txt-demo-hint')) $('txt-demo-hint').innerHTML = t.demoHint;
       if ($('btn-verify-otp')) $('btn-verify-otp').textContent = t.verifyBtn;
       if ($('login-offline-notice')) $('login-offline-notice').textContent = t.offlineNotice;
-      document.querySelectorAll('.lang-btn').forEach(btn => {
-        if (btn.dataset.lang === lang) {
-          btn.classList.add('active');
-          btn.style.background = '#000000';
-          btn.style.color = '#ffffff';
-        } else {
-          btn.classList.remove('active');
-          btn.style.background = 'transparent';
-          btn.style.color = '#475569';
-        }
-      });
+      if ($('current-lang-label')) $('current-lang-label').textContent = t.native;
       try { localStorage.setItem('driver_lang_pref', lang); } catch (_) {}
+      renderLanguageGrid(lang);
     }
 
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        applyDriverLanguage(btn.dataset.lang);
-      });
+    $('btn-open-lang-modal')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      const current = localStorage.getItem('driver_lang_pref') || 'en';
+      renderLanguageGrid(current);
+      $('modal-lang-picker')?.classList.remove('hidden');
+    });
+
+    $('btn-close-lang-modal')?.addEventListener('click', () => {
+      $('modal-lang-picker')?.classList.add('hidden');
+    });
+
+    $('modal-lang-picker')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-lang-picker') {
+        $('modal-lang-picker').classList.add('hidden');
+      }
     });
 
     try {
