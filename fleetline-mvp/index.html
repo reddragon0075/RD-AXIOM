@@ -25783,6 +25783,38 @@ function renderCorporateOverview() {
     }
 
 
+    function getVehicleMfr(veh) {
+      if (!veh) return '';
+      if (veh.manufacturer && veh.manufacturer !== '—') return veh.manufacturer;
+      if (veh.compliance && veh.compliance.manufacturer && veh.compliance.manufacturer !== '—') return veh.compliance.manufacturer;
+      const mm = String(veh.make_model || '').trim();
+      if (!mm || mm === '—') return '';
+      const knownBrands = [
+        'Maruti Suzuki', 'Tata Motors', 'Mercedes-Benz', 'Force Motors', 'MG Motor',
+        'Maruti', 'Suzuki', 'Toyota', 'Hyundai', 'Tata', 'Mahindra', 'Honda',
+        'Kia', 'MG', 'BYD', 'Volkswagen', 'Skoda', 'BMW', 'Audi', 'Volvo', 'Nissan', 'Renault'
+      ];
+      for (const b of knownBrands) {
+        if (mm.toLowerCase().startsWith(b.toLowerCase())) return b;
+      }
+      return mm.split(' ')[0] || '';
+    }
+
+    function getVehicleModel(veh) {
+      if (!veh) return '';
+      if (veh.model && veh.model !== '—') return veh.model;
+      if (veh.compliance && veh.compliance.model && veh.compliance.model !== '—') return veh.compliance.model;
+      const mm = String(veh.make_model || '').trim();
+      if (!mm || mm === '—') return '';
+      const mfr = getVehicleMfr(veh);
+      if (mfr && mm.toLowerCase().startsWith(mfr.toLowerCase())) {
+        const rest = mm.slice(mfr.length).trim();
+        if (rest) return rest;
+      }
+      const parts = mm.split(' ');
+      return parts.length > 1 ? parts.slice(1).join(' ') : mm;
+    }
+
     function getVehicleComplianceInfo(vehicle, guardrails) {
       const g = guardrails || state.liveData?.settings?.item?.settings?.dispatch_guardrails || {};
       const isMandatory = g.require_mandatory_vehicle_docs === true;
@@ -32371,9 +32403,9 @@ function renderCorporateOverview() {
       const currentOwnerName = value('owner_name');
       const supplierOptions = supplierList.map(s => `<option value="${esc(s.id)}" ${(currentSupplierId === s.id || currentSupplierName === s.name) ? 'selected' : ''}>${esc(s.name || s.id)}</option>`).join('');
       const driverOptions = driverList.map(d => `<option value="${esc(d.id)}" ${(v.driver_id === d.id || currentOwnerName === d.full_name) ? 'selected' : ''}>${esc(d.full_name || d.id)}${d.driver_type === 'dco' ? ' (DCO)' : ''}</option>`).join('');
-      const rawMfr = v.manufacturer || compliance.manufacturer || getVehicleMfr(v);
+      const rawMfr = v.manufacturer || compliance.manufacturer || (typeof getVehicleMfr === 'function' ? getVehicleMfr(v) : '');
       const currentMfr = rawMfr === '—' ? '' : rawMfr;
-      const rawModel = v.model || compliance.model || getVehicleModel(v);
+      const rawModel = v.model || compliance.model || (typeof getVehicleModel === 'function' ? getVehicleModel(v) : '');
       const currentModel = rawModel === '—' ? '' : rawModel;
       const defaultBrands = [
         'Maruti Suzuki', 'Suzuki', 'Toyota', 'Hyundai', 'Tata Motors',
