@@ -12,6 +12,8 @@
     href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
     rel="stylesheet">
   <link rel="preload" as="image" href="axiom-fleet-logo.png" type="image/png" />
+  <link rel="stylesheet" href="leaflet.css" />
+  <script src="leaflet.js"></script>
   <script src="supabase/config.js"></script>
   <script src="supabase/client.js"></script>
   <script src="demo_fleet_data.js?v=20261106_v2"></script>
@@ -12588,6 +12590,361 @@
     }
 
 /* =========================================================
+       Uber-Grade Live Operations & Security Command Center
+       ========================================================= */
+    .command-hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      background: radial-gradient(circle at 85% 15%, rgba(37, 99, 235, 0.22), transparent 320px),
+                  radial-gradient(circle at 15% 85%, rgba(16, 185, 129, 0.16), transparent 280px),
+                  linear-gradient(135deg, #060911 0%, #0c1322 50%, #101c30 100%);
+      color: #f8fafc;
+      padding: 24px 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.4);
+    }
+    .command-hero-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .command-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #60a5fa;
+      background: rgba(37, 99, 235, 0.14);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      margin-bottom: 8px;
+    }
+    .command-pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35);
+      animation: uber-pulse 1.8s infinite;
+    }
+    .command-pulse-dot.emergency {
+      background: #ef4444 !important;
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.5) !important;
+      animation: uber-pulse-fast 0.8s infinite !important;
+    }
+    .command-hero h2 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin: 0 0 6px;
+      color: #ffffff;
+    }
+    .command-hero p {
+      font-size: 12px;
+      color: #94a3b8;
+      margin: 0;
+      max-width: 720px;
+      line-height: 1.5;
+    }
+    .command-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .command-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      height: 36px;
+      padding: 0 16px;
+      border-radius: 9999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid transparent;
+    }
+    .command-btn.primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      border-color: #3b82f6;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+    .command-btn.primary:hover {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+      transform: translateY(-1px);
+    }
+    .command-btn.soft {
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    .command-btn.soft:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+    .command-btn.danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+    .command-btn.danger:hover {
+      background: rgba(239, 68, 68, 0.25);
+      color: #ffffff;
+      border-color: rgba(239, 68, 68, 0.7);
+    }
+
+    /* Split Workspace Grid */
+    .command-split-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(360px, 0.95fr);
+      gap: 18px;
+      margin-top: 20px;
+    }
+    @media (max-width: 1100px) {
+      .command-split-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .command-map-card {
+      position: relative;
+      background: #0b0f19;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+    }
+    .command-map-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      z-index: 10;
+    }
+    .command-map-topbar-title {
+      font-size: 11.5px;
+      font-weight: 750;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .command-stream-badge {
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .command-map-container {
+      height: 600px !important;
+      min-height: 600px !important;
+      width: 100% !important;
+      background: #090d16;
+      position: relative;
+    }
+    .command-feed-card {
+      background: #ffffff;
+      border-radius: 18px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      max-height: 660px;
+      overflow: hidden;
+    }
+    .command-feed-head {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid #edf1ee;
+    }
+    .command-filter-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      margin-top: 10px;
+      padding-bottom: 2px;
+    }
+    .command-filter-pill {
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .command-filter-pill:hover {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+    .command-filter-pill.active {
+      background: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+    }
+    .command-feed-list {
+      padding: 12px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .command-trip-card {
+      background: #fafbfc;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .command-trip-card:hover {
+      border-color: #3b82f6;
+      background: #ffffff;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.12);
+      transform: translateY(-1px);
+    }
+    .command-trip-card.selected {
+      border-color: #2563eb;
+      background: #eff6ff;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.18);
+    }
+    .command-trip-card.emergency {
+      border-color: #ef4444 !important;
+      background: #fef2f2 !important;
+      animation: border-flash 1s infinite alternate;
+    }
+    .command-trip-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .command-trip-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+    .command-meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      font-weight: 700;
+      color: #334155;
+    }
+    .command-meta-pill.speed { background: rgba(16, 185, 129, 0.12); color: #059669; }
+    .command-meta-pill.battery { background: rgba(59, 130, 246, 0.12); color: #2563eb; }
+    .command-meta-pill.otp { background: rgba(99, 102, 241, 0.12); color: #4f46e5; font-family: monospace; }
+    .command-trip-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .command-card-btn {
+      flex: 1;
+      height: 28px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      transition: all 0.15s ease;
+    }
+    .command-card-btn:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+    .command-card-btn.primary {
+      background: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+    }
+    .command-card-btn.primary:hover {
+      background: #1e293b;
+    }
+
+    /* Leaflet Custom Marker Icons */
+    .uber-cab-marker {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .uber-marker-aura {
+      position: absolute;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.25);
+      animation: uber-marker-pulse 2s infinite;
+    }
+    .uber-marker-aura.emergency {
+      background: rgba(239, 68, 68, 0.4) !important;
+      animation: uber-marker-pulse 0.7s infinite !important;
+    }
+    .uber-marker-core {
+      position: relative;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 2px solid #ffffff;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+      z-index: 2;
+    }
+    .uber-marker-core.ev { border-color: #34d399; }
+    .uber-marker-core.luxury { border-color: #fbbf24; }
+    .uber-marker-core.emergency { background: #dc2626 !important; border-color: #fef08a !important; }
+
+
+    /* =========================================================
        Uber-Grade Corporate Executive Workspace (Flagship UI)
        ========================================================= */
     .uber-hero {
@@ -17649,6 +18006,12 @@
           </button>
           <div class="nav-section-items" id="section-items-operations">
             <div class="nav-section-items-inner">
+              <button class="nav-item" data-page="live-command" data-tooltip="Live Fleet Telemetry &amp; Security Command Center">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <circle cx="12" cy="11" r="3" />
+                  <path d="m14.5 13.5 2.5 2.5" />
+                </svg><span>Live Command &amp; Security</span></button>
               <button class="nav-item active" data-page="overview" data-tooltip="Operations overview"><svg
                   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                   <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -18161,7 +18524,7 @@
     // All workspace records are tenant-scoped API data. The console deliberately
     // starts empty when a tenant has no records; no demo roster or invoice rows
     // are embedded in the product bundle.
-    const navTitles = { overview: 'Operations overview', 'pnl-dashboard': 'Executive Profit & Loss Dashboard', 'ops-dashboard': 'Operations Intelligence Dashboard', 'fleet-dashboard': 'Fleet Health & Asset Economics', 'partner-dashboard': 'Client & Partner Performance', 'esg-dashboard': 'ESG & Sustainability Intelligence', 'compliance-dashboard': 'Statutory & Regulatory Compliance Command', 'customer-detail': 'Corporate Customer 360', 'supplier-detail': 'Supplier Partner 360', duties: 'Duties board', planning: 'Route planning', bookings: 'Bookings inbox', employees: 'Corporate Employee Directory & Cost Centers', billing: 'Billing & receipts', vehicles: 'Vehicles register', drivers: 'Drivers register', 'driver-payouts': 'Driver payouts & settlements', 'vehicle-pnl': 'Vehicle lifecycle & P&L analytics', fleet: 'Vehicles register', masters: 'Masters & setup', customers: 'Customers & corporate pricing', suppliers: 'Suppliers & partner rates', reports: 'Reports & analytics', phase3: 'Axiom intelligence', finance: 'Finance controls', network: 'Network & partners', safety: 'Safety centre', admin: 'Admin health', security: 'Security & privacy', driver: 'Driver app mode', passenger: 'Passenger view', settings: 'Workspace settings', enterprise: 'Enterprise controls', 'axiom-hq': 'Axiom Fleet HQ Command Center', 'axiom-hq-vendors': 'Vendor SaaS Products • Axiom HQ', 'axiom-hq-corporates': 'Corporate SaaS Products • Axiom HQ' };
+    const navTitles = { 'live-command': 'Live Fleet Telemetry & Security Command Center', overview: 'Operations overview', 'pnl-dashboard': 'Executive Profit & Loss Dashboard', 'ops-dashboard': 'Operations Intelligence Dashboard', 'fleet-dashboard': 'Fleet Health & Asset Economics', 'partner-dashboard': 'Client & Partner Performance', 'esg-dashboard': 'ESG & Sustainability Intelligence', 'compliance-dashboard': 'Statutory & Regulatory Compliance Command', 'customer-detail': 'Corporate Customer 360', 'supplier-detail': 'Supplier Partner 360', duties: 'Duties board', planning: 'Route planning', bookings: 'Bookings inbox', employees: 'Corporate Employee Directory & Cost Centers', billing: 'Billing & receipts', vehicles: 'Vehicles register', drivers: 'Drivers register', 'driver-payouts': 'Driver payouts & settlements', 'vehicle-pnl': 'Vehicle lifecycle & P&L analytics', fleet: 'Vehicles register', masters: 'Masters & setup', customers: 'Customers & corporate pricing', suppliers: 'Suppliers & partner rates', reports: 'Reports & analytics', phase3: 'Axiom intelligence', finance: 'Finance controls', network: 'Network & partners', safety: 'Safety centre', admin: 'Admin health', security: 'Security & privacy', driver: 'Driver app mode', passenger: 'Passenger view', settings: 'Workspace settings', enterprise: 'Enterprise controls', 'axiom-hq': 'Axiom Fleet HQ Command Center', 'axiom-hq-vendors': 'Vendor SaaS Products • Axiom HQ', 'axiom-hq-corporates': 'Corporate SaaS Products • Axiom HQ' };
     const savedActivePage = (function () {
       try {
         const p = sessionStorage.getItem('axiomfleet_active_page');
@@ -18504,7 +18867,7 @@
       const allowed = role === 'driver'
         ? new Set(['driver', 'planning', 'safety', 'settings'])
         : role === 'corporate'
-          ? new Set(['overview', 'bookings', 'employees', 'duties', 'customers', 'billing', 'settings', 'reports', 'network', 'passenger'])
+          ? new Set(['overview', 'live-command', 'bookings', 'employees', 'duties', 'customers', 'billing', 'settings', 'reports', 'network', 'passenger'])
           : null;
       const networkFlag = state.networkData?.['/api/network/v1/feature-flag']?.flag;
       const networkDisabled = networkFlag?.enabled === false;
@@ -18780,7 +19143,7 @@
       const driversParent = document.getElementById('navItemDrivers');
       if (driversParent) driversParent.classList.toggle('active', state.page === 'drivers' || state.page === 'driver-payouts');
       syncAdvancedNavigation();
-      const pages = { overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, employees: renderCorporateEmployees, 'pnl-dashboard': renderPnLDashboard, 'ops-dashboard': renderOpsDashboard, 'fleet-dashboard': renderFleetDashboard, 'partner-dashboard': renderPartnerDashboard, 'esg-dashboard': renderESGDashboard, 'compliance-dashboard': renderComplianceDashboard, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, 'customer-detail': renderCustomerDetail, suppliers: renderSuppliers, 'supplier-detail': renderSupplierDetail, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ, 'axiom-hq-vendors': () => renderAxiomHQ('vendors'), 'axiom-hq-corporates': () => renderAxiomHQ('corporates') };
+      const pages = { 'live-command': renderLiveCommandCenter, overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, employees: renderCorporateEmployees, 'pnl-dashboard': renderPnLDashboard, 'ops-dashboard': renderOpsDashboard, 'fleet-dashboard': renderFleetDashboard, 'partner-dashboard': renderPartnerDashboard, 'esg-dashboard': renderESGDashboard, 'compliance-dashboard': renderComplianceDashboard, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, 'customer-detail': renderCustomerDetail, suppliers: renderSuppliers, 'supplier-detail': renderSupplierDetail, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ, 'axiom-hq-vendors': () => renderAxiomHQ('vendors'), 'axiom-hq-corporates': () => renderAxiomHQ('corporates') };
       const rawPageHtml = (pages[state.page] || renderOverview)();
       const isImpersonating = Boolean(sessionStorage.getItem('axiom_original_admin'));
       let impBanner = '';
@@ -21688,7 +22051,519 @@
       });
     }
 
-    function renderCorporateOverview() {
+    
+    // =========================================================
+    // UBER-GRADE LIVE FLEET TELEMETRY & SECURITY COMMAND CENTER
+    // =========================================================
+    const LIVE_COMMAND_TRIPS = [
+      {
+        id: 'BK-202610-LIVE1',
+        driver: 'Ramesh Gowda',
+        rating: '★ 4.96',
+        trips_count: '1,420 trips',
+        vehicle: 'Tata Nexon EV Prime',
+        plate: 'KA-03-EM-8812',
+        tier: 'EV_PRIME',
+        client: 'Zenith Corporate Tech',
+        passenger: 'Dr. Arvind Swaminathan',
+        dept: 'VP Avionics & Tech Systems',
+        route: 'Kempegowda Airport T2 → Whitefield HQ Campus',
+        coords: [13.0612, 77.6254],
+        pickup_coords: [13.1986, 77.7066],
+        dropoff_coords: [12.9863, 77.7346],
+        speed: 46,
+        battery: 84,
+        signal: '4G LTE',
+        accuracy: '±3m',
+        otp: '4821',
+        status: 'In Transit',
+        eta: '18 min',
+        corridor_ok: true,
+        night_guard: true,
+        sos: false
+      },
+      {
+        id: 'BK-202610-LIVE2',
+        driver: 'Sunil Kumar',
+        rating: '★ 4.91',
+        trips_count: '980 trips',
+        vehicle: 'Toyota Camry Hybrid',
+        plate: 'KA-01-MJ-4491',
+        tier: 'LUXURY',
+        client: 'Zenith Corporate Tech',
+        passenger: 'Pooja Hegde',
+        dept: 'Head of Product Design',
+        route: 'Infosys Gate 1, E-City → MG Road Executive Hub',
+        coords: [12.9172, 77.6228],
+        pickup_coords: [12.8398, 77.6770],
+        dropoff_coords: [12.9752, 77.6080],
+        speed: 38,
+        battery: 92,
+        signal: '5G',
+        accuracy: '±2m',
+        otp: '9104',
+        status: 'In Transit',
+        eta: '12 min',
+        corridor_ok: true,
+        night_guard: true,
+        sos: false
+      },
+      {
+        id: 'BK-202610-LIVE3',
+        driver: 'Imran Khan',
+        rating: '★ 4.88',
+        trips_count: '2,150 trips',
+        vehicle: 'Maruti Suzuki Ciaz',
+        plate: 'KA-05-AA-3312',
+        tier: 'SEDAN_PRIME',
+        client: 'Zenith Aerospace Tech',
+        passenger: 'Rohan Sharma',
+        dept: 'Lead Enterprise Architect',
+        route: 'Indiranagar 100ft Rd → Silk Board Tech Park',
+        coords: [12.9784, 77.6408],
+        pickup_coords: [12.9784, 77.6408],
+        dropoff_coords: [12.9172, 77.6228],
+        speed: 0,
+        battery: 79,
+        signal: '4G LTE',
+        accuracy: '±2m',
+        otp: '3345',
+        status: 'Driver Arrived',
+        eta: 'Boarding now',
+        corridor_ok: true,
+        night_guard: false,
+        sos: false
+      },
+      {
+        id: 'BK-202610-LIVE4',
+        driver: 'Siddharth Rao',
+        rating: '★ 4.94',
+        trips_count: '1,120 trips',
+        vehicle: 'Hyundai Verna',
+        plate: 'KA-51-MB-6621',
+        tier: 'SEDAN_PRIME',
+        client: 'Zenith Corporate Tech',
+        passenger: 'Priya Menon',
+        dept: 'VP Business Development',
+        route: 'Koramangala 4th Block → Whitefield Campus',
+        coords: [12.9352, 77.6245],
+        pickup_coords: [12.9352, 77.6245],
+        dropoff_coords: [12.9863, 77.7346],
+        speed: 28,
+        battery: 95,
+        signal: '5G',
+        accuracy: '±3m',
+        otp: '7120',
+        status: 'En Route',
+        eta: '4 min away',
+        corridor_ok: true,
+        night_guard: false,
+        sos: false
+      },
+      {
+        id: 'BK-202610-LIVE5',
+        driver: 'Vijay Shinde',
+        rating: '★ 4.90',
+        trips_count: '1,670 trips',
+        vehicle: 'MG ZS EV Prime',
+        plate: 'KA-04-EV-5542',
+        tier: 'EV_PRIME',
+        client: 'Zenith Aerospace Tech',
+        passenger: 'Abhijith',
+        dept: 'Enterprise Sales',
+        route: 'BLR Airport T1 → Electronic City Phase 1',
+        coords: [13.0358, 77.5970],
+        pickup_coords: [13.1986, 77.7066],
+        dropoff_coords: [12.8398, 77.6770],
+        speed: 62,
+        battery: 71,
+        signal: '4G LTE',
+        accuracy: '±2m',
+        otp: '5519',
+        status: 'In Transit',
+        eta: '32 min',
+        corridor_ok: true,
+        night_guard: true,
+        sos: false
+      },
+      {
+        id: 'BK-202610-LIVE6',
+        driver: 'Naveen Kumar',
+        rating: '★ 4.87',
+        trips_count: '840 trips',
+        vehicle: 'Tata Tigor EV Prime',
+        plate: 'KA-02-EE-9011',
+        tier: 'EV_PRIME',
+        client: 'Zenith Corporate Tech',
+        passenger: 'Suresh Kumar',
+        dept: 'DevOps & Cloud Systems',
+        route: 'MG Road Metro → HAL Old Airport Road',
+        coords: [12.9640, 77.6530],
+        pickup_coords: [12.9752, 77.6080],
+        dropoff_coords: [12.9550, 77.6800],
+        speed: 34,
+        battery: 88,
+        signal: '5G',
+        accuracy: '±3m',
+        otp: '2190',
+        status: 'En Route',
+        eta: '8 min',
+        corridor_ok: true,
+        night_guard: false,
+        sos: false
+      }
+    ];
+
+    let liveCommandMapInstance = null;
+    let liveCommandMarkers = {};
+    let liveCommandPolyline = null;
+    let liveCommandSimulationTimer = null;
+    let liveCommandSosActive = false;
+    let liveCommandActiveFilter = 'all';
+
+    function renderLiveCommandCenter() {
+      const isCorp = currentUser?.role === 'corporate';
+      const hubLabel = isCorp ? 'Zenith Corporate Tech · Mobility Desk' : 'Axiom Fleet Logistics · Whitefield Operations Hub';
+      const activeFilter = liveCommandActiveFilter || 'all';
+
+      const filteredTrips = LIVE_COMMAND_TRIPS.filter(t => {
+        if (activeFilter === 'ev') return t.tier === 'EV_PRIME';
+        if (activeFilter === 'luxury') return t.tier === 'LUXURY';
+        if (activeFilter === 'night') return t.night_guard;
+        if (activeFilter === 'alert') return t.sos;
+        return true;
+      });
+
+      const tripCardsHtml = filteredTrips.map(trip => {
+        const tierBadge = trip.tier === 'EV_PRIME'
+          ? '<span class="uber-badge-ev">⚡ EV PRIME</span>'
+          : trip.tier === 'LUXURY'
+            ? '<span class="uber-badge-luxury">👑 LUXURY</span>'
+            : '<span class="uber-badge-sedan">🚗 SEDAN PRIME</span>';
+
+        const statusClass = trip.sos ? 'emergency' : (trip.status === 'In Transit' ? 'green' : (trip.status === 'Driver Arrived' ? 'teal' : 'amber'));
+        const isEmergency = trip.sos;
+
+        return `
+          <div class="command-trip-card ${isEmergency ? 'emergency' : ''}" data-trip-card-id="${trip.id}">
+            <div class="command-trip-top">
+              <div>
+                <strong style="font-size:12.5px;color:#0f172a">${esc(trip.driver)}</strong>
+                <span style="font-size:10px;color:#d97706;font-weight:700;margin-left:4px">${esc(trip.rating)}</span>
+                <div style="font-size:10px;color:#64748b;margin-top:2px">${esc(trip.vehicle)} · <strong>${esc(trip.plate)}</strong></div>
+              </div>
+              <div style="text-align:right">
+                <span class="uber-status-pill ${statusClass}" style="font-size:9.5px">
+                  ${isEmergency ? '🚨 SOS TRIGGER' : `<span class="uber-pulse-dot"></span> ${esc(trip.status)}`}
+                </span>
+                <div style="font-size:9.5px;color:#64748b;margin-top:4px">${esc(trip.eta)}</div>
+              </div>
+            </div>
+
+            <div style="background:rgba(0,0,0,0.03);padding:8px 10px;border-radius:8px;margin:8px 0">
+              <div style="font-size:11px;font-weight:700;color:#1e293b">${esc(trip.passenger)}</div>
+              <div style="font-size:9.5px;color:#64748b">${esc(trip.dept)} · ${esc(trip.client)}</div>
+              <div style="font-size:10px;color:#2563eb;margin-top:4px;font-weight:600">${esc(trip.route)}</div>
+            </div>
+
+            <div class="command-trip-meta-row">
+              <span class="command-meta-pill speed">⚡ ${trip.speed} km/h</span>
+              <span class="command-meta-pill battery">🔋 ${trip.battery}%</span>
+              <span class="command-meta-pill otp">🔑 OTP ${trip.otp}</span>
+              ${trip.night_guard ? '<span class="status purple" style="font-size:9px">🌙 Safe Night Guard</span>' : ''}
+              ${trip.corridor_ok ? '<span class="status green" style="font-size:9px">✓ On Corridor</span>' : '<span class="status red" style="font-size:9px">⚠ Deviation</span>'}
+            </div>
+
+            <div class="command-trip-actions">
+              <button class="command-card-btn primary" data-action-focus-trip="${trip.id}">📍 Focus on Map</button>
+              <button class="command-card-btn" data-action-call-driver="${trip.id}">📞 Call Driver</button>
+              <button class="command-card-btn" data-action-trip-sos="${trip.id}" style="color:#ef4444;border-color:#fca5a5">🚨 SOS</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="corp-board">
+          <!-- Command Center Executive Hero -->
+          <section class="command-hero" aria-label="Axiom Live Operations & Security Command Center">
+            <div class="command-hero-header">
+              <div>
+                <div class="command-kicker">
+                  <span class="command-pulse-dot ${liveCommandSosActive ? 'emergency' : ''}"></span>
+                  ${liveCommandSosActive ? '🚨 SECURITY EMERGENCY DRILL ACTIVE' : 'AXIOM FLEET COMMAND · REAL-TIME TELEMETRY SENTINEL'}
+                </div>
+                <h2>Live Fleet Operations &amp; <span style="background:linear-gradient(135deg,#60a5fa,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Security Command Center</span></h2>
+                <p>Enterprise radar monitoring real-time chauffeur GNSS coordinates, geofence corridors, female passenger safe night transit protocols, and statutory compliance locks across ${hubLabel}.</p>
+              </div>
+              <div class="command-actions">
+                <button class="command-btn soft" id="btnCenterAllCommandMap">📍 Center All Vehicles</button>
+                <button class="command-btn soft" id="btnRefreshCommandRadar">⟳ Refresh Telemetry</button>
+                <button class="command-btn danger" id="btnSimulateSosTrigger">
+                  ${liveCommandSosActive ? '✓ Clear Emergency Alert' : '🚨 Simulate Emergency SOS'}
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Top Executive Metrics -->
+          <div class="uber-kpi-grid" style="margin-bottom:18px">
+            <div class="uber-kpi-card">
+              <div class="uber-kpi-top">
+                <span class="uber-kpi-title">LIVE IN-TRANSIT CABS</span>
+                <span class="uber-kpi-icon blue">${icon('route')}</span>
+              </div>
+              <div class="uber-kpi-num">${LIVE_COMMAND_TRIPS.length} Active Trips</div>
+              <div class="uber-kpi-foot">
+                <span class="uber-kpi-badge emerald"><span class="uber-pulse-dot"></span> 100% GPS Lock</span>
+                <span>0 delays reported</span>
+              </div>
+            </div>
+
+            <div class="uber-kpi-card">
+              <div class="uber-kpi-top">
+                <span class="uber-kpi-title">SECURITY &amp; PANIC SOS</span>
+                <span class="uber-kpi-icon ${liveCommandSosActive ? 'red' : 'emerald'}">${icon('shield')}</span>
+              </div>
+              <div class="uber-kpi-num" style="${liveCommandSosActive ? 'color:#ef4444' : ''}">
+                ${liveCommandSosActive ? '1 EMERGENCY SOS' : '100% Guarded'}
+              </div>
+              <div class="uber-kpi-foot">
+                <span class="uber-kpi-badge ${liveCommandSosActive ? 'amber' : 'emerald'}">
+                  ${liveCommandSosActive ? '🚨 Rapid Response Dispatched' : '● Desk 24/7 Monitoring'}
+                </span>
+                <span>Zero corridor deviations</span>
+              </div>
+            </div>
+
+            <div class="uber-kpi-card">
+              <div class="uber-kpi-top">
+                <span class="uber-kpi-title">SAFE NIGHT TRANSIT GUARD</span>
+                <span class="uber-kpi-icon purple">${icon('clock')}</span>
+              </div>
+              <div class="uber-kpi-num">3 Night Duties</div>
+              <div class="uber-kpi-foot">
+                <span class="uber-kpi-badge purple">🌙 Guard Active</span>
+                <span>Female Safe-Drop Locked</span>
+              </div>
+            </div>
+
+            <div class="uber-kpi-card">
+              <div class="uber-kpi-top">
+                <span class="uber-kpi-title">TELEMETRY &amp; BATTERY HEALTH</span>
+                <span class="uber-kpi-icon blue">${icon('car')}</span>
+              </div>
+              <div class="uber-kpi-num">38.4 km/h Avg</div>
+              <div class="uber-kpi-foot">
+                <span class="uber-kpi-badge blue">🔋 85% Avg Phone Batt</span>
+                <span>±2.8m Accuracy</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Split Workspace: Map on Left / Active Trips on Right -->
+          <div class="command-split-grid">
+            <!-- Left: Interactive Leaflet Telemetry Map -->
+            <div class="command-map-card">
+              <div class="command-map-topbar">
+                <div class="command-map-topbar-title">
+                  <span>🗺️</span>
+                  <span>Bengaluru Metropolitan Fleet Corridor Radar</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span class="command-stream-badge">
+                    <span class="command-pulse-dot"></span>
+                    LIVE GNSS TELEMETRY STREAM · 3.2s
+                  </span>
+                  <button type="button" class="btn small soft" id="btnToggleNightCorridor" style="border-radius:9999px;font-size:10px;padding:3px 10px">
+                    🌙 Toggle Night Corridors
+                  </button>
+                </div>
+              </div>
+
+              <!-- Map Container -->
+              <div id="command-leaflet-map" class="command-map-container"></div>
+            </div>
+
+            <!-- Right: Active Trips & Security Feed -->
+            <div class="command-feed-card">
+              <div class="command-feed-head">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <strong style="font-size:13px;color:#0f172a">Live Duty Telemetry Stream</strong>
+                  <span class="status green" style="font-size:10px">${LIVE_COMMAND_TRIPS.length} Active Vehicles</span>
+                </div>
+                <div class="command-filter-tabs">
+                  <button type="button" class="command-filter-pill ${activeFilter === 'all' ? 'active' : ''}" data-command-filter="all">All Trips (6)</button>
+                  <button type="button" class="command-filter-pill ${activeFilter === 'ev' ? 'active' : ''}" data-command-filter="ev">⚡ EV Prime (3)</button>
+                  <button type="button" class="command-filter-pill ${activeFilter === 'luxury' ? 'active' : ''}" data-command-filter="luxury">👑 Luxury (1)</button>
+                  <button type="button" class="command-filter-pill ${activeFilter === 'night' ? 'active' : ''}" data-command-filter="night">🌙 Night Guard (3)</button>
+                  <button type="button" class="command-filter-pill ${activeFilter === 'alert' ? 'active' : ''}" data-command-filter="alert" style="color:#ef4444">🚨 Alerts</button>
+                </div>
+              </div>
+
+              <div class="command-feed-list">
+                ${tripCardsHtml}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function initLiveCommandCenterMap() {
+      if (typeof L === 'undefined') {
+        console.warn('Leaflet not loaded yet, retrying...');
+        setTimeout(initLiveCommandCenterMap, 200);
+        return;
+      }
+
+      const mapContainer = document.getElementById('command-leaflet-map');
+      if (!mapContainer) return;
+
+      // Clean up existing map instance if any
+      if (liveCommandMapInstance) {
+        try { liveCommandMapInstance.remove(); } catch (_) {}
+        liveCommandMapInstance = null;
+      }
+      liveCommandMarkers = {};
+
+      // Initialize Leaflet Map centered on Bengaluru Fleet Corridor
+      const map = L.map('command-leaflet-map', {
+        zoomControl: true,
+        attributionControl: false
+      }).setView([12.9850, 77.6350], 11);
+      liveCommandMapInstance = map;
+
+      // Clean, high-performance OpenStreetMap Tiles
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Invalidate size once DOM stabilizes
+      setTimeout(() => { if (map) map.invalidateSize(); }, 150);
+
+      // Render Vehicle Markers
+      const bounds = [];
+      LIVE_COMMAND_TRIPS.forEach(trip => {
+        const isEv = trip.tier === 'EV_PRIME';
+        const isLuxury = trip.tier === 'LUXURY';
+        const isEmergency = trip.sos;
+
+        const iconHtml = `
+          <div class="uber-cab-marker" id="marker-cab-${trip.id}">
+            <div class="uber-marker-aura ${isEmergency ? 'emergency' : ''}"></div>
+            <div class="uber-marker-core ${isEmergency ? 'emergency' : (isEv ? 'ev' : (isLuxury ? 'luxury' : ''))}">
+              ${isEmergency ? '🚨' : (isEv ? '⚡' : (isLuxury ? '👑' : '🚗'))}
+            </div>
+          </div>
+        `;
+
+        const customIcon = L.divIcon({
+          className: 'custom-cab-divicon',
+          html: iconHtml,
+          iconSize: [40, 40],
+          iconAnchor: [20, 20]
+        });
+
+        const marker = L.marker(trip.coords, { icon: customIcon }).addTo(map);
+        marker.bindPopup(`
+          <div style="font-family:sans-serif;font-size:11px;min-width:180px">
+            <strong style="font-size:12px;color:#0f172a">${trip.driver} (${trip.rating})</strong>
+            <div style="color:#64748b;font-size:10px">${trip.vehicle} · ${trip.plate}</div>
+            <div style="margin:6px 0;padding:4px 6px;background:#f1f5f9;border-radius:4px">
+              <strong>${trip.passenger}</strong><br>
+              <span style="font-size:9.5px;color:#2563eb">${trip.route}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:9.5px;color:#059669;font-weight:700">
+              <span>Speed: ${trip.speed} km/h</span>
+              <span>OTP: ${trip.otp}</span>
+            </div>
+          </div>
+        `);
+
+        marker.on('click', () => {
+          highlightSelectedTrip(trip.id);
+        });
+
+        liveCommandMarkers[trip.id] = marker;
+        bounds.push(trip.coords);
+      });
+
+      if (bounds.length) {
+        try { map.fitBounds(bounds, { padding: [50, 50] }); } catch (_) {}
+      }
+
+      // Live Telemetry Simulation Engine (smooth real-time vehicle movement)
+      if (liveCommandSimulationTimer) clearInterval(liveCommandSimulationTimer);
+      liveCommandSimulationTimer = setInterval(() => {
+        if (state.page !== 'live-command' || !liveCommandMapInstance) return;
+
+        LIVE_COMMAND_TRIPS.forEach(trip => {
+          // Micro-movement along vector
+          const dLat = (Math.random() - 0.48) * 0.0006;
+          const dLng = (Math.random() - 0.48) * 0.0006;
+          trip.coords[0] += dLat;
+          trip.coords[1] += dLng;
+          trip.speed = Math.max(15, Math.min(75, Math.round(trip.speed + (Math.random() * 6 - 3))));
+
+          const m = liveCommandMarkers[trip.id];
+          if (m) m.setLatLng(trip.coords);
+        });
+      }, 4000);
+    }
+
+    function highlightSelectedTrip(tripId) {
+      const trip = LIVE_COMMAND_TRIPS.find(t => t.id === tripId);
+      if (!trip || !liveCommandMapInstance) return;
+
+      // Highlight card in feed
+      document.querySelectorAll('.command-trip-card').forEach(c => {
+        c.classList.toggle('selected', c.dataset.tripCardId === tripId);
+      });
+
+      // Fly map to vehicle coordinates
+      liveCommandMapInstance.flyTo(trip.coords, 14, { animate: true, duration: 1.2 });
+
+      // Open marker popup
+      const m = liveCommandMarkers[tripId];
+      if (m) m.openPopup();
+
+      // Draw active route polyline
+      if (liveCommandPolyline) {
+        liveCommandMapInstance.removeLayer(liveCommandPolyline);
+        liveCommandPolyline = null;
+      }
+      if (trip.pickup_coords && trip.dropoff_coords) {
+        liveCommandPolyline = L.polyline([trip.pickup_coords, trip.coords, trip.dropoff_coords], {
+          color: trip.sos ? '#ef4444' : '#2563eb',
+          weight: 4,
+          dashArray: '6, 8',
+          opacity: 0.85
+        }).addTo(liveCommandMapInstance);
+      }
+    }
+
+    function playEmergencyAlertTone() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.35);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      } catch (_) {}
+    }
+
+function renderCorporateOverview() {
       const bookings = state.liveData?.bookings?.items || [];
       const duties = dutyRowsForDisplay();
       const reports = state.liveData?.reports?.summary || {};
@@ -22137,7 +23012,7 @@
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                     All corporate duties are tracked via high-frequency GPS telemetry with tamper-proof digital duty slips.
                   </span>
-                  ${button(icon('route') + 'Open Full Live Duty Board', 'small soft', 'data-page-link="duties" style="border-radius:9999px"')}
+                  ${button(icon('route') + 'Open Live Command Center &amp; Map', 'small primary', 'data-page-link="live-command" style="border-radius:9999px;background:#0f172a;color:#fff"')}
                 </div>
               </section>
 
@@ -22755,7 +23630,7 @@
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                     All vendor duties are tracked via high-frequency GPS telemetry with tamper-proof digital duty slips.
                   </span>
-                  ${button(icon('route') + 'Open Full Live Duty Board', 'small soft', 'data-page-link="duties" style="border-radius:9999px"')}
+                  ${button(icon('route') + 'Open Live Command Center &amp; Map', 'small primary', 'data-page-link="live-command" style="border-radius:9999px;background:#2563eb;color:#fff"')}
                 </div>
               </section>
 
@@ -30001,6 +30876,86 @@
     }
 
     function attachPageEvents() {
+      if (state.page === 'live-command') {
+        setTimeout(() => {
+          initLiveCommandCenterMap();
+        }, 50);
+
+        const btnCenter = content.querySelector('#btnCenterAllCommandMap');
+        if (btnCenter) {
+          btnCenter.addEventListener('click', () => {
+            if (liveCommandMapInstance) {
+              const bounds = LIVE_COMMAND_TRIPS.map(t => t.coords);
+              try { liveCommandMapInstance.fitBounds(bounds, { padding: [50, 50] }); } catch (_) {}
+            }
+          });
+        }
+
+        const btnRefresh = content.querySelector('#btnRefreshCommandRadar');
+        if (btnRefresh) {
+          btnRefresh.addEventListener('click', () => {
+            showToast('Live Telemetry Updated', 'Heartbeat refreshed across 6 tracked fleet units.');
+            if (liveCommandMapInstance) liveCommandMapInstance.invalidateSize();
+          });
+        }
+
+        const btnSos = content.querySelector('#btnSimulateSosTrigger');
+        if (btnSos) {
+          btnSos.addEventListener('click', () => {
+            liveCommandSosActive = !liveCommandSosActive;
+            LIVE_COMMAND_TRIPS[0].sos = liveCommandSosActive;
+            if (liveCommandSosActive) {
+              playEmergencyAlertTone();
+              showToast('🚨 EMERGENCY SOS TRIGGERED', 'Vehicle KA-03-EM-8812 panic alert. Rapid response desk alerted.');
+            } else {
+              showToast('Emergency Resolved', 'Incident KA-03-EM-8812 marked safe & clear.');
+            }
+            render();
+          });
+        }
+
+        content.querySelectorAll('[data-command-filter]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            liveCommandActiveFilter = btn.dataset.commandFilter;
+            render();
+          });
+        });
+
+        content.querySelectorAll('[data-action-focus-trip]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            highlightSelectedTrip(btn.dataset.actionFocusTrip);
+          });
+        });
+
+        content.querySelectorAll('[data-action-call-driver]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const trip = LIVE_COMMAND_TRIPS.find(t => t.id === btn.dataset.actionCallDriver);
+            showToast('Dialing Driver', 'Connecting to ' + (trip ? trip.driver : 'Chauffeur') + ' on encrypted voice line...');
+          });
+        });
+
+        content.querySelectorAll('[data-action-trip-sos]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const trip = LIVE_COMMAND_TRIPS.find(t => t.id === btn.dataset.actionTripSos);
+            if (trip) {
+              trip.sos = !trip.sos;
+              liveCommandSosActive = trip.sos;
+              if (trip.sos) playEmergencyAlertTone();
+              showToast(trip.sos ? '🚨 EMERGENCY SOS ACTIVE' : 'SOS Cleared', 'Vehicle ' + trip.plate + ' incident status updated.');
+              render();
+            }
+          });
+        });
+
+        content.querySelectorAll('.command-trip-card').forEach(card => {
+          card.addEventListener('click', () => {
+            highlightSelectedTrip(card.dataset.tripCardId);
+          });
+        });
+      }
       content.querySelectorAll('[data-page-link]').forEach(el => el.addEventListener('click', () => { state.page = el.dataset.pageLink; try { window.location.hash = '#' + state.page; } catch (_) { } render(); }));
       content.querySelectorAll('[data-master-section]').forEach(el => el.addEventListener('click', () => {
         const key = el.dataset.masterSection;

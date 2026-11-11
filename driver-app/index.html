@@ -3453,6 +3453,40 @@
       return null;
     }
 
+    let lastGpsTransmitTimestamp = 0;
+    async function transmitLocationToServer(coords) {
+      if (!coords || !Array.isArray(coords)) return;
+      const now = Date.now();
+      if (now - lastGpsTransmitTimestamp < 5000) return;
+      lastGpsTransmitTimestamp = now;
+
+      const dutyId = state.duty?.id;
+      const payload = {
+        latitude: coords[0],
+        longitude: coords[1],
+        recorded_at: new Date().toISOString(),
+        accuracy_m: 5.0,
+        battery_pct: 88,
+        source: 'driver_app',
+        idempotency_key: 'track-' + (dutyId || 'general') + '-' + now
+      };
+
+      if (dutyId && state.online) {
+        try {
+          await fetch(apiUrl('/api/duties/' + encodeURIComponent(dutyId) + '/track'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } catch (_) {
+          if (state.queue) {
+            state.queue.push({ entity_type: 'track_point', duty_id: dutyId, payload });
+            saveQueue();
+          }
+        }
+      }
+    }
+
     function applyNewLocation(coords, shouldPan = false) {
       if (!coords || !Array.isArray(coords)) return;
       state.currentLocation = coords;
