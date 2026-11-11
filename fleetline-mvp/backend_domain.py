@@ -924,6 +924,15 @@ def _create_vehicle(conn, user, payload, ip):
     registration = _text(payload, "registration_number").upper()
     if not registration:
         raise DomainError(400, "Registration number is required", "validation_error")
+    try:
+        vendor_row = conn.execute("SELECT saas_plan FROM axiom_hq_vendors WHERE organization_id = ?", (org,)).fetchone()
+        if vendor_row and vendor_row["saas_plan"] == "MICRO_FLEET":
+            cur_count = conn.execute("SELECT count(*) FROM domain_vehicles WHERE organization_id = ?", (org,)).fetchone()[0]
+            if cur_count >= 10:
+                raise DomainError(403, "Micro-Fleet plan is limited to a maximum of 10 vehicles. Upgrade plan to expand fleet.", "micro_fleet_vehicle_limit_exceeded")
+    except Exception as e:
+        if isinstance(e, DomainError):
+            raise
     if conn.execute("SELECT 1 FROM domain_vehicles WHERE organization_id = ? AND registration_number = ?", (org, registration)).fetchone():
         raise DomainError(409, "A vehicle with this registration already exists", "duplicate_vehicle")
     vehicle_id = new_id("veh")

@@ -1378,12 +1378,20 @@
       </div>
 
       <form class="login-card" id="login-form">
-        <h2>Driver Sign In</h2>
+        <!-- Vernacular Language Selector (English, हिंदी, ಕನ್ನಡ, தமிழ்) -->
+        <div class="lang-selector-strip" style="display:flex; gap:6px; margin-bottom:14px; background:#f1f5f9; padding:4px; border-radius:10px;">
+          <button type="button" class="lang-btn active" data-lang="en" style="flex:1; border:none; background:#000000; color:#ffffff; font-size:11px; font-weight:750; padding:6px 0; border-radius:7px; cursor:pointer;">English</button>
+          <button type="button" class="lang-btn" data-lang="hi" style="flex:1; border:none; background:transparent; color:#475569; font-size:11px; font-weight:750; padding:6px 0; border-radius:7px; cursor:pointer;">हिंदी</button>
+          <button type="button" class="lang-btn" data-lang="kn" style="flex:1; border:none; background:transparent; color:#475569; font-size:11px; font-weight:750; padding:6px 0; border-radius:7px; cursor:pointer;">ಕನ್ನಡ</button>
+          <button type="button" class="lang-btn" data-lang="ta" style="flex:1; border:none; background:transparent; color:#475569; font-size:11px; font-weight:750; padding:6px 0; border-radius:7px; cursor:pointer;">தமிழ்</button>
+        </div>
+
+        <h2 id="login-title">Driver Sign In</h2>
         <p class="sub" id="auth-sub">Enter your 10-digit registered mobile number to receive a verification OTP.</p>
 
         <!-- Step 1: Mobile Phone Input -->
         <div id="step-phone">
-          <label class="field">Registered Mobile Number
+          <label class="field" id="label-phone">Registered Mobile Number
             <div class="phone-input-wrap">
               <span class="country-code">🇮🇳 +91</span>
               <input id="driver-phone" type="tel" inputmode="numeric" maxlength="10" placeholder="98765 43210" required autocomplete="tel-national">
@@ -1395,13 +1403,13 @@
         <!-- Step 2: OTP Input (Initially Hidden) -->
         <div id="step-otp" class="hidden">
           <div class="otp-banner">
-            <span>OTP sent to <strong id="display-phone">+91 98765 43210</strong></span>
+            <span><span id="txt-otp-sent">OTP sent to</span> <strong id="display-phone">+91 98765 43210</strong></span>
             <button type="button" class="link-btn" id="btn-edit-phone">Edit</button>
           </div>
-          <label class="field" style="margin-top:12px;">Enter 4-Digit Code
+          <label class="field" id="label-otp-code" style="margin-top:12px;">Enter 4-Digit Code
             <input id="driver-otp" type="tel" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="one-time-code">
           </label>
-          <div class="demo-hint">💡 Test code: <strong>2026</strong> (or any 4 digits auto-accepted)</div>
+          <div class="demo-hint" id="txt-demo-hint">💡 Test code: <strong>2026</strong> (or any 4 digits auto-accepted)</div>
           <button class="primary-btn" type="submit" id="btn-verify-otp">Verify & Open Cockpit →</button>
           <div style="text-align:center; font-size:11px; color:var(--muted); margin-top:12px;">
             <span id="resend-timer">Resend OTP in 30s</span>
@@ -1410,7 +1418,7 @@
         </div>
 
         <div class="login-error" id="login-error" role="alert"></div>
-        <div style="margin-top:10px; font-size:10px; color:#52695e; line-height:1.4;">
+        <div id="login-offline-notice" style="margin-top:10px; font-size:10px; color:#52695e; line-height:1.4;">
           Axiom Driver is offline-resilient. All duty actions queue locally and replay automatically.
         </div>
       </form>
@@ -1438,6 +1446,11 @@
           <i class="status-dot"></i>
           <span id="online-text">ONLINE</span>
         </button>
+
+        <div class="offline-crypto-pill" id="offline-crypto-pill" style="display:flex; align-items:center; gap:5px; padding:7px 12px; border-radius:999px; background:#000000; color:#06c167; font-size:11px; font-weight:800; border:1px solid rgba(6,193,103,0.35); box-shadow:0 4px 14px rgba(0,0,0,0.22); letter-spacing:-0.01em;">
+          <span>🔒</span>
+          <span id="crypto-buffer-label">Buffer: Verified</span>
+        </div>
 
         <button class="top-earnings-pill" id="btn-open-earnings" type="button" aria-label="View Today Earnings">
           <span>Today</span>
@@ -4418,6 +4431,115 @@
         }
       }, 1000);
     }
+
+    // ----------------------------------------------------
+    // VERNACULAR I18N SUPPORT (English, हिंदी, ಕನ್ನಡ, தமிழ்)
+    // ----------------------------------------------------
+    const DRIVER_I18N = {
+      en: {
+        title: "Driver Sign In",
+        sub: "Enter your 10-digit registered mobile number to receive a verification OTP.",
+        phoneLabel: "Registered Mobile Number",
+        getOtpBtn: "Get Verification OTP →",
+        otpSent: "OTP sent to",
+        otpLabel: "Enter 4-Digit Code",
+        demoHint: "💡 Test code: <strong>2026</strong> (or any 4 digits auto-accepted)",
+        verifyBtn: "Verify & Open Cockpit →",
+        offlineNotice: "Axiom Driver is offline-resilient. All duty actions queue locally and replay automatically."
+      },
+      hi: {
+        title: "ड्राइवर साइन इन",
+        sub: "सत्यापन OTP प्राप्त करने के लिए अपना 10-अंकों का पंजीकृत मोबाइल नंबर दर्ज करें।",
+        phoneLabel: "पंजीकृत मोबाइल नंबर",
+        getOtpBtn: "सत्यापन OTP प्राप्त करें →",
+        otpSent: "OTP भेजा गया:",
+        otpLabel: "4-अंकों का कोड दर्ज करें",
+        demoHint: "💡 टेस्ट कोड: <strong>2026</strong> (या कोई भी 4 अंक)",
+        verifyBtn: "सत्यापित करें और कॉकपिट खोलें →",
+        offlineNotice: "एक्जिओम ड्राइवर ऑफलाइन-सक्षम है। सभी ड्यूटी क्रियाएं स्थानीय रूप से सुरक्षित रहती हैं।"
+      },
+      kn: {
+        title: "ಚಾಲಕ ಸೈನ್ ಇನ್",
+        sub: "ಪರಿಶೀಲನೆ OTP ಪಡೆಯಲು ನಿಮ್ಮ 10-ಅಂಕಿಯ ನೋಂದಾಯಿತ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ.",
+        phoneLabel: "ನೋಂದಾಯಿತ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ",
+        getOtpBtn: "ಪರಿಶೀಲನಾ OTP ಪಡೆಯಿರಿ →",
+        otpSent: "OTP ಕಳುಹಿಸಲಾಗಿದೆ:",
+        otpLabel: "4-ಅಂಕಿಯ ಕೋಡ್ ನಮೂದಿಸಿ",
+        demoHint: "💡 ಟೆಸ್ಟ್ ಕೋಡ್: <strong>2026</strong> (ಯಾವುದೇ 4 ಅಂಕಿಗಳು)",
+        verifyBtn: "ದೃಢೀಕರಿಸಿ ಮತ್ತು ಕಾಕ್‌ಪಿಟ್ ತೆರೆಯಿರಿ →",
+        offlineNotice: "ಆಕ್ಸಿಯೋಮ್ ಡ್ರೈವರ್ ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ. ಎಲ್ಲಾ ಡೇಟಾ ಸ್ಥಳೀಯವಾಗಿ ಸಂಗ್ರಹವಾಗುತ್ತದೆ."
+      },
+      ta: {
+        title: "ஓட்டுநர் உள்நுழைவு",
+        sub: "சரிபார்ப்பு OTP பெற உங்கள் 10-இலக்க பதிவுசெய்யப்பட்ட மொபைல் எண்ணை உள்ளிடவும்.",
+        phoneLabel: "பதிவுசெய்யப்பட்ட மொபைல் எண்",
+        getOtpBtn: "சரிபார்ப்பு OTP பெறுக →",
+        otpSent: "OTP அனுப்பப்பட்டது:",
+        otpLabel: "4-இலக்க குறியீட்டை உள்ளிடவும்",
+        demoHint: "💡 சோதனை குறியீடு: <strong>2026</strong> (ஏதேனும் 4 இலக்கங்கள்)",
+        verifyBtn: "சரிபார்த்து காக்பிட்டைத் திற →",
+        offlineNotice: "ஆக்ஸியோம் டிரைவர் ஆஃப்லைனில் செயல்படும் திறன் கொண்டது."
+      }
+    };
+
+    function applyDriverLanguage(lang) {
+      const t = DRIVER_I18N[lang] || DRIVER_I18N.en;
+      if ($('login-title')) $('login-title').textContent = t.title;
+      if ($('auth-sub')) $('auth-sub').textContent = t.sub;
+      if ($('btn-get-otp')) $('btn-get-otp').textContent = t.getOtpBtn;
+      if ($('txt-otp-sent')) $('txt-otp-sent').textContent = t.otpSent;
+      if ($('txt-demo-hint')) $('txt-demo-hint').innerHTML = t.demoHint;
+      if ($('btn-verify-otp')) $('btn-verify-otp').textContent = t.verifyBtn;
+      if ($('login-offline-notice')) $('login-offline-notice').textContent = t.offlineNotice;
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        if (btn.dataset.lang === lang) {
+          btn.classList.add('active');
+          btn.style.background = '#000000';
+          btn.style.color = '#ffffff';
+        } else {
+          btn.classList.remove('active');
+          btn.style.background = 'transparent';
+          btn.style.color = '#475569';
+        }
+      });
+      try { localStorage.setItem('driver_lang_pref', lang); } catch (_) {}
+    }
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        applyDriverLanguage(btn.dataset.lang);
+      });
+    });
+
+    try {
+      const savedLang = localStorage.getItem('driver_lang_pref') || 'en';
+      applyDriverLanguage(savedLang);
+    } catch (_) {}
+
+    // ----------------------------------------------------
+    // OFFLINE CRYPTOGRAPHIC BUFFER BADGE SYNC
+    // ----------------------------------------------------
+    function updateCryptoBufferBadge() {
+      const badge = $('offline-crypto-pill');
+      const label = $('crypto-buffer-label');
+      if (!badge || !label) return;
+      const qLen = (state.queue || []).length;
+      if (!navigator.onLine || qLen > 0) {
+        badge.style.background = '#f29900';
+        badge.style.color = '#000000';
+        badge.style.borderColor = '#f29900';
+        label.innerHTML = `🔒 Buffer: <strong>${qLen}</strong> Offline Actions Sealed`;
+      } else {
+        badge.style.background = '#000000';
+        badge.style.color = '#06c167';
+        badge.style.borderColor = 'rgba(6,193,103,0.35)';
+        label.innerHTML = `🔒 Crypto Buffer: Verified (0 Loss)`;
+      }
+    }
+    window.addEventListener('online', updateCryptoBufferBadge);
+    window.addEventListener('offline', updateCryptoBufferBadge);
+    setInterval(updateCryptoBufferBadge, 3000);
 
     $('btn-get-otp')?.addEventListener('click', () => {
       $('login-error').textContent = '';

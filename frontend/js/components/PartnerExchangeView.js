@@ -203,6 +203,9 @@ export class PartnerExchangeView {
           <button class="tab-btn ${this.state.activeTab === 'FACTORING_PAYOUTS' ? 'active' : ''}" data-view-tab="FACTORING_PAYOUTS" style="padding:8px 16px; border-radius:8px; font-size:12.5px; font-weight:750; cursor:pointer; border:none;">
             ⚡ Instant T+0 Factoring (${(this.state.factoringDuties || []).length})
           </button>
+          <button class="tab-btn ${this.state.activeTab === 'SHADOW_MODE' ? 'active' : ''}" data-view-tab="SHADOW_MODE" style="padding:8px 16px; border-radius:8px; font-size:12.5px; font-weight:750; cursor:pointer; border:none;">
+            🛡️ Shadow Mode (Vendor Audit)
+          </button>
         </div>
 
         <!-- Active Tab Content -->
@@ -222,6 +225,8 @@ export class PartnerExchangeView {
         return this.renderDemandSwarmView();
       case "FACTORING_PAYOUTS":
         return this.renderFactoringPayoutsView();
+      case "SHADOW_MODE":
+        return this.renderShadowModeView();
       case "EXCHANGE_FEED":
       default:
         return this.renderExchangeFeedView();
@@ -408,6 +413,88 @@ export class PartnerExchangeView {
                     ⚡ Instant Cash-Out (T+0)
                   </button>
                 </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  renderShadowModeView() {
+    const shadowItems = this.state.shadowEvaluations || [
+      { id: "shd_01", route: "Whitefield to BLR Airport T2", vendor_billed: 2850.0, axiom_audited: 2180.0, leakage: 670.0, reason: "Excess Deadhead KMs (18km claimed vs 6km actual GPS)" },
+      { id: "shd_02", route: "Electronic City to Manyata Tech Park", vendor_billed: 1650.0, axiom_audited: 1290.0, leakage: 360.0, reason: "Inflated Waiting Time (45 min charged vs 12 min stopped)" },
+      { id: "shd_03", route: "Koramangala to Outer Ring Road Bellandur", vendor_billed: 980.0, axiom_audited: 820.0, leakage: 160.0, reason: "Non-existent Toll Tagging (Double-counted toll plaza)" },
+      { id: "shd_04", route: "Indiranagar to Kempegowda Bus Station", vendor_billed: 1150.0, axiom_audited: 920.0, leakage: 230.0, reason: "Standard Sedan billed under Premium SUV Tier" },
+    ];
+    const totalBilled = shadowItems.reduce((acc, it) => acc + it.vendor_billed, 0);
+    const totalAudited = shadowItems.reduce((acc, it) => acc + it.axiom_audited, 0);
+    const totalLeakage = shadowItems.reduce((acc, it) => acc + it.leakage, 0);
+    const savingsPct = Math.round((totalLeakage / totalBilled) * 1000) / 10;
+
+    return `
+      <div style="background:#fff; border-radius:12px; border:1px solid #e2e8f0; padding:20px; box-shadow:0 4px 14px rgba(0,0,0,0.03);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:18px;">🛡️</span>
+              <h2 style="margin:0; font-size:16px; font-weight:800; color:#0f172a;">Shadow Evaluation Mode &bull; Zero-Disruption Vendor Audit</h2>
+              <span style="font-size:10.5px; background:#dcfce7; color:#15803d; padding:3px 8px; border-radius:6px; font-weight:800;">
+                ACTIVE &bull; 0% CONTRACT DISRUPTION
+              </span>
+            </div>
+            <p style="margin:4px 0 0; font-size:12px; color:#64748b;">
+              Audits existing contracted fleet vendor invoices side-by-side using Algorithmic GPS Trust telemetry without requiring immediate vendor migration.
+            </p>
+          </div>
+          <button data-action="run-shadow-audit" style="background:#0f172a; color:#fff; border:none; padding:8px 16px; border-radius:8px; font-size:12px; font-weight:750; cursor:pointer;">
+            + Run Trip Audit
+          </button>
+        </div>
+
+        <!-- 4-Pillar Summary Strip -->
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px;">
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px;">
+            <div style="font-size:11px; color:#64748b; font-weight:600;">Audited External Billed</div>
+            <div style="font-size:18px; font-weight:900; color:#0f172a; margin-top:4px;">₹${this.decimalFormatter.format(totalBilled).replace('₹', '')}</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px;">
+            <div style="font-size:11px; color:#64748b; font-weight:600;">Axiom Algorithmic Cost</div>
+            <div style="font-size:18px; font-weight:900; color:#2563eb; margin-top:4px;">₹${this.decimalFormatter.format(totalAudited).replace('₹', '')}</div>
+          </div>
+          <div style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:10px; padding:12px 14px;">
+            <div style="font-size:11px; color:#047857; font-weight:600;">Billing Leakage Prevented</div>
+            <div style="font-size:18px; font-weight:900; color:#059669; margin-top:4px;">₹${this.decimalFormatter.format(totalLeakage).replace('₹', '')} <span style="font-size:12px; font-weight:700;">(${savingsPct}%)</span></div>
+          </div>
+          <div style="background:#faf5ff; border:1px solid #e9d5ff; border-radius:10px; padding:12px 14px;">
+            <div style="font-size:11px; color:#7e22ce; font-weight:600;">Corporate Migration Risk</div>
+            <div style="font-size:18px; font-weight:900; color:#6b21a8; margin-top:4px;">0.0% <span style="font-size:11px; font-weight:700;">(Parallel Shadow)</span></div>
+          </div>
+        </div>
+
+        <!-- Detail Table -->
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <thead>
+            <tr style="background:#f1f5f9; text-align:left; color:#475569; font-size:11px; font-weight:750; text-transform:uppercase; letter-spacing:0.04em;">
+              <th style="padding:10px 12px; border-radius:6px 0 0 6px;">Trip / Route</th>
+              <th style="padding:10px;">Contracted Vendor Billed</th>
+              <th style="padding:10px;">Axiom Algorithmic Tariff</th>
+              <th style="padding:10px;">Billing Leakage</th>
+              <th style="padding:10px; border-radius:0 6px 6px 0;">Audit Anomaly Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${shadowItems.map(it => `
+              <tr style="border-bottom:1px solid #f1f5f9;">
+                <td style="padding:12px 10px; font-weight:700; color:#1e293b;">
+                  <div>${it.route}</div>
+                  <div style="font-size:10px; color:#64748b;">Audit ID: ${it.id} &bull; Cryptographically Verified</div>
+                </td>
+                <td style="padding:12px 10px; font-weight:700; color:#0f172a;">₹${this.decimalFormatter.format(it.vendor_billed).replace('₹', '')}</td>
+                <td style="padding:12px 10px; font-weight:700; color:#2563eb;">₹${this.decimalFormatter.format(it.axiom_audited).replace('₹', '')}</td>
+                <td style="padding:12px 10px; font-weight:800; color:#15803d;">₹${this.decimalFormatter.format(it.leakage).replace('₹', '')}</td>
+                <td style="padding:12px 10px; color:#b45309; font-size:11.5px; font-weight:600;">${it.reason}</td>
               </tr>
             `).join("")}
           </tbody>

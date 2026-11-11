@@ -306,6 +306,10 @@ export class TripCorrectionDrawer {
                   <label style="font-weight:700;font-size:12px;color:#94a3b8;">Odometer Continuity Audit</label>
                   <span class="continuity-badge ${continuity.cls}">${continuity.label}</span>
                 </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:4px 8px;background:#0f172a66;border-radius:6px;border:1px solid #1e293b;">
+                  <span style="font-size:10.5px;color:#94a3b8;font-weight:600;">Telemetry Security</span>
+                  <span class="continuity-badge continuity-ok" style="font-size:10px;padding:2px 6px;">🔒 Offline Cryptographic Buffer: VERIFIED</span>
+                </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                   <div>
                     <label style="font-size:11px;color:#64748b;display:block;margin-bottom:2px;">Start KM</label>

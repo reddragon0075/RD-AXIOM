@@ -121,6 +121,24 @@ def initialize_corporate_engine_schema(conn: sqlite3.Connection) -> None:
         )
         """
     )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS corporate_shadow_evaluations (
+            id TEXT PRIMARY KEY,
+            organization_id TEXT NOT NULL,
+            vendor_name TEXT NOT NULL,
+            route_name TEXT NOT NULL,
+            contracted_billed_inr REAL NOT NULL,
+            axiom_audited_inr REAL NOT NULL,
+            leakage_inr REAL NOT NULL,
+            savings_pct REAL NOT NULL,
+            reported_kms REAL NOT NULL DEFAULT 0.0,
+            actual_gps_kms REAL NOT NULL DEFAULT 0.0,
+            status TEXT NOT NULL DEFAULT 'EVALUATED_SHADOW',
+            created_at TEXT NOT NULL
+        )
+        """
+    )
     conn.commit()
 
 
@@ -436,5 +454,111 @@ def handle_corporate_engine(
             for r in rows:
                 r["journal_lines"] = json.loads(r.get("journal_lines") or "[]")
             return {"items": rows}
+
+    # -------------------------------------------------------------------------
+    # 6. Shadow Evaluation Mode (Zero-Disruption Parallel Vendor Audit)
+    # -------------------------------------------------------------------------
+    if clean_path == "/api/corporate/shadow-evaluation":
+        if method == "POST":
+            data = payload or {}
+            eval_id = new_id("shd")
+            now = now_iso()
+            vendor = str(data.get("vendor_name") or "Contracted Vendor Partner")
+            route_name = str(data.get("route_name") or "Airport Corporate Transfer")
+            contracted_billed = float(data.get("contracted_vendor_billed_inr", 2500.0))
+            rep_kms = float(data.get("reported_kms", 55.0))
+            gps_kms = float(data.get("actual_gps_kms", 42.0))
+            toll_claimed = float(data.get("toll_claimed_inr", 150.0))
+            genuine_toll = float(data.get("genuine_toll_inr", toll_claimed if toll_claimed <= 150.0 else 120.0))
+
+            # Axiom Algorithmic Tariff Benchmark (Tier-1 Sedan rate: base ₹800/40km + ₹18/extra km + toll)
+            base_fare = 800.0
+            extra_km = max(0.0, gps_kms - 40.0)
+            extra_km_charge = extra_km * 18.0
+            axiom_audited = round(base_fare + extra_km_charge + genuine_toll, 2)
+            leakage = max(0.0, round(contracted_billed - axiom_audited, 2))
+            savings_pct = round((leakage / contracted_billed) * 100.0, 1) if contracted_billed > 0 else 0.0
+
+            conn.execute(
+                """
+                INSERT INTO corporate_shadow_evaluations (
+                    id, organization_id, vendor_name, route_name,
+                    contracted_billed_inr, axiom_audited_inr, leakage_inr,
+                    savings_pct, reported_kms, actual_gps_kms, status, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'EVALUATED_SHADOW', ?)
+                """,
+                (
+                    eval_id,
+                    org_id,
+                    vendor,
+                    route_name,
+                    contracted_billed,
+                    axiom_audited,
+                    leakage,
+                    savings_pct,
+                    rep_kms,
+                    gps_kms,
+                    now,
+                ),
+            )
+            conn.commit()
+
+            return {
+                "ok": True,
+                "shadow_evaluation_id": eval_id,
+                "vendor_name": vendor,
+                "route_name": route_name,
+                "contracted_vendor_billed_inr": contracted_billed,
+                "axiom_audited_inr": axiom_audited,
+                "leakage_prevented_inr": leakage,
+                "savings_pct": savings_pct,
+                "reported_kms": rep_kms,
+                "actual_gps_kms": gps_kms,
+                "mode": "PARALLEL_SHADOW_EVALUATION",
+                "migration_risk": "ZERO_DISRUPTION",
+                "evaluated_at": now,
+            }
+
+        if method == "GET":
+            cur = conn.execute(
+                "SELECT * FROM corporate_shadow_evaluations WHERE organization_id = ? ORDER BY created_at DESC",
+                (org_id,),
+            )
+            return {"items": [dict(r) for r in cur.fetchall()]}
+
+    if clean_path == "/api/corporate/shadow-evaluation/summary":
+        if method == "GET":
+            cur = conn.execute(
+                """
+                SELECT
+                    count(*) as total_audited,
+                    COALESCE(sum(contracted_billed_inr), 0.0) as total_vendor_billed,
+                    COALESCE(sum(axiom_audited_inr), 0.0) as total_axiom_audited,
+                    COALESCE(sum(leakage_inr), 0.0) as total_leakage_prevented
+                FROM corporate_shadow_evaluations
+                WHERE organization_id = ?
+                """,
+                (org_id,),
+            )
+            agg = dict(cur.fetchone() or {})
+            total_audited = agg.get("total_audited", 0)
+            total_billed = agg.get("total_vendor_billed", 0.0)
+            total_leakage = agg.get("total_leakage_prevented", 0.0)
+            avg_savings = round((total_leakage / total_billed) * 100.0, 1) if total_billed > 0 else 0.0
+
+            cur_items = conn.execute(
+                "SELECT * FROM corporate_shadow_evaluations WHERE organization_id = ? ORDER BY created_at DESC LIMIT 20",
+                (org_id,),
+            )
+            return {
+                "ok": True,
+                "total_trips_audited": total_audited,
+                "total_vendor_billed_inr": round(total_billed, 2),
+                "total_axiom_audited_inr": round(agg.get("total_axiom_audited", 0.0), 2),
+                "total_leakage_prevented_inr": round(total_leakage, 2),
+                "average_savings_pct": avg_savings,
+                "migration_risk": "ZERO_DISRUPTION",
+                "items": [dict(r) for r in cur_items.fetchall()],
+            }
 
     return None

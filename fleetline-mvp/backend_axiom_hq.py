@@ -88,7 +88,7 @@ def initialize_axiom_hq_schema(conn: sqlite3.Connection) -> None:
             email TEXT NOT NULL,
             city TEXT NOT NULL,
             joined_date TEXT NOT NULL,
-            saas_plan TEXT NOT NULL CHECK (saas_plan IN ('STARTER', 'GROWTH', 'ENTERPRISE_WHITE_LABEL', 'BESPOKE', 'CUSTOM')),
+            saas_plan TEXT NOT NULL CHECK (saas_plan IN ('STARTER', 'GROWTH', 'ENTERPRISE_WHITE_LABEL', 'BESPOKE', 'CUSTOM', 'MICRO_FLEET')),
             billing_cycle TEXT NOT NULL CHECK (billing_cycle IN ('MONTHLY', 'QUARTERLY', 'ANNUAL')),
             saas_fee_inr REAL NOT NULL,
             last_payment_date TEXT NOT NULL,
@@ -108,6 +108,14 @@ def initialize_axiom_hq_schema(conn: sqlite3.Connection) -> None:
         pass
     try:
         conn.execute("ALTER TABLE axiom_hq_vendors ADD COLUMN custom_plan_name TEXT")
+    except Exception:
+        pass
+    try:
+        conn.execute("ALTER TABLE axiom_hq_vendors ADD COLUMN per_trip_fee_inr REAL DEFAULT 0.0")
+    except Exception:
+        pass
+    try:
+        conn.execute("ALTER TABLE axiom_hq_plans ADD COLUMN per_trip_fee_inr REAL DEFAULT 0.0")
     except Exception:
         pass
 
@@ -246,6 +254,21 @@ def initialize_axiom_hq_schema(conn: sqlite3.Connection) -> None:
                 1,
                 now,
             ),
+            (
+                "plan_micro_fleet",
+                "Micro-Fleet Pay-Per-Trip",
+                "MICRO_FLEET",
+                0.0,
+                0.0,
+                -1,
+                10,
+                0,
+                1,
+                0,
+                "Community & Self-Service",
+                1,
+                now,
+            ),
         ]
         conn.executemany(
             """
@@ -259,6 +282,25 @@ def initialize_axiom_hq_schema(conn: sqlite3.Connection) -> None:
             sample_plans,
         )
         conn.commit()
+
+    # Ensure plan_micro_fleet is present even if database had existing plans
+    try:
+        cur_mf = conn.execute("SELECT count(*) FROM axiom_hq_plans WHERE id = 'plan_micro_fleet'")
+        if cur_mf.fetchone()[0] == 0:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO axiom_hq_plans (
+                    id, name, tier, monthly_fee_inr, annual_fee_inr,
+                    duty_limit, vehicle_limit, white_label_enabled,
+                    custom_pricing_enabled, api_access_enabled, support_tier,
+                    is_active, created_at, per_trip_fee_inr
+                ) VALUES ('plan_micro_fleet', 'Micro-Fleet Pay-Per-Trip', 'MICRO_FLEET', 0.0, 0.0, -1, 10, 0, 1, 0, 'Community & Self-Service', 1, ?, 12.0)
+                """,
+                (now,),
+            )
+            conn.commit()
+    except Exception:
+        pass
 
     # Seed baseline vendors and corporate portal mapping if empty
     cur_v = conn.execute("SELECT count(*) FROM axiom_hq_vendors")
@@ -1015,7 +1057,7 @@ def handle_axiom_hq(
 
         admin_id = user.get("id") or "usr_axiom_hq"
         admin_email = user.get("email") or "staff@axiomfleet.in"
-        now_iso = dt.datetime.now(dt.timezone.utc).isoformat()
+        now_stamp = dt.datetime.now(dt.timezone.utc).isoformat()
         exp_iso = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=60)).isoformat()
 
         if target_type == "vendor":
@@ -1096,7 +1138,7 @@ def handle_axiom_hq(
                     reason,
                     hashlib.sha256(session_id.encode("utf-8")).hexdigest(),
                     remote_ip,
-                    now_iso,
+                    now_stamp,
                     exp_iso,
                 ),
             )

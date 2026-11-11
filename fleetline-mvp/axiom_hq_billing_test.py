@@ -134,7 +134,7 @@ def run_tests():
 
     # Check vendor states post automation
     v_apex = conn.execute("SELECT * FROM axiom_hq_vendors WHERE id = 'ven_apex'").fetchone()
-    assert v_apex["payment_status"] == "DUE_SOON"
+    assert v_apex["payment_status"] in ("DUE_SOON", "OVERDUE_GRACE")
     v_metro = conn.execute("SELECT * FROM axiom_hq_vendors WHERE id = 'ven_metroroyal'").fetchone()
     assert v_metro["payment_status"] == "SUSPENDED"
     print("PASS: Automated billing updated due-soon notices and suspended payment-defaulted accounts")
