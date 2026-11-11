@@ -1,4 +1,6 @@
 {
+  "cleanUrls": true,
+  "trailingSlash": false,
   "headers": [
     {
       "source": "/(.*)",
@@ -11,6 +13,18 @@
         { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
         { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" }
       ]
+    },
+    {
+      "source": "/(|index.html|driver-sw.js|demo_fleet_data.js|driver-manifest.json|driver-app.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate, max-age=0" }
+      ]
     }
+  ],
+  "rewrites": [
+    { "source": "/fleetline-mvp/(.*)", "destination": "/$1" },
+    { "source": "/fleetline-mvp", "destination": "/index.html" },
+    { "source": "/driver-app", "destination": "/driver-app/index.html" },
+    { "source": "/driver-app/(.*)", "destination": "/driver-app/$1" }
   ]
 }

@@ -13,10 +13,10 @@
     rel="stylesheet">
   <link rel="preload" as="image" href="axiom-fleet-logo.png" type="image/png" />
   <link rel="stylesheet" href="leaflet.css" />
-  <script src="leaflet.js"></script>
-  <script src="supabase/config.js"></script>
-  <script src="supabase/client.js"></script>
-  <script src="demo_fleet_data.js?v=20261106_v2"></script>
+  <script defer src="leaflet.js"></script>
+  <script defer src="supabase/config.js"></script>
+  <script defer src="supabase/client.js"></script>
+  <script defer src="demo_fleet_data.js?v=20261106_v2"></script>
   <script type="text/javascript">
     (function () {
       try {
@@ -16408,6 +16408,61 @@
       position: relative;
     }
 
+    .blog-reader-dialog {
+      background: #FFFFFF;
+      border: 1px solid var(--line-strong);
+      border-radius: 16px;
+      max-width: 840px;
+      width: 100%;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .blog-reader-body {
+      overflow-y: auto;
+      padding: 24px 32px 40px;
+      line-height: 1.7;
+      color: var(--ink-2);
+      font-size: 15px;
+    }
+
+    .blog-reader-body h1 {
+      font-size: 1.75rem;
+      line-height: 1.3;
+      margin-bottom: 12px;
+      color: var(--ink);
+    }
+
+    .blog-reader-body h2 {
+      font-size: 1.25rem;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      color: var(--ink);
+    }
+
+    .blog-reader-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 13.5px;
+    }
+
+    .blog-reader-body th,
+    .blog-reader-body td {
+      border: 1px solid var(--line-strong);
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .blog-reader-body th {
+      background: var(--canvas);
+      font-weight: 600;
+    }
+
     .modal-header-row {
       display: flex;
       align-items: center;
@@ -17820,6 +17875,19 @@
       </div>
     </div>
 
+    <!-- BLOG ARTICLE FULL-READER MODAL -->
+    <div class="axiom-modal-backdrop" id="blog-reader-modal" role="dialog" aria-modal="true" aria-labelledby="blog-reader-title">
+      <div class="blog-reader-dialog">
+        <div class="modal-header-row" style="padding: 20px 28px 16px; border-bottom: 1px solid var(--line); margin-bottom: 0;">
+          <h3 class="modal-title" id="blog-reader-title" style="font-size: 1.15rem; font-weight: 700; color: var(--ink);">Axiom Mobility · Field Note</h3>
+          <button type="button" class="btn-close-modal" id="btn-close-blog-modal" aria-label="Close dialog">&times;</button>
+        </div>
+        <div class="blog-reader-body" id="blog-reader-content">
+          <!-- Article injected here -->
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <div id="public-pages" class="marketing-page public-pages">
@@ -17830,21 +17898,21 @@
           href="#platform">Platform</a><a href="#workflow">How it works</a>
         <details class="site-nav-dropdown">
           <summary>Insights <span>⌄</span></summary>
-          <div class="site-dropdown-menu"><a href="#blogs" data-public-page="blogs"><i
+          <div class="site-dropdown-menu"><a href="/blogs" data-public-page="blogs"><i
                 class="dropdown-icon purple">✦</i><span><b>Blogs</b><small>Field notes &amp; ideas</small></span></a><a
-              href="#newsroom" data-public-page="newsroom"><i
+              href="/newsroom" data-public-page="newsroom"><i
                 class="dropdown-icon orange">◌</i><span><b>NewsRoom</b><small>Company updates</small></span></a></div>
         </details>
         <details class="site-nav-dropdown">
           <summary>Company <span>⌄</span></summary>
-          <div class="site-dropdown-menu"><a href="#about-us" data-public-page="about-us"><i
+          <div class="site-dropdown-menu"><a href="/about-us" data-public-page="about-us"><i
                 class="dropdown-icon lime">◎</i><span><b>About Us</b><small>Why we build</small></span></a><a
-              href="#success-stories" data-public-page="success-stories"><i
+              href="/success-stories" data-public-page="success-stories"><i
                 class="dropdown-icon teal">↗</i><span><b>Success Stories</b><small>Outcomes in
-                  motion</small></span></a><a href="#careers" data-public-page="careers"><i
+                  motion</small></span></a><a href="/careers" data-public-page="careers"><i
                 class="dropdown-icon indigo">+</i><span><b>Career</b><small>Join the operating loop</small></span></a>
           </div>
-        </details><a href="#contact-us" data-public-page="contact-us">Contact</a>
+        </details><a href="/contact-us" data-public-page="contact-us">Contact</a>
       </nav>
       <div class="site-actions"><button class="site-signin" data-public-home>← Home</button><button class="site-cta"
           data-show-login>Open command center <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -17859,15 +17927,15 @@
         <p>The calm behind the movement.</p>
       </div>
       <div class="footer-link-groups">
-        <div><b>Company</b><a href="#about-us" data-public-page="about-us">About Us</a><a href="#success-stories"
+        <div><b>Company</b><a href="/about-us" data-public-page="about-us">About Us</a><a href="#success-stories"
             data-public-page="success-stories">Success Stories</a><a href="#careers"
             data-public-page="careers">Career</a></div>
-        <div><b>Insights</b><a href="#blogs" data-public-page="blogs">Blogs</a><a href="#newsroom"
-            data-public-page="newsroom">NewsRoom</a><a href="#contact-us" data-public-page="contact-us">Contact Us</a>
+        <div><b>Insights</b><a href="/blogs" data-public-page="blogs">Blogs</a><a href="#newsroom"
+            data-public-page="newsroom">NewsRoom</a><a href="/contact-us" data-public-page="contact-us">Contact Us</a>
         </div>
-        <div><b>Legal</b><a href="#terms" data-public-page="terms">Terms of Service</a><a href="#privacy"
+        <div><b>Legal</b><a href="/terms" data-public-page="terms">Terms of Service</a><a href="#privacy"
             data-public-page="privacy">Privacy Policy</a><a href="#disclaimer"
-            data-public-page="disclaimer">Disclaimer</a><a href="#refund" data-public-page="refund">Refund &amp;
+            data-public-page="disclaimer">Disclaimer</a><a href="/refund" data-public-page="refund">Refund &amp;
             Cancellation</a></div>
       </div>
       <div class="footer-bottom"><span>© 2026 AXIOM FLEET</span><span>India data plane · Secure by design</span><button
@@ -37713,17 +37781,33 @@ function renderCorporateOverview() {
 
     const publicPageTemplates = {
       'about-us': `
-        <section class="subpage-shell"><section class="subpage-hero"><div class="subpage-copy"><div class="subpage-kicker"><i></i> About AXIOM FLEET</div><h1>We build the calm behind <em>the movement.</em></h1><p>Fleet operations are where people, vehicles, money and time collide. AXIOM FLEET exists to make that collision feel less like chaos and more like a system your team can trust.</p><div class="subpage-actions"><button class="site-cta large" data-show-login>See the command center <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button><a class="text-action" href="#contact-us" data-public-page="contact-us">Talk to us <span>↗</span></a></div></div><div class="subpage-visual"><div class="subpage-visual-grid"></div><div class="visual-orbit"><i class="visual-core"></i></div><span class="visual-tag">People · Fleet · Proof</span><div class="visual-stat"><b>01</b><span>operating layer</span></div></div></section></section>
+        <section class="subpage-shell"><section class="subpage-hero"><div class="subpage-copy"><div class="subpage-kicker"><i></i> About AXIOM FLEET</div><h1>We build the calm behind <em>the movement.</em></h1><p>Fleet operations are where people, vehicles, money and time collide. AXIOM FLEET exists to make that collision feel less like chaos and more like a system your team can trust.</p><div class="subpage-actions"><button class="site-cta large" data-show-login>See the command center <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button><a class="text-action" href="/contact-us" data-public-page="contact-us">Talk to us <span>↗</span></a></div></div><div class="subpage-visual"><div class="subpage-visual-grid"></div><div class="visual-orbit"><i class="visual-core"></i></div><span class="visual-tag">People · Fleet · Proof</span><div class="visual-stat"><b>01</b><span>operating layer</span></div></div></section></section>
         <section class="editorial-section"><div class="subpage-shell"><div class="editorial-intro"><div class="marketing-eyebrow">Our point of view</div><h2>Technology should make a busy team feel <em>lighter.</em></h2><p>We design around the moments that create friction: an unallotted duty, a driver with no signal, a bill nobody can explain, a finance team waiting for proof.</p></div><div class="editorial-grid-2"><article class="editorial-card"><h3>Operator empathy</h3><p>We start in the dispatch room, not the slide deck. The product has to work at 08:00, at month-end and in the middle of a signal gap.</p><ul><li>Short paths for high-pressure work</li><li>Clear next actions instead of noise</li><li>Hindi-first field thinking, global-grade systems</li></ul></article><article class="quote-panel"><p>“A good operating system does not ask the team to become more technical. It makes the right action obvious.”</p><small><b>AXIOM FLEET</b> · Product principle 01</small></article></div><div class="timeline-list"><div><span class="timeline-year">The need</span><i class="timeline-marker"></i><div><b>Car rental operations became more connected — but not more coherent.</b><p>Bookings moved to apps while duty proofs, supplier bills and actual field conditions stayed fragmented.</p></div></div><div><span class="timeline-year">The thesis</span><i class="timeline-marker"></i><div><b>One operational truth can connect every surface.</b><p>Vendor consoles, corporate approvals, driver devices and finance workflows should speak the same language.</p></div></div><div><span class="timeline-year">The work</span><i class="timeline-marker"></i><div><b>Build the layer that keeps people moving.</b><p>With auditability for finance, resilience for the field and enough flexibility for every fleet’s way of working.</p></div></div></div></div></section>
         <section class="editorial-section"><div class="subpage-shell"><div class="editorial-intro"><div class="marketing-eyebrow">What we value</div><h2>Quiet confidence.<br><em>Visible progress.</em></h2></div><div class="values-grid"><article class="value-card"><span>✦</span><h3>Make it legible</h3><p>Every status, rupee and exception should be understandable without a training manual.</p></article><article class="value-card"><span>◌</span><h3>Respect the edge</h3><p>The hardest part of the product is the phone on a road where the network disappears.</p></article><article class="value-card"><span>↗</span><h3>Earn the next step</h3><p>Trust compounds when the system does what it says, records what happened and improves every day.</p></article></div></div></section>
         <section class="editorial-section about-operating-model"><div class="subpage-shell"><div class="editorial-intro"><div class="marketing-eyebrow">The product we are building</div><h2>One operating loop, <em>four useful surfaces.</em></h2><p>AXIOM FLEET is designed for the people who coordinate a journey from request to close-out. Each surface is useful on its own; together they create a shared operational record.</p></div><div class="editorial-grid-2"><article class="editorial-card"><h3>For fleet and rental operators</h3><p>Manage bookings, duties, driver readiness, vehicle records, supplier handoffs, pricing and proof from a tenant-scoped command centre. Empty data stays empty; the platform does not invent a roster or a financial result.</p><ul><li>Dispatch and allotment with clear ownership</li><li>Offline-aware driver workflows for the field</li><li>Billing evidence that can be traced back to a duty</li></ul></article><article class="editorial-card"><h3>For corporate travel teams</h3><p>Keep employee access, booking policies, approval decisions and supplier scope in one controlled workspace. An invite-only Network connects approved partners without turning the product into a public marketplace.</p><ul><li>Branch and role-based visibility</li><li>Lead-time, cancellation and approval guardrails</li><li>Passenger close-out and audit-ready evidence</li></ul></article></div><div class="quote-panel" style="margin-top:18px"><p>We are deliberate about the rollout: validate the Driver physical-device workflow first, learn from a controlled pilot, and only then expand Passenger experiences.</p><small><b>BUILDING PRINCIPLE</b> · Useful before expansive</small></div></div></section>
       `,
       'blogs': `
-        <section class="subpage-shell"><section class="subpage-hero blog-hero"><div class="subpage-copy"><div class="subpage-kicker"><i></i> Field notes · AXIOM FLEET</div><h1>Ideas for operators who <em>move people.</em></h1><p>Practical thinking on fleet operations, mobility finance, offline field work and the systems that connect them.</p><div class="subpage-actions"><a class="site-cta large" href="#blog-latest">Read the latest <span>↓</span></a><a class="text-action" href="#contact-us" data-public-page="contact-us">Suggest a topic <span>↗</span></a></div></div><div class="subpage-visual insights-visual"><div class="subpage-visual-grid"></div><div class="visual-article"><small>Field note · 08 min read</small><h3>The new baseline for offline fleet operations.</h3><div class="article-skeleton"></div><div class="article-skeleton"></div><div class="article-skeleton short"></div></div><span class="visual-tag">Ideas in motion</span></div></section></section>
-        <section class="editorial-section" id="blog-latest"><div class="subpage-shell"><div class="editorial-intro"><div class="marketing-eyebrow">Latest thinking</div><h2>Useful ideas, not <em>content noise.</em></h2><p>Short reads for dispatchers, travel admins, finance leaders and the people building the next generation of mobility operations.</p></div><div class="article-toolbar"><button class="article-filter active">All notes</button><button class="article-filter">Operations</button><button class="article-filter">Field tech</button><button class="article-filter">Finance</button><button class="article-filter">People &amp; culture</button></div><article class="featured-article"><div class="featured-article-copy"><div class="article-meta"><i></i> Featured · Operations · 8 min read</div><h2>What a signal gap teaches you about product design.</h2><p>Offline-first is not a checkbox. It is a promise that the person in the field can continue doing the right thing, even when the platform cannot hear them yet.</p><a class="article-read" href="#" data-blog-open="signal-gap">Read the field note ↗</a></div><div class="featured-article-art"></div></article><div class="article-grid"><article class="article-card"><span class="article-type">Finance · 6 min</span><h3>From duty slip to defensible evidence.</h3><p>Why line-by-line calculations, immutable versions and proof packs change the quality of a billing conversation.</p><a class="article-read" href="#" data-blog-open="evidence">Read note ↗</a></article><article class="article-card"><span class="article-type">Corporate · 5 min</span><h3>Mobility policy should feel like a guardrail, not a gate.</h3><p>Designing approvals that protect budgets without turning a late-night booking into a support ticket.</p><a class="article-read" href="#" data-blog-open="policy">Read note ↗</a></article><article class="article-card"><span class="article-type">People · 4 min</span><h3>The dispatch room is a product surface.</h3><p>What changes when an operations team’s attention becomes the centre of the information architecture.</p><a class="article-read" href="#" data-blog-open="dispatch">Read note ↗</a></article></div></div></section>
+        <section class="subpage-shell"><section class="subpage-hero blog-hero"><div class="subpage-copy"><div class="subpage-kicker"><i></i> Field notes · AXIOM FLEET</div><h1>Ideas for operators who <em>move people.</em></h1><p>Practical thinking on fleet operations, mobility finance, offline field work and statutory compliance from the engineering room.</p><div class="subpage-actions"><a class="site-cta large" href="#blog-latest">Read the latest <span>↓</span></a><a class="text-action" href="/contact-us" data-public-page="contact-us">Suggest a topic <span>↗</span></a></div></div><div class="subpage-visual insights-visual"><div class="subpage-visual-grid"></div><div class="visual-article"><small>Compliance &amp; ETMS · 8 min read</small><h3>Statutory Women's Night-Shift Safety in ETMS</h3><div class="article-skeleton"></div><div class="article-skeleton"></div><div class="article-skeleton short"></div></div><span class="visual-tag">Published Field Notes</span></div></section></section>
+        <section class="editorial-section" id="blog-latest"><div class="subpage-shell"><div class="editorial-intro"><div class="marketing-eyebrow">Published Technical Guides</div><h2>Useful ideas, not <em>content noise.</em></h2><p>Engineering and operational briefs for facility heads, dispatchers, transport administrators, and finance controllers.</p></div><div class="article-toolbar"><button class="article-filter active" data-filter="all">All notes</button><button class="article-filter" data-filter="compliance">Compliance</button><button class="article-filter" data-filter="finance">Finance</button><button class="article-filter" data-filter="telematics">Telematics</button><button class="article-filter" data-filter="operations">Operations</button><button class="article-filter" data-filter="field-tech">Field tech</button></div>
+        <article class="featured-article"><div class="featured-article-copy"><div class="article-meta"><i></i> Featured · Compliance &amp; ETMS · 8 min read</div><h2>Statutory Women's Night-Shift Safety in ETMS: Legal Liability and Code-Level Escort Locks</h2><p>Corporate employers hold primary legal liability under state labor regulations for female employee safety between 8:00 PM and 6:00 AM. Contracting a cab vendor does not transfer your statutory duty of care. How code-level dispatch hard-locks and 3-tier safe-reach escalation replace manual supervision.</p><a class="article-read" href="#" data-blog-open="night-shift-safety">Read the full field note ↗</a></div><div class="featured-article-art"></div></article>
+        <div class="article-grid">
+          <article class="article-card" data-category="finance"><span class="article-type">Finance & GST · 6 min</span><h3>GST SAC 9966 & RCM: The Corporate Guide to Tax Splits, ITC Restrictions, and Dual-Ledger Billing</h3><p>title: "GST SAC 9966 & RCM: The Corporate Guide to Tax Splits, ITC Restrictions, and Dual-Ledger Billing"</p><a class="article-read" href="#" data-blog-open="gst-rcm">Read guide ↗</a></article>
+          <article class="article-card" data-category="telematics"><span class="article-type">Telematics & Anti-Fraud · 7 min</span><h3>Stopping Phantom Distance Leaks: 3-Way Distance Reconciliation in Commercial Fleets</h3><p>title: "Stopping Phantom Distance Leaks: 3-Way Distance Reconciliation in Commercial Fleets"</p><a class="article-read" href="#" data-blog-open="odometer-fraud">Read breakdown ↗</a></article>
+          <article class="article-card" data-category="operations"><span class="article-type">Operations & Dispatch · 6 min</span><h3>Automated Vendor SLA Tier Demotion: How Algorithms Eliminate Transport Escalations</h3><p>title: "Automated Vendor SLA Tier Demotion: How Algorithms Eliminate Transport Escalations"</p><a class="article-read" href="#" data-blog-open="automated-sla">Read analysis ↗</a></article>
+          <article class="article-card" data-category="finance"><span class="article-type">Finance & ERP · 7 min</span><h3>Exporting B2B Car Rental Sales Vouchers to Tally Prime: XML Schemas & Multi-Ledger Split</h3><p>title: "Exporting B2B Car Rental Sales Vouchers to Tally Prime: XML Schemas & Multi-Ledger Split"</p><a class="article-read" href="#" data-blog-open="tally-integration">Read integration guide ↗</a></article>
+          <article class="article-card" data-category="operations"><span class="article-type">Operations & Roster · 6 min</span><h3>Corporate Employee Roster Scheduling: Route Optimization and Ad-Hoc Shift Swaps</h3><p>title: "Corporate Employee Roster Scheduling: Route Optimization and Ad-Hoc Shift Swaps"</p><a class="article-read" href="#" data-blog-open="roster-automation">Read guide ↗</a></article>
+          <article class="article-card" data-category="finance"><span class="article-type">Finance & Billing · 6 min</span><h3>Fuel-Indexed Billing in Corporate Transport: Dynamic Rate Formulas Against Daily Price Swings</h3><p>title: "Fuel-Indexed Billing in Corporate Transport: Dynamic Rate Formulas Against Daily Price Swings"</p><a class="article-read" href="#" data-blog-open="fuel-indexed">Read formula breakdown ↗</a></article>
+          <article class="article-card" data-category="operations"><span class="article-type">Operations & Metering · 6 min</span><h3>Garage-to-Garage (G2G) vs. Point-to-Point (P2P) Billing: Solving the Deadhead Dispute</h3><p>title: "Garage-to-Garage (G2G) vs. Point-to-Point (P2P) Billing: Solving the Deadhead Dispute"</p><a class="article-read" href="#" data-blog-open="g2g-vs-p2p">Read operational analysis ↗</a></article>
+          <article class="article-card" data-category="compliance"><span class="article-type">Compliance & Safety · 7 min</span><h3>Commercial Driver Background Verification: The Mandatory Checks for Corporate Fleets</h3><p>title: "Commercial Driver Background Verification: The Mandatory Checks for Corporate Fleets"</p><a class="article-read" href="#" data-blog-open="driver-bgv">Read compliance checklist ↗</a></article>
+          <article class="article-card" data-category="operations"><span class="article-type">Operations & Policy · 6 min</span><h3>Standardizing Corporate Cab Cancellation Policies: Cut-Off Windows and Waiting Time</h3><p>title: "Standardizing Corporate Cab Cancellation Policies: Cut-Off Windows and Waiting Time"</p><a class="article-read" href="#" data-blog-open="cancellation-sla">Read policy framework ↗</a></article>
+          <article class="article-card" data-category="telematics"><span class="article-type">Telematics & Security · 7 min</span><h3>Detecting Mock GPS and Developer-Mode Spoofing in Mobile Driver Field Systems</h3><p>title: "Detecting Mock GPS and Developer-Mode Spoofing in Mobile Driver Field Systems"</p><a class="article-read" href="#" data-blog-open="anti-gps">Read engineering breakdown ↗</a></article>
+          <article class="article-card" data-category="operations"><span class="article-type">Operations & Network · 6 min</span><h3>The B2B Fleet Clearinghouse: Managing Inter-City Cab Overflow Without Risking Client Relationships</h3><p>title: "The B2B Fleet Clearinghouse: Managing Inter-City Cab Overflow Without Risking Client Relationships"</p><a class="article-read" href="#" data-blog-open="partner-exchange">Read clearinghouse guide ↗</a></article>
+          <article class="article-card" data-category="finance"><span class="article-type">Finance & Costing · 6 min</span><h3>Prorating Employee Transport: The Mathematics of Per-Seat Shared Shuttle Cost Allocations</h3><p>title: "Prorating Employee Transport: The Mathematics of Per-Seat Shared Shuttle Cost Allocations"</p><a class="article-read" href="#" data-blog-open="per-seat-costing">Read costing model ↗</a></article>
+          <article class="article-card" data-category="field-tech"><span class="article-type">Field Tech · 5 min</span><h3>Designing for the Signal Gap: 4-Hour Offline Resilience in Field Transport</h3><p>Why local SQLite queues, ordered sync replay, and cryptographic tamper-proof receipts keep drivers moving in basement dead zones.</p><a class="article-read" href="#" data-blog-open="signal-gap">Read note ↗</a></article>
+        </div></div></section>
       `,
       'newsroom': `
-        <section class="subpage-shell"><section class="subpage-hero news-hero"><div class="subpage-copy"><div class="subpage-kicker"><i></i> NewsRoom · company updates</div><h1>What is moving at <em>AXIOM FLEET.</em></h1><p>Product milestones, pilot notes and the ideas shaping a better operating layer for car-rental mobility.</p><div class="subpage-actions"><a class="site-cta large" href="#news-latest">Read updates <span>↓</span></a><a class="text-action" href="#contact-us" data-public-page="contact-us">Media enquiries <span>↗</span></a></div></div><div class="subpage-visual insights-visual"><div class="subpage-visual-grid"></div><div class="visual-article"><small>NewsRoom · September 2026</small><h3>Introducing a calmer way to run the day.</h3><div class="article-skeleton"></div><div class="article-skeleton short"></div><div class="article-skeleton"></div></div><span class="visual-tag">Press &amp; updates</span></div></section></section>
+        <section class="subpage-shell"><section class="subpage-hero news-hero"><div class="subpage-copy"><div class="subpage-kicker"><i></i> NewsRoom · company updates</div><h1>What is moving at <em>AXIOM FLEET.</em></h1><p>Product milestones, pilot notes and the ideas shaping a better operating layer for car-rental mobility.</p><div class="subpage-actions"><a class="site-cta large" href="#news-latest">Read updates <span>↓</span></a><a class="text-action" href="/contact-us" data-public-page="contact-us">Media enquiries <span>↗</span></a></div></div><div class="subpage-visual insights-visual"><div class="subpage-visual-grid"></div><div class="visual-article"><small>NewsRoom · September 2026</small><h3>Introducing a calmer way to run the day.</h3><div class="article-skeleton"></div><div class="article-skeleton short"></div><div class="article-skeleton"></div></div><span class="visual-tag">Press &amp; updates</span></div></section></section>
         <section class="editorial-section" id="news-latest"><div class="subpage-shell"><div class="editorial-intro"><div class="marketing-eyebrow">The latest signal</div><h2>Milestones worth <em>sharing.</em></h2><p>We are building in the open with the teams who operate the real world. This page collects the milestones as the system grows.</p></div><div class="news-list"><article class="news-item"><time class="news-date">19 Sep 2026</time><div><h3>AXIOM FLEET opens its private product preview for fleet operators.</h3><p>A first look at the vendor command center, offline-first driver mode and explainable billing layer.</p></div><a class="news-arrow" href="#" data-news-open="preview">↗</a></article><article class="news-item"><time class="news-date">05 Sep 2026</time><div><h3>Designing for the signal gap becomes a core product principle.</h3><p>The field contract now covers four hours offline, ordered sync and visible evidence for every queued action.</p></div><a class="news-arrow" href="#" data-news-open="offline">↗</a></article><article class="news-item"><time class="news-date">22 Aug 2026</time><div><h3>Our product blueprint adds a corporate travel and passenger layer.</h3><p>Approvals, live trips, policy controls and invoice verification join the operations core.</p></div><a class="news-arrow" href="#" data-news-open="corporate">↗</a></article></div><div class="press-card"><div><b>Working on a mobility story?</b><span>Download the AXIOM FLEET press kit or connect with our team.</span></div><button class="site-cta" data-public-page="contact-us">Contact communications ↗</button></div></div></section>
       `,
       'careers': `
@@ -37735,8 +37819,8 @@ function renderCorporateOverview() {
         <section class="editorial-section" id="contact-form"><div class="subpage-shell page-contact-layout"><div class="page-contact-copy"><div class="marketing-eyebrow">Let’s find the signal</div><h2>A real conversation, not a generic sales deck.</h2><p>Share a little context and we will tailor the walkthrough to your operation — fleet size, cities, workflows and the part that currently takes too much effort.</p><div class="page-contact-details"><div><i>✦</i><span>Product walkthroughs · Vendor, corporate and network</span></div><div><i>◌</i><span>India data plane · regional operations</span></div><div><i>↗</i><span>Typical response · within one working day</span></div></div></div><form class="page-form-card" id="page-contact-form"><h3>Tell us what you are building.</h3><div class="page-form-grid"><label>Name<input name="name" placeholder="Your name"></label><label>Work email<input type="email" name="email" placeholder="you@company.com"></label><label>Mobile Number<input type="tel" name="mobile_number" placeholder="+91 98765 43210"></label><label>Company<input name="company" placeholder="Company name"></label><label>Team type<select name="team"><option>Car rental operator</option><option>Corporate travel team</option><option>Associate / network partner</option><option>Investor / media</option></select></label><label class="full">What should we know?<textarea name="message" placeholder="Tell us about bookings, drivers, billing or approvals…"></textarea></label></div><button class="site-cta" type="submit">Send enquiry <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button><small class="form-success" id="page-contact-success"></small></form></div></section>
       `,
       'success-stories': `
-        <section class="subpage-shell"><section class="subpage-hero stories-hero"><div class="subpage-copy"><div class="subpage-kicker"><i></i> Success Stories · outcomes that compound</div><h1>Better operations are felt in the <em>small moments.</em></h1><p>Fewer calls at pickup. Faster proof at month-end. A driver who keeps moving when the signal drops. These are the outcomes we design for.</p><div class="subpage-actions"><a class="site-cta large" href="#story-feature">Read the pilot story <span>↓</span></a><a class="text-action" href="#contact-us" data-public-page="contact-us">Create your own story <span>↗</span></a></div></div><div class="subpage-visual stories-visual"><div class="subpage-visual-grid"></div><div class="story-stack"><div class="story-stack-card back"></div><div class="story-stack-card mid"></div><div class="story-stack-card front"><div class="story-brand"><span>AXIOM FLEET</span><span>PRODUCT NOTE</span></div><h3>From scattered<br>to one source.</h3><p>Tenant-scoped operating layer</p><div class="story-score"><strong>LIVE</strong><span>source-linked<br>workflows</span></div></div></div></div></section></section>
-        <section class="editorial-section" id="story-feature"><div class="subpage-shell"><div class="story-feature"><div class="story-feature-copy"><span class="story-tag">Product principles</span><h2>One source of truth for the moments that matter.</h2><p>AXIOM FLEET connects bookings, field events, evidence and finance without presenting unverified customer outcomes as fact.</p><a class="article-read" href="#contact-us" data-public-page="contact-us">Talk through the operating model ↗</a></div><div class="story-feature-art"><div class="story-metric-grid"><div><strong>Live</strong><span>tenant<br>records</span></div><div><strong>Audit</strong><span>source<br>history</span></div><div><strong>Sync</strong><span>field<br>resilience</span></div></div></div></div><p class="illustrative-note">Verified customer outcomes will be published only with customer permission and source evidence.</p><div class="story-grid"><article class="story-card"><span class="story-tag">Fleet operations</span><h3>Paperless does not mean proof-less.</h3><p>A digital slip becomes valuable when it carries the route, calculation, evidence and version history together.</p><div class="story-card-footer"><span>Duty proof</span><span>↗</span></div></article><article class="story-card"><span class="story-tag">Corporate travel</span><h3>Policy can move at the speed of a booking.</h3><p>Inline entitlements and approval timelines make the right decision visible before the vehicle is assigned.</p><div class="story-card-footer"><span>Approvals</span><span>↗</span></div></article><article class="story-card"><span class="story-tag">Field systems</span><h3>The sync queue is part of the experience.</h3><p>When the network returns, the operator should see what happened — not wonder whether it happened.</p><div class="story-card-footer"><span>Offline-first</span><span>↗</span></div></article></div></div></section>
+        <section class="subpage-shell"><section class="subpage-hero stories-hero"><div class="subpage-copy"><div class="subpage-kicker"><i></i> Success Stories · outcomes that compound</div><h1>Better operations are felt in the <em>small moments.</em></h1><p>Fewer calls at pickup. Faster proof at month-end. A driver who keeps moving when the signal drops. These are the outcomes we design for.</p><div class="subpage-actions"><a class="site-cta large" href="#story-feature">Read the pilot story <span>↓</span></a><a class="text-action" href="/contact-us" data-public-page="contact-us">Create your own story <span>↗</span></a></div></div><div class="subpage-visual stories-visual"><div class="subpage-visual-grid"></div><div class="story-stack"><div class="story-stack-card back"></div><div class="story-stack-card mid"></div><div class="story-stack-card front"><div class="story-brand"><span>AXIOM FLEET</span><span>PRODUCT NOTE</span></div><h3>From scattered<br>to one source.</h3><p>Tenant-scoped operating layer</p><div class="story-score"><strong>LIVE</strong><span>source-linked<br>workflows</span></div></div></div></div></section></section>
+        <section class="editorial-section" id="story-feature"><div class="subpage-shell"><div class="story-feature"><div class="story-feature-copy"><span class="story-tag">Product principles</span><h2>One source of truth for the moments that matter.</h2><p>AXIOM FLEET connects bookings, field events, evidence and finance without presenting unverified customer outcomes as fact.</p><a class="article-read" href="/contact-us" data-public-page="contact-us">Talk through the operating model ↗</a></div><div class="story-feature-art"><div class="story-metric-grid"><div><strong>Live</strong><span>tenant<br>records</span></div><div><strong>Audit</strong><span>source<br>history</span></div><div><strong>Sync</strong><span>field<br>resilience</span></div></div></div></div><p class="illustrative-note">Verified customer outcomes will be published only with customer permission and source evidence.</p><div class="story-grid"><article class="story-card"><span class="story-tag">Fleet operations</span><h3>Paperless does not mean proof-less.</h3><p>A digital slip becomes valuable when it carries the route, calculation, evidence and version history together.</p><div class="story-card-footer"><span>Duty proof</span><span>↗</span></div></article><article class="story-card"><span class="story-tag">Corporate travel</span><h3>Policy can move at the speed of a booking.</h3><p>Inline entitlements and approval timelines make the right decision visible before the vehicle is assigned.</p><div class="story-card-footer"><span>Approvals</span><span>↗</span></div></article><article class="story-card"><span class="story-tag">Field systems</span><h3>The sync queue is part of the experience.</h3><p>When the network returns, the operator should see what happened — not wonder whether it happened.</p><div class="story-card-footer"><span>Offline-first</span><span>↗</span></div></article></div></div></section>
       `,
       'terms': `
         <section class="subpage-shell"><section class="subpage-hero legal-hero"><div class="subpage-copy"><div class="subpage-kicker"><i></i> Legal · Terms of Service</div><h1>The rules for using <em>AXIOM FLEET.</em></h1><p>These terms describe the relationship between AXIOM FLEET and organisations using the platform.</p><span class="legal-date">Last updated · 19 September 2026</span></div></section><div class="legal-layout"><nav class="legal-nav"><span>On this page</span><a href="#terms-1">1. Using the platform</a><a href="#terms-2">2. Accounts</a><a href="#terms-3">3. Data &amp; content</a><a href="#terms-4">4. Payments</a><a href="#terms-5">5. Liability</a></nav><article class="legal-copy"><div class="legal-callout">This page is product copy for the AXIOM FLEET prototype and is not legal advice. Before launch, this document should be reviewed and approved for the final contracting entity, plan terms and applicable Indian law.</div><h2 id="terms-1">1. Using the platform</h2><p>AXIOM FLEET provides software for car-rental operations, corporate travel administration, driver workflows, reporting and related communications. By accessing the service, the organisation agrees to use it only for lawful business operations and in accordance with its subscription or order form.</p><h3>Acceptable use</h3><p>You must not use the platform to violate law, infringe another person’s rights, interfere with the service, probe security controls, upload malicious code or attempt to access another tenant’s information.</p><h2 id="terms-2">2. Accounts and access</h2><p>The customer is responsible for maintaining accurate organisation information, protecting credentials and assigning access only to authorised users. The customer must promptly disable a user who leaves the organisation or no longer needs access. AXIOM FLEET may require additional authentication for sensitive actions.</p><h2 id="terms-3">3. Data and content</h2><p>The customer retains its rights in operational data submitted to the service. The customer authorises AXIOM FLEET to process that data to provide, secure, support and improve the service. Each organisation is responsible for having the notices, consents and permissions required to collect driver, passenger, employee and supplier data.</p><h2 id="terms-4">4. Fees, trials and payments</h2><p>Fees, billing periods, usage measures, taxes and renewal terms are set out in the applicable order form or plan. Unless stated otherwise, fees are exclusive of applicable taxes. Payment gateway, mapping, messaging and telephony providers may have separate charges or availability terms.</p><h2 id="terms-5">5. Warranties, suspension and liability</h2><p>The service is provided with commercially reasonable care. No software can promise uninterrupted operation, and third-party integrations may experience outages. AXIOM FLEET may suspend access for security, legal or non-payment reasons, with reasonable notice where practical. Liability limitations, indemnities and governing law should be finalised in the signed customer agreement.</p><h3>Contact</h3><p>Questions about these terms can be sent to <a href="mailto:legal@axiomfleet.com">legal@axiomfleet.com</a>.</p></article></div></section>
@@ -37858,13 +37942,736 @@ function renderCorporateOverview() {
       showToast('Tally XML exported', 'Voucher import file downloaded. Ready for Tally Prime / ERP 9.');
     }
 
+    const BLOG_ARTICLES = {
+      'night-shift-safety': {
+        title: "Statutory Women's Night-Shift Safety in ETMS: Legal Liability and Code-Level Escort Locks",
+        html: `
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Compliance & Statutory Safety · 8 min read · Published 2026-11-12</div>
+            <h1>Statutory Women's Night-Shift Safety in ETMS: Legal Liability and Code-Level Escort Locks</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">A practical guide for corporate facility heads and transport managers on state night-shift compliance, the legal duty of care, and automated dispatch locks.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <p>Corporate employers hold primary legal liability under state labor regulations and the Factories Act for female employee safety between 8:00 PM and 6:00 AM. Contracting a third-party cab vendor does not transfer your statutory duty of care. If an unescorted female passenger is dropped last on a route and an incident occurs, the enterprise facility head and transport director face immediate regulatory enforcement.</p>
+            <p>Manual spreadsheets and phone check-ins fail during late-night driver dropouts. Reliable compliance requires code-level dispatch constraints and hardware telemetry.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>1. Who Bears Legal Liability During Corporate Commutes?</h2>
+            <p>Under Indian labor laws and state Shops and Commercial Establishments rules, the corporate employer retains non-delegable duty of care for employees traveling on company-provided transport.</p>
+            <p>Key statutory requirements include:</p>
+            <ol>
+              <li><strong>Mandatory Security Escorts</strong>: Any vehicle dropping a female employee as the last passenger between 20:00 and 06:00 must carry a verified security guard.</li>
+              <li><strong>First-Pickup Escort Rule</strong>: On inbound night shifts, if a female employee is the first pickup point, a security guard must board before the first stop.</li>
+              <li><strong>Police Background Verification</strong>: Every driver operating corporate duty trips must possess an active Police Verification Report (PVR) and commercial driver badge.</li>
+              <li><strong>Commercial Permit Enforceability</strong>: Operating personal (white-plate) vehicles for corporate shuttles is illegal under the Motor Vehicles Act, invalidating commercial insurance.</li>
+            </ol>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>2. Replacing Human Memory with Code-Enforced Dispatch Hard-Locks</h2>
+            <p>Human dispatchers often bypass escort rules when cab arrivals run late. Axiom Mobility replaces manual supervision with hard dispatch locks inside the database engine.</p>
+            <p>When a corporate roster generates route manifests:</p>
+            <ol>
+              <li>The dispatch engine evaluates the passenger gender sequence and scheduled drop timestamps.</li>
+              <li>If a female employee occupies the final drop position within the statutory night window, the trip cannot transition to active status.</li>
+              <li>The driver mobile app blocks the trip start screen until the assigned security guard scans their authorized security RFID badge or QR credential at the vehicle check-in point.</li>
+              <li>Dispatcher overrides require documented dual-supervisor authentication with immutable timestamp logging.</li>
+            </ol>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>3. The 3-Tier Safe-Reach Escalation Protocol</h2>
+            <p>Ensuring safe transit does not stop when the vehicle arrives at an employee's gate. The commute cycle only closes upon explicit safe-reach verification.</p>
+            <table>
+              <thead><tr><th>Escalation Level</th><th>Time Elapsed</th><th>Automated Action</th><th>Resolution Owner</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Tier 1 (P2)</strong></td><td>T+0 to T+5 min</td><td>Silent mobile push prompt + SMS confirmation link sent to employee phone.</td><td>Passenger tap</td></tr>
+                <tr><td><strong>Tier 2 (P1)</strong></td><td>T+5 to T+10 min</td><td>Automated Interactive Voice Response (IVR) phone call requiring DTMF keypress.</td><td>Automated telephony engine</td></tr>
+                <tr><td><strong>Tier 3 (P0)</strong></td><td>T+10 min+</td><td>Critical alert broadcasted to 24/7 Safety Command Console with vehicle GPS coordinates.</td><td>Security supervisor intervention</td></tr>
+              </tbody>
+            </table>
+            <p>Under Tier 3 escalation, the safety console pins the vehicle on live radar and initiates direct protocol with local emergency response.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>4. Telemetry Threat Detectors En Route</h2>
+            <p>Continuous stream processing monitors 16 physical telemetry threat indicators during transit:</p>
+            <ul>
+              <li><strong>Mock GPS Detection</strong>: Identifies developer mode location-spoofing apps running on driver devices.</li>
+              <li><strong>Corridor Deviation</strong>: Triggers alerts if the cab veers more than 1.5 km away from the optimized route corridor.</li>
+              <li><strong>Unscheduled Transit Halts</strong>: Flags stationary stops exceeding the 10-minute threat threshold outside geofenced pickup or drop zones.</li>
+              <li><strong>Cabin Panic Buttons</strong>: Directly broadcasts live interior audio to the central safety room.</li>
+            </ul>
+            <p>Immutable digital logs eliminate paper manifest disputes and keep your organization fully audit-ready for labor inspections.</p>
+          </div>
+        `
+      },
+      'gst-rcm': {
+        title: "GST SAC 9966 & RCM: The Corporate Guide to Tax Splits, ITC Restrictions, and Dual-Ledger Billing",
+        html: `
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Finance & GST · 6 min read · Published 2026-11-13</div>
+            <h1>GST SAC 9966 &amp; RCM: The Corporate Guide to Tax Splits, ITC Restrictions, and Dual-Ledger Billing</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">A technical breakdown of GST SAC 996601 Reverse Charge Mechanism rules, Section 17(5) 13-seat Input Tax Credit restrictions, and automated dual-ledger billing.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <p>Corporate travel desks and finance controllers manage complex tax splits across employee transportation contracts. Under Indian GST law, passenger transport services fall under SAC 996601, where tax liability shifts dynamically based on vendor corporate status, vehicle seating capacity, and fuel inclusion terms.</p>
+            <p>Misclassifying a vendor as forward-charge when Reverse Charge Mechanism (RCM) applies creates statutory tax exposure during annual departmental audits.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>1. When Does Reverse Charge Mechanism (RCM) Apply Under SAC 996601?</h2>
+            <p>Under Notification No. 29/2019-Central Tax (Rate), RCM applies to passenger transport services when two conditions meet:</p>
+            <ol>
+              <li>The service supplier is an individual, partnership firm, or unregistered enterprise billing at the 5% concessional GST rate without Input Tax Credit.</li>
+              <li>The service recipient is a registered corporate body corporate.</li>
+            </ol>
+            <p>When an enterprise hires sedans or SUVs from non-corporate fleet proprietors at 5% GST, the corporate recipient must pay the 5% tax directly under RCM through electronic cash ledgers. If the fleet supplier is a registered private limited entity billing at 12% forward charge with full ITC, the supplier collects and deposits the tax directly.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>2. The 13-Seat Input Tax Credit Rule Under Section 17(5)</h2>
+            <p>Section 17(5)(a) of the Central Goods and Services Tax Act blocks Input Tax Credit on passenger motor vehicles with approved seating capacity of 13 persons or fewer (including the driver).</p>
+            <p>There are two statutory exceptions where corporate enterprises can legally claim ITC on passenger vehicles:</p>
+            <ul>
+              <li><strong>Obligatory Statutory Transport</strong>: Transportation provided to employees under statutory labor laws (such as mandatory night-shift drop services for female employees under state Shops &amp; Establishment rules).</li>
+              <li><strong>Sub-Contracted Fleet Re-Supply</strong>: Corporate car rental agencies hiring associate cabs for outward commercial passenger transport.</li>
+            </ul>
+            <p>In ordinary executive car rental duties, ITC remains blocked for corporate recipients.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>3. Dual-Ledger Financial Math: Stopping Negative Margin Leaks</h2>
+            <p>Commercial car rental operators manage two separate financial realities on every trip:</p>
+            <ol>
+              <li><strong>Client Gross Receivable</strong>: What the corporate enterprise owes based on negotiated corporate rate cards and fuel index escalations.</li>
+              <li><strong>Supplier Net Payable</strong>: What the associate vendor or driver partner earns after platform fee splits, toll reconciliations, and advance payments.</li>
+            </ol>
+            <h3>The Problem of Floating-Point Rounding</h3>
+            <p>Standard accounting software running IEEE 754 floating-point math introduces fractional rupee rounding errors when computing fuel deltas and tax splits across thousands of monthly duties.</p>
+            <p>Axiom Mobility eliminates cumulative rounding drift by running all financial math strictly in integer paise or database NUMERIC(14,2) with half-up rounding.</p>
+            <h3>Automated Negative Margin Audit Holds</h3>
+            <p>When driver overtime or unplanned route detours push Supplier Payable higher than Client Receivable, manual accounting teams discover the loss weeks after duty completion.</p>
+            <p>Axiom Mobility's tariff resolver evaluates both ledgers simultaneously before duty closure. Any duty where supplier payout exceeds client billing triggers an automatic audit hold, requiring senior supervisor review before invoice generation.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>4. Signed NIC IRP E-Invoicing and Tally Prime Bridge</h2>
+            <p>Meeting enterprise procurement standards requires automated tax document generation:</p>
+            <ul>
+              <li><strong>64-Character SHA-256 IRN</strong>: Automatically generates Invoice Reference Numbers through direct NIC e-Invoice API integration.</li>
+              <li><strong>Signed Tax QR Payloads</strong>: Encodes verified GSTIN, document reference, and tax breakdown envelopes onto customer PDF vouchers.</li>
+              <li><strong>Canonical Tally Prime XML</strong>: Exports complete sales and purchase vouchers with party ledger allocations in a single click, eliminating manual journal entries.</li>
+            </ul>
+          </div>
+        `
+      },
+      'odometer-fraud': {
+        title: "Stopping Phantom Distance Leaks: 3-Way Distance Reconciliation in Commercial Fleets",
+        html: `
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Telematics & Anti-Fraud · 7 min read · Published 2026-11-14</div>
+            <h1>Stopping Phantom Distance Leaks: 3-Way Distance Reconciliation in Commercial Fleets</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">How corporate transport teams detect odometer tampering and phantom toll slips using 3-way distance reconciliation between CAN-bus sensors, driver GPS, and Fastag APIs.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <p>Commercial fleet operators regularly lose operating margin to phantom mileage and inflated paper duty slips. In traditional dispatch operations, drivers write start and end odometer numbers on paper sheets or snap photos of dashboard clusters. Without independent verification, manual odometer logs remain vulnerable to odometer pulse modifiers, route inflation, and fabricated toll receipts.</p>
+            <p>Replacing manual log sheets requires an automated 3-way distance reconciliation audit across hardware telematics, mobile GPS trails, and national toll plaza checkpoints.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>1. How Odometer Tampering Occurs in Commercial Fleet Operations</h2>
+            <p>In high-mileage corporate car rental duties, mileage manipulation typically happens through three methods:</p>
+            <ol>
+              <li><strong>Pulse Modifiers and Sensor Disconnects</strong>: Drivers install inline signal interrupters on speed sensor wires, allowing vehicles to travel undocumented personal kilometres while freezing the odometer display.</li>
+              <li><strong>Artificial Route Inflation</strong>: Taking circuitous secondary roads to bill clients for extra kilometre slabs while reporting traffic delays.</li>
+              <li><strong>Ghost Toll Claims</strong>: Submitting paper toll slips collected from past trips to inflate outstation expense reimbursements.</li>
+            </ol>
+            <p>Relying on driver mobile phone GPS alone is insufficient. Mobile phones encounter battery shutdowns, developer mode mock location spoofing, and signal loss in highway tunnels.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>2. The 3-Way Distance Audit Architecture</h2>
+            <p>Axiom Mobility cross-references three independent telemetry feeds to verify every completed duty:</p>
+            <pre style="background:var(--subtle,#f4f4f5);padding:14px;border-radius:8px;font-family:monospace;font-size:12px;overflow-x:auto;margin:16px 0;line-height:1.5"><code>                  +-----------------------------------+
+                  | Triangulated Distance Engine      |
+                  +-----------------------------------+
+                                    |
+          +-------------------------+-------------------------+
+          |                         |                         |
+          v                         v                         v
++-------------------+     +-------------------+     +-------------------+
+| 1. CAN-Bus / OBD  |     | 2. Mobile App GPS |     | 3. Fastag Toll    |
+| Wheel speed pulses|     | High-frequency    |     | Government plaza  |
+| and ECU odometer  |     | breadcrumb trail  |     | timestamp barriers|
++-------------------+     +-------------------+     +-------------------+</code></pre>
+            <h3>Feed 1: Physical Vehicle Telematics (CAN-bus / OBD-II)</h3>
+            <p>Pulls hardware wheel speed pulses and engine control unit (ECU) odometer readings directly from the vehicle diagnostic bus. This reading is independent of smartphone connectivity or cellular carrier availability.</p>
+            <h3>Feed 2: High-Frequency Driver App GPS Trails</h3>
+            <p>Captures timestamped coordinate breadcrumbs through the background driver mobile PWA. Stream filters evaluate mock location flags, acceleration patterns, and corridor boundaries.</p>
+            <h3>Feed 3: Electronic Toll Plaza Checkpoints (Fastag API)</h3>
+            <p>Queries national highway electronic toll records using the vehicle commercial registration number. Fastag barrier timestamps establish indisputable geographic checkpoints along the route corridor.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>3. Automated Reconciliation and Discrepancy Tolerance</h2>
+            <p>Before a completed duty can proceed to billing generation, the reconciliation engine compares measured distances:</p>
+            <ul>
+              <li><strong>Nominal Variance (Under 3% Tolerance)</strong>: Minor route deviations due to local lane changes or pickup lane diversions pass automatically.</li>
+              <li><strong>Corridor Detour (&gt;1.5 km Deviation)</strong>: Routes deviating past the 1.5 km corridor boundary flag a supervisor review card displaying planned versus actual satellite trails.</li>
+              <li><strong>Critical Mismatch (&gt;5% Gap)</strong>: Any duty where hardware odometer deltas contradict GPS breadcrumbs or Fastag transit times triggers an automated billing lock, blocking driver settlement until operations review.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>4. Operational Gains: Eliminating Manual Duty Slip Triage</h2>
+            <p>Automating the distance reconciliation loop produces three immediate business outcomes:</p>
+            <ol>
+              <li><strong>Elimination of Paper Duty Slips</strong>: Digital start and end OTP verification replaces lost paper slips and unreadable driver handwriting.</li>
+              <li><strong>Accelerated Settlement Cycles</strong>: Duty reconciliation time drops from protracted manual spreadsheet audits down to real-time automated verification.</li>
+              <li><strong>Defensible Corporate Invoicing</strong>: Every corporate invoice includes a clickable digital audit dossier containing verified GPS routes, toll transaction IDs, and odometer signatures.</li>
+            </ol>
+            <p>Audited distance telemetry eliminates billing disputes between fleet suppliers and corporate travel desks, protecting margins on every kilometre traveled.</p>
+          </div>
+        `
+      },
+      'automated-sla': {
+        title: "Automated Vendor SLA Tier Demotion: How Algorithms Eliminate Transport Escalations",
+        html: `
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Operations & Dispatch · 6 min read · Published 2026-11-15</div>
+            <h1>Automated Vendor SLA Tier Demotion: How Algorithms Eliminate Transport Escalations</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">How automated allocation tier demotion and penalty debit notes enforce contractual service level agreements across multi-vendor corporate cab fleets.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <p>Corporate travel desks contracting multiple cab vendors struggle with inconsistent service delivery. When an associate vendor cancels duties at short notice or delivers high driver latency, corporate dispatchers manually reassign trips while logging verbal complaints that rarely change vendor behavior.</p>
+            <p>Automating contractual enforcement through algorithmic allocation tier demotion and automated penalty debit notes removes human friction from vendor governance.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>1. The Core Metrics of Fleet Service Level Agreements</h2>
+            <p>Contractual agreements between corporate enterprises and fleet operators track four primary operational thresholds:</p>
+            <ol>
+              <li><strong>Acceptance Latency</strong>: The elapsed time between duty broadcast and vendor confirmation (typically under 15 minutes for spot duties).</li>
+              <li><strong>Driver Allocation Lead Time</strong>: Assigning vehicle and driver credentials at least two hours before scheduled pickup.</li>
+              <li><strong>On-Time Arrival (OTA)</strong>: Driver arrival at the passenger pickup geofence at least 10 minutes prior to scheduled departure.</li>
+              <li><strong>Unforced Vendor Cancellations</strong>: Duty turn-backs within four hours of scheduled reporting.</li>
+            </ol>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>2. Dynamic Allocation Tiers</h2>
+            <p>Axiom Mobility groups contracted fleet vendors into three dynamic operational tiers:</p>
+            <ul>
+              <li><strong>Tier 1 (Preferred Allocations)</strong>: Receives first-look duty broadcasts with an exclusive 10-minute bidding window. Reserved for vendors maintaining &gt;95% on-time performance and zero unforced dropouts.</li>
+              <li><strong>Tier 2 (Secondary Overflow)</strong>: Receives broadcasted duties only after Tier 1 pass-through or during peak shift surge hours.</li>
+              <li><strong>Tier 3 (Cooling &amp; Remediation)</strong>: Restricted allocation pool. Vendors falling into Tier 3 receive low-margin overflow duties while operations conduct vehicle audit reviews.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>3. Automated Tier Demotion Rules</h2>
+            <p>Rather than waiting for monthly review meetings, tier calculations occur in real time:</p>
+            <ul>
+              <li>If a vendor records two unforced cancellations within a rolling 48-hour window, the dispatch engine automatically demotes the supplier from Tier 1 to Tier 2 for seven days.</li>
+              <li>If a vendor's rolling 30-day on-time arrival rate dips below 90%, duty allotment weight automatically decreases by 30% in the dispatch optimizer.</li>
+              <li>When performance metrics recover above threshold targets for 14 consecutive days, the engine automatically restores vendor tier status without administrative paperwork.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>4. Contractual Penalty Debit Notes</h2>
+            <p>Enforcing financial penalties manually creates relationship strain between dispatch supervisors and fleet owners.</p>
+            <p>Axiom Mobility automates contractual penalty accounting:</p>
+            <ul>
+              <li>A late cancellation triggers an automated debit note calculated against contractual penalty clauses (such as ₹500 per late duty return).</li>
+              <li>The debit note automatically offsets against the vendor's bi-weekly billing statement in the dual-ledger accounting module.</li>
+              <li>Every debit note links directly to timestamped communication logs and driver cancellation records, eliminating subjective billing arguments.</li>
+            </ul>
+          </div>
+        `
+      },
+      'tally-integration': {
+        title: "Exporting B2B Car Rental Sales Vouchers to Tally Prime: XML Schemas & Multi-Ledger Split",
+        html: `
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Finance & ERP · 7 min read · Published 2026-11-16</div>
+            <h1>Exporting B2B Car Rental Sales Vouchers to Tally Prime: XML Schemas &amp; Multi-Ledger Split</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">How automated Tally Prime XML export bridges operational fleet trip sheets with enterprise double-entry general ledgers and GST allocations.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <p>Finance teams in commercial fleet agencies spend dozens of hours every month manually keying trip sheets and paper duty slips into accounting software. When an enterprise operates hundreds of daily corporate commutes across local hourly rentals, outstation trips, and airport transfers, manual entry creates ledger reconciliation delays and GST filing bottlenecks.</p>
+            <p>A direct XML bridge to Tally Prime translates operational duty data into canonical accounting entries in seconds.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>1. The Anatomy of a Commercial Fleet Sales Voucher</h2>
+            <p>A single commercial car rental transaction involves multiple tax and revenue ledgers:</p>
+            <ol>
+              <li><strong>Party Ledger (Debtor)</strong>: The corporate client account debited with the total billable amount.</li>
+              <li><strong>Service Revenue Ledger</strong>: The base revenue credited under SAC 996601 passenger transport.</li>
+              <li><strong>Extra Mileage &amp; Waiting Revenue</strong>: Split line items for billable overtime hours and excess kilometres beyond base package slabs.</li>
+              <li><strong>Tax Allocations</strong>: Output CGST and SGST ledgers (or IGST for interstate outstation trips).</li>
+              <li><strong>Pass-Through Reimbursements</strong>: Fastag toll fees and airport parking charges billed at cost.</li>
+            </ol>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>2. Generating Valid Tally XML Envelopes</h2>
+            <p>Tally Prime requires a strict <code>&lt;ENVELOPE&gt;</code> XML hierarchy with exact case-sensitive tags and static variables.</p>
+            <p>A canonical sales voucher generated by Axiom Mobility formats as follows:</p>
+            <pre style="background:var(--subtle,#f4f4f5);padding:14px;border-radius:8px;font-family:monospace;font-size:12px;overflow-x:auto;margin:16px 0;line-height:1.5"><code>&lt;TALLYMESSAGE xmlns:UDF="TallyUDF"&gt;
+  &lt;VOUCHER VCHTYPE="Sales" ACTION="Create"&gt;
+    &lt;DATE&gt;20261116&lt;/DATE&gt;
+    &lt;VOUCHERTYPENAME&gt;Sales&lt;/VOUCHERTYPENAME&gt;
+    &lt;VOUCHERNUMBER&gt;INV-BK-202611-001&lt;/VOUCHERNUMBER&gt;
+    &lt;REFERENCE&gt;BK-202611-001&lt;/REFERENCE&gt;
+    &lt;PARTYLEDGERNAME&gt;Infosys Corporate Travel Desk&lt;/PARTYLEDGERNAME&gt;
+    &lt;NARRATION&gt;Corporate Car Rental Duty BK-202611-001&lt;/NARRATION&gt;
+    &lt;ALLLEDGERENTRIES.LIST&gt;
+      &lt;LEDGERNAME&gt;Infosys Corporate Travel Desk&lt;/LEDGERNAME&gt;
+      &lt;ISDEEMEDPOSITIVE&gt;Yes&lt;/ISDEEMEDPOSITIVE&gt;
+      &lt;AMOUNT&gt;-3150.00&lt;/AMOUNT&gt;
+    &lt;/ALLLEDGERENTRIES.LIST&gt;
+    &lt;ALLLEDGERENTRIES.LIST&gt;
+      &lt;LEDGERNAME&gt;Car Rental Service Revenue&lt;/LEDGERNAME&gt;
+      &lt;ISDEEMEDPOSITIVE&gt;No&lt;/ISDEEMEDPOSITIVE&gt;
+      &lt;AMOUNT&gt;3000.00&lt;/AMOUNT&gt;
+    &lt;/ALLLEDGERENTRIES.LIST&gt;
+    &lt;ALLLEDGERENTRIES.LIST&gt;
+      &lt;LEDGERNAME&gt;Output CGST @ 2.5%&lt;/LEDGERNAME&gt;
+      &lt;ISDEEMEDPOSITIVE&gt;No&lt;/ISDEEMEDPOSITIVE&gt;
+      &lt;AMOUNT&gt;75.00&lt;/AMOUNT&gt;
+    &lt;/ALLLEDGERENTRIES.LIST&gt;
+    &lt;ALLLEDGERENTRIES.LIST&gt;
+      &lt;LEDGERNAME&gt;Output SGST @ 2.5%&lt;/LEDGERNAME&gt;
+      &lt;ISDEEMEDPOSITIVE&gt;No&lt;/ISDEEMEDPOSITIVE&gt;
+      &lt;AMOUNT&gt;75.00&lt;/AMOUNT&gt;
+    &lt;/ALLLEDGERENTRIES.LIST&gt;
+  &lt;/VOUCHER&gt;
+&lt;/TALLYMESSAGE&gt;</code></pre>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>3. Resolving Party Ledger Mappings</h2>
+            <p>A frequent defect during ERP imports is ledger name mismatch between operational customer tags and general ledger charts of accounts.</p>
+            <p>Axiom Mobility handles this through an integrated mapping table:</p>
+            <ul>
+              <li>Every corporate client record links to a canonical <code>tally_ledger_name</code> attribute.</li>
+              <li>If an operational customer record lacks a direct match, the export engine flags the transaction before XML generation rather than producing corrupt import logs.</li>
+              <li>Special characters in passenger names and addresses escape properly (<code>&amp;amp;</code>, <code>&amp;lt;</code>, <code>&amp;gt;</code>) to preserve XML validity.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>4. Batch Import Workflow</h2>
+            <p>Exporting monthly sales data no longer requires technical database exports:</p>
+            <ul>
+              <li>Step A: Select the target billing period and approved customer proforma invoices.</li>
+              <li>Step B: Choose the "Export Tally XML" action from the billing ledger view.</li>
+              <li>Step C: Open Tally Prime, navigate to <strong>Import Data &gt; Vouchers</strong>, and select the downloaded XML file.</li>
+              <li>Step D: Review imported vouchers with party ledgers, tax allocations, and bill-wise references reconciled automatically.</li>
+            </ul>
+          </div>
+        `
+      },
+      'roster-automation': {
+        title: "Corporate Employee Roster Scheduling: Route Optimization and Ad-Hoc Shift Swaps",
+        html: `
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Operations & Roster · 6 min read · Published 2026-11-17</div>
+            <h1>Corporate Employee Roster Scheduling: Route Optimization and Ad-Hoc Shift Swaps</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">How automated roster scheduling, dynamic cab clustering, and mobile employee shift swaps eliminate transport chaos in enterprise facilities.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <p>Facility administrators managing corporate shifts face daily chaos from late roster updates, employee sick leaves, and unannounced shift swaps. When hundreds of employees submit ad-hoc transport requests via email or office messaging channels, transport dispatchers spend hours manually rebuilding vehicle routes on physical maps.</p>
+            <p>Automating employee roster intake with algorithmic geographic clustering and mobile self-service shift swaps stabilizes daily corporate fleet operations.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>1. The Bottlenecks of Manual Corporate Rostering</h2>
+            <p>Managing enterprise shift transportation manually creates three chronic operational failures:</p>
+            <ul>
+              <li><strong>Empty Seat Waste</strong>: Vehicles traveling with two passengers when nearby routes could easily combine into a single four-passenger sedan.</li>
+              <li><strong>Routing Inefficiency</strong>: Dispatchers assigning pickup sequences in alphabetical employee order rather than optimized geographic road corridors.</li>
+              <li><strong>Uncoordinated Shift Swaps</strong>: An employee trading shifts with a peer without notifying the transport desk, resulting in cabs arriving at empty gates.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>2. Algorithmic Geo-Clustering and Corridor Routing</h2>
+            <p>Axiom Mobility replaces manual dispatch guesswork with deterministic spatial routing:</p>
+            <ol>
+              <li><strong>Roster Integration</strong>: Employees select their weekly shift schedules directly through corporate HRMS integrations or the mobile passenger portal.</li>
+              <li><strong>K-Means Spatial Clustering</strong>: The routing engine groups employee pickup coordinates into dense geographic neighborhood clusters.</li>
+              <li><strong>Corridor Traversal</strong>: The optimizer generates vehicle pickup sequences along minimal-distance corridors, guaranteeing that total passenger ride time stays within corporate service limits.</li>
+              <li><strong>Vehicle Sizing</strong>: The system automatically selects appropriate vehicle classes (sedans, MPVs, or shared corporate shuttles) based on cluster passenger density.</li>
+            </ol>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>3. Self-Service Shift Swaps with Automated Cut-Off Windows</h2>
+            <p>Handling shift changes requires balancing employee flexibility with vendor operational lead times.</p>
+            <p>Axiom Mobility enforces structured change controls:</p>
+            <ul>
+              <li><strong>Self-Service Swap Window</strong>: Employees can change shift times or cancel transport directly from their mobile portal up to the defined cut-off threshold prior to shift start.</li>
+              <li><strong>Automated Route Recalculation</strong>: When a cancellation occurs before cut-off, the routing engine automatically recomputes the cab manifest and updates the driver navigation queue.</li>
+              <li><strong>Late Lockout</strong>: Requests submitted past the cut-off boundary lock automatically, preventing last-minute vendor churn and driver no-show disputes.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>4. Operational Gains for Corporate Facility Desks</h2>
+            <p>Replacing manual spreadsheet rostering delivers measurable operational stability:</p>
+            <ul>
+              <li>Transport coordinators eliminate repetitive manual routing calls before every shift cycle.</li>
+              <li>Corporate route occupancy increases through automated seat consolidation.</li>
+              <li>Employees receive real-time driver details and live ETA tracking directly on their mobile phones, reducing transport helpdesk support tickets.</li>
+            </ul>
+          </div>
+        `
+      },
+      'fuel-indexed': {
+        title: "Fuel-Indexed Billing in Corporate Transport: Dynamic Rate Formulas Against Daily Price Swings",
+        html: `
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Finance & Billing · 6 min read · Published 2026-11-18</div>
+            <h1>Fuel-Indexed Billing in Corporate Transport: Dynamic Rate Formulas Against Daily Price Swings</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">How dynamic fuel index escalation formulas protect commercial fleet margins and stabilize corporate procurement contracts during daily diesel price fluctuations.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <p>Daily retail fuel price volatility creates severe margin friction between commercial fleet operators and corporate travel procurement desks. When diesel and petrol prices fluctuate daily, fixed-rate transport contracts force vendors to either operate at a loss or terminate contracts mid-term. Conversely, static contracts during falling fuel cycles leave corporate clients overpaying.</p>
+            <p>An automated fuel indexation mechanism adjusts kilometre rates dynamically based on verified base indices, protecting both parties without constant contract renegotiation.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>1. The Mechanics of Fuel Indexation Formulas</h2>
+            <p>A standard fuel escalation clause establishes a baseline fuel price and an agreed vehicle fuel economy factor.</p>
+            <p>The standard calculation formula defines as:</p>
+            <p>$\\Delta Rate = \\frac{Current\\,Fuel\\,Price - Base\\,Fuel\\,Price}{Standard\\,Fuel\\,Efficiency\\,(km/L)}$</p>
+            <p>For example, if an enterprise contract sets a base diesel price of ₹95.00/L with an agreed sedan efficiency of 15 km/L:</p>
+            <ul>
+              <li>If retail fuel rises to ₹101.00/L, the price delta is ₹6.00/L.</li>
+              <li>The per-kilometre escalation evaluates to ₹6.00 / 15 = ₹0.40 per billable kilometre.</li>
+              <li>The platform automatically applies this ₹0.40/km delta to all running duties during the active price window.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>2. Preventing Floating-Point Ledger Drift</h2>
+            <p>When calculating fuel deltas across thousands of monthly duties, standard float math creates fractional paise rounding discrepancies between client invoices and vendor payouts.</p>
+            <p>Axiom Mobility executes fuel index math strictly in integer paise:</p>
+            <ul>
+              <li>Escalations round deterministically using half-up arithmetic.</li>
+              <li>The dual-ledger engine recalculates Client Receivable and Supplier Payable simultaneously.</li>
+              <li>Fuel price changes reflect immediately in the tariff engine using verified state-run oil marketing company retail rate updates.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>3. Back-to-Back Contractual Passthrough</h2>
+            <p>In multi-tier fleet operations, a master transport contractor hires associate vendors and individual driver-partners to service corporate routes.</p>
+            <p>A common margin leak occurs when fuel escalations granted by the corporate client do not pass through cleanly to associate vehicle owners:</p>
+            <ul>
+              <li>When fuel increases, associate drivers face immediate cash crunches at fuel pumps.</li>
+              <li>Axiom Mobility's back-to-back tariff resolver mirrors fuel deltas across both client receivables and supplier payables simultaneously.</li>
+              <li>This automated passthrough preserves the master operator's gross margin while ensuring driver-partners receive fair compensation on real operating costs.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>4. Operational Gains of Transparent Indexation</h2>
+            <p>Implementing automated fuel indexation eliminates contractual disputes:</p>
+            <ul>
+              <li>Procurement teams gain an auditable, transparent billing trail linked directly to public fuel price indices.</li>
+              <li>Fleet operators maintain stable operating margins regardless of macroeconomic commodity swings.</li>
+              <li>Corporate transport desks eliminate emergency vendor rate negotiations and ensure uninterrupted cab availability for daily shifts.</li>
+            </ul>
+          </div>
+        `
+      },
+      'g2g-vs-p2p': {
+        title: "Garage-to-Garage (G2G) vs. Point-to-Point (P2P) Billing: Solving the Deadhead Dispute",
+        html: `
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Operations & Metering · 6 min read · Published 2026-11-19</div>
+            <h1>Garage-to-Garage (G2G) vs. Point-to-Point (P2P) Billing: Solving the Deadhead Dispute</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">A financial and operational comparison between Garage-to-Garage and Point-to-Point billing models in corporate car rental contracts.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <p>Deadhead mileage, the distance a commercial vehicle travels between the operating garage and the passenger's pickup location, is the single most contentious line item in corporate car rental invoices. Corporate travel desks seek Point-to-Point (P2P) billing to pay only for passenger ride time, while fleet operators require Garage-to-Garage (G2G) compensation to cover non-revenue fuel and driver time.</p>
+            <p>Choosing the wrong billing model or failing to establish transparent deadhead constraints creates constant invoice disputes and margin leakage.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>1. Comparing G2G and P2P Accounting Models</h2>
+            <p>Understanding the structural differences between these two billing conventions defines corporate procurement strategy:</p>
+            <table>
+              <thead><tr><th>Dimension</th><th>Garage-to-Garage (G2G)</th><th>Point-to-Point (P2P)</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Start Point</strong></td><td>Vehicle leaves commercial garage / hub.</td><td>Passenger boards at designated pickup geofence.</td></tr>
+                <tr><td><strong>End Point</strong></td><td>Vehicle returns to commercial garage / hub.</td><td>Passenger disembarks at destination geofence.</td></tr>
+                <tr><td><strong>Deadhead Cost</strong></td><td>Billed directly to corporate client.</td><td>Absorbed by vendor or priced into base package.</td></tr>
+                <tr><td><strong>Ideal Use Case</strong></td><td>Full-day dedicated rentals, outstation trips, VIP events.</td><td>Local spot airport transfers, fixed-route employee shuttles.</td></tr>
+              </tbody>
+            </table>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>2. The Abuse of Uncapped Deadhead Mileage</h2>
+            <p>Under unrestricted G2G billing, unscrupulous fleet vendors dispatch vehicles from remote garages located 30 kilometres away from the client pickup location, inflating the total duty invoice by 60 deadhead kilometres.</p>
+            <p>To prevent procurement disputes, modern corporate contracts enforce deadhead caps:</p>
+            <ul>
+              <li><strong>Maximum Deadhead Allowance</strong>: Capping billable garage distance (such as a maximum allowance of 10 km or 30 minutes from the corporate hub).</li>
+              <li><strong>Virtual Hub Geofencing</strong>: Defining a centralized virtual garage coordinate rather than the vendor's physical depot, ensuring predictable deadhead billing.</li>
+              <li><strong>Auto-Slab Optimization</strong>: The tariff engine automatically evaluates whether G2G or P2P produces the most equitable rate while preserving agreed vendor gross margins.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>3. Automated Geofenced Metering in Axiom Mobility</h2>
+            <p>Axiom Mobility eliminates paper trip sheet disputes by tracking duty state transitions automatically through driver app GPS telemetry:</p>
+            <ol>
+              <li><strong>Garage Exit Event</strong>: When the vehicle leaves the designated garage geofence, the driver app records a timestamped telemetry baseline.</li>
+              <li><strong>Passenger Pickup Event</strong>: OTP validation at the passenger pickup point marks the beginning of the active passenger leg.</li>
+              <li><strong>Passenger Drop Event</strong>: Destination OTP validation closes passenger billing.</li>
+              <li><strong>Garage Return Event</strong>: Returning to the hub geofence closes the G2G duty cycle, providing an auditable, timestamped breadcrumb trail for finance verification.</li>
+            </ol>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>4. Contractual Clarity Protects Partnerships</h2>
+            <p>Establishing clear deadhead rules protects long-term supplier relationships:</p>
+            <ul>
+              <li>Corporate clients eliminate unexpected invoice inflation on short-distance executive transfers.</li>
+              <li>Fleet vendors recover genuine vehicle mobilization expenses without resorting to hidden fees.</li>
+              <li>Finance teams review transparent digital vouchers showing exact passenger kilometres and capped deadhead splits.</li>
+            </ul>
+          </div>
+        `
+      },
+      'driver-bgv': {
+        title: "Commercial Driver Background Verification: The Mandatory Checks for Corporate Fleets",
+        html: `
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Compliance & Safety · 7 min read · Published 2026-11-20</div>
+            <h1>Commercial Driver Background Verification: The Mandatory Checks for Corporate Fleets</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">A statutory compliance guide for enterprise transport desks detailing police verification, license validity, and automated credential monitoring.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <p>Deploying unverified commercial drivers on corporate employee transport duty exposes enterprises to statutory non-compliance penalties, criminal liability, and severe brand damage. While fleet vendors verbally guarantee that drivers are properly vetted, transport audits frequently discover expired commercial badges, unverified temporary drivers, and missing local police verification records.</p>
+            <p>Enterprise transport safety requires an automated, document-verified driver onboarding and compliance monitoring protocol.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>1. The Core Statutory Compliance Checks</h2>
+            <p>Under state Motor Vehicles Acts and enterprise corporate safety charters, every chauffeur operating corporate trips must pass strict validation criteria:</p>
+            <ol>
+              <li><strong>Commercial Driving Licence (DL)</strong>: Verification of an active commercial endorsement badge via national Sarathi transport database integration.</li>
+              <li><strong>Police Verification Report (PVR)</strong>: Verified criminal background clearance certificate issued by the local jurisdictional police commissioner.</li>
+              <li><strong>Medical Fitness Certificate</strong>: Annual physical fitness certification, including certified ophthalmology and cardiac health assessments.</li>
+              <li><strong>Permanent Address Verification</strong>: Physical or biometric address confirmation through official government identity registries.</li>
+              <li><strong>Prior Traffic Incident History</strong>: Review of past vehicular violations, speeding citations, or commercial license suspensions.</li>
+            </ol>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>2. The Danger of Expired Driver Credentials</h2>
+            <p>Driver compliance is not a one-time onboarding milestone. A commercial license or police clearance certificate verified twelve months ago may currently sit expired or suspended.</p>
+            <p>Axiom Mobility enforces active credential monitoring:</p>
+            <ul>
+              <li><strong>Automated Expiry Alerts</strong>: The system notifies vendor administrators ahead of document expiration milestones.</li>
+              <li><strong>System Dispatch Lockout</strong>: When a driver's commercial badge, medical certificate, or police verification passes its expiration threshold without renewal, the platform automatically locks the driver profile, blocking duty allotment.</li>
+              <li><strong>Zero Temporary Substitutions</strong>: Unregistered proxy drivers cannot substitute for an assigned chauffeur because vehicle check-in requires biometric or mobile credential verification.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>3. Vehicle Regulatory Compliance Checks</h2>
+            <p>Driver safety must pair with verified vehicle roadworthiness:</p>
+            <ul>
+              <li><strong>Commercial Yellow-Board Registration</strong>: Valid registration certificate (RC) confirming commercial passenger transport status.</li>
+              <li><strong>Contract Carriage / Tourist Permit</strong>: Active state or All-India Tourist Permit (AITP) covering authorized transit territories.</li>
+              <li><strong>Fitness Certificate (FC)</strong>: Valid government motor vehicle inspection fitness certificate.</li>
+              <li><strong>Comprehensive Commercial Insurance</strong>: Active passenger risk liability policy, which becomes void if white-plate private vehicles are illegally deployed.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>4. Audit-Ready Enterprise Vendor Governance</h2>
+            <p>Automating driver and vehicle compliance delivers measurable peace of mind for corporate facility directors:</p>
+            <ul>
+              <li>Every driver assigned to a corporate shift displays a verified digital compliance badge on the corporate travel desk console.</li>
+              <li>In the event of internal corporate safety audits or regulatory labor inspections, the platform generates a complete, timestamped driver verification dossier in a single click.</li>
+              <li>Corporate enterprises insulate their organizations from legal liability while enforcing high safety standards across every contracted fleet vendor.</li>
+            </ul>
+          </div>
+        `
+      },
+      'cancellation-sla': {
+        title: "Standardizing Corporate Cab Cancellation Policies: Cut-Off Windows and Waiting Time",
+        html: `
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Operations & Policy · 6 min read · Published 2026-11-21</div>
+            <h1>Standardizing Corporate Cab Cancellation Policies: Cut-Off Windows and Waiting Time</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">How structured cancellation cut-off windows, automated driver waiting allowances, and penalty debit notes resolve commercial friction in B2B car rentals.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <p>Last-minute booking cancellations and excessive passenger waiting times are primary friction points in corporate car rental relationships. When executive passengers keep chauffeurs waiting for an hour past scheduled reporting time, drivers miss subsequent duties while incurring fuel and parking expenses. Conversely, when clients cancel trips, fleet operators charge disputed cancellation penalties without verifiable timestamps.</p>
+            <p>Establishing code-enforced cancellation cut-off windows and automated geofenced waiting time metering aligns corporate bookers and fleet suppliers under transparent ground rules.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>1. Defining Standard Cancellation Windows</h2>
+            <p>Corporate travel policies require clear cancellation boundaries based on duty type:</p>
+            <ul>
+              <li><strong>Local Spot Rentals (Hourly/KM Slabs)</strong>: Free cancellation permitted up to two hours prior to scheduled reporting time. Cancellations within the two-hour window incur a standard mobilization charge.</li>
+              <li><strong>Airport Transfers</strong>: Free cancellation up to three hours prior to reporting time. Late cancellations after vehicle dispatch incur base package mobilization costs.</li>
+              <li><strong>Outstation Calendar-Day Duties</strong>: Cancellation permitted up to twelve hours prior to departure without penalty. Cancellations within twelve hours trigger a single-day base rental fee.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>2. Geofenced Driver Waiting Time Metering</h2>
+            <p>Disputes over waiting charges frequently arise from mismatched verbal recollections of arrival times.</p>
+            <p>Axiom Mobility automates waiting time tracking through driver mobile GPS:</p>
+            <ol>
+              <li><strong>Arrival Geofence Timestamp</strong>: When the vehicle enters the passenger pickup perimeter, the driver app triggers an automated arrival notification to the employee.</li>
+              <li><strong>Grace Period</strong>: The system provides an agreed 15-minute grace period from the scheduled duty start time without billing waiting charges.</li>
+              <li><strong>Metered Overtime</strong>: If the passenger does not board past the grace threshold, the platform begins recording waiting time in deterministic 15-minute increments.</li>
+              <li><strong>Boarding OTP Lock</strong>: Boarding OTP validation by the passenger automatically halts the waiting timer and transitions the duty into active transit status.</li>
+            </ol>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>3. Resolving No-Show Scenarios Fairly</h2>
+            <p>When a passenger fails to report for a scheduled duty:</p>
+            <ul>
+              <li>The driver cannot declare a no-show immediately. The mobile app enforces a mandatory 30-minute waiting window alongside two automated IVR phone call prompts to the passenger.</li>
+              <li>If the passenger remains unreachable after thirty minutes, the driver triggers an unassisted no-show review.</li>
+              <li>The platform automatically logs the vehicle's geofenced location, call attempt timestamps, and supervisor approval, generating a defensible cancellation voucher with zero manual dispute.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>4. Dual-Ledger Settlement of Cancellation Charges</h2>
+            <p>Handling cancellation revenue correctly preserves commercial trust:</p>
+            <ul>
+              <li>When a corporate client incurs a late cancellation fee, the billing engine debits the corporate account according to agreed rate cards.</li>
+              <li>Simultaneously, the supplier ledger credits the vehicle vendor and driver partner with their contractual mobilization compensation.</li>
+              <li>Automated debit and credit notes reconcile across both ledgers, preventing margin leakage while compensating drivers for mobilization fuel.</li>
+            </ul>
+          </div>
+        `
+      },
+      'anti-gps': {
+        title: "Detecting Mock GPS and Developer-Mode Spoofing in Mobile Driver Field Systems",
+        html: `
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Telematics & Security · 7 min read · Published 2026-11-22</div>
+            <h1>Detecting Mock GPS and Developer-Mode Spoofing in Mobile Driver Field Systems</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">How mobile telematics engines detect synthetic coordinates, mock location providers, and device rooted states to prevent driver fraud in B2B mobility.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <p>In mobile driver apps, location spoofing represents a serious fraud threat. Using third-party mock location apps easily downloaded onto Android devices, dishonest drivers simulate arrival at passenger pickup points, fake on-time performance metrics, and manipulate trip kilometre calculations while remaining stationary.</p>
+            <p>Preventing location spoofing requires multi-layered client-side sensor integrity checks and server-side stream validation.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>1. How Location Spoofing Occurs in the Field</h2>
+            <p>Drivers typically manipulate location signals through three techniques:</p>
+            <ol>
+              <li><strong>Android Mock Location APIs</strong>: Enabling developer options on Android smartphones and selecting a mock location provider app that feeds synthetic latitude and longitude coordinates into the operating system.</li>
+              <li><strong>Device Rooting &amp; GPS Injections</strong>: Using rooted handsets to inject manipulated coordinates directly into system location frameworks, bypassing standard user-mode detection.</li>
+              <li><strong>App Cloning &amp; Automated Teleportation</strong>: Running driver apps inside virtual sandbox environments that jump coordinates instantly across city boundaries to collect idle waiting fees.</li>
+            </ol>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>2. Multi-Layered Client-Side Integrity Checks</h2>
+            <p>Axiom Mobility's mobile driver application enforces rigorous device security audits before admitting location updates:</p>
+            <ul>
+              <li><strong>isFromMockProvider Check</strong>: Directly inspects Android location metadata flags. Any coordinate generated by a mock provider is rejected immediately by the location manager.</li>
+              <li><strong>Developer Options &amp; Root Auditing</strong>: Detects active developer options, dangerous binaries (such as su binaries), and known hooking frameworks (like Xposed or Frida).</li>
+              <li><strong>Fused Sensor Cross-Check</strong>: Compares GPS speed calculations against hardware accelerometer and gyroscope sensor streams. A vehicle moving at 60 km/h must produce corresponding physical inertia vectors; synthetic coordinate jumps produce flat accelerometer baselines.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>3. Server-Side Telemetry Stream Validation</h2>
+            <p>Client-side checks are paired with backend stream analytics to prevent bypass:</p>
+            <ul>
+              <li><strong>Speed-Distance Physics Validation</strong>: The server evaluates consecutive coordinate breadcrumbs against physical speed limits. If a vehicle travels between two distant points at an impossible velocity (such as 300 km/h across urban Bangalore corridors), the server flags an automated spoofing penalty.</li>
+              <li><strong>CAN-Bus Telematics Verification</strong>: In vehicles equipped with physical OBD-II / CAN-bus hardware, the server cross-references smartphone GPS speed against physical wheel rotation pulses. If the phone claims the cab is moving while the vehicle odometer is stationary, the trip transitions into an immediate security audit hold.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>4. Protecting Trust Across Corporate Desks</h2>
+            <p>Deterministic anti-spoofing safeguards commercial fleet trust:</p>
+            <ul>
+              <li>Corporate travel desks receive verifiable trip proof backed by genuine physical telemetry.</li>
+              <li>Honest drivers and vendors gain protection against unscrupulous competitors who artificially inflate on-time metrics.</li>
+              <li>Emergency SOS alerts stream authentic real-time coordinates, ensuring safety personnel dispatch to the true physical location of the vehicle during an incident.</li>
+            </ul>
+          </div>
+        `
+      },
+      'partner-exchange': {
+        title: "The B2B Fleet Clearinghouse: Managing Inter-City Cab Overflow Without Risking Client Relationships",
+        html: `
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Operations & Network · 6 min read · Published 2026-11-23</div>
+            <h1>The B2B Fleet Clearinghouse: Managing Inter-City Cab Overflow Without Risking Client Relationships</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">How sovereign partner exchanges and white-label duty routing allow commercial car rental operators to monetize inter-city overflow without losing accounts.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <p>Mid-market commercial car rental operators face a constant dilemma when enterprise corporate clients request vehicles in cities where the operator owns no physical fleet. Rejecting the duty risks losing the enterprise account to national aggregators. Conversely, sub-contracting to unvetted local vendors via unmonitored WhatsApp groups risks driver misbehavior, stolen clients, and non-existent duty proof.</p>
+            <p>A sovereign B2B fleet clearinghouse connects regional operators into a trusted partner network with automated credit clearing and white-label execution.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>1. The Vulnerabilities of Unregulated Sub-Contracting</h2>
+            <p>When a fleet operator sub-contracts an outstation trip informally:</p>
+            <ul>
+              <li><strong>Client Poaching</strong>: The destination vendor or driver hands personal business cards to the executive passenger, bypassing the booking operator.</li>
+              <li><strong>Lost Telemetry &amp; Duty Proof</strong>: The primary operator cannot track the trip live, leaving the corporate client without GPS visibility.</li>
+              <li><strong>Settlement &amp; Cashflow Delays</strong>: Destination vendors demand upfront cash advances while corporate clients settle invoices on 45-day credit terms, creating severe working capital strain.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>2. White-Label Dispatch &amp; Masked Calling</h2>
+            <p>Axiom Mobility protects primary client relationships through strict platform isolation:</p>
+            <ol>
+              <li><strong>White-Label Passenger Notifications</strong>: All booking confirmations, driver tracking links, and SMS OTPs carry the primary operator's brand identity.</li>
+              <li><strong>Virtual Number Masking</strong>: Chauffeurs communicate with corporate passengers exclusively through masked telephony bridges, preventing direct contact exchange.</li>
+              <li><strong>Driver Non-Solicitation Contracts</strong>: Partner operators in the exchange operate under legally binding non-solicitation charters enforced by network deposit holds.</li>
+            </ol>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>3. Automated Network Clearinghouse &amp; Factoring</h2>
+            <p>Managing inter-operator financial settlements requires transparent accounting:</p>
+            <ul>
+              <li><strong>B2B Exchange Take-Rate</strong>: The originating operator sets client pricing, the fulfilling partner accepts the duty at their published network rate, and the exchange automatically deducts an agreed platform clearing fee (such as 50 basis points).</li>
+              <li><strong>Instant T+0 Factoring</strong>: Fulfilling operators receive verified duty payouts immediately upon digital duty closure, backed by Axiom's treasury liquidity pool.</li>
+              <li><strong>Unified Proforma Generation</strong>: The originating operator receives a single consolidated monthly GST tax invoice covering all inter-city partner duties, complete with GPS breadcrumbs and toll receipts.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>4. Expanding Geographic Reach Without Capital Expenditure</h2>
+            <p>Joining an automated clearinghouse expands regional fleet capacity:</p>
+            <ul>
+              <li>Local fleet operators accept pan-India corporate contracts with confidence, fulfilling bookings in 20+ metropolitan cities without purchasing new vehicles.</li>
+              <li>Fulfilling partners monetize idle fleet inventory during low-demand periods.</li>
+              <li>Corporate enterprise clients enjoy consistent service levels, consolidated billing, and statutory safety standards nationwide through a single sovereign portal.</li>
+            </ul>
+          </div>
+        `
+      },
+      'per-seat-costing': {
+        title: "Prorating Employee Transport: The Mathematics of Per-Seat Shared Shuttle Cost Allocations",
+        html: `
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Finance & Costing · 6 min read · Published 2026-11-24</div>
+            <h1>Prorating Employee Transport: The Mathematics of Per-Seat Shared Shuttle Cost Allocations</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">How corporate facility teams allocate shared employee shuttle costs across business units and cost centres using passenger seat-kilometre formulas.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <p>Allocating employee shuttle expenses fairly across corporate business units and departmental cost centres is an accounting headache for enterprise facility teams. When a 20-seat corporate shuttle transports engineers, operations staff, and sales executives on a single morning route, billing the entire bus expense to a single departmental cost centre distorts financial reporting and triggers internal budget disputes.</p>
+            <p>Automating per-seat shared pool costing prorates route expenses based on exact passenger seat-kilometres.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>1. The Shortcomings of Flat Departmental Splits</h2>
+            <p>Enterprises typically attempt shared shuttle accounting through two flawed methods:</p>
+            <ul>
+              <li><strong>Equal Flat Division</strong>: Dividing the monthly vehicle charter cost equally among participating business units regardless of actual passenger headcounts.</li>
+              <li><strong>Headcount Percentage Allocation</strong>: Allocating costs based on total department headcount rather than actual physical shuttle usage, penalizing remote teams.</li>
+            </ul>
+            <p>Both methods fail to account for passenger pickup distances: an employee boarding five kilometres from office consumes far less fuel and vehicle capacity than an employee boarding thirty kilometres away.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>2. The Passenger-Seat-Kilometre (PSKM) Allocation Model</h2>
+            <p>The most equitable corporate transport allocation framework calculates cost using individual Passenger-Seat-Kilometres (PSKM):</p>
+            <p>$PSKM_{employee} = Distance\\,from\\,Pickup\\,to\\,Campus\\,(km)$</p>
+            <p>$Total\\,Route\\,PSKM = \\sum_{i=1}^{n} PSKM_i$</p>
+            <p>$Department\\,Cost\\,Share = Route\\,Base\\,Expense \\times \\frac{\\sum PSKM_{dept}}{Total\\,Route\\,PSKM}$</p>
+            <p>Under this model:</p>
+            <ol>
+              <li>Every passenger pickup and drop coordinate records through the mobile passenger boarding pass.</li>
+              <li>The platform calculates exact route distance for each employee's segment.</li>
+              <li>Monthly corporate invoices automatically split shared shuttle bills into clean, auditable cost-centre debit lines for general ledger booking.</li>
+            </ol>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>3. Dynamic Roster Adjustments in Axiom Mobility</h2>
+            <p>Manual passenger-kilometre accounting is impossible on paper. Axiom Mobility automates the entire calculation loop:</p>
+            <ul>
+              <li><strong>Real-Time Boarding Verification</strong>: Passenger boarding OTPs and QR scans record exact boarding timestamps, ensuring unboarded employees do not bill to departmental ledgers.</li>
+              <li><strong>Automated Cost-Centre Mapping</strong>: Every employee profile links to their SAP / Oracle ERP cost-centre code.</li>
+              <li><strong>Integer Paise Financial Math</strong>: All proration math calculates in integer paise to eliminate fractional rounding discrepancies between departmental ledgers.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>4. Financial Clarity for Enterprise Controllers</h2>
+            <p>Implementing passenger-seat proration delivers measurable accounting rigor:</p>
+            <ul>
+              <li>Departmental heads receive transparent monthly transport expense breakdowns backed by actual employee ride logs.</li>
+              <li>Facility directors optimize vehicle sizing by identifying under-utilized shuttle routes with low passenger-kilometre density.</li>
+              <li>Corporate finance teams post pre-reconciled cost-centre journal entries directly into enterprise ERP systems without manual spreadsheet formulas.</li>
+            </ul>
+          </div>
+        `
+      },
+      'signal-gap': {
+        title: "Designing for the Signal Gap",
+        html: `
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Field Tech &amp; Driver Ops · 5 min read</div>
+            <h1>Designing for the Signal Gap: 4-Hour Offline Resilience in Field Transport</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">Offline-first is not a checkbox. It is an operational promise that drivers in basement parking ramps and highway dead zones can continue executing trips with local cryptographic queues.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>The Reality of Basement Pickups</h2>
+            <p>Enterprise car rental pickups frequently happen in multi-level underground parking ramps or airport basement terminals where cellular connectivity drops completely. Standard web apps lock or display connection error screens, forcing drivers to revert to paper slips or guess OTPs.</p>
+            <h2>The Local Cryptographic Queue</h2>
+            <p>Axiom Mobility's driver ecosystem operates on an offline-first contract: the mobile PWA runs a local IndexedDB transactional queue capable of storing up to four hours of full operational telemetry. OTP verification, passenger boarding stamps, and odometer entries execute deterministically on-device with SHA-256 local signing.</p>
+            <p>When the vehicle emerges onto the road and cellular signal restores, the background sync queue replays events in exact chronological order without supervisor intervention.</p>
+          </div>
+        `
+      }
+    };
+
     function bindPublicPageInteractions(scope = document) {
       scope.querySelectorAll('[data-public-page]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); showPublicPage(el.dataset.publicPage); }));
       scope.querySelectorAll('[data-public-home]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); showPublic(); }));
       scope.querySelectorAll('[data-show-login]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); showLogin(); }));
       scope.querySelectorAll('[data-career-open]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); const role = CAREER_ROLE_DETAILS[el.dataset.careerOpen]; if (role) showToast(role[0], `${role[1]} ${role[2]}`); }));
-      scope.querySelectorAll('[data-blog-open],[data-news-open]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); showToast('Editorial note', 'This field note is being prepared for the next editorial release.'); }));
-      scope.querySelectorAll('.article-filter').forEach(el => el.addEventListener('click', () => { el.parentElement.querySelectorAll('.article-filter').forEach(x => x.classList.remove('active')); el.classList.add('active'); showToast('Filter selected', `${el.textContent.trim()} notes are now in focus.`); }));
+      scope.querySelectorAll('[data-blog-open]').forEach(el => el.addEventListener('click', e => {
+        e.preventDefault();
+        const key = el.dataset.blogOpen;
+        const article = BLOG_ARTICLES[key];
+        const modal = document.getElementById('blog-reader-modal');
+        const titleEl = document.getElementById('blog-reader-title');
+        const contentEl = document.getElementById('blog-reader-content');
+        if (article && modal && titleEl && contentEl) {
+          titleEl.textContent = article.title;
+          contentEl.innerHTML = article.html;
+          modal.classList.add('open');
+        } else {
+          showToast('Editorial note', 'This field note is being prepared for the next editorial release.');
+        }
+      }));
+      scope.querySelectorAll('[data-news-open]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); showToast('Editorial note', 'This news item is being prepared for the next press release.'); }));
+      const closeBlogBtn = document.getElementById('btn-close-blog-modal');
+      const blogModal = document.getElementById('blog-reader-modal');
+      if (closeBlogBtn && blogModal) {
+        closeBlogBtn.onclick = () => blogModal.classList.remove('open');
+        blogModal.onclick = (e) => { if (e.target === blogModal) blogModal.classList.remove('open'); };
+      }
+      scope.querySelectorAll('.article-filter').forEach(el => el.addEventListener('click', () => {
+        el.parentElement.querySelectorAll('.article-filter').forEach(x => x.classList.remove('active'));
+        el.classList.add('active');
+        const filter = el.dataset.filter || 'all';
+        const cards = scope.querySelectorAll('.article-card');
+        cards.forEach(card => {
+          if (filter === 'all' || card.dataset.category === filter) {
+            card.style.display = '';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+        showToast('Filter selected', `${el.textContent.trim()} notes are now in focus.`);
+      }));
       const pageContactForm = scope.querySelector('#page-contact-form');
       if (pageContactForm) pageContactForm.addEventListener('submit', async e => {
         e.preventDefault();
@@ -37902,8 +38709,8 @@ function renderCorporateOverview() {
       });
     }
 
-    function showPublicPage(page, updateHash = true) {
-      if (!publicPageTemplates[page]) { showPublic(updateHash); return; }
+    function showPublicPage(page, updateUrl = true) {
+      if (!publicPageTemplates[page]) { showPublic(updateUrl); return; }
       document.documentElement.classList.remove('is-app-mode');
       publicSite.classList.add('is-hidden');
       publicPages.classList.add('open');
@@ -37912,7 +38719,9 @@ function renderCorporateOverview() {
       appShell.classList.remove('is-visible');
       publicPageContent.innerHTML = publicPageTemplates[page];
       bindPublicPageInteractions(publicPageContent);
-      if (updateHash && location.hash !== `#${page}`) history.replaceState(null, '', `#${page}`);
+      if (updateUrl) {
+        try { history.pushState(null, '', '/' + page); } catch (_) { location.hash = '#' + page; }
+      }
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
 
@@ -38510,14 +39319,16 @@ setText('workspaceName', workspaceName);
       document.getElementById('signup-error')?.replaceChildren();
     }
 
-    function showPublic(updateHash = true) {
+    function showPublic(updateUrl = true) {
       document.documentElement.classList.remove('is-app-mode');
       publicSite.classList.remove('is-hidden');
       publicPages.classList.remove('open');
       authScreen.classList.remove('open');
       authScreen.setAttribute('aria-hidden', 'true');
       appShell.classList.remove('is-visible');
-      if (updateHash && location.hash !== '#home') history.replaceState(null, '', '#home');
+      if (updateUrl && location.pathname !== '/') {
+        try { history.pushState(null, '', '/'); } catch (_) { location.hash = '#home'; }
+      }
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
     function showLogin(updateHash = true) {
@@ -38755,7 +39566,13 @@ setText('workspaceName', workspaceName);
       }
     }
     async function initAuth() {
-      const route = location.hash.replace('#', '');
+      const cleanPath = (location.pathname || '').replace(/^\/+|\/+$/g, '');
+      let route = location.hash.replace('#', '');
+      if (publicPageTemplates[cleanPath]) {
+        route = cleanPath;
+      } else if (publicPageTemplates[route]) {
+        try { history.replaceState(null, '', '/' + route); } catch (_) {}
+      }
       const query = new URLSearchParams(location.search);
       const passengerToken = query.get('passenger_token');
       const feedbackToken = query.get('feedback_token');
@@ -38840,6 +39657,16 @@ setText('workspaceName', workspaceName);
         downloadTallyXml();
       }
     });
+    window.addEventListener('popstate', () => {
+      const cleanPath = (location.pathname || '').replace(/^\/+|\/+$/g, '');
+      if (publicPageTemplates[cleanPath]) {
+        showPublicPage(cleanPath, false);
+      } else if (!cleanPath || cleanPath === 'home') {
+        if (currentUser) showApp(true);
+        else showPublic(false);
+      }
+    });
+
     window.addEventListener('hashchange', () => {
       const route = location.hash.replace('#', '');
       const query = new URLSearchParams(location.search);

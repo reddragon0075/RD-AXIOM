@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Exporting B2B Car Rental Sales Vouchers to Tally Prime: XML Schemas &amp; Multi-Ledger Split | Axiom Mobility</title>
+  <meta name="description" content="How automated Tally Prime XML export bridges operational fleet trip sheets with enterprise double-entry general ledgers and GST allocations." />
+  <link rel="canonical" href="https://axiomfleet.in/blogs/tally-prime-fleet-xml-integration" />
+
+  <!-- OpenGraph -->
+  <meta property="og:title" content="Exporting B2B Car Rental Sales Vouchers to Tally Prime: XML Schemas &amp; Multi-Ledger Split | Axiom Mobility" />
+  <meta property="og:description" content="How automated Tally Prime XML export bridges operational fleet trip sheets with enterprise double-entry general ledgers and GST allocations." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://axiomfleet.in/blogs/tally-prime-fleet-xml-integration" />
+  <meta property="og:image" content="https://axiomfleet.in/axiom-fleet-logo.png" />
+  <meta property="og:site_name" content="Axiom Fleet" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Exporting B2B Car Rental Sales Vouchers to Tally Prime: XML Schemas &amp; Multi-Ledger Split | Axiom Mobility" />
+  <meta name="twitter:description" content="How automated Tally Prime XML export bridges operational fleet trip sheets with enterprise double-entry general ledgers and GST allocations." />
+  <meta name="twitter:image" content="https://axiomfleet.in/axiom-fleet-logo.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/public.css" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Exporting B2B Car Rental Sales Vouchers to Tally Prime: XML Schemas & Multi-Ledger Split",
+  "description": "How automated Tally Prime XML export bridges operational fleet trip sheets with enterprise double-entry general ledgers and GST allocations.",
+  "url": "https://axiomfleet.in/blogs/tally-prime-fleet-xml-integration",
+  "datePublished": "2026-11-15T09:00:00+05:30",
+  "dateModified": "2026-11-15T09:00:00+05:30",
+  "author": {
+    "@type": "Organization",
+    "name": "Axiom Mobility Operations Team",
+    "url": "https://axiomfleet.in"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Axiom Fleet",
+    "url": "https://axiomfleet.in",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://axiomfleet.in/axiom-fleet-logo.png"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://axiomfleet.in/blogs/tally-prime-fleet-xml-integration"
+  }
+}
+  </script>
+  <style>
+    html, body { margin: 0; padding: 0; background: #0b1114; color: #e4ece8; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    .marketing-page.public-pages { display: block !important; opacity: 1 !important; visibility: visible !important; min-height: 100vh; }
+    .article-reader-wrap { max-width: 820px; margin: 0 auto; padding: 48px 24px 80px; }
+    .article-reader-wrap h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: clamp(28px, 4vw, 42px); line-height: 1.15; color: #f8fafc; margin: 16px 0 20px; }
+    .article-reader-wrap h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; color: #f1f5f9; margin: 36px 0 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; }
+    .article-reader-wrap h3 { font-size: 18px; color: #38bdf8; margin: 24px 0 12px; }
+    .article-reader-wrap p { font-size: 16px; line-height: 1.75; color: #cbd5e1; margin: 0 0 18px; }
+    .article-reader-wrap ul, .article-reader-wrap ol { color: #cbd5e1; font-size: 15px; line-height: 1.7; margin: 0 0 22px; padding-left: 24px; }
+    .article-reader-wrap li { margin-bottom: 8px; }
+    .article-reader-wrap strong { color: #f8fafc; }
+    .article-reader-wrap table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; background: rgba(15,23,42,0.6); border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+    .article-reader-wrap th { background: rgba(30,41,59,0.8); color: #38bdf8; text-align: left; padding: 12px 14px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .article-reader-wrap td { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #e2e8f0; }
+    .article-reader-wrap pre { background: #0f172a !important; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 16px !important; color: #38bdf8 !important; }
+    .article-reader-wrap code { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #38bdf8; background: rgba(56,189,248,0.1); padding: 2px 6px; border-radius: 4px; }
+    .breadcrumb-nav { max-width: 820px; margin: 32px auto 0; padding: 0 24px; font-size: 13px; color: #94a3b8; }
+    .breadcrumb-nav a { color: #38bdf8; text-decoration: none; }
+    .article-cta-box { max-width: 820px; margin: 40px auto 60px; padding: 32px; background: linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9)); border: 1px solid rgba(56,189,248,0.25); border-radius: 16px; text-align: center; }
+    .article-cta-box h3 { font-size: 22px; color: #f8fafc; margin: 0 0 8px; }
+    .article-cta-box p { color: #94a3b8; margin: 0 0 20px; }
+    .article-cta-box a.site-cta { text-decoration: none; display: inline-flex; align-items: center; }
+    
+  </style>
+</head>
+<body>
+  <div id="public-pages" class="marketing-page public-pages">
+    
+    <header class="site-nav page-nav">
+      <a class="site-brand" href="/" aria-label="AXIOM FLEET home">
+        <img class="brand-logo" src="/axiom-fleet-logo.png" width="640" height="184" decoding="async" alt="Axiom Fleet">
+      </a>
+      <nav class="site-links" aria-label="Company navigation">
+        <a href="/#solutions">Solutions</a>
+        <a href="/#platform">Platform</a>
+        <a href="/#workflow">How it works</a>
+        <details class="site-nav-dropdown">
+          <summary>Insights <span>⌄</span></summary>
+          <div class="site-dropdown-menu">
+            <a href="/blogs"><i class="dropdown-icon purple">✦</i><span><b>Blogs</b><small>Field notes &amp; ideas</small></span></a>
+            <a href="/newsroom"><i class="dropdown-icon orange">◌</i><span><b>NewsRoom</b><small>Company updates</small></span></a>
+          </div>
+        </details>
+        <details class="site-nav-dropdown">
+          <summary>Company <span>⌄</span></summary>
+          <div class="site-dropdown-menu">
+            <a href="/about-us"><i class="dropdown-icon lime">◎</i><span><b>About Us</b><small>Why we build</small></span></a>
+            <a href="/success-stories"><i class="dropdown-icon teal">↗</i><span><b>Success Stories</b><small>Outcomes in motion</small></span></a>
+            <a href="/careers"><i class="dropdown-icon indigo">+</i><span><b>Career</b><small>Join the operating loop</small></span></a>
+          </div>
+        </details>
+        <a href="/contact-us">Contact</a>
+      </nav>
+      <div class="site-actions">
+        <a class="site-signin" href="/" style="text-decoration:none;display:inline-flex;align-items:center;">← Home</a>
+        <a class="site-cta" href="/#login" style="text-decoration:none;display:inline-flex;align-items:center;">
+          Open command center
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:6px">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </a>
+      </div>
+    </header>
+    <main id="public-page-content">
+      
+    
+    <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/blogs">Field Notes &amp; Blogs</a> &gt; <span>Exporting B2B Car Rental Sales Vouchers to Tally Prime: XML Schemas & Multi-Ledger Split</span>
+    </nav>
+    
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Finance & ERP · 7 min read · Published 2026-11-16</div>
+            <h1>Exporting B2B Car Rental Sales Vouchers to Tally Prime: XML Schemas &amp; Multi-Ledger Split</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">How automated Tally Prime XML export bridges operational fleet trip sheets with enterprise double-entry general ledgers and GST allocations.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <p>Finance teams in commercial fleet agencies spend dozens of hours every month manually keying trip sheets and paper duty slips into accounting software. When an enterprise operates hundreds of daily corporate commutes across local hourly rentals, outstation trips, and airport transfers, manual entry creates ledger reconciliation delays and GST filing bottlenecks.</p>
+            <p>A direct XML bridge to Tally Prime translates operational duty data into canonical accounting entries in seconds.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>1. The Anatomy of a Commercial Fleet Sales Voucher</h2>
+            <p>A single commercial car rental transaction involves multiple tax and revenue ledgers:</p>
+            <ol>
+              <li><strong>Party Ledger (Debtor)</strong>: The corporate client account debited with the total billable amount.</li>
+              <li><strong>Service Revenue Ledger</strong>: The base revenue credited under SAC 996601 passenger transport.</li>
+              <li><strong>Extra Mileage &amp; Waiting Revenue</strong>: Split line items for billable overtime hours and excess kilometres beyond base package slabs.</li>
+              <li><strong>Tax Allocations</strong>: Output CGST and SGST ledgers (or IGST for interstate outstation trips).</li>
+              <li><strong>Pass-Through Reimbursements</strong>: Fastag toll fees and airport parking charges billed at cost.</li>
+            </ol>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>2. Generating Valid Tally XML Envelopes</h2>
+            <p>Tally Prime requires a strict <code>&lt;ENVELOPE&gt;</code> XML hierarchy with exact case-sensitive tags and static variables.</p>
+            <p>A canonical sales voucher generated by Axiom Mobility formats as follows:</p>
+            <pre style="background:var(--subtle,#f4f4f5);padding:14px;border-radius:8px;font-family:monospace;font-size:12px;overflow-x:auto;margin:16px 0;line-height:1.5"><code>&lt;TALLYMESSAGE xmlns:UDF="TallyUDF"&gt;
+  &lt;VOUCHER VCHTYPE="Sales" ACTION="Create"&gt;
+    &lt;DATE&gt;20261116&lt;/DATE&gt;
+    &lt;VOUCHERTYPENAME&gt;Sales&lt;/VOUCHERTYPENAME&gt;
+    &lt;VOUCHERNUMBER&gt;INV-BK-202611-001&lt;/VOUCHERNUMBER&gt;
+    &lt;REFERENCE&gt;BK-202611-001&lt;/REFERENCE&gt;
+    &lt;PARTYLEDGERNAME&gt;Infosys Corporate Travel Desk&lt;/PARTYLEDGERNAME&gt;
+    &lt;NARRATION&gt;Corporate Car Rental Duty BK-202611-001&lt;/NARRATION&gt;
+    &lt;ALLLEDGERENTRIES.LIST&gt;
+      &lt;LEDGERNAME&gt;Infosys Corporate Travel Desk&lt;/LEDGERNAME&gt;
+      &lt;ISDEEMEDPOSITIVE&gt;Yes&lt;/ISDEEMEDPOSITIVE&gt;
+      &lt;AMOUNT&gt;-3150.00&lt;/AMOUNT&gt;
+    &lt;/ALLLEDGERENTRIES.LIST&gt;
+    &lt;ALLLEDGERENTRIES.LIST&gt;
+      &lt;LEDGERNAME&gt;Car Rental Service Revenue&lt;/LEDGERNAME&gt;
+      &lt;ISDEEMEDPOSITIVE&gt;No&lt;/ISDEEMEDPOSITIVE&gt;
+      &lt;AMOUNT&gt;3000.00&lt;/AMOUNT&gt;
+    &lt;/ALLLEDGERENTRIES.LIST&gt;
+    &lt;ALLLEDGERENTRIES.LIST&gt;
+      &lt;LEDGERNAME&gt;Output CGST @ 2.5%&lt;/LEDGERNAME&gt;
+      &lt;ISDEEMEDPOSITIVE&gt;No&lt;/ISDEEMEDPOSITIVE&gt;
+      &lt;AMOUNT&gt;75.00&lt;/AMOUNT&gt;
+    &lt;/ALLLEDGERENTRIES.LIST&gt;
+    &lt;ALLLEDGERENTRIES.LIST&gt;
+      &lt;LEDGERNAME&gt;Output SGST @ 2.5%&lt;/LEDGERNAME&gt;
+      &lt;ISDEEMEDPOSITIVE&gt;No&lt;/ISDEEMEDPOSITIVE&gt;
+      &lt;AMOUNT&gt;75.00&lt;/AMOUNT&gt;
+    &lt;/ALLLEDGERENTRIES.LIST&gt;
+  &lt;/VOUCHER&gt;
+&lt;/TALLYMESSAGE&gt;</code></pre>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>3. Resolving Party Ledger Mappings</h2>
+            <p>A frequent defect during ERP imports is ledger name mismatch between operational customer tags and general ledger charts of accounts.</p>
+            <p>Axiom Mobility handles this through an integrated mapping table:</p>
+            <ul>
+              <li>Every corporate client record links to a canonical <code>tally_ledger_name</code> attribute.</li>
+              <li>If an operational customer record lacks a direct match, the export engine flags the transaction before XML generation rather than producing corrupt import logs.</li>
+              <li>Special characters in passenger names and addresses escape properly (<code>&amp;amp;</code>, <code>&amp;lt;</code>, <code>&amp;gt;</code>) to preserve XML validity.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>4. Batch Import Workflow</h2>
+            <p>Exporting monthly sales data no longer requires technical database exports:</p>
+            <ul>
+              <li>Step A: Select the target billing period and approved customer proforma invoices.</li>
+              <li>Step B: Choose the "Export Tally XML" action from the billing ledger view.</li>
+              <li>Step C: Open Tally Prime, navigate to <strong>Import Data &gt; Vouchers</strong>, and select the downloaded XML file.</li>
+              <li>Step D: Review imported vouchers with party ledgers, tax allocations, and bill-wise references reconciled automatically.</li>
+            </ul>
+          </div>
+        
+    
+    <div class="article-cta-box">
+      <h3>Modernize Your Corporate Fleet Operations</h3>
+      <p>Axiom Mobility provides audited telematics, dual-ledger GST billing, and code-enforced statutory compliance for corporate transport teams.</p>
+      <a class="site-cta large" href="/contact-us">
+        Talk to an engineer ↗
+      </a>
+    </div>
+    </main>
+    
+    <footer class="site-footer public-page-footer">
+      <div class="footer-brand">
+        <a class="site-brand" href="/">
+          <img class="brand-logo" src="/axiom-fleet-logo.png" width="640" height="184" decoding="async" alt="Axiom Fleet">
+        </a>
+        <p>The calm behind the movement.</p>
+      </div>
+      <div class="footer-link-groups">
+        <div>
+          <b>Company</b>
+          <a href="/about-us">About Us</a>
+          <a href="/success-stories">Success Stories</a>
+          <a href="/careers">Career</a>
+        </div>
+        <div>
+          <b>Insights</b>
+          <a href="/blogs">Blogs</a>
+          <a href="/newsroom">NewsRoom</a>
+          <a href="/contact-us">Contact Us</a>
+        </div>
+        <div>
+          <b>Legal</b>
+          <a href="/terms">Terms of Service</a>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/disclaimer">Disclaimer</a>
+          <a href="/refund">Refund &amp; Cancellation</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 AXIOM FLEET</span>
+        <span>India data plane · Secure by design</span>
+        <a href="/#login" style="color:inherit;text-decoration:none;">Sign in to command center ↗</a>
+      </div>
+    </footer>
+  </div>
+  
+</body>
+</html>

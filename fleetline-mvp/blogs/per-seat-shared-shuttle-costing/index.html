@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prorating Employee Transport: The Mathematics of Per-Seat Shared Shuttle Cost Allocations | Axiom Mobility</title>
+  <meta name="description" content="How corporate facility teams allocate shared employee shuttle costs across business units and cost centres using passenger seat-kilometre formulas." />
+  <link rel="canonical" href="https://axiomfleet.in/blogs/per-seat-shared-shuttle-costing" />
+
+  <!-- OpenGraph -->
+  <meta property="og:title" content="Prorating Employee Transport: The Mathematics of Per-Seat Shared Shuttle Cost Allocations | Axiom Mobility" />
+  <meta property="og:description" content="How corporate facility teams allocate shared employee shuttle costs across business units and cost centres using passenger seat-kilometre formulas." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://axiomfleet.in/blogs/per-seat-shared-shuttle-costing" />
+  <meta property="og:image" content="https://axiomfleet.in/axiom-fleet-logo.png" />
+  <meta property="og:site_name" content="Axiom Fleet" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Prorating Employee Transport: The Mathematics of Per-Seat Shared Shuttle Cost Allocations | Axiom Mobility" />
+  <meta name="twitter:description" content="How corporate facility teams allocate shared employee shuttle costs across business units and cost centres using passenger seat-kilometre formulas." />
+  <meta name="twitter:image" content="https://axiomfleet.in/axiom-fleet-logo.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/public.css" />
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Prorating Employee Transport: The Mathematics of Per-Seat Shared Shuttle Cost Allocations",
+  "description": "How corporate facility teams allocate shared employee shuttle costs across business units and cost centres using passenger seat-kilometre formulas.",
+  "url": "https://axiomfleet.in/blogs/per-seat-shared-shuttle-costing",
+  "datePublished": "2026-11-15T09:00:00+05:30",
+  "dateModified": "2026-11-15T09:00:00+05:30",
+  "author": {
+    "@type": "Organization",
+    "name": "Axiom Mobility Operations Team",
+    "url": "https://axiomfleet.in"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Axiom Fleet",
+    "url": "https://axiomfleet.in",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://axiomfleet.in/axiom-fleet-logo.png"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://axiomfleet.in/blogs/per-seat-shared-shuttle-costing"
+  }
+}
+  </script>
+  <style>
+    html, body { margin: 0; padding: 0; background: #0b1114; color: #e4ece8; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    .marketing-page.public-pages { display: block !important; opacity: 1 !important; visibility: visible !important; min-height: 100vh; }
+    .article-reader-wrap { max-width: 820px; margin: 0 auto; padding: 48px 24px 80px; }
+    .article-reader-wrap h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: clamp(28px, 4vw, 42px); line-height: 1.15; color: #f8fafc; margin: 16px 0 20px; }
+    .article-reader-wrap h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; color: #f1f5f9; margin: 36px 0 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; }
+    .article-reader-wrap h3 { font-size: 18px; color: #38bdf8; margin: 24px 0 12px; }
+    .article-reader-wrap p { font-size: 16px; line-height: 1.75; color: #cbd5e1; margin: 0 0 18px; }
+    .article-reader-wrap ul, .article-reader-wrap ol { color: #cbd5e1; font-size: 15px; line-height: 1.7; margin: 0 0 22px; padding-left: 24px; }
+    .article-reader-wrap li { margin-bottom: 8px; }
+    .article-reader-wrap strong { color: #f8fafc; }
+    .article-reader-wrap table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; background: rgba(15,23,42,0.6); border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+    .article-reader-wrap th { background: rgba(30,41,59,0.8); color: #38bdf8; text-align: left; padding: 12px 14px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .article-reader-wrap td { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #e2e8f0; }
+    .article-reader-wrap pre { background: #0f172a !important; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 16px !important; color: #38bdf8 !important; }
+    .article-reader-wrap code { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #38bdf8; background: rgba(56,189,248,0.1); padding: 2px 6px; border-radius: 4px; }
+    .breadcrumb-nav { max-width: 820px; margin: 32px auto 0; padding: 0 24px; font-size: 13px; color: #94a3b8; }
+    .breadcrumb-nav a { color: #38bdf8; text-decoration: none; }
+    .article-cta-box { max-width: 820px; margin: 40px auto 60px; padding: 32px; background: linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9)); border: 1px solid rgba(56,189,248,0.25); border-radius: 16px; text-align: center; }
+    .article-cta-box h3 { font-size: 22px; color: #f8fafc; margin: 0 0 8px; }
+    .article-cta-box p { color: #94a3b8; margin: 0 0 20px; }
+    .article-cta-box a.site-cta { text-decoration: none; display: inline-flex; align-items: center; }
+    
+  </style>
+</head>
+<body>
+  <div id="public-pages" class="marketing-page public-pages">
+    
+    <header class="site-nav page-nav">
+      <a class="site-brand" href="/" aria-label="AXIOM FLEET home">
+        <img class="brand-logo" src="/axiom-fleet-logo.png" width="640" height="184" decoding="async" alt="Axiom Fleet">
+      </a>
+      <nav class="site-links" aria-label="Company navigation">
+        <a href="/#solutions">Solutions</a>
+        <a href="/#platform">Platform</a>
+        <a href="/#workflow">How it works</a>
+        <details class="site-nav-dropdown">
+          <summary>Insights <span>⌄</span></summary>
+          <div class="site-dropdown-menu">
+            <a href="/blogs"><i class="dropdown-icon purple">✦</i><span><b>Blogs</b><small>Field notes &amp; ideas</small></span></a>
+            <a href="/newsroom"><i class="dropdown-icon orange">◌</i><span><b>NewsRoom</b><small>Company updates</small></span></a>
+          </div>
+        </details>
+        <details class="site-nav-dropdown">
+          <summary>Company <span>⌄</span></summary>
+          <div class="site-dropdown-menu">
+            <a href="/about-us"><i class="dropdown-icon lime">◎</i><span><b>About Us</b><small>Why we build</small></span></a>
+            <a href="/success-stories"><i class="dropdown-icon teal">↗</i><span><b>Success Stories</b><small>Outcomes in motion</small></span></a>
+            <a href="/careers"><i class="dropdown-icon indigo">+</i><span><b>Career</b><small>Join the operating loop</small></span></a>
+          </div>
+        </details>
+        <a href="/contact-us">Contact</a>
+      </nav>
+      <div class="site-actions">
+        <a class="site-signin" href="/" style="text-decoration:none;display:inline-flex;align-items:center;">← Home</a>
+        <a class="site-cta" href="/#login" style="text-decoration:none;display:inline-flex;align-items:center;">
+          Open command center
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:6px">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </a>
+      </div>
+    </header>
+    <main id="public-page-content">
+      
+    
+    <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/blogs">Field Notes &amp; Blogs</a> &gt; <span>Prorating Employee Transport: The Mathematics of Per-Seat Shared Shuttle Cost Allocations</span>
+    </nav>
+    
+          <div class="article-reader-wrap">
+            <div style="font-size:13px;font-weight:600;color:#0066FF;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Finance & Costing · 6 min read · Published 2026-11-24</div>
+            <h1>Prorating Employee Transport: The Mathematics of Per-Seat Shared Shuttle Cost Allocations</h1>
+            <p style="font-size:16px;color:var(--muted);margin-bottom:24px">How corporate facility teams allocate shared employee shuttle costs across business units and cost centres using passenger seat-kilometre formulas.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <p>Allocating employee shuttle expenses fairly across corporate business units and departmental cost centres is an accounting headache for enterprise facility teams. When a 20-seat corporate shuttle transports engineers, operations staff, and sales executives on a single morning route, billing the entire bus expense to a single departmental cost centre distorts financial reporting and triggers internal budget disputes.</p>
+            <p>Automating per-seat shared pool costing prorates route expenses based on exact passenger seat-kilometres.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>1. The Shortcomings of Flat Departmental Splits</h2>
+            <p>Enterprises typically attempt shared shuttle accounting through two flawed methods:</p>
+            <ul>
+              <li><strong>Equal Flat Division</strong>: Dividing the monthly vehicle charter cost equally among participating business units regardless of actual passenger headcounts.</li>
+              <li><strong>Headcount Percentage Allocation</strong>: Allocating costs based on total department headcount rather than actual physical shuttle usage, penalizing remote teams.</li>
+            </ul>
+            <p>Both methods fail to account for passenger pickup distances: an employee boarding five kilometres from office consumes far less fuel and vehicle capacity than an employee boarding thirty kilometres away.</p>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>2. The Passenger-Seat-Kilometre (PSKM) Allocation Model</h2>
+            <p>The most equitable corporate transport allocation framework calculates cost using individual Passenger-Seat-Kilometres (PSKM):</p>
+            <p>$$PSKM_{employee} = Distance\,from\,Pickup\,to\,Campus\,(km)$$</p>
+            <p>$$Total\,Route\,PSKM = \sum_{i=1}^{n} PSKM_i$$</p>
+            <p>$$Department\,Cost\,Share = Route\,Base\,Expense \times \frac{\sum PSKM_{dept}}{Total\,Route\,PSKM}$$</p>
+            <p>Under this model:</p>
+            <ol>
+              <li>Every passenger pickup and drop coordinate records through the mobile passenger boarding pass.</li>
+              <li>The platform calculates exact route distance for each employee's segment.</li>
+              <li>Monthly corporate invoices automatically split shared shuttle bills into clean, auditable cost-centre debit lines for general ledger booking.</li>
+            </ol>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>3. Dynamic Roster Adjustments in Axiom Mobility</h2>
+            <p>Manual passenger-kilometre accounting is impossible on paper. Axiom Mobility automates the entire calculation loop:</p>
+            <ul>
+              <li><strong>Real-Time Boarding Verification</strong>: Passenger boarding OTPs and QR scans record exact boarding timestamps, ensuring unboarded employees do not bill to departmental ledgers.</li>
+              <li><strong>Automated Cost-Centre Mapping</strong>: Every employee profile links to their SAP / Oracle ERP cost-centre code.</li>
+              <li><strong>Integer Paise Financial Math</strong>: All proration math calculates in integer paise to eliminate fractional rounding discrepancies between departmental ledgers.</li>
+            </ul>
+            <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+            <h2>4. Financial Clarity for Enterprise Controllers</h2>
+            <p>Implementing passenger-seat proration delivers measurable accounting rigor:</p>
+            <ul>
+              <li>Departmental heads receive transparent monthly transport expense breakdowns backed by actual employee ride logs.</li>
+              <li>Facility directors optimize vehicle sizing by identifying under-utilized shuttle routes with low passenger-kilometre density.</li>
+              <li>Corporate finance teams post pre-reconciled cost-centre journal entries directly into enterprise ERP systems without manual spreadsheet formulas.</li>
+            </ul>
+          </div>
+        
+    
+    <div class="article-cta-box">
+      <h3>Modernize Your Corporate Fleet Operations</h3>
+      <p>Axiom Mobility provides audited telematics, dual-ledger GST billing, and code-enforced statutory compliance for corporate transport teams.</p>
+      <a class="site-cta large" href="/contact-us">
+        Talk to an engineer ↗
+      </a>
+    </div>
+    </main>
+    
+    <footer class="site-footer public-page-footer">
+      <div class="footer-brand">
+        <a class="site-brand" href="/">
+          <img class="brand-logo" src="/axiom-fleet-logo.png" width="640" height="184" decoding="async" alt="Axiom Fleet">
+        </a>
+        <p>The calm behind the movement.</p>
+      </div>
+      <div class="footer-link-groups">
+        <div>
+          <b>Company</b>
+          <a href="/about-us">About Us</a>
+          <a href="/success-stories">Success Stories</a>
+          <a href="/careers">Career</a>
+        </div>
+        <div>
+          <b>Insights</b>
+          <a href="/blogs">Blogs</a>
+          <a href="/newsroom">NewsRoom</a>
+          <a href="/contact-us">Contact Us</a>
+        </div>
+        <div>
+          <b>Legal</b>
+          <a href="/terms">Terms of Service</a>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/disclaimer">Disclaimer</a>
+          <a href="/refund">Refund &amp; Cancellation</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 AXIOM FLEET</span>
+        <span>India data plane · Secure by design</span>
+        <a href="/#login" style="color:inherit;text-decoration:none;">Sign in to command center ↗</a>
+      </div>
+    </footer>
+  </div>
+  
+</body>
+</html>

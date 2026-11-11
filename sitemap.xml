@@ -7,93 +7,183 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://axiomfleet.in/#for-corporates</loc>
+    <loc>https://axiomfleet.in/for-corporates</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://axiomfleet.in/#for-car-rentals</loc>
+    <loc>https://axiomfleet.in/for-car-rentals</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://axiomfleet.in/#driver-app</loc>
+    <loc>https://axiomfleet.in/driver-app</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://axiomfleet.in/#axiom-network</loc>
+    <loc>https://axiomfleet.in/axiom-network</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://axiomfleet.in/#calculator</loc>
+    <loc>https://axiomfleet.in/calculator</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://axiomfleet.in/#faq</loc>
+    <loc>https://axiomfleet.in/faq</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://axiomfleet.in/#about-us</loc>
+    <loc>https://axiomfleet.in/about-us</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://axiomfleet.in/#blogs</loc>
+    <loc>https://axiomfleet.in/blogs</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>daily</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://axiomfleet.in/#newsroom</loc>
+    <loc>https://axiomfleet.in/newsroom</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://axiomfleet.in/#careers</loc>
-    <lastmod>2026-11-11</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://axiomfleet.in/#contact</loc>
+    <loc>https://axiomfleet.in/careers</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://axiomfleet.in/#terms</loc>
+    <loc>https://axiomfleet.in/contact-us</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/success-stories</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/terms</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://axiomfleet.in/#privacy</loc>
+    <loc>https://axiomfleet.in/privacy</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://axiomfleet.in/#disclaimer</loc>
+    <loc>https://axiomfleet.in/disclaimer</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://axiomfleet.in/#refund</loc>
+    <loc>https://axiomfleet.in/refund</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/blogs/statutory-night-shift-safety-compliance-etms</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/blogs/gst-rcm-sac-9966-corporate-car-rental-guide</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/blogs/stopping-odometer-fraud-3-way-distance-telemetry</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/blogs/automated-sla-tier-demotion-dispatch</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/blogs/tally-prime-fleet-xml-integration</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/blogs/corporate-travel-desk-roster-automation</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/blogs/fuel-indexed-tariff-escalations</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/blogs/g2g-vs-p2p-metering-dead-mileage</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/blogs/driver-background-verification-statutory-checklist</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/blogs/corporate-car-rental-cancellation-sla-policies</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/blogs/anti-gps-spoofing-developer-mode-detection</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/blogs/inter-city-overflow-partner-exchange</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/blogs/per-seat-shared-shuttle-costing</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://axiomfleet.in/blogs/designing-for-the-signal-gap</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>

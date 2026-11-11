@@ -1,0 +1,61 @@
+# robots.txt for Axiom Mobility (https://axiomfleet.in)
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /about-us
+Allow: /blogs
+Allow: /blogs/*
+Allow: /newsroom
+Allow: /careers
+Allow: /contact-us
+Allow: /success-stories
+Allow: /for-corporates
+Allow: /for-car-rentals
+Allow: /axiom-network
+Allow: /calculator
+Allow: /faq
+Allow: /terms
+Allow: /privacy
+Allow: /disclaimer
+Allow: /refund
+Allow: /driver-app
+Allow: /public.css
+Allow: /axiom-fleet-logo.png
+Allow: /driver-manifest.json
+Disallow: /backend/
+Disallow: /supabase/
+Disallow: /sql/
+Disallow: /scripts/
+Disallow: /tests/
+Disallow: /vendor/
+Disallow: /employees/
+Disallow: /.scratch/
+Disallow: /scratch/
+Disallow: /uploads/
+
+# Explicit search and AI engine crawler access
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+Sitemap: https://axiomfleet.in/sitemap.xml
