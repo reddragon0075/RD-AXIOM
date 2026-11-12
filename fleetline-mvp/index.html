@@ -4767,22 +4767,15 @@
       width: 266px;
       flex: 0 0 266px;
       flex-basis: 266px;
-      background: linear-gradient(180deg, #0b1217 0%, #111b21 70%, #0d151a 100%);
-      border-right: 1px solid rgba(255, 255, 255, .07);
-      box-shadow: 12px 0 40px rgba(5, 12, 16, .08);
+      background: #000000;
+      border-right: 1px solid #1c1c1c;
+      box-shadow: none;
       transition: width .22s cubic-bezier(0.2, 0, 0, 1), flex-basis .22s cubic-bezier(0.2, 0, 0, 1);
       will-change: width, flex-basis;
     }
 
     .sidebar::after {
-      content: "";
-      position: absolute;
-      right: -1px;
-      top: 0;
-      bottom: 0;
-      width: 1px;
-      background: linear-gradient(180deg, transparent, rgba(218, 250, 91, .45), transparent);
-      opacity: .55;
+      display: none;
     }
 
     /* Brand Header with Collapse Controls */
@@ -4792,7 +4785,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid rgba(218, 250, 91, .08);
+      border-bottom: 1px solid #1a1a1a;
       gap: 10px;
     }
 
@@ -4809,23 +4802,23 @@
       display: none;
       width: 38px;
       height: 38px;
-      border-radius: 11px;
-      background: linear-gradient(135deg, rgba(218, 250, 91, .22), rgba(93, 97, 238, .28));
-      border: 1px solid rgba(218, 250, 91, .38);
-      box-shadow: 0 0 16px rgba(218, 250, 91, .18);
-      color: var(--lime);
-      font-weight: 850;
+      border-radius: 10px;
+      background: #111111;
+      border: 1px solid #262626;
+      box-shadow: none;
+      color: #ffffff;
+      font-weight: 800;
       font-size: 13px;
       letter-spacing: -.02em;
       place-items: center;
       cursor: pointer;
       user-select: none;
-      transition: transform .18s ease, box-shadow .18s ease;
+      transition: transform .18s ease, background .18s ease;
     }
 
     .brand-mark-mini:hover {
-      transform: scale(1.06);
-      box-shadow: 0 0 22px rgba(218, 250, 91, .32);
+      transform: scale(1.05);
+      background: #1f1f1f;
     }
 
     .sidebar-collapse-btn {
@@ -4913,28 +4906,33 @@
     }
 
     .workspace-switcher {
-      background: linear-gradient(135deg, rgba(218, 250, 91, .095), rgba(255, 255, 255, .035));
-      border-color: rgba(218, 250, 91, .14);
-      border-radius: 14px;
-      padding: 13px;
+      background: #111111;
+      border: 1px solid #222222;
+      border-radius: 10px;
+      padding: 12px;
       transition: padding .2s ease, margin .2s ease;
     }
 
     .workspace-label {
-      color: #789094;
+      color: #737373;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
     }
 
     .workspace-name {
-      color: #eff8ee;
+      color: #ffffff;
+      font-weight: 600;
     }
 
     .workspace-dot {
-      background: var(--lime);
-      box-shadow: 0 0 0 3px rgba(218, 250, 91, .13);
+      background: #05a357;
+      box-shadow: 0 0 0 3px rgba(5, 163, 87, .25);
     }
 
     .workspace-chevron {
-      color: #7e9498;
+      color: #737373;
     }
 
     /* Nav Accordion Groups */
@@ -5019,43 +5017,50 @@
     }
 
     .nav-section {
-      color: #61777b;
-      letter-spacing: .16em;
+      color: #737373;
+      letter-spacing: .08em;
+      font-size: 11px;
+      font-weight: 700;
     }
 
     .nav-item {
-      border-radius: 11px;
-      color: #9aafb0;
-      padding: 11px 12px;
+      border-radius: 8px;
+      color: #8c8c8c;
+      padding: 9px 12px;
+      font-weight: 500;
+      font-size: 13px;
+      transition: all 0.12s ease;
     }
 
     .nav-item svg {
-      color: #6f888b;
+      color: #737373;
     }
 
     .nav-item:hover {
-      color: #f1f8f0;
-      background: rgba(218, 250, 91, .06);
+      color: #ffffff;
+      background: #141414;
     }
 
     .nav-item.active {
-      color: #f8fcf3;
-      background: linear-gradient(90deg, rgba(218, 250, 91, .14), rgba(218, 250, 91, .035));
-      box-shadow: inset 3px 0 0 var(--lime), 0 8px 18px rgba(0, 0, 0, .12);
+      color: #ffffff;
+      background: #1a1a1a;
+      font-weight: 600;
+      box-shadow: inset 3px 0 0 #05a357;
     }
 
     .nav-item.active svg {
-      color: var(--lime);
+      color: #05a357;
     }
 
     .nav-count {
-      background: rgba(255, 255, 255, .08);
-      color: #bdceca;
+      background: #222222;
+      color: #a3a3a3;
+      font-weight: 600;
     }
 
     .nav-count.alert {
-      background: rgba(255, 141, 98, .17);
-      color: #ffb194;
+      background: rgba(220, 38, 38, .2);
+      color: #f87171;
     }
 
     /* Collapsed Sidebar Rail Mode */
@@ -5374,48 +5379,53 @@
     }
 
     .btn {
-      height: 39px;
-      border-radius: 10px;
-      border-color: #d7e1db;
-      background: rgba(255, 254, 249, .9);
-      color: #2c3c45;
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid #e2e2e2;
+      background: #ffffff;
+      color: #000000;
+      font-weight: 500;
+      font-size: 13px;
+      transition: all .15s ease;
     }
 
     .btn:hover {
-      border-color: #bfcfc5;
-      background: #fffefa;
+      border-color: #000000;
+      background: #f6f6f6;
     }
 
     .btn.primary {
-      color: var(--lime);
-      border-color: #111c20;
-      background: #111c20;
-      box-shadow: 0 7px 18px rgba(17, 28, 32, .18);
+      color: #ffffff !important;
+      border: 1px solid #000000 !important;
+      background: #000000 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .14);
+      font-weight: 600;
     }
 
     .btn.primary:hover {
-      color: #101a18;
-      border-color: var(--lime);
-      background: var(--lime);
+      color: #ffffff !important;
+      background: #262626 !important;
+      border-color: #262626 !important;
+      transform: translateY(-1px);
     }
 
     .btn.soft {
-      background: var(--blue-soft);
-      border-color: #dedcff;
-      color: #5b55c9;
+      background: #f4f4f5;
+      border-color: #e4e4e7;
+      color: #18181b;
     }
 
     .btn.danger {
-      color: #c14e47;
-      background: var(--red-soft);
-      border-color: #ffd9d1;
+      color: #dc2626;
+      background: #fef2f2;
+      border-color: #fee2e2;
     }
 
     .card {
-      border-color: rgba(213, 225, 218, .95);
-      border-radius: var(--radius);
-      background: rgba(255, 254, 250, .94);
-      box-shadow: var(--shadow-sm);
+      border: 1px solid #e5e5e5;
+      border-radius: 14px;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
     }
 
     .card-head {
@@ -5641,38 +5651,50 @@
     }
 
     .tab.active {
-      color: #5b55c9;
-      background: var(--blue-soft);
+      color: #000000;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+      font-weight: 600;
     }
 
     .filter-input,
     .select {
-      border-color: #dce6e0;
-      background: #fbfcf9;
+      border-color: #e5e5e5;
+      background: #ffffff;
       border-radius: 8px;
+      color: #000000;
+      font-size: 13px;
     }
 
     th {
-      background: #fafcf9;
-      color: #91a09f;
-      border-bottom-color: #e6ede8;
-      letter-spacing: .12em;
+      background: #fafafa;
+      color: #5e5e5e;
+      border-bottom-color: #e5e5e5;
+      letter-spacing: .05em;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 12px 16px;
     }
 
     td {
-      border-bottom-color: #edf1ee;
+      border-bottom-color: #f0f0f0;
+      color: #000000;
+      font-size: 13px;
+      padding: 14px 16px;
     }
 
     tbody tr:hover {
-      background: #fbfdf8;
+      background: #f9f9f9;
     }
 
     .table-primary {
-      color: #263740;
+      color: #000000;
+      font-weight: 600;
     }
 
     .table-secondary {
-      color: #8b999e;
+      color: #5e5e5e;
     }
 
     .table-id {
@@ -15295,23 +15317,23 @@
     .quick-summary-bar {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 18px;
+      gap: 16px;
+      padding: 14px 22px;
       background: #ffffff;
-      border: 1px solid var(--line, #e2e8f0);
+      border: 1px solid #e5e5e5;
       border-radius: 12px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       overflow-x: auto;
     }
 
     .quick-summary-item {
       display: flex;
       flex-direction: column;
-      padding-right: 18px;
-      border-right: 1px solid #e2e8f0;
+      padding-right: 20px;
+      border-right: 1px solid #f0f0f0;
       flex: 1;
-      min-width: 100px;
+      min-width: 110px;
     }
 
     .quick-summary-item:last-child {
@@ -15320,29 +15342,30 @@
     }
 
     .quick-summary-label {
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #64748b;
-      margin-bottom: 2px;
+      letter-spacing: 0.05em;
+      color: #5e5e5e;
+      margin-bottom: 4px;
     }
 
     .quick-summary-val {
-      font-size: 17px;
+      font-size: 20px;
       font-weight: 800;
-      color: #0f172a;
+      color: #000000;
       display: flex;
       align-items: baseline;
       gap: 4px;
+      letter-spacing: -0.02em;
     }
 
     .quick-summary-val.alert {
-      color: #e11d48;
+      color: #dc2626;
     }
 
     .quick-summary-val.ok {
-      color: #16a34a;
+      color: #05a357;
     }
 
     .quick-summary-val small {
@@ -25642,41 +25665,41 @@ function renderCorporateOverview() {
         const dLoc = item.dropoff?.label || item.dropoff?.address || 'Drop Location';
         const sched = item.scheduled_at ? formatDateTime(item.scheduled_at) : 'Oct 14, 2026, 6:57 AM';
 
-        let catStyle = 'background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;';
+        let catStyle = 'background:#F4F4F5;color:#18181B;border:1px solid #E4E4E7;';
         if (categoryTag.toLowerCase().includes('luxury')) {
-          catStyle = 'background:#fffbeb;color:#b45309;border:1px solid #fde68a;';
+          catStyle = 'background:#000000;color:#FFFFFF;border:1px solid #000000;';
         } else if (categoryTag.toLowerCase().includes('ev')) {
-          catStyle = 'background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;';
+          catStyle = 'background:#E7F9F0;color:#048848;border:1px solid rgba(5,163,87,0.3);';
         }
 
         return `<tr>
           <td>
-            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;font-weight:750;letter-spacing:0.5px;color:#1e40af;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 7px;border-radius:5px;display:inline-block">${esc(ref)}</span>
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;font-weight:700;letter-spacing:0.3px;color:#000000;background:#F6F6F6;border:1px solid #E5E5E5;padding:2px 7px;border-radius:5px;display:inline-block">${esc(ref)}</span>
             <div style="margin-top:5px">
-              <span style="display:inline-block;padding:2.5px 8px;border-radius:5px;font-size:10px;font-weight:750;letter-spacing:0.4px;text-transform:uppercase;${catStyle}">${esc(categoryTag)}</span>
+              <span style="display:inline-block;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;${catStyle}">${esc(categoryTag)}</span>
             </div>
           </td>
           <td>
-            <div style="font-weight:750;color:#0f172a;font-size:13px;letter-spacing:-0.1px">${esc(pass)}</div>
-            <div style="color:#64748b;font-size:11px;font-weight:550;margin-top:3px">${esc(costCenterTag)}</div>
+            <div style="font-weight:700;color:#000000;font-size:13px;letter-spacing:-0.1px">${esc(pass)}</div>
+            <div style="color:#737373;font-size:11px;font-weight:500;margin-top:3px">${esc(costCenterTag)}</div>
           </td>
           <td class="route" style="max-width:280px">
-            <div style="color:#1e293b;font-weight:600;font-size:12px;line-height:1.4">${esc(pLoc)} <span style="color:#059669;font-weight:800;margin:0 2px">➔</span> ${esc(dLoc)}</div>
-            <div style="color:#64748b;font-size:11px;margin-top:3px;font-weight:500">${esc(purposeText)}</div>
+            <div style="color:#000000;font-weight:600;font-size:12px;line-height:1.4">${esc(pLoc)} <span style="color:#05A357;font-weight:800;margin:0 2px">➔</span> ${esc(dLoc)}</div>
+            <div style="color:#737373;font-size:11px;margin-top:3px;font-weight:500">${esc(purposeText)}</div>
           </td>
-          <td style="white-space:nowrap;font-size:11.5px;color:#475569">
-            <div style="font-weight:550">${esc(sched)}</div>
-            <strong style="color:#0f172a;font-size:13px;font-weight:800;margin-top:3px;display:block">${esc(fareText)}</strong>
+          <td style="white-space:nowrap;font-size:11.5px;color:#5E5E5E">
+            <div style="font-weight:500">${esc(sched)}</div>
+            <strong style="color:#000000;font-size:13.5px;font-weight:800;margin-top:3px;display:block">${esc(fareText)}</strong>
           </td>
           <td>
-            <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;padding:3.5px 10px;border-radius:12px">
+            <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:#E7F9F0;color:#048848;padding:3px 9px;border-radius:12px">
               <span style="font-size:8px">●</span> In Policy
             </span>
           </td>
           <td style="text-align:right">
             <div style="display:inline-flex;gap:7px;justify-content:flex-end">
-              <button class="btn btn-xs" data-corp-approve="${esc(item.id)}" style="background:#059669;color:#ffffff;font-weight:700;font-size:11.5px;border-radius:7px;padding:6px 14px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 1px 3px rgba(5,150,105,0.25);transition:all 0.15s ease">✓ Approve</button>
-              <button class="btn btn-xs" data-corp-reject="${esc(item.id)}" style="background:#ffffff;color:#dc2626;border:1px solid #fca5a5;font-weight:650;font-size:11.5px;border-radius:7px;padding:6px 12px;cursor:pointer;transition:all 0.15s ease">✕ Reject</button>
+              <button class="btn btn-xs" data-corp-approve="${esc(item.id)}" style="background:#000000;color:#FFFFFF;font-weight:600;font-size:11.5px;border-radius:7px;padding:6px 14px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 1px 3px rgba(0,0,0,0.15);transition:all 0.15s ease">✓ Approve</button>
+              <button class="btn btn-xs" data-corp-reject="${esc(item.id)}" style="background:#FFFFFF;color:#000000;border:1px solid #E2E2E2;font-weight:500;font-size:11.5px;border-radius:7px;padding:6px 12px;cursor:pointer;transition:all 0.15s ease">✕ Reject</button>
             </div>
           </td>
         </tr>`;
@@ -30164,113 +30187,113 @@ function renderCorporateOverview() {
         const totalEmployees = corporates.reduce((acc, c) => acc + (Number(c.active_employees_count) || 0), 0);
 
         return `
-        <!-- Modern Executive Corporate Header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 24px;box-shadow:0 2px 10px rgba(0,0,0,0.02);">
+        <!-- Uber B2B Corporate Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;padding:20px 24px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
           <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-              <span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#2dd4bf;background:rgba(20,184,166,0.12);padding:3px 9px;border-radius:6px;border:1px solid rgba(20,184,166,0.25);">AXIOM HQ • ENTERPRISE PORTALS</span>
-              <span class="status teal" style="padding:2px 8px;font-size:11px;">● 4 Enterprise Subdomains Live</span>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <span style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#000000;background:#F6F6F6;padding:3px 9px;border-radius:6px;border:1px solid #E5E5E5;">UBER B2B • ENTERPRISE DESKS</span>
+              <span style="padding:3px 9px;font-size:11px;font-weight:600;border-radius:20px;background:#E7F9F0;color:#048848;display:inline-flex;align-items:center;gap:5px;">● 4 Active Enterprise Portals</span>
             </div>
-            <h1 style="margin:0;font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.02em;">Corporate Client Portals & White-Label Subdomains</h1>
-            <p style="margin:4px 0 0;font-size:12.5px;color:var(--muted);">Audit multi-tenant corporate subdomains, active booking volume, vendor operator ownership, and assume client portals via Login As.</p>
+            <h1 style="margin:0;font-size:22px;font-weight:800;color:#000000;letter-spacing:-0.03em;">Corporate Portals & White-Label Subdomains</h1>
+            <p style="margin:4px 0 0;font-size:13px;color:#5E5E5E;">Audit multi-tenant enterprise accounts, corporate GMV run-rate, employee rosters, and assume portal identity via Login As.</p>
           </div>
 
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-outline btn-sm" onclick="refreshAxiomHqData()" style="display:flex;align-items:center;gap:6px;">
+            <button class="btn btn-outline btn-sm" onclick="refreshAxiomHqData()" style="display:flex;align-items:center;gap:6px;background:#FFFFFF;color:#000000;border:1px solid #E2E2E2;border-radius:8px;padding:8px 14px;font-weight:500;">
               ${icon('refresh')} <span>Sync Telemetry</span>
             </button>
-            <button class="btn btn-primary btn-sm" onclick="checkHqCorporateDns()" style="display:flex;align-items:center;gap:6px;background:linear-gradient(135deg, #0d9488, #0f766e);border:none;box-shadow:0 3px 10px rgba(13,148,136,0.25);">
+            <button class="btn btn-primary btn-sm" onclick="checkHqCorporateDns()" style="display:flex;align-items:center;gap:6px;background:#000000;color:#FFFFFF;border:1px solid #000000;border-radius:8px;padding:8px 14px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.15);">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               <span>Audit DNS & SSL</span>
             </button>
           </div>
         </div>
 
-        <!-- Corporate KPI Ribbon -->
+        <!-- Uber B2B Corporate KPI Strip -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:24px;">
-          <div class="card" style="padding:20px;border-top:3px solid #14b8a6;background:linear-gradient(180deg, var(--surface) 0%, rgba(20,184,166,0.02) 100%);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Enterprise Portals</span>
-              <div style="width:32px;height:32px;border-radius:8px;background:rgba(20,184,166,0.12);color:#14b8a6;display:grid;place-items:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/></svg>
+          <div class="card" style="padding:20px;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <span style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Enterprise Portals</span>
+              <div style="width:30px;height:30px;border-radius:6px;background:#F6F6F6;color:#000000;display:grid;place-items:center;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/></svg>
               </div>
             </div>
-            <div style="font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.03em;">${kpis.total_corporate_portals ?? corporates.length} <span style="font-size:14px;color:var(--muted);font-weight:normal;">Live Portals</span></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;">
-              <span class="status teal" style="padding:1px 6px;font-size:10px;">SSL Enforced</span>
-              <span style="color:var(--muted);">Dedicated Subdomains</span>
+            <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;">${kpis.total_corporate_portals ?? corporates.length} <span style="font-size:13px;color:#5E5E5E;font-weight:500;">Live</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #F0F0F0;font-size:12px;">
+              <span style="padding:2px 8px;font-size:10.5px;font-weight:600;border-radius:12px;background:#E7F9F0;color:#048848;">● SSL Enforced</span>
+              <span style="color:#5E5E5E;">Dedicated Subdomains</span>
             </div>
           </div>
 
-          <div class="card" style="padding:20px;border-top:3px solid #3b82f6;background:linear-gradient(180deg, var(--surface) 0%, rgba(59,130,246,0.02) 100%);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Corporate Monthly GMV</span>
-              <div style="width:32px;height:32px;border-radius:8px;background:rgba(59,130,246,0.12);color:#3b82f6;display:grid;place-items:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <div class="card" style="padding:20px;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <span style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Corporate Monthly GMV</span>
+              <div style="width:30px;height:30px;border-radius:6px;background:#F6F6F6;color:#000000;display:grid;place-items:center;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               </div>
             </div>
-            <div style="font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.03em;">₹${totalGmv.toLocaleString('en-IN')}</div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;">
-              <span style="color:var(--muted);">Gross Booking Run-Rate</span>
-              <strong style="color:#3b82f6;font-weight:700;">₹${(totalGmv * 12 / 10000000).toFixed(2)} Cr ARR</strong>
+            <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;">₹${totalGmv.toLocaleString('en-IN')}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #F0F0F0;font-size:12px;">
+              <span style="color:#5E5E5E;">Gross Booking Run-Rate</span>
+              <strong style="color:#000000;font-weight:700;">₹${(totalGmv * 12 / 10000000).toFixed(2)} Cr ARR</strong>
             </div>
           </div>
 
-          <div class="card" style="padding:20px;border-top:3px solid #8b5cf6;background:linear-gradient(180deg, var(--surface) 0%, rgba(139,92,246,0.02) 100%);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Monthly Duty Volume</span>
-              <div style="width:32px;height:32px;border-radius:8px;background:rgba(139,92,246,0.12);color:#8b5cf6;display:grid;place-items:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9C2.1 11.1 2 11.5 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+          <div class="card" style="padding:20px;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <span style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Monthly Duty Volume</span>
+              <div style="width:30px;height:30px;border-radius:6px;background:#F6F6F6;color:#000000;display:grid;place-items:center;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9C2.1 11.1 2 11.5 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
               </div>
             </div>
-            <div style="font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.03em;">${totalDuties.toLocaleString('en-IN')} <span style="font-size:14px;color:var(--muted);font-weight:normal;">trips/mo</span></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;">
-              <span class="status purple" style="padding:1px 6px;font-size:10px;">Corporate Rosters</span>
-              <span style="color:var(--muted);">Airport & Point-to-Point</span>
+            <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;">${totalDuties.toLocaleString('en-IN')} <span style="font-size:13px;color:#5E5E5E;font-weight:500;">trips/mo</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #F0F0F0;font-size:12px;">
+              <span style="padding:2px 8px;font-size:10.5px;font-weight:600;border-radius:12px;background:#F3F4F6;color:#1F2937;">Corporate Rosters</span>
+              <span style="color:#5E5E5E;">Point-to-Point & Airport</span>
             </div>
           </div>
 
-          <div class="card" style="padding:20px;border-top:3px solid #06b6d4;background:linear-gradient(180deg, var(--surface) 0%, rgba(6,182,212,0.02) 100%);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Active Users & Bookers</span>
-              <div style="width:32px;height:32px;border-radius:8px;background:rgba(6,182,212,0.12);color:#06b6d4;display:grid;place-items:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div class="card" style="padding:20px;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <span style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Active Passengers & Bookers</span>
+              <div style="width:30px;height:30px;border-radius:6px;background:#F6F6F6;color:#000000;display:grid;place-items:center;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               </div>
             </div>
-            <div style="font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.03em;">${totalEmployees.toLocaleString('en-IN')} <span style="font-size:14px;color:var(--muted);font-weight:normal;">users</span></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;">
-              <span class="status teal" style="padding:1px 6px;font-size:10px;">SSO SAML Ready</span>
-              <span style="color:var(--muted);">Department Cost Centers</span>
+            <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;">${totalEmployees.toLocaleString('en-IN')} <span style="font-size:13px;color:#5E5E5E;font-weight:500;">users</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #F0F0F0;font-size:12px;">
+              <span style="padding:2px 8px;font-size:10.5px;font-weight:600;border-radius:12px;background:#E7F9F0;color:#048848;">● SSO SAML Active</span>
+              <span style="color:#5E5E5E;">Cost Center Tagged</span>
             </div>
           </div>
         </div>
 
-        <!-- Corporate Portals Table -->
-        <section class="card section-card" style="margin-bottom:24px;border:1px solid var(--border);border-radius:14px;overflow:hidden;">
-          <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.015);flex-wrap:wrap;gap:14px;">
+        <!-- Uber B2B Corporate Portals Table -->
+        <section class="card section-card" style="margin-bottom:24px;border:1px solid #E5E5E5;border-radius:12px;background:#FFFFFF;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+          <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid #EFEFEF;background:#FAFAFA;flex-wrap:wrap;gap:14px;">
             <div>
               <div style="display:flex;align-items:center;gap:10px;">
-                <h3 style="margin:0;font-size:16px;font-weight:700;color:var(--text);">Enterprise Subdomains & Vendor Ownership Mapping</h3>
-                <span class="status teal" style="font-size:11px;font-weight:600;">${filteredCorps.length} of ${corporates.length} Portals</span>
+                <h3 style="margin:0;font-size:15px;font-weight:700;color:#000000;">Enterprise Subdomains & Vendor Mapping</h3>
+                <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;background:#E7F9F0;color:#048848;">● ${filteredCorps.length} of ${corporates.length} Portals</span>
               </div>
-              <p style="margin:4px 0 0;font-size:12px;color:var(--muted);">Corporate enterprises accessing dedicated Axiom subdomains. Click <b>"Login As"</b> to inspect their corporate travel desk.</p>
+              <p style="margin:3px 0 0;font-size:12px;color:#5E5E5E;">Corporate enterprise accounts on dedicated Axiom subdomains. Click <b>"Login As"</b> to assume identity.</p>
             </div>
 
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
               <div style="position:relative;">
                 <input type="text" placeholder="Search client, subdomain, vendor..." value="${esc(state.axiomHqCorpSearch || '')}" 
                   oninput="state.axiomHqCorpSearch = this.value; render();"
-                  style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:6px 12px 6px 32px;font-size:12px;color:var(--text);min-width:200px;outline:none;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:10px;top:9px;color:var(--muted);"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  style="background:#FFFFFF;border:1px solid #E2E2E2;border-radius:8px;padding:6px 12px 6px 32px;font-size:12px;color:#000000;min-width:210px;outline:none;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8A8A8A" stroke-width="2" style="position:absolute;left:10px;top:9px;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               </div>
 
-              <div style="display:flex;gap:4px;background:rgba(255,255,255,0.03);padding:3px;border-radius:8px;border:1px solid var(--border);">
+              <div style="display:flex;gap:4px;background:#F6F6F6;padding:3px;border-radius:8px;border:1px solid #E5E5E5;">
                 <button class="btn btn-xs ${state.axiomHqCorpFilter === 'all' ? 'btn-primary' : 'btn-outline'}" 
-                  onclick="state.axiomHqCorpFilter = 'all'; render();" style="border:none;border-radius:6px;">All (${corporates.length})</button>
+                  onclick="state.axiomHqCorpFilter = 'all'; render();" style="border:none;border-radius:6px;${state.axiomHqCorpFilter === 'all' ? 'background:#000000;color:#FFFFFF;' : 'background:transparent;color:#5E5E5E;'}">All (${corporates.length})</button>
                 <button class="btn btn-xs ${state.axiomHqCorpFilter === 'vendor_owned' ? 'btn-primary' : 'btn-outline'}" 
-                  onclick="state.axiomHqCorpFilter = 'vendor_owned'; render();" style="border:none;border-radius:6px;">Vendor Operated</button>
+                  onclick="state.axiomHqCorpFilter = 'vendor_owned'; render();" style="border:none;border-radius:6px;${state.axiomHqCorpFilter === 'vendor_owned' ? 'background:#000000;color:#FFFFFF;' : 'background:transparent;color:#5E5E5E;'}">Vendor Operated</button>
                 <button class="btn btn-xs ${state.axiomHqCorpFilter === 'direct' ? 'btn-primary' : 'btn-outline'}" 
-                  onclick="state.axiomHqCorpFilter = 'direct'; render();" style="border:none;border-radius:6px;">Axiom Direct</button>
+                  onclick="state.axiomHqCorpFilter = 'direct'; render();" style="border:none;border-radius:6px;${state.axiomHqCorpFilter === 'direct' ? 'background:#000000;color:#FFFFFF;' : 'background:transparent;color:#5E5E5E;'}">Axiom Direct</button>
               </div>
             </div>
           </div>
@@ -30278,68 +30301,70 @@ function renderCorporateOverview() {
           <div class="table-wrap">
             <table style="width:100%;border-collapse:collapse;">
               <thead>
-                <tr style="border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02);">
-                  <th style="padding:14px 20px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">Corporate Client</th>
-                  <th style="padding:14px 16px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">Portal Subdomain</th>
-                  <th style="padding:14px 16px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">Owning Operator</th>
-                  <th style="padding:14px 16px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">Commercial Model</th>
-                  <th style="padding:14px 16px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">Employees</th>
-                  <th style="padding:14px 16px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">Monthly GMV</th>
-                  <th style="padding:14px 16px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">SSL Status</th>
-                  <th style="padding:14px 20px;text-align:right;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">Super-Admin Action</th>
+                <tr style="border-bottom:1px solid #E5E5E5;background:#FAFAFA;">
+                  <th style="padding:12px 18px;text-align:left;font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Corporate Client</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Portal Subdomain</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Owning Operator</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Commercial Model</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Employees</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Monthly GMV</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">SSL Status</th>
+                  <th style="padding:12px 18px;text-align:right;font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Super-Admin Action</th>
                 </tr>
               </thead>
               <tbody>
                 ${filteredCorps.length ? filteredCorps.map(c => {
           const isVendorOwned = c.ownership_type === 'VENDOR_OWNED_PORTAL';
           const ownerBadge = isVendorOwned
-            ? `<strong style="color:#60a5fa;font-size:12.5px;">${esc(c.owning_vendor_name)}</strong>`
-            : `<strong style="color:#34d399;font-size:12.5px;">${esc(c.owning_vendor_name)}</strong>`;
-          const modelBadge = isVendorOwned ? `<span class="status blue">Vendor Owned</span>` : `<span class="status green">Axiom Direct</span>`;
+            ? `<strong style="color:#000000;font-size:12.5px;">${esc(c.owning_vendor_name)}</strong>`
+            : `<strong style="color:#05A357;font-size:12.5px;">${esc(c.owning_vendor_name)}</strong>`;
+          const modelBadge = isVendorOwned 
+            ? `<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;background:#F3F4F6;color:#1F2937;">Vendor Tenancy</span>` 
+            : `<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;background:#E7F9F0;color:#048848;">Axiom Direct</span>`;
           const initials = getInitials(c.corporate_name);
-          const avatarBg = getAvatarColor(c.corporate_name);
 
           return `
-                  <tr style="border-bottom:1px solid var(--border);transition:background 0.15s ease;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
-                    <td style="padding:16px 20px;">
+                  <tr style="border-bottom:1px solid #F0F0F0;transition:background 0.12s ease;" onmouseover="this.style.background='#F9F9F9'" onmouseout="this.style.background='#FFFFFF'">
+                    <td style="padding:14px 18px;">
                       <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="width:36px;height:36px;border-radius:10px;background:${avatarBg};color:#fff;display:grid;place-items:center;font-weight:800;font-size:12.5px;box-shadow:0 2px 6px rgba(0,0,0,0.15);flex-shrink:0;">
+                        <div style="width:34px;height:34px;border-radius:50%;background:#000000;color:#FFFFFF;display:grid;place-items:center;font-weight:700;font-size:12px;flex-shrink:0;">
                           ${initials}
                         </div>
                         <div>
-                          <strong style="color:var(--text);font-size:13.5px;display:block;">${esc(c.corporate_name)}</strong>
-                          <div style="color:var(--muted);font-size:11.5px;">${esc(c.city)} · GST: ${esc(c.gst_number)}</div>
+                          <strong style="color:#000000;font-size:13px;display:block;">${esc(c.corporate_name)}</strong>
+                          <div style="color:#737373;font-size:11px;">${esc(c.city)} · GST: ${esc(c.gst_number)}</div>
                         </div>
                       </div>
                     </td>
-                    <td style="padding:16px;">
-                      <a href="https://${esc(c.portal_subdomain)}" target="_blank" style="color:#38bdf8;text-decoration:none;font-family:monospace;font-weight:600;font-size:12px;display:flex;align-items:center;gap:4px;">
+                    <td style="padding:14px 16px;">
+                      <a href="https://${esc(c.portal_subdomain)}" target="_blank" style="color:#000000;text-decoration:underline;font-family:monospace;font-weight:600;font-size:12px;display:flex;align-items:center;gap:4px;">
                         <span>${esc(c.portal_subdomain)}</span>
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                       </a>
                     </td>
-                    <td style="padding:16px;">${ownerBadge}</td>
-                    <td style="padding:16px;">${modelBadge}</td>
-                    <td style="padding:16px;">
-                      <strong style="color:var(--text);font-size:13px;">${Number(c.active_employees_count || 0).toLocaleString('en-IN')}</strong>
-                      <span style="color:var(--muted);font-size:11px;"> users</span>
+                    <td style="padding:14px 16px;">${ownerBadge}</td>
+                    <td style="padding:14px 16px;">${modelBadge}</td>
+                    <td style="padding:14px 16px;">
+                      <strong style="color:#000000;font-size:13px;">${Number(c.active_employees_count || 0).toLocaleString('en-IN')}</strong>
+                      <span style="color:#737373;font-size:11px;"> users</span>
                     </td>
-                    <td style="padding:16px;">
-                      <strong style="color:#38bdf8;font-size:13.5px;">₹${Number(c.monthly_gross_gmv_inr || 0).toLocaleString('en-IN')}</strong>
-                      <div style="color:var(--muted);font-size:10.5px;">${Number(c.monthly_duty_volume || 0).toLocaleString('en-IN')} trips/mo</div>
+                    <td style="padding:14px 16px;">
+                      <strong style="color:#000000;font-size:13px;">₹${Number(c.monthly_gross_gmv_inr || 0).toLocaleString('en-IN')}</strong>
+                      <div style="color:#737373;font-size:10.5px;">${Number(c.monthly_duty_volume || 0).toLocaleString('en-IN')} trips/mo</div>
                     </td>
-                    <td style="padding:16px;">
-                      <span class="status green" style="font-size:11px;font-weight:600;">● ${status(c.portal_status || 'LIVE', 'green')}</span>
+                    <td style="padding:14px 16px;">
+                      <span style="padding:2px 8px;font-size:10.5px;font-weight:600;border-radius:12px;background:#E7F9F0;color:#048848;">● LIVE</span>
                     </td>
-                    <td style="padding:16px 20px;text-align:right;">
+                    <td style="padding:14px 18px;text-align:right;">
                       <button class="btn btn-xs" onclick="impersonateTarget('corporate', '${c.id}', '${esc(c.corporate_name)}')" 
                         title="Login as ${esc(c.corporate_name)} to inspect corporate travel desk, employee roster & policies" 
-                        style="background:linear-gradient(135deg, #d97706, #b45309);color:#fff;font-weight:700;border:none;padding:6px 14px;border-radius:6px;box-shadow:0 2px 8px rgba(217,119,6,0.3);cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:12px;">
-                        <span>🔑</span> <span>Login As Corporate</span>
+                        style="background:#000000;color:#FFFFFF;font-weight:600;border:none;padding:6px 14px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.15);cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:12px;transition:background 0.15s ease;">
+                        <span>Login As</span>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 5l7 7-7 7"/></svg>
                       </button>
                     </td>
                   </tr>`;
-        }).join('') : `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted);">No corporate portals found.</td></tr>`}
+        }).join('') : `<tr><td colspan="8" style="text-align:center;padding:36px;color:#5E5E5E;font-size:13px;">No corporate portals found matching current filter.</td></tr>`}
               </tbody>
             </table>
           </div>
@@ -30390,85 +30415,85 @@ function renderCorporateOverview() {
 
       // SUBVIEW: COMMAND CENTER OVERVIEW (ALL TELEMETRY)
       return `
-      <!-- Executive Overview Header -->
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 24px;box-shadow:0 2px 10px rgba(0,0,0,0.02);">
+      <!-- Uber B2B Command Overview Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;padding:20px 24px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
         <div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-            <span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#38bdf8;background:rgba(56,189,248,0.12);padding:3px 9px;border-radius:6px;border:1px solid rgba(56,189,248,0.25);">AXIOM HQ • COMMAND OVERVIEW</span>
-            <span class="status green" style="padding:2px 8px;font-size:11px;">● All Systems Operational</span>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#000000;background:#F6F6F6;padding:3px 9px;border-radius:6px;border:1px solid #E5E5E5;">UBER B2B • CONTROL PLANE</span>
+            <span style="padding:3px 9px;font-size:11px;font-weight:600;border-radius:20px;background:#E7F9F0;color:#048848;display:inline-flex;align-items:center;gap:5px;">● All Systems Operational</span>
           </div>
-          <h1 style="margin:0;font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.02em;">Super-Admin Command Center Overview</h1>
-          <p style="margin:4px 0 0;font-size:12.5px;color:var(--muted);">Global multi-tenant control plane: Vendor SaaS subscriptions, recurring revenue ledger, and enterprise corporate portals.</p>
+          <h1 style="margin:0;font-size:22px;font-weight:800;color:#000000;letter-spacing:-0.03em;">Super-Admin Command Center Overview</h1>
+          <p style="margin:4px 0 0;font-size:13px;color:#5E5E5E;">Global multi-tenant control plane: Vendor SaaS subscriptions, recurring revenue ledger, and enterprise corporate desks.</p>
         </div>
 
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-outline btn-sm" onclick="refreshAxiomHqData()" style="display:flex;align-items:center;gap:6px;">
+          <button class="btn btn-outline btn-sm" onclick="refreshAxiomHqData()" style="display:flex;align-items:center;gap:6px;background:#FFFFFF;color:#000000;border:1px solid #E2E2E2;border-radius:8px;padding:8px 14px;font-weight:500;">
             ${icon('refresh')} <span>Sync Telemetry</span>
           </button>
-          <button class="btn btn-primary btn-sm" onclick="runHqBillingAutomation()" style="display:flex;align-items:center;gap:6px;background:linear-gradient(135deg, #0284c7, #2563eb);border:none;box-shadow:0 3px 10px rgba(37,99,235,0.25);">
+          <button class="btn btn-primary btn-sm" onclick="runHqBillingAutomation()" style="display:flex;align-items:center;gap:6px;background:#000000;color:#FFFFFF;border:1px solid #000000;border-radius:8px;padding:8px 14px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.15);">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             <span>Run Billing Cycle</span>
           </button>
         </div>
       </div>
 
-      <!-- Overview KPI Ribbon -->
+      <!-- Uber B2B Overview KPI Strip -->
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
-        <div class="card" style="padding:18px;border-top:3px solid #38bdf8;">
-          <div style="font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;">Fleet Vendors</div>
-          <div style="font-size:24px;font-weight:800;color:var(--text);margin:6px 0;">${kpis.total_vendors ?? vendors.length}</div>
-          <div style="font-size:11px;color:var(--muted);"><span class="status green" style="font-size:9.5px;padding:1px 5px;">100% Up</span> Active SaaS Operators</div>
+        <div class="card" style="padding:20px;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+          <div style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Fleet Vendors</div>
+          <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;margin:6px 0;">${kpis.total_vendors ?? vendors.length}</div>
+          <div style="font-size:12px;color:#5E5E5E;"><span style="font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:12px;background:#E7F9F0;color:#048848;">● 100% Retained</span> Active SaaS</div>
         </div>
 
-        <div class="card" style="padding:18px;border-top:3px solid #10b981;">
-          <div style="font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;">Monthly SaaS MRR</div>
-          <div style="font-size:24px;font-weight:800;color:#10b981;margin:6px 0;">₹${Number(kpis.monthly_saas_mrr_inr || 0).toLocaleString('en-IN')}</div>
-          <div style="font-size:11px;color:var(--muted);">ARR: <strong>₹${Number(kpis.annual_saas_arr_inr || 0).toLocaleString('en-IN')}</strong></div>
+        <div class="card" style="padding:20px;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+          <div style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Monthly SaaS MRR</div>
+          <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;margin:6px 0;">₹${Number(kpis.monthly_saas_mrr_inr || 0).toLocaleString('en-IN')}</div>
+          <div style="font-size:12px;color:#5E5E5E;">Annual Run-Rate: <strong style="color:#000000;font-weight:700;">₹${Number(kpis.annual_saas_arr_inr || 0).toLocaleString('en-IN')}</strong></div>
         </div>
 
-        <div class="card" style="padding:18px;border-top:3px solid #a855f7;">
-          <div style="font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;">Collections</div>
-          <div style="font-size:24px;font-weight:800;color:var(--text);margin:6px 0;">₹${Number(totalPaidInvoices || 0).toLocaleString('en-IN')}</div>
-          <div style="font-size:11px;color:#c084fc;font-weight:600;">${collectionRatePct}% Collection Rate</div>
+        <div class="card" style="padding:20px;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+          <div style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Collections</div>
+          <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;margin:6px 0;">₹${Number(totalPaidInvoices || 0).toLocaleString('en-IN')}</div>
+          <div style="font-size:12px;color:#05A357;font-weight:600;">${collectionRatePct}% Collection Health</div>
         </div>
 
-        <div class="card" style="padding:18px;border-top:3px solid #f59e0b;">
-          <div style="font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;">Billing Compliance</div>
-          <div style="font-size:24px;font-weight:800;color:#fbbf24;margin:6px 0;">${kpis.vendors_overdue_payment ?? 0} In Grace</div>
-          <div style="font-size:11px;color:var(--muted);">15-Day Grace Active</div>
+        <div class="card" style="padding:20px;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+          <div style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Billing Compliance</div>
+          <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;margin:6px 0;">${kpis.vendors_overdue_payment ?? 0} In Grace</div>
+          <div style="font-size:12px;color:#5E5E5E;">15-Day Grace Active</div>
         </div>
 
-        <div class="card" style="padding:18px;border-top:3px solid #14b8a6;">
-          <div style="font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;">Corporate Portals</div>
-          <div style="font-size:24px;font-weight:800;color:#14b8a6;margin:6px 0;">${kpis.total_corporate_portals ?? corporates.length}</div>
-          <div style="font-size:11px;color:var(--muted);">White-Label Subdomains</div>
+        <div class="card" style="padding:20px;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+          <div style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Corporate Desks</div>
+          <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;margin:6px 0;">${kpis.total_corporate_portals ?? corporates.length}</div>
+          <div style="font-size:12px;color:#5E5E5E;">White-Label Subdomains</div>
         </div>
       </div>
 
       <!-- Quick Action Cards to Products -->
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:24px;">
-        <div class="card" style="padding:22px;border:1px solid rgba(56,189,248,0.25);border-radius:12px;background:linear-gradient(135deg, rgba(56,189,248,0.05), rgba(30,41,59,0.3));cursor:pointer;transition:transform 0.15s ease;" onclick="state.page='axiom-hq-vendors';render();location.hash='#axiom-hq-vendors';">
+        <div class="card" style="padding:24px;border:1px solid #E5E5E5;border-radius:12px;background:#FFFFFF;cursor:pointer;transition:transform 0.15s ease, box-shadow 0.15s ease;" onclick="state.page='axiom-hq-vendors';render();location.hash='#axiom-hq-vendors';">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
             <div style="display:flex;align-items:center;gap:10px;">
-              <span style="font-size:24px;">🏢</span>
-              <strong style="color:var(--text);font-size:16px;">Vendor SaaS Operating System</strong>
+              <span style="font-size:22px;">🏢</span>
+              <strong style="color:#000000;font-size:16px;">Vendor SaaS Operating System</strong>
             </div>
-            <span class="status blue">3 Vendors ➔</span>
+            <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;background:#F6F6F6;color:#000000;">3 Vendors ➔</span>
           </div>
-          <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px;">Manage fleet vendor subscription lifecycles, customize operator fees, generate recurring GST invoices, and assume vendor identity via <b>Login As</b>.</p>
-          <button class="btn btn-primary btn-xs" style="background:#2563eb;border:none;">Open Vendor SaaS ➔</button>
+          <p style="font-size:13px;color:#5E5E5E;margin-bottom:14px;line-height:1.5;">Manage fleet vendor subscription lifecycles, customize operator fees, generate recurring GST invoices, and assume vendor identity via <b>Login As</b>.</p>
+          <button class="btn btn-primary btn-xs" style="background:#000000;color:#FFFFFF;border:1px solid #000000;border-radius:8px;padding:6px 14px;font-weight:600;">Open Vendor SaaS ➔</button>
         </div>
 
-        <div class="card" style="padding:22px;border:1px solid rgba(20,184,166,0.25);border-radius:12px;background:linear-gradient(135deg, rgba(20,184,166,0.05), rgba(30,41,59,0.3));cursor:pointer;transition:transform 0.15s ease;" onclick="state.page='axiom-hq-corporates';render();location.hash='#axiom-hq-corporates';">
+        <div class="card" style="padding:24px;border:1px solid #E5E5E5;border-radius:12px;background:#FFFFFF;cursor:pointer;transition:transform 0.15s ease, box-shadow 0.15s ease;" onclick="state.page='axiom-hq-corporates';render();location.hash='#axiom-hq-corporates';">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
             <div style="display:flex;align-items:center;gap:10px;">
-              <span style="font-size:24px;">🏛️</span>
-              <strong style="color:var(--text);font-size:16px;">Corporate Enterprise Portals</strong>
+              <span style="font-size:22px;">🏛️</span>
+              <strong style="color:#000000;font-size:16px;">Corporate Enterprise Portals</strong>
             </div>
-            <span class="status teal">4 Portals ➔</span>
+            <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;background:#F6F6F6;color:#000000;">4 Portals ➔</span>
           </div>
-          <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px;">Audit enterprise subdomains (<code>indiawhite.axiomfleet.in</code>), duty volumes, vendor operator mappings, and troubleshoot client travel desks via <b>Login As</b>.</p>
-          <button class="btn btn-primary btn-xs" style="background:#0d9488;border:none;">Open Corporate SaaS ➔</button>
+          <p style="font-size:13px;color:#5E5E5E;margin-bottom:14px;line-height:1.5;">Audit enterprise subdomains (<code>indiawhite.axiomfleet.in</code>), duty volumes, vendor operator mappings, and troubleshoot client travel desks via <b>Login As</b>.</p>
+          <button class="btn btn-primary btn-xs" style="background:#000000;color:#FFFFFF;border:1px solid #000000;border-radius:8px;padding:6px 14px;font-weight:600;">Open Corporate SaaS ➔</button>
         </div>
       </div>`;
     }
@@ -31235,27 +31260,27 @@ function renderCorporateOverview() {
         const initials = getInitials(item.name);
         const avatarBg = getAvatarColor(item.name);
         return `
-          <tr style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.15s ease;">
+          <tr style="border-bottom:1px solid #F0F0F0;transition:background 0.12s ease;" onmouseover="this.style.background='#F9F9F9'" onmouseout="this.style.background='#FFFFFF'">
             <td style="padding:14px 16px;">
               <div style="display:flex;align-items:center;gap:12px;">
-                <div style="width:34px;height:34px;border-radius:50%;background:${avatarBg};display:grid;place-items:center;color:#fff;font-weight:700;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,0.25);flex-shrink:0;">
+                <div style="width:34px;height:34px;border-radius:50%;background:#000000;display:grid;place-items:center;color:#FFFFFF;font-weight:700;font-size:12px;flex-shrink:0;">
                   ${initials}
                 </div>
                 <div>
                   <div style="display:flex;align-items:center;gap:6px;">
-                    <strong style="color:var(--text);font-size:13.5px;letter-spacing:-0.01em;">${esc(item.name)}</strong>
-                    ${item.is_owner ? '<span class="status amber" style="font-size:9.5px;padding:1px 6px;font-weight:700;text-transform:uppercase;">Root Owner</span>' : ''}
+                    <strong style="color:#000000;font-size:13px;letter-spacing:-0.01em;">${esc(item.name)}</strong>
+                    ${item.is_owner ? '<span style="font-size:9.5px;padding:2px 6px;font-weight:700;text-transform:uppercase;border-radius:10px;background:#FEF3C7;color:#92400E;">Root Owner</span>' : ''}
                   </div>
-                  <span style="color:var(--muted);font-size:11.5px;">Staff ID: HQ-${Math.abs(item.email.split('').reduce((a,b)=>(((a<<5)-a)+b.charCodeAt(0))|0,0) % 9000 + 1000)}</span>
+                  <span style="color:#737373;font-size:11px;">Staff ID: HQ-${Math.abs(item.email.split('').reduce((a,b)=>(((a<<5)-a)+b.charCodeAt(0))|0,0) % 9000 + 1000)}</span>
                 </div>
               </div>
             </td>
             <td style="padding:14px 16px;">
               <div style="display:flex;align-items:center;gap:8px;">
-                <code style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);padding:4px 8px;border-radius:6px;font-size:12px;color:#38bdf8;font-family:monospace;letter-spacing:-0.01em;">
+                <code style="background:#F6F6F6;border:1px solid #E5E5E5;padding:4px 8px;border-radius:6px;font-size:12px;color:#000000;font-family:monospace;letter-spacing:-0.01em;">
                   ${esc(item.email)}
                 </code>
-                <button class="btn btn-xs" title="Copy Email" onclick="navigator.clipboard.writeText('${esc(item.email)}');showToast('Copied','Email address copied to clipboard.','info');" style="background:transparent;border:none;padding:2px;cursor:pointer;color:var(--muted);">
+                <button class="btn btn-xs" title="Copy Email" onclick="navigator.clipboard.writeText('${esc(item.email)}');showToast('Copied','Email address copied to clipboard.','info');" style="background:transparent;border:none;padding:2px;cursor:pointer;color:#737373;">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 </button>
               </div>
@@ -31265,20 +31290,20 @@ function renderCorporateOverview() {
             </td>
             <td style="padding:14px 16px;">
               ${item.mfa_enabled
-                ? `<span class="status green" style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 2FA Active</span>`
-                : `<span class="status gray" style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Setup Pending</span>`}
+                ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;background:#E7F9F0;color:#048848;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 2FA Active</span>`
+                : `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;background:#F3F4F6;color:#6B7280;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Setup Pending</span>`}
             </td>
             <td style="padding:14px 16px;">
-              <span style="font-size:12.5px;color:var(--text);font-weight:500;">${esc(item.added_date)}</span><br>
-              <span style="font-size:11px;color:var(--muted);">Active: ${esc(item.last_login)}</span>
+              <span style="font-size:12.5px;color:#000000;font-weight:500;">${esc(item.added_date)}</span><br>
+              <span style="font-size:11px;color:#737373;">Active: ${esc(item.last_login)}</span>
             </td>
             <td style="padding:14px 16px;text-align:right;">
               <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;">
-                <button class="btn btn-outline btn-xs" onclick="editHqEmailRole('${esc(item.email)}')" style="display:flex;align-items:center;gap:4px;">
+                <button class="btn btn-outline btn-xs" onclick="editHqEmailRole('${esc(item.email)}')" style="display:flex;align-items:center;gap:4px;background:#FFFFFF;border:1px solid #E2E2E2;border-radius:6px;padding:5px 10px;font-weight:500;color:#000000;">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                   <span>Edit</span>
                 </button>
-                <button class="btn btn-outline btn-xs" ${item.is_owner ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : `onclick="revokeHqEmail('${esc(item.email)}')"`} style="${item.is_owner ? '' : 'color:#f87171;border-color:rgba(248,113,113,0.3);'}display:flex;align-items:center;gap:4px;">
+                <button class="btn btn-outline btn-xs" ${item.is_owner ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : `onclick="revokeHqEmail('${esc(item.email)}')"`} style="${item.is_owner ? '' : 'color:#DC2626;border-color:rgba(220,38,38,0.3);background:#FEF2F2;'}display:flex;align-items:center;gap:4px;border-radius:6px;padding:5px 10px;font-weight:500;">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   <span>Revoke</span>
                 </button>
@@ -31289,88 +31314,88 @@ function renderCorporateOverview() {
       }).join('');
 
       return `
-        <!-- Sleek Modern Executive Header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 24px;box-shadow:0 2px 10px rgba(0,0,0,0.02);">
+        <!-- Uber B2B HQ Settings Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;padding:20px 24px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
           <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-              <span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#38bdf8;background:rgba(56,189,248,0.12);padding:3px 9px;border-radius:6px;border:1px solid rgba(56,189,248,0.25);">AXIOM HQ • GOVERNANCE & ACCESS CONTROL</span>
-              <span class="status green" style="padding:2px 8px;font-size:11px;">● Security Engine Active</span>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <span style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#000000;background:#F6F6F6;padding:3px 9px;border-radius:6px;border:1px solid #E5E5E5;">UBER B2B • ACCESS GOVERNANCE</span>
+              <span style="padding:3px 9px;font-size:11px;font-weight:600;border-radius:20px;background:#E7F9F0;color:#048848;display:inline-flex;align-items:center;gap:5px;">● Security Engine Active</span>
             </div>
-            <h1 style="margin:0;font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.02em;">HQ Settings & Staff Access Governance</h1>
-            <p style="margin:4px 0 0;font-size:12.5px;color:var(--muted);">Manage internal staff emails authorized for Axiom HQ control plane access, role tiers, 2FA policies, and multi-tenant security.</p>
+            <h1 style="margin:0;font-size:22px;font-weight:800;color:#000000;letter-spacing:-0.03em;">HQ Settings & Staff Access Governance</h1>
+            <p style="margin:4px 0 0;font-size:13px;color:#5E5E5E;">Manage internal staff emails authorized for Axiom HQ control plane access, role tiers, 2FA policies, and multi-tenant security.</p>
           </div>
 
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-outline btn-sm" onclick="showToast('Audit Log Synced', 'Exported 142 immutable access events from sovereign cryptographic ledger.', 'info')" style="display:flex;align-items:center;gap:6px;">
+            <button class="btn btn-outline btn-sm" onclick="showToast('Audit Log Synced', 'Exported immutable access events from sovereign cryptographic ledger.', 'info')" style="display:flex;align-items:center;gap:6px;background:#FFFFFF;color:#000000;border:1px solid #E2E2E2;border-radius:8px;padding:8px 14px;font-weight:500;">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               <span>Audit Access Log</span>
             </button>
-            <button class="btn btn-primary btn-sm" onclick="openAddHqEmailModal()" style="display:flex;align-items:center;gap:6px;background:linear-gradient(135deg, #0284c7, #2563eb);border:none;box-shadow:0 3px 10px rgba(37,99,235,0.25);">
+            <button class="btn btn-primary btn-sm" onclick="openAddHqEmailModal()" style="display:flex;align-items:center;gap:6px;background:#000000;color:#FFFFFF;border:1px solid #000000;border-radius:8px;padding:8px 14px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.15);">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               <span>+ Add Authorized Email</span>
             </button>
           </div>
         </div>
 
-        <!-- KPI Ribbon -->
+        <!-- Uber B2B Settings KPI Strip -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:24px;">
           <!-- KPI 1: Whitelisted Staff -->
-          <div class="card" style="padding:20px;border-top:3px solid #38bdf8;background:linear-gradient(180deg, var(--surface) 0%, rgba(56,189,248,0.02) 100%);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Whitelisted Staff Emails</span>
-              <div style="width:32px;height:32px;border-radius:8px;background:rgba(56,189,248,0.12);color:#38bdf8;display:grid;place-items:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div class="card" style="padding:20px;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <span style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Whitelisted Staff Emails</span>
+              <div style="width:30px;height:30px;border-radius:6px;background:#F6F6F6;color:#000000;display:grid;place-items:center;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               </div>
             </div>
-            <div style="font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.03em;">${allEmails.length} <span style="font-size:14px;color:var(--muted);font-weight:normal;">Identities</span></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;">
-              <span style="color:var(--muted);">Access Scope</span>
-              <strong style="color:#38bdf8;font-weight:700;">Axiom HQ Control Plane</strong>
+            <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;">${allEmails.length} <span style="font-size:13px;color:#5E5E5E;font-weight:500;">Identities</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #F0F0F0;font-size:12px;">
+              <span style="color:#5E5E5E;">Access Scope</span>
+              <strong style="color:#000000;font-weight:700;">Axiom HQ Control Plane</strong>
             </div>
           </div>
 
           <!-- KPI 2: Super Admins -->
-          <div class="card" style="padding:20px;border-top:3px solid #a855f7;background:linear-gradient(180deg, var(--surface) 0%, rgba(168,85,247,0.02) 100%);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Root Super Admins</span>
-              <div style="width:32px;height:32px;border-radius:8px;background:rgba(168,85,247,0.12);color:#a855f7;display:grid;place-items:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <div class="card" style="padding:20px;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <span style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Root Super Admins</span>
+              <div style="width:30px;height:30px;border-radius:6px;background:#F6F6F6;color:#000000;display:grid;place-items:center;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
             </div>
-            <div style="font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.03em;">${superAdminsCount} <span style="font-size:14px;color:var(--muted);font-weight:normal;">Full Control</span></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;">
-              <span style="color:var(--muted);">Primary Account</span>
-              <strong style="color:#c084fc;font-weight:700;">reddragon0075@gmail.com</strong>
+            <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;">${superAdminsCount} <span style="font-size:13px;color:#5E5E5E;font-weight:500;">Full Control</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #F0F0F0;font-size:12px;">
+              <span style="color:#5E5E5E;">Primary Account</span>
+              <strong style="color:#000000;font-weight:700;">reddragon0075@gmail.com</strong>
             </div>
           </div>
 
           <!-- KPI 3: 2FA Enforcement -->
-          <div class="card" style="padding:20px;border-top:3px solid #10b981;background:linear-gradient(180deg, var(--surface) 0%, rgba(168,85,247,0.02) 100%);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">2FA / MFA Adoption</span>
-              <div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,0.12);color:#10b981;display:grid;place-items:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <div class="card" style="padding:20px;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <span style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">2FA / MFA Adoption</span>
+              <div style="width:30px;height:30px;border-radius:6px;background:#F6F6F6;color:#000000;display:grid;place-items:center;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               </div>
             </div>
-            <div style="font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.03em;">${mfaPct}% <span style="font-size:14px;color:var(--muted);font-weight:normal;">Enforced</span></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;">
-              <span class="status green" style="padding:1px 6px;font-size:10px;">${mfaEnforcedCount}/${allEmails.length} Enforced</span>
-              <span style="color:var(--muted);">FIDO2 & TOTP Active</span>
+            <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;">${mfaPct}% <span style="font-size:13px;color:#5E5E5E;font-weight:500;">Enforced</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #F0F0F0;font-size:12px;">
+              <span style="padding:2px 8px;font-size:10.5px;font-weight:600;border-radius:12px;background:#E7F9F0;color:#048848;">● ${mfaEnforcedCount}/${allEmails.length} Enforced</span>
+              <span style="color:#5E5E5E;">FIDO2 & TOTP Active</span>
             </div>
           </div>
 
           <!-- KPI 4: Domain SSO -->
-          <div class="card" style="padding:20px;border-top:3px solid #f59e0b;background:linear-gradient(180deg, var(--surface) 0%, rgba(245,158,11,0.02) 100%);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Federated SSO Domain</span>
-              <div style="width:32px;height:32px;border-radius:8px;background:rgba(245,158,11,0.12);color:#f59e0b;display:grid;place-items:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <div class="card" style="padding:20px;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <span style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.05em;">Federated SSO Domain</span>
+              <div style="width:30px;height:30px;border-radius:6px;background:#F6F6F6;color:#000000;display:grid;place-items:center;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
               </div>
             </div>
-            <div style="font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.03em;">@axiomfleet.in</div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;">
-              <span style="color:var(--muted);">Google Workspace SSO</span>
-              <strong style="color:#fbbf24;font-weight:700;">Verified Wildcard</strong>
+            <div style="font-size:24px;font-weight:800;color:#000000;letter-spacing:-0.03em;">@axiomfleet.in</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #F0F0F0;font-size:12px;">
+              <span style="color:#5E5E5E;">Google Workspace SSO</span>
+              <strong style="color:#000000;font-weight:700;">Verified Wildcard</strong>
             </div>
           </div>
         </div>
