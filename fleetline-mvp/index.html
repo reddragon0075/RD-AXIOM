@@ -4778,33 +4778,79 @@
       display: none;
     }
 
-    /* Brand Header with Collapse Controls */
+    /* Brand Header with Uber Typographic Lockup & Controls */
     .brand-bar {
-      height: 84px;
+      height: 72px;
       padding: 0 16px 0 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid #1a1a1a;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: #000000;
       gap: 10px;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 11px;
+      gap: 10px;
       min-width: 0;
       flex: 1;
       height: 100%;
+      text-decoration: none;
+    }
+
+    .brand-uber-lockup {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .uber-brand-mark {
+      width: 28px;
+      height: 28px;
+      background: #ffffff;
+      color: #000000;
+      border-radius: 6px;
+      font-weight: 900;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: -0.04em;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .uber-brand-text-wrap {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .uber-brand-title {
+      color: #ffffff;
+      font-size: 13.5px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .uber-brand-subtitle {
+      color: #737373;
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
     }
 
     .brand-mark-mini {
       display: none;
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
       background: #111111;
-      border: 1px solid #262626;
+      border: 1px solid rgba(255, 255, 255, 0.12);
       box-shadow: none;
       color: #ffffff;
       font-weight: 800;
@@ -4818,16 +4864,17 @@
 
     .brand-mark-mini:hover {
       transform: scale(1.05);
-      background: #1f1f1f;
+      background: #1a1a1a;
+      border-color: rgba(255, 255, 255, 0.2);
     }
 
     .sidebar-collapse-btn {
       width: 28px;
       height: 28px;
-      border-radius: 7px;
-      border: 1px solid rgba(255, 255, 255, .09);
-      background: rgba(255, 255, 255, .04);
-      color: #8da4bc;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      color: #737373;
       display: grid;
       place-items: center;
       cursor: pointer;
@@ -4837,10 +4884,9 @@
     }
 
     .sidebar-collapse-btn:hover {
-      color: #fff;
-      background: rgba(255, 255, 255, .1);
-      border-color: rgba(218, 250, 91, .35);
-      box-shadow: 0 0 12px rgba(218, 250, 91, .15);
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.16);
     }
 
     .sidebar-collapse-btn:focus-visible,
@@ -4906,38 +4952,78 @@
     }
 
     .workspace-switcher {
+      margin: 6px 14px 10px;
       background: #111111;
-      border: 1px solid #222222;
-      border-radius: 10px;
-      padding: 12px;
-      transition: padding .2s ease, margin .2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 9px 12px;
+      transition: all .16s ease;
+      cursor: pointer;
+    }
+
+    .workspace-switcher:hover {
+      background: #161616;
+      border-color: rgba(255, 255, 255, 0.15);
     }
 
     .workspace-label {
-      color: #737373;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+      display: none;
     }
 
     .workspace-name {
       color: #ffffff;
       font-weight: 600;
+      font-size: 11.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      letter-spacing: -0.01em;
     }
 
     .workspace-dot {
-      background: #05a357;
-      box-shadow: 0 0 0 3px rgba(5, 163, 87, .25);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #34d399;
+      box-shadow: 0 0 6px rgba(52, 211, 153, 0.7);
+      margin-right: 6px;
+      display: inline-block;
     }
 
     .workspace-chevron {
       color: #737373;
     }
 
+    /* Uber Sidebar Scroll & Custom 4px Translucent Scrollbar */
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 4px 10px 16px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
     /* Nav Accordion Groups */
     .nav-accordion-group {
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       transition: margin .18s ease;
     }
 
@@ -4949,42 +5035,47 @@
       gap: 6px;
       background: transparent;
       border: 0;
-      padding: 9px 10px 6px;
-      margin: 12px 0 3px;
+      padding: 8px 10px 6px;
+      margin: 8px 0 2px;
       cursor: pointer;
       text-align: left;
-      border-radius: 8px;
+      border-radius: 6px;
       transition: background .16s ease, color .16s ease;
-      color: #61777b;
-      letter-spacing: .16em;
+      color: #737373 !important;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: 10px;
+      font-weight: 700;
     }
 
     .nav-section-header:hover {
       background: rgba(255, 255, 255, .035);
-      color: #92abb0;
+      color: #a3a3a3 !important;
     }
 
     .nav-section-label {
       text-transform: uppercase;
-      font-size: 9px;
-      font-weight: 780;
+      font-size: 10px;
+      font-weight: 700;
       color: inherit;
       flex: 1;
+      letter-spacing: .08em;
     }
 
     .nav-section-count {
       font-size: 9px;
-      font-weight: 750;
-      color: #678187;
+      font-weight: 700;
+      font-family: monospace;
+      color: #8c8c8c;
       padding: 1px 6px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, .06);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, .08);
       margin-right: 4px;
       letter-spacing: 0;
     }
 
     .nav-accordion-arrow {
-      color: #5d757d;
+      color: #525252;
       transition: transform .2s cubic-bezier(0.4, 0, 0.2, 1);
       flex: none;
     }
@@ -5019,37 +5110,42 @@
     .nav-section {
       color: #737373;
       letter-spacing: .08em;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
+      text-transform: uppercase;
     }
 
     .nav-item {
       border-radius: 8px;
-      color: #8c8c8c;
-      padding: 9px 12px;
+      color: #a3a3a3;
+      padding: 8px 10px;
       font-weight: 500;
-      font-size: 13px;
+      font-size: 12px;
       transition: all 0.12s ease;
+      margin-bottom: 2px;
     }
 
     .nav-item svg {
+      width: 15px;
+      height: 15px;
       color: #737373;
+      flex-shrink: 0;
     }
 
     .nav-item:hover {
       color: #ffffff;
-      background: #141414;
+      background: rgba(255, 255, 255, 0.05);
     }
 
     .nav-item.active {
       color: #ffffff;
       background: #1a1a1a;
       font-weight: 600;
-      box-shadow: inset 3px 0 0 #05a357;
+      box-shadow: inset 3px 0 0 #34d399;
     }
 
     .nav-item.active svg {
-      color: #05a357;
+      color: #34d399;
     }
 
     .nav-count {
@@ -5061,6 +5157,106 @@
     .nav-count.alert {
       background: rgba(220, 38, 38, .2);
       color: #f87171;
+    }
+
+    /* Sub-menu groups & nested items: zero ASCII branch lines */
+    .nav-parent-item-group {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 8px;
+      padding: 3px 4px;
+      margin-bottom: 4px;
+    }
+
+    .nav-sub-items-container {
+      border-left: none !important;
+      padding-left: 24px !important;
+      margin-left: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 2px !important;
+      margin-top: 2px !important;
+      margin-bottom: 4px !important;
+    }
+
+    .nav-sub-child {
+      padding: 5px 8px !important;
+      font-size: 11px !important;
+      color: #888888 !important;
+      border-radius: 6px !important;
+      transition: all 0.12s ease !important;
+    }
+
+    .nav-sub-child:hover {
+      color: #ffffff !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .nav-sub-child.active {
+      color: #ffffff !important;
+      font-weight: 600 !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-left: none !important;
+    }
+
+    /* Bottom area: Setup mini hidden, Account mini streamlined */
+    .setup-mini {
+      display: none !important;
+    }
+
+    .sidebar-bottom {
+      padding: 12px 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: #000000;
+    }
+
+    .account-mini {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    .avatar#accountAvatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #1f1f1f;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+    }
+
+    .account-info strong {
+      font-size: 12px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .account-info span {
+      font-size: 10px;
+      color: #737373;
+      font-family: monospace;
+    }
+
+    .account-exit#logoutBtn {
+      background: transparent;
+      border: none;
+      color: #737373;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+      display: grid;
+      place-items: center;
+    }
+
+    .account-exit#logoutBtn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
     }
 
     /* Collapsed Sidebar Rail Mode */
@@ -11452,9 +11648,9 @@
     .brand .brand-logo {
       width: 160px;
       max-height: 46px;
-      padding: 6px 8px;
+      padding: 4px 6px;
       border-radius: 9px;
-      background: #fff;
+      background: transparent;
     }
 
     @media (max-width: 1100px) {
@@ -12540,21 +12736,23 @@
       flex: 1;
       display: inline-flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       gap: 5px;
-      height: 28px;
+      height: 30px;
       padding: 0 10px;
-      border-radius: 9999px;
-      font-size: 10px;
-      font-weight: 700;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
       letter-spacing: 0.01em;
       cursor: pointer;
       user-select: none;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 1px solid transparent;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: #111111;
+      color: #e5e5e5;
       outline: none;
       min-width: 0;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      box-shadow: none;
     }
 
     .portal-chip .portal-chip-text,
@@ -12564,64 +12762,47 @@
       white-space: nowrap;
     }
 
-    .portal-chip.portal-badge.corporate {
-      background: rgba(16, 185, 129, 0.14);
-      color: #34d399;
-      border-color: rgba(16, 185, 129, 0.32);
-    }
-
-    .portal-chip.portal-badge.corporate:hover {
-      background: rgba(16, 185, 129, 0.22);
-      border-color: rgba(16, 185, 129, 0.55);
-      transform: translateY(-1px);
-    }
-
-    .portal-chip.portal-badge.vendor {
-      background: rgba(59, 130, 246, 0.14);
-      color: #60a5fa;
-      border-color: rgba(59, 130, 246, 0.32);
-    }
-
-    .portal-chip.portal-badge.vendor:hover {
-      background: rgba(59, 130, 246, 0.22);
-      border-color: rgba(59, 130, 246, 0.55);
-      transform: translateY(-1px);
-    }
-
+    .portal-chip.portal-badge.corporate,
+    .portal-chip.portal-badge.vendor,
     .portal-chip.portal-badge.driver {
-      background: rgba(245, 158, 11, 0.14);
-      color: #fbbf24;
-      border-color: rgba(245, 158, 11, 0.32);
+      background: #111111;
+      color: #e5e5e5;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .portal-chip.portal-badge.corporate:hover,
+    .portal-chip.portal-badge.vendor:hover,
+    .portal-chip.portal-badge.driver:hover {
+      background: #1a1a1a;
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.2);
     }
 
     .portal-chip.role-badge {
-      background: rgba(255, 255, 255, 0.07);
-      color: #f1f5f9;
-      border-color: rgba(255, 255, 255, 0.14);
+      background: #111111;
+      color: #a3a3a3;
+      border-color: rgba(255, 255, 255, 0.1);
     }
 
     .portal-chip.role-badge:hover {
-      background: rgba(255, 255, 255, 0.14);
-      border-color: rgba(255, 255, 255, 0.28);
-      transform: translateY(-1px);
+      background: #1a1a1a;
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.2);
     }
 
     .portal-indicator-dot {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: currentColor;
-      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
-      animation: uber-pulse 2s infinite;
+      background: #34d399;
+      box-shadow: 0 0 6px rgba(52, 211, 153, 0.6);
       flex: none;
     }
 
-    .portal-chip.portal-badge.vendor .portal-indicator-dot {
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
-    }
-
+    .portal-chip.portal-badge.vendor .portal-indicator-dot,
     .portal-chip.portal-badge.corporate .portal-indicator-dot {
-      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4);
+      background: #34d399;
+      box-shadow: 0 0 6px rgba(52, 211, 153, 0.6);
     }
 
     .portal-chevron {
@@ -12640,14 +12821,14 @@
 
     .portal-dropdown-menu {
       position: absolute;
-      top: 34px;
+      top: 36px;
       left: 0;
       right: 0;
-      background: #0b0f19;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 12px;
+      background: #0f0f0f;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
       padding: 6px;
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(16px);
       z-index: 100;
       display: flex;
@@ -18123,9 +18304,12 @@
   <div class="app-shell" id="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="brand-bar" id="sidebarBrandBar" title="Axiom Fleet workspace navigation">
-        <a class="brand" href="#home" data-show-public aria-label="Axiom Fleet home">
-          <img class="brand-logo" src="axiom-fleet-logo.png" width="640" height="184" decoding="async"
-            alt="Axiom Fleet">
+        <a class="brand brand-uber-lockup" href="#home" data-show-public aria-label="Axiom Fleet home">
+          <div class="uber-brand-mark">A</div>
+          <div class="uber-brand-text-wrap">
+            <span class="uber-brand-title">AXIOM</span>
+            <span class="uber-brand-subtitle">FOR BUSINESS</span>
+          </div>
         </a>
         <button class="brand-mark-mini" id="sidebarBrandMini" type="button" aria-label="Expand sidebar"
           title="Expand sidebar (Ctrl+B)">AF</button>
@@ -18453,8 +18637,7 @@
                   </svg>
                   <span>Vehicles</span>
                 </button>
-                <div class="nav-sub-items-container"
-                  style="padding-left:14px;margin-left:16px;border-left:2px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;gap:1px;margin-top:2px;margin-bottom:4px">
+                <div class="nav-sub-items-container">
                   <button class="nav-item nav-sub-child" data-page="vehicles" data-tooltip="Vehicles register"
                     style="padding:6px 10px;font-size:11.5px">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -18486,8 +18669,7 @@
                   </svg>
                   <span>Drivers</span>
                 </button>
-                <div class="nav-sub-items-container"
-                  style="padding-left:14px;margin-left:16px;border-left:2px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;gap:1px;margin-top:2px;margin-bottom:4px">
+                <div class="nav-sub-items-container">
                   <button class="nav-item nav-sub-child" data-page="drivers" data-tooltip="Drivers roster"
                     style="padding:6px 10px;font-size:11.5px">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
