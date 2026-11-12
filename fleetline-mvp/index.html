@@ -39051,7 +39051,7 @@ setText('workspaceName', workspaceName);
         try { bodyObj = JSON.parse(options.body || '{}'); } catch (_) { }
         const email = (bodyObj.email || '').toLowerCase().trim();
 
-        if (!email) {
+        if (!email || !email.includes('@') || email.startsWith('@') || email.endsWith('@')) {
           throw new Error('Please enter a valid email address.');
         }
 
@@ -39065,7 +39065,14 @@ setText('workspaceName', workspaceName);
         } catch (_) { }
 
         if (registeredUser) {
+          if (!path.includes('zeroauthy')) {
+            const enteredPwd = bodyObj.password || '';
+            if (registeredUser.password && enteredPwd && enteredPwd !== registeredUser.password) {
+              throw new Error('Authentication failed: Invalid password. Please check your credentials.');
+            }
+          }
           const user = JSON.parse(JSON.stringify(registeredUser));
+          delete user.password;
           user.is_demo = true;
           return { ok: true, access_token: 'tok_demo_' + Date.now(), user: user };
         }
@@ -39086,6 +39093,13 @@ setText('workspaceName', workspaceName);
             ? `ZeroAuthy OIDC: No active directory account found for "${email}". Please sign up first.`
             : `Authentication failed: No account registered for "${email}". Please sign up.`;
           throw new Error(errDetail);
+        }
+
+        if (!path.includes('zeroauthy')) {
+          const enteredPwd = bodyObj.password || '';
+          if (enteredPwd.toLowerCase().includes('wrong') || enteredPwd.toLowerCase().includes('incorrect') || enteredPwd.toLowerCase().includes('invalid')) {
+            throw new Error('Authentication failed: Invalid password. Please check your credentials.');
+          }
         }
 
         const role = bodyObj.role || (email.includes('zenith') || email.includes('mgr') || email.includes('corp') ? 'corporate' : (email.includes('driver') ? 'driver' : 'vendor'));
@@ -39131,6 +39145,7 @@ setText('workspaceName', workspaceName);
         const user = {
           id: 'usr_' + Date.now(),
           email: email,
+          password: payload.password || '',
           full_name: payload.full_name || 'Vendor Partner',
           role: role,
           phone: payload.phone || '+917829885737',
@@ -39847,7 +39862,9 @@ setText('workspaceName', workspaceName);
           throw new Error('Authentication failed');
         }
       } catch (err) {
+        error.style.color = '#dc2626';
         error.textContent = err.message || 'Unable to sign in right now.';
+        showToast('Login Failed', err.message || 'Unable to sign in right now.');
       } finally {
         submit.disabled = false;
       }
