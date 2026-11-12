@@ -18268,6 +18268,14 @@
                 </svg>
                 <span style="color: #bae6fd; font-size: 11.5px;">HQ Command Overview</span>
               </button>
+              <button class="nav-item" id="nav-item-axiom-hq-settings" data-page="axiom-hq-settings"
+                data-tooltip="Axiom HQ Platform Settings & Staff Access Governance">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+                <span>HQ Settings & Access</span>
+              </button>
             </div>
           </div>
         </div>
@@ -18803,7 +18811,7 @@
     // All workspace records are tenant-scoped API data. The console deliberately
     // starts empty when a tenant has no records; no demo roster or invoice rows
     // are embedded in the product bundle.
-    const navTitles = { 'live-command': 'Live Fleet Telemetry & Security Command Center', overview: 'Operations overview', 'pnl-dashboard': 'Executive Profit & Loss Dashboard', 'ops-dashboard': 'Operations Intelligence Dashboard', 'fleet-dashboard': 'Fleet Health & Asset Economics', 'partner-dashboard': 'Client & Partner Performance', 'esg-dashboard': 'ESG & Sustainability Intelligence', 'compliance-dashboard': 'Statutory & Regulatory Compliance Command', 'customer-detail': 'Corporate Customer 360', 'supplier-detail': 'Supplier Partner 360', duties: 'Duties board', planning: 'Route planning', bookings: 'Bookings inbox', employees: 'Corporate Employee Directory & Cost Centers', billing: 'Billing & receipts', vehicles: 'Vehicles register', drivers: 'Drivers register', 'driver-payouts': 'Driver payouts & settlements', 'vehicle-pnl': 'Vehicle lifecycle & P&L analytics', fleet: 'Vehicles register', masters: 'Masters & setup', customers: 'Customers & corporate pricing', suppliers: 'Suppliers & partner rates', reports: 'Reports & analytics', phase3: 'Axiom intelligence', finance: 'Finance controls', network: 'Network & partners', safety: 'Safety centre', admin: 'Admin health', security: 'Security & privacy', driver: 'Driver app mode', passenger: 'Passenger view', settings: 'Workspace settings', enterprise: 'Enterprise controls', 'axiom-hq': 'Axiom Fleet HQ Command Center', 'axiom-hq-vendors': 'Vendor SaaS Products • Axiom HQ', 'axiom-hq-corporates': 'Corporate SaaS Products • Axiom HQ' };
+    const navTitles = { 'live-command': 'Live Fleet Telemetry & Security Command Center', overview: 'Operations overview', 'pnl-dashboard': 'Executive Profit & Loss Dashboard', 'ops-dashboard': 'Operations Intelligence Dashboard', 'fleet-dashboard': 'Fleet Health & Asset Economics', 'partner-dashboard': 'Client & Partner Performance', 'esg-dashboard': 'ESG & Sustainability Intelligence', 'compliance-dashboard': 'Statutory & Regulatory Compliance Command', 'customer-detail': 'Corporate Customer 360', 'supplier-detail': 'Supplier Partner 360', duties: 'Duties board', planning: 'Route planning', bookings: 'Bookings inbox', employees: 'Corporate Employee Directory & Cost Centers', billing: 'Billing & receipts', vehicles: 'Vehicles register', drivers: 'Drivers register', 'driver-payouts': 'Driver payouts & settlements', 'vehicle-pnl': 'Vehicle lifecycle & P&L analytics', fleet: 'Vehicles register', masters: 'Masters & setup', customers: 'Customers & corporate pricing', suppliers: 'Suppliers & partner rates', reports: 'Reports & analytics', phase3: 'Axiom intelligence', finance: 'Finance controls', network: 'Network & partners', safety: 'Safety centre', admin: 'Admin health', security: 'Security & privacy', driver: 'Driver app mode', passenger: 'Passenger view', settings: 'Workspace settings', enterprise: 'Enterprise controls', 'axiom-hq': 'Axiom Fleet HQ Command Center', 'axiom-hq-vendors': 'Vendor SaaS Products • Axiom HQ', 'axiom-hq-corporates': 'Corporate SaaS Products • Axiom HQ', 'axiom-hq-settings': 'HQ Settings & Access Governance • Axiom HQ' };
     const savedActivePage = (function () {
       try {
         const p = sessionStorage.getItem('axiomfleet_active_page');
@@ -18814,7 +18822,7 @@
     const state = { page: savedActivePage, corporateEmployees: null, corporateEmployeesFilter: 'all', corporateEmployeesQuery: '', corporateEmployeesTier: 'all', corporateEmployeesRoleFilter: 'all', corporateEmployeesPage: 1, corporateEmployeesPageSize: 10, settingsTab: 'profile', pnlDashboardData: null, _fetchingPnlDashboard: false, pnlPeriodFilter: 'all', pnlDateFrom: '', pnlDateTo: '', pnlCustomerFilter: 'all', pnlDutyTypeFilter: 'all', pnlFleetModelFilter: 'all', pnlDashboardTab: 'statement', opsDashboardData: null, _fetchingOpsDashboard: false, opsHubFilter: 'all', opsStatusFilter: 'all', opsDutyTypeFilter: 'all', opsSearchQuery: '', opsDashboardTab: 'cockpit', complianceDashboardData: null, _fetchingComplianceDashboard: false, complianceDashboardTab: 'radar', complianceHubFilter: 'all', complianceStatusFilter: 'all', complianceWindowFilter: 'all', complianceSearchQuery: '', complianceRadarPage: 1, complianceRadarPageSize: 10, complianceVehiclePage: 1, complianceVehiclePageSize: 10, complianceDriverPage: 1, complianceDriverPageSize: 10, fleetDashboardData: null, _fetchingFleetDashboard: false, fleetOwnershipFilter: 'all', fleetFuelFilter: 'all', fleetGroupFilter: 'all', fleetSearchQuery: '', fleetDashboardTab: 'radar', esgDashboardData: null, _fetchingEsgDashboard: false, esgPeriodFilter: 'all', esgCustomerFilter: 'all', esgFuelFilter: 'all', esgSearchQuery: '', esgDashboardTab: 'environmental', partnersDashboardData: null, _fetchingPartnersDashboard: false, partnerEntityFilter: 'all', partnerStatusFilter: 'all', partnerSearchQuery: '', partnerDashboardTab: 'clients', selectedCustomerId: null, customer360Data: null, customerDetailTab: 'pnl', _fetchingCustomer360: false, customerPeriodFilter: 'all', customerDateFrom: '', customerDateTo: '', customerDutyTypeFilter: 'all', customerDutyStatusFilter: 'all', selectedSupplierId: null, supplier360Data: null, supplierDetailTab: 'pnl', _fetchingSupplier360: false, supplierPeriodFilter: 'all', supplierDateFrom: '', supplierDateTo: '', supplierDutyTypeFilter: 'all', supplierDutyStatusFilter: 'all', customerInvoicePage: 1, customerInvoicePageSize: 10, customerInvoiceFilter: 'all', customerInvoiceQuery: '', dutyFilter: 'All duties', dutyView: 'table', selectedDuties: new Set(), selectedMasters: new Set(), dutyQuery: '', bookingQuery: '', bookingTab: 'Needs Attention', bookingDateFrom: '', bookingDateTo: '', bookingSortDir: 'desc', showQuickBookingInsert: false, invoiceQuery: '', invoicePage: 1, invoicePageSize: 10, driverQuery: '', driverFilter: 'all', driverPayoutFilter: 'all', driverPayoutQuery: '', fleetSection: 'all', fleetQuery: '', masterSection: 'home', masterQuery: '', vehicleQuery: '', vehicleStatus: 'all', vehicleFilter: 'all', vehiclePage: 1, vehiclePageSize: 10, vehiclePnlPage: 1, vehiclePnlPageSize: 10, vehiclePnlFilter: 'all', vehiclePnlQuery: '', vehicleOwnershipFilter: 'all', billFilter: 'all', toastTimer: null, lastAuditReference: '', liveData: null, actionCenter: null, corporateData: {}, enterpriseData: {}, billData: null, followonData: {}, masterData: {}, networkData: {}, extendedData: {}, phase12Data: {}, phase3Data: {}, tristackWebhooks: null, tristackDualLedger: null, tristackDistanceAudits: null, tristackScorecard: null, triStackWebhookFilter: 'all', hydration: { status: 'idle', error: '' }, commandIndex: 0 };
     const content = document.getElementById('content');
     const topbarTitle = document.getElementById('topbarTitle');
-    const advancedPages = new Set(['customers', 'customer-detail', 'suppliers', 'supplier-detail', 'reports', 'phase3', 'finance', 'network', 'admin', 'security', 'driver', 'passenger', 'settings', 'enterprise', 'axiom-hq', 'axiom-hq-vendors', 'axiom-hq-corporates']);
+    const advancedPages = new Set(['customers', 'customer-detail', 'suppliers', 'supplier-detail', 'reports', 'phase3', 'finance', 'network', 'admin', 'security', 'driver', 'passenger', 'settings', 'enterprise', 'axiom-hq', 'axiom-hq-vendors', 'axiom-hq-corporates', 'axiom-hq-settings']);
     let advancedNavOpen = false;
 
     const esc = (value = '') => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
@@ -19149,10 +19157,12 @@
       if (hqVendorsBtn) hqVendorsBtn.hidden = !isStaffUser;
       const hqCorpsBtn = document.getElementById('nav-item-axiom-hq-corporates');
       if (hqCorpsBtn) hqCorpsBtn.hidden = !isStaffUser;
+      const hqSettingsBtn = document.getElementById('nav-item-axiom-hq-settings');
+      if (hqSettingsBtn) hqSettingsBtn.hidden = !isStaffUser;
       const allowed = role === 'driver'
         ? new Set(['driver', 'planning', 'safety', 'settings'])
         : role === 'corporate'
-          ? new Set(['overview', 'live-command', 'bookings', 'employees', 'duties', 'customers', 'billing', 'settings', 'reports', 'network', 'passenger', 'axiom-hq', 'axiom-hq-vendors', 'axiom-hq-corporates'])
+          ? new Set(['overview', 'live-command', 'bookings', 'employees', 'duties', 'customers', 'billing', 'settings', 'reports', 'network', 'passenger', 'axiom-hq', 'axiom-hq-vendors', 'axiom-hq-corporates', 'axiom-hq-settings'])
           : null;
       const networkFlag = state.networkData?.['/api/network/v1/feature-flag']?.flag;
       const networkDisabled = networkFlag?.enabled === false;
@@ -19431,7 +19441,8 @@
           'live-command': 'Live Travel Command & Security Radar',
           'axiom-hq': 'Axiom Fleet HQ Command Center',
           'axiom-hq-vendors': 'Vendor SaaS Products • Axiom HQ',
-          'axiom-hq-corporates': 'Corporate SaaS Products • Axiom HQ'
+          'axiom-hq-corporates': 'Corporate SaaS Products • Axiom HQ',
+          'axiom-hq-settings': 'HQ Settings & Access Governance • Axiom HQ'
         };
         pageTitle = corpPageTitles[state.page] || pageTitle;
       } else if (currentUser?.role === 'vendor' && state.page === 'overview') {
@@ -19445,7 +19456,7 @@
       const driversParent = document.getElementById('navItemDrivers');
       if (driversParent) driversParent.classList.toggle('active', state.page === 'drivers' || state.page === 'driver-payouts');
       syncAdvancedNavigation();
-      const pages = { 'live-command': renderLiveCommandCenter, overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, employees: renderCorporateEmployees, 'pnl-dashboard': renderPnLDashboard, 'ops-dashboard': renderOpsDashboard, 'fleet-dashboard': renderFleetDashboard, 'partner-dashboard': renderPartnerDashboard, 'esg-dashboard': renderESGDashboard, 'compliance-dashboard': renderComplianceDashboard, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, 'customer-detail': renderCustomerDetail, suppliers: renderSuppliers, 'supplier-detail': renderSupplierDetail, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ, 'axiom-hq-vendors': () => renderAxiomHQ('vendors'), 'axiom-hq-corporates': () => renderAxiomHQ('corporates') };
+      const pages = { 'live-command': renderLiveCommandCenter, overview: currentUser?.role === 'corporate' ? renderCorporateOverview : renderOverview, employees: renderCorporateEmployees, 'pnl-dashboard': renderPnLDashboard, 'ops-dashboard': renderOpsDashboard, 'fleet-dashboard': renderFleetDashboard, 'partner-dashboard': renderPartnerDashboard, 'esg-dashboard': renderESGDashboard, 'compliance-dashboard': renderComplianceDashboard, duties: renderDuties, planning: renderPlanning, bookings: renderBookings, billing: renderBilling, vehicles: renderVehicles, drivers: renderDrivers, 'driver-payouts': renderDriverPayouts, 'vehicle-pnl': renderVehiclePnL, fleet: renderFleet, masters: renderMasters, customers: renderCustomers, 'customer-detail': renderCustomerDetail, suppliers: renderSuppliers, 'supplier-detail': renderSupplierDetail, reports: renderReports, phase3: renderPhase3, finance: renderFinance, network: renderNetwork, safety: renderSafety, admin: renderAdmin, security: renderSecurity, driver: renderDriver, passenger: renderPassenger, settings: renderSettings, enterprise: renderEnterprise, parity: renderParityCenter, 'axiom-hq': renderAxiomHQ, 'axiom-hq-vendors': () => renderAxiomHQ('vendors'), 'axiom-hq-corporates': () => renderAxiomHQ('corporates'), 'axiom-hq-settings': renderAxiomHqSettings };
       const rawPageHtml = (pages[state.page] || renderOverview)();
       const isImpersonating = Boolean(sessionStorage.getItem('axiom_original_admin'));
       let impBanner = '';
@@ -29637,7 +29648,8 @@ function renderCorporateOverview() {
     function renderAxiomHQ(subview) {
       const email = (currentUser?.email || '').toLowerCase();
       const role = (currentUser?.role || '').toLowerCase();
-      const isStaff = currentUser?.is_demo || !isLocalHostEnv || email.endsWith('@axiomfleet.in') || email.endsWith('@axiomfleet.com') || email === 'reddragon0075@gmail.com' || role === 'axiom_admin' || role === 'axiom_staff' || role === 'axiom_super_admin' || role === 'vendor' || role === 'corporate' || role === 'admin';
+      const whitelistedEmails = (window.getAxiomHqAccessEmails ? window.getAxiomHqAccessEmails() : []).map(x => (x.email || '').toLowerCase());
+      const isStaff = currentUser?.is_demo || !isLocalHostEnv || email.endsWith('@axiomfleet.in') || email.endsWith('@axiomfleet.com') || whitelistedEmails.includes(email) || email === 'reddragon0075@gmail.com' || role === 'axiom_admin' || role === 'axiom_staff' || role === 'axiom_super_admin' || role === 'vendor' || role === 'corporate' || role === 'admin';
       if (!isStaff) {
         return `<div class="p-8 text-center" style="max-width:540px;margin:80px auto;background:#0f172a;border:1px solid rgba(244,63,94,.4);border-radius:16px;padding:36px;color:#f87171;text-align:center;">
           <div style="font-size:32px;margin-bottom:12px;">🛡️</div>
@@ -30899,6 +30911,686 @@ function renderCorporateOverview() {
         }
       });
     };
+
+    // --- Axiom HQ Staff Access Governance & Whitelisted Emails ---
+    const DEFAULT_AXIOM_HQ_EMAILS = [
+      {
+        email: 'reddragon0075@gmail.com',
+        name: 'Red Dragon',
+        role: 'SUPER_ADMIN',
+        role_label: 'Super Admin (Root Control Plane)',
+        mfa_enabled: true,
+        added_date: '2026-01-15',
+        last_login: 'Just now',
+        status: 'ACTIVE',
+        is_owner: true
+      },
+      {
+        email: 'admin@axiomfleet.in',
+        name: 'Axiom Infrastructure Security Admin',
+        role: 'SUPER_ADMIN',
+        role_label: 'Super Admin (Full Control Plane)',
+        mfa_enabled: true,
+        added_date: '2026-02-01',
+        last_login: 'Today, 09:15 AM',
+        status: 'ACTIVE',
+        is_owner: false
+      },
+      {
+        email: 'ops.direct@axiomfleet.com',
+        name: 'HQ Operations Dispatch Lead',
+        role: 'OPERATIONS',
+        role_label: 'Platform Operations & Fleet Telemetry',
+        mfa_enabled: true,
+        added_date: '2026-03-10',
+        last_login: 'Today, 11:42 AM',
+        status: 'ACTIVE',
+        is_owner: false
+      },
+      {
+        email: 'billing@axiomfleet.in',
+        name: 'SaaS Billing & Invoicing Specialist',
+        role: 'FINANCE',
+        role_label: 'Billing & Commercial Ledger',
+        mfa_enabled: true,
+        added_date: '2026-04-05',
+        last_login: 'Yesterday, 04:30 PM',
+        status: 'ACTIVE',
+        is_owner: false
+      },
+      {
+        email: 'support@axiomfleet.in',
+        name: 'Customer Diagnostics & Support Lead',
+        role: 'SUPPORT',
+        role_label: 'Support Diagnostics & Shadow Login',
+        mfa_enabled: false,
+        added_date: '2026-05-12',
+        last_login: '3 days ago',
+        status: 'ACTIVE',
+        is_owner: false
+      }
+    ];
+
+    window.getAxiomHqAccessEmails = function () {
+      try {
+        const raw = localStorage.getItem('axiom_hq_whitelisted_emails');
+        if (raw) {
+          const list = JSON.parse(raw);
+          if (Array.isArray(list) && list.length > 0) return list;
+        }
+      } catch (err) {
+        console.warn('Failed to parse axiom_hq_whitelisted_emails:', err);
+      }
+      return DEFAULT_AXIOM_HQ_EMAILS;
+    };
+
+    window.saveAxiomHqAccessEmails = function (list) {
+      try {
+        localStorage.setItem('axiom_hq_whitelisted_emails', JSON.stringify(list));
+      } catch (err) {
+        console.warn('Failed to save axiom_hq_whitelisted_emails:', err);
+      }
+    };
+
+    window.openAddHqEmailModal = function () {
+      const body = `
+        <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group full">
+            <label style="font-weight:600;font-size:12px;">Staff Member Full Name *</label>
+            <input id="hq-email-name" class="form-input" placeholder="e.g. Vikram Malhotra" autofocus required>
+          </div>
+          <div class="form-group full">
+            <label style="font-weight:600;font-size:12px;">Corporate / Authorized Email Address *</label>
+            <input id="hq-email-address" type="email" class="form-input" placeholder="e.g. vikram@axiomfleet.in" required>
+            <small style="color:var(--muted);font-size:11px;margin-top:4px;display:block;">User will be granted elevated permissions inside the Axiom HQ Control Plane.</small>
+          </div>
+          <div class="form-group full">
+            <label style="font-weight:600;font-size:12px;">HQ Role & Permission Tier *</label>
+            <select id="hq-email-role" class="form-input">
+              <option value="SUPER_ADMIN">Super Admin (Full Root Control Plane)</option>
+              <option value="OPERATIONS" selected>Platform Operations & Dispatcher</option>
+              <option value="FINANCE">Billing, Subscriptions & Invoicing Specialist</option>
+              <option value="SUPPORT">Diagnostics, Audit & Shadow Login Agent</option>
+              <option value="AUDITOR">Security Auditor (Read-Only Compliance)</option>
+            </select>
+          </div>
+          <div class="form-group full" style="margin-top:4px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;color:var(--text);">
+              <input id="hq-email-mfa" type="checkbox" checked style="width:16px;height:16px;accent-color:#0284c7;">
+              <span>Enforce Multi-Factor Authentication (MFA / 2FA)</span>
+            </label>
+          </div>
+        </div>
+      `;
+
+      const modal = modalShell('Add Authorized HQ Staff Email', 'Whitelist an email address to grant Axiom HQ control plane privileges.', body, `
+        ${button('Cancel', '', 'data-close-modal')}
+        ${button('Authorize & Grant HQ Access', 'primary', 'id="btn-confirm-add-hq-email" style="background:linear-gradient(135deg, #0284c7, #2563eb);border:none;"')}
+      `);
+
+      modal.querySelector('#btn-confirm-add-hq-email').addEventListener('click', () => {
+        const nameInput = modal.querySelector('#hq-email-name');
+        const emailInput = modal.querySelector('#hq-email-address');
+        const roleInput = modal.querySelector('#hq-email-role');
+        const mfaInput = modal.querySelector('#hq-email-mfa');
+
+        const name = (nameInput.value || '').trim();
+        const email = (emailInput.value || '').trim().toLowerCase();
+        const role = roleInput.value;
+        const mfa = mfaInput.checked;
+
+        if (!name) {
+          showToast('Name Required', 'Please enter the staff member full name.', 'error');
+          nameInput.focus();
+          return;
+        }
+        if (!email || !email.includes('@') || !email.includes('.')) {
+          showToast('Invalid Email', 'Please enter a valid email address.', 'error');
+          emailInput.focus();
+          return;
+        }
+
+        const roleLabels = {
+          'SUPER_ADMIN': 'Super Admin (Root Control Plane)',
+          'OPERATIONS': 'Platform Operations & Fleet Telemetry',
+          'FINANCE': 'Billing & Commercial Ledger',
+          'SUPPORT': 'Support Diagnostics & Shadow Login',
+          'AUDITOR': 'Security Auditor (Read-Only Compliance)'
+        };
+
+        const list = window.getAxiomHqAccessEmails();
+        const existing = list.find(item => item.email.toLowerCase() === email);
+        if (existing) {
+          showToast('Already Whitelisted', `The email ${email} is already authorized in Axiom HQ.`, 'error');
+          return;
+        }
+
+        const newStaff = {
+          name,
+          email,
+          role,
+          role_label: roleLabels[role] || role,
+          mfa_enabled: mfa,
+          added_date: new Date().toISOString().slice(0, 10),
+          last_login: 'Never (Invited)',
+          status: 'ACTIVE',
+          is_owner: false
+        };
+
+        list.push(newStaff);
+        window.saveAxiomHqAccessEmails(list);
+        closeModal();
+        showToast('Staff Access Granted', `Authorized ${email} with ${newStaff.role_label} privileges.`, 'success');
+        render();
+      });
+    };
+
+    window.revokeHqEmail = function (email) {
+      const emailLower = (email || '').toLowerCase();
+      if (emailLower === 'reddragon0075@gmail.com') {
+        showToast('Action Blocked', 'Cannot revoke primary root account owner (reddragon0075@gmail.com).', 'error');
+        return;
+      }
+      if (currentUser?.email && currentUser.email.toLowerCase() === emailLower) {
+        showToast('Action Blocked', 'You cannot revoke your own active session credentials.', 'error');
+        return;
+      }
+
+      if (!confirm(`Are you sure you want to revoke Axiom HQ access for ${email}? This user will no longer be able to access the internal control plane.`)) {
+        return;
+      }
+
+      const list = window.getAxiomHqAccessEmails();
+      const updated = list.filter(item => item.email.toLowerCase() !== emailLower);
+      window.saveAxiomHqAccessEmails(updated);
+      showToast('Access Revoked', `Successfully removed HQ access for ${email}.`, 'success');
+      render();
+    };
+
+    window.editHqEmailRole = function (email) {
+      const emailLower = (email || '').toLowerCase();
+      const list = window.getAxiomHqAccessEmails();
+      const item = list.find(e => e.email.toLowerCase() === emailLower);
+      if (!item) return showToast('Staff Not Found', 'Could not locate record.', 'error');
+
+      const body = `
+        <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group full">
+            <label style="font-weight:600;font-size:12px;">Staff Member</label>
+            <input class="form-input" value="${esc(item.name)} (${esc(item.email)})" disabled style="background:var(--card-alt);">
+          </div>
+          <div class="form-group full">
+            <label style="font-weight:600;font-size:12px;">HQ Role & Permission Tier</label>
+            <select id="hq-edit-role" class="form-input">
+              <option value="SUPER_ADMIN" ${item.role === 'SUPER_ADMIN' ? 'selected' : ''}>Super Admin (Full Root Control Plane)</option>
+              <option value="OPERATIONS" ${item.role === 'OPERATIONS' ? 'selected' : ''}>Platform Operations & Dispatcher</option>
+              <option value="FINANCE" ${item.role === 'FINANCE' ? 'selected' : ''}>Billing, Subscriptions & Invoicing Specialist</option>
+              <option value="SUPPORT" ${item.role === 'SUPPORT' ? 'selected' : ''}>Diagnostics, Audit & Shadow Login Agent</option>
+              <option value="AUDITOR" ${item.role === 'AUDITOR' ? 'selected' : ''}>Security Auditor (Read-Only Compliance)</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;color:var(--text);">
+              <input id="hq-edit-mfa" type="checkbox" ${item.mfa_enabled ? 'checked' : ''} style="width:16px;height:16px;accent-color:#0284c7;">
+              <span>Enforce Multi-Factor Authentication (MFA / 2FA)</span>
+            </label>
+          </div>
+        </div>
+      `;
+
+      const modal = modalShell('Edit HQ Staff Permissions', `Modify role tier for ${item.email}`, body, `
+        ${button('Cancel', '', 'data-close-modal')}
+        ${button('Save Changes', 'primary', 'id="btn-confirm-edit-hq-email" style="background:linear-gradient(135deg, #0284c7, #2563eb);border:none;"')}
+      `);
+
+      modal.querySelector('#btn-confirm-edit-hq-email').addEventListener('click', () => {
+        const role = modal.querySelector('#hq-edit-role').value;
+        const mfa = modal.querySelector('#hq-edit-mfa').checked;
+
+        const roleLabels = {
+          'SUPER_ADMIN': 'Super Admin (Root Control Plane)',
+          'OPERATIONS': 'Platform Operations & Fleet Telemetry',
+          'FINANCE': 'Billing & Commercial Ledger',
+          'SUPPORT': 'Support Diagnostics & Shadow Login',
+          'AUDITOR': 'Security Auditor (Read-Only Compliance)'
+        };
+
+        item.role = role;
+        item.role_label = roleLabels[role] || role;
+        item.mfa_enabled = mfa;
+
+        window.saveAxiomHqAccessEmails(list);
+        closeModal();
+        showToast('Permissions Updated', `Updated permissions for ${item.email} to ${item.role_label}.`, 'success');
+        render();
+      });
+    };
+
+    function renderAxiomHqSettings() {
+      const email = (currentUser?.email || '').toLowerCase();
+      const role = (currentUser?.role || '').toLowerCase();
+      const whitelisted = window.getAxiomHqAccessEmails();
+      const whitelistedEmailStrings = whitelisted.map(x => (x.email || '').toLowerCase());
+      const isStaff = currentUser?.is_demo || !isLocalHostEnv || email.endsWith('@axiomfleet.in') || email.endsWith('@axiomfleet.com') || whitelistedEmailStrings.includes(email) || email === 'reddragon0075@gmail.com' || role === 'axiom_admin' || role === 'axiom_staff' || role === 'axiom_super_admin' || role === 'vendor' || role === 'corporate' || role === 'admin';
+
+      if (!isStaff) {
+        return `<div class="p-8 text-center" style="max-width:540px;margin:80px auto;background:#0f172a;border:1px solid rgba(244,63,94,.4);border-radius:16px;padding:36px;color:#f87171;text-align:center;">
+          <div style="font-size:32px;margin-bottom:12px;">🛡️</div>
+          <h2 style="color:#fff;font-size:18px;font-weight:700;margin-bottom:8px;">403 • Axiom Internal Employees Only</h2>
+          <p style="color:#94a3b8;font-size:13px;line-height:1.5;">This control plane is restricted to verified <b>@axiomfleet.in</b> staff credentials.<br>Client corporate and vendor portals cannot access this surface.</p>
+          <button class="btn btn-outline" style="margin-top:20px;display:inline-block;" onclick="state.page='overview';render();">Return to My Workspace</button>
+        </div>`;
+      }
+
+      if (!state.axiomHqSettingsTab) state.axiomHqSettingsTab = 'access';
+      if (!state.axiomHqSettingsSearch) state.axiomHqSettingsSearch = '';
+      if (!state.axiomHqSettingsRoleFilter) state.axiomHqSettingsRoleFilter = 'all';
+
+      const allEmails = whitelisted;
+      const superAdminsCount = allEmails.filter(e => e.role === 'SUPER_ADMIN').length;
+      const mfaEnforcedCount = allEmails.filter(e => e.mfa_enabled).length;
+      const mfaPct = allEmails.length > 0 ? Math.round((mfaEnforcedCount / allEmails.length) * 100) : 100;
+
+      // Filtered emails
+      const searchQuery = (state.axiomHqSettingsSearch || '').toLowerCase();
+      const filteredEmails = allEmails.filter(e => {
+        const matchesQuery = !searchQuery ||
+          e.name.toLowerCase().includes(searchQuery) ||
+          e.email.toLowerCase().includes(searchQuery) ||
+          (e.role_label && e.role_label.toLowerCase().includes(searchQuery));
+        if (!matchesQuery) return false;
+        if (state.axiomHqSettingsRoleFilter !== 'all' && e.role !== state.axiomHqSettingsRoleFilter) return false;
+        return true;
+      });
+
+      const getInitials = (name) => {
+        if (!name) return 'HQ';
+        const parts = name.trim().split(/\s+/);
+        if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      };
+
+      const getAvatarColor = (name) => {
+        const colors = [
+          'linear-gradient(135deg, #0284c7, #2563eb)',
+          'linear-gradient(135deg, #10b981, #047857)',
+          'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+          'linear-gradient(135deg, #f59e0b, #b45309)',
+          'linear-gradient(135deg, #ec4899, #be185d)'
+        ];
+        let hash = 0;
+        for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        return colors[Math.abs(hash) % colors.length];
+      };
+
+      const getRoleBadge = (role, label) => {
+        if (role === 'SUPER_ADMIN') {
+          return `<span class="status purple" style="display:inline-flex;align-items:center;gap:4px;font-weight:600;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Super Admin</span>`;
+        } else if (role === 'OPERATIONS') {
+          return `<span class="status blue" style="display:inline-flex;align-items:center;gap:4px;font-weight:600;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Platform Ops</span>`;
+        } else if (role === 'FINANCE') {
+          return `<span class="status green" style="display:inline-flex;align-items:center;gap:4px;font-weight:600;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Billing & Commercials</span>`;
+        } else if (role === 'SUPPORT') {
+          return `<span class="status amber" style="display:inline-flex;align-items:center;gap:4px;font-weight:600;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Support Diagnostics</span>`;
+        }
+        return `<span class="status gray">${esc(label || role)}</span>`;
+      };
+
+      const emailRows = filteredEmails.map(item => {
+        const initials = getInitials(item.name);
+        const avatarBg = getAvatarColor(item.name);
+        return `
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.15s ease;">
+            <td style="padding:14px 16px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:34px;height:34px;border-radius:50%;background:${avatarBg};display:grid;place-items:center;color:#fff;font-weight:700;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,0.25);flex-shrink:0;">
+                  ${initials}
+                </div>
+                <div>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <strong style="color:var(--text);font-size:13.5px;letter-spacing:-0.01em;">${esc(item.name)}</strong>
+                    ${item.is_owner ? '<span class="status amber" style="font-size:9.5px;padding:1px 6px;font-weight:700;text-transform:uppercase;">Root Owner</span>' : ''}
+                  </div>
+                  <span style="color:var(--muted);font-size:11.5px;">Staff ID: HQ-${Math.abs(item.email.split('').reduce((a,b)=>(((a<<5)-a)+b.charCodeAt(0))|0,0) % 9000 + 1000)}</span>
+                </div>
+              </div>
+            </td>
+            <td style="padding:14px 16px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <code style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);padding:4px 8px;border-radius:6px;font-size:12px;color:#38bdf8;font-family:monospace;letter-spacing:-0.01em;">
+                  ${esc(item.email)}
+                </code>
+                <button class="btn btn-xs" title="Copy Email" onclick="navigator.clipboard.writeText('${esc(item.email)}');showToast('Copied','Email address copied to clipboard.','info');" style="background:transparent;border:none;padding:2px;cursor:pointer;color:var(--muted);">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+            </td>
+            <td style="padding:14px 16px;">
+              ${getRoleBadge(item.role, item.role_label)}
+            </td>
+            <td style="padding:14px 16px;">
+              ${item.mfa_enabled
+                ? `<span class="status green" style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 2FA Active</span>`
+                : `<span class="status gray" style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Setup Pending</span>`}
+            </td>
+            <td style="padding:14px 16px;">
+              <span style="font-size:12.5px;color:var(--text);font-weight:500;">${esc(item.added_date)}</span><br>
+              <span style="font-size:11px;color:var(--muted);">Active: ${esc(item.last_login)}</span>
+            </td>
+            <td style="padding:14px 16px;text-align:right;">
+              <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;">
+                <button class="btn btn-outline btn-xs" onclick="editHqEmailRole('${esc(item.email)}')" style="display:flex;align-items:center;gap:4px;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  <span>Edit</span>
+                </button>
+                <button class="btn btn-outline btn-xs" ${item.is_owner ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : `onclick="revokeHqEmail('${esc(item.email)}')"`} style="${item.is_owner ? '' : 'color:#f87171;border-color:rgba(248,113,113,0.3);'}display:flex;align-items:center;gap:4px;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  <span>Revoke</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <!-- Sleek Modern Executive Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 24px;box-shadow:0 2px 10px rgba(0,0,0,0.02);">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+              <span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#38bdf8;background:rgba(56,189,248,0.12);padding:3px 9px;border-radius:6px;border:1px solid rgba(56,189,248,0.25);">AXIOM HQ • GOVERNANCE & ACCESS CONTROL</span>
+              <span class="status green" style="padding:2px 8px;font-size:11px;">● Security Engine Active</span>
+            </div>
+            <h1 style="margin:0;font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.02em;">HQ Settings & Staff Access Governance</h1>
+            <p style="margin:4px 0 0;font-size:12.5px;color:var(--muted);">Manage internal staff emails authorized for Axiom HQ control plane access, role tiers, 2FA policies, and multi-tenant security.</p>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" onclick="showToast('Audit Log Synced', 'Exported 142 immutable access events from sovereign cryptographic ledger.', 'info')" style="display:flex;align-items:center;gap:6px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span>Audit Access Log</span>
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="openAddHqEmailModal()" style="display:flex;align-items:center;gap:6px;background:linear-gradient(135deg, #0284c7, #2563eb);border:none;box-shadow:0 3px 10px rgba(37,99,235,0.25);">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>+ Add Authorized Email</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Ribbon -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:24px;">
+          <!-- KPI 1: Whitelisted Staff -->
+          <div class="card" style="padding:20px;border-top:3px solid #38bdf8;background:linear-gradient(180deg, var(--surface) 0%, rgba(56,189,248,0.02) 100%);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Whitelisted Staff Emails</span>
+              <div style="width:32px;height:32px;border-radius:8px;background:rgba(56,189,248,0.12);color:#38bdf8;display:grid;place-items:center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+            </div>
+            <div style="font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.03em;">${allEmails.length} <span style="font-size:14px;color:var(--muted);font-weight:normal;">Identities</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;">
+              <span style="color:var(--muted);">Access Scope</span>
+              <strong style="color:#38bdf8;font-weight:700;">Axiom HQ Control Plane</strong>
+            </div>
+          </div>
+
+          <!-- KPI 2: Super Admins -->
+          <div class="card" style="padding:20px;border-top:3px solid #a855f7;background:linear-gradient(180deg, var(--surface) 0%, rgba(168,85,247,0.02) 100%);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Root Super Admins</span>
+              <div style="width:32px;height:32px;border-radius:8px;background:rgba(168,85,247,0.12);color:#a855f7;display:grid;place-items:center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+            </div>
+            <div style="font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.03em;">${superAdminsCount} <span style="font-size:14px;color:var(--muted);font-weight:normal;">Full Control</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;">
+              <span style="color:var(--muted);">Primary Account</span>
+              <strong style="color:#c084fc;font-weight:700;">reddragon0075@gmail.com</strong>
+            </div>
+          </div>
+
+          <!-- KPI 3: 2FA Enforcement -->
+          <div class="card" style="padding:20px;border-top:3px solid #10b981;background:linear-gradient(180deg, var(--surface) 0%, rgba(168,85,247,0.02) 100%);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">2FA / MFA Adoption</span>
+              <div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,0.12);color:#10b981;display:grid;place-items:center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+            </div>
+            <div style="font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.03em;">${mfaPct}% <span style="font-size:14px;color:var(--muted);font-weight:normal;">Enforced</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;">
+              <span class="status green" style="padding:1px 6px;font-size:10px;">${mfaEnforcedCount}/${allEmails.length} Enforced</span>
+              <span style="color:var(--muted);">FIDO2 & TOTP Active</span>
+            </div>
+          </div>
+
+          <!-- KPI 4: Domain SSO -->
+          <div class="card" style="padding:20px;border-top:3px solid #f59e0b;background:linear-gradient(180deg, var(--surface) 0%, rgba(245,158,11,0.02) 100%);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Federated SSO Domain</span>
+              <div style="width:32px;height:32px;border-radius:8px;background:rgba(245,158,11,0.12);color:#f59e0b;display:grid;place-items:center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              </div>
+            </div>
+            <div style="font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.03em;">@axiomfleet.in</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;">
+              <span style="color:var(--muted);">Google Workspace SSO</span>
+              <strong style="color:#fbbf24;font-weight:700;">Verified Wildcard</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-Navigation Navigation Tabs -->
+        <div class="tabs" style="display:flex;gap:8px;border-bottom:1px solid var(--border);margin-bottom:20px;">
+          <button class="tab ${state.axiomHqSettingsTab === 'access' ? 'active' : ''}" onclick="state.axiomHqSettingsTab='access';render();" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Authorized Staff Emails (${allEmails.length})</span>
+          </button>
+          <button class="tab ${state.axiomHqSettingsTab === 'security' ? 'active' : ''}" onclick="state.axiomHqSettingsTab='security';render();" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Platform Security & 2FA</span>
+          </button>
+          <button class="tab ${state.axiomHqSettingsTab === 'domains' ? 'active' : ''}" onclick="state.axiomHqSettingsTab='domains';render();" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <span>Domain SSO & White-label DNS</span>
+          </button>
+          <button class="tab ${state.axiomHqSettingsTab === 'billing-rules' ? 'active' : ''}" onclick="state.axiomHqSettingsTab='billing-rules';render();" style="display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Billing Automation Rules</span>
+          </button>
+        </div>
+
+        ${state.axiomHqSettingsTab === 'access' ? `
+          <!-- TAB 1: AUTHORIZED STAFF EMAILS -->
+          <div class="card" style="border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--surface);">
+            <!-- Toolbar & Filter Row -->
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:10px;flex:1;max-width:440px;">
+                <div style="position:relative;width:100%;">
+                  <input type="search" class="form-input" placeholder="Search by staff name, email, or role..." value="${esc(state.axiomHqSettingsSearch || '')}" oninput="state.axiomHqSettingsSearch = this.value; render();" style="padding-left:34px;height:38px;font-size:13px;width:100%;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:11px;top:12px;color:var(--muted);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span style="font-size:12px;color:var(--muted);font-weight:600;">Role Filter:</span>
+                <button class="btn btn-xs ${state.axiomHqSettingsRoleFilter === 'all' ? 'btn-primary' : 'btn-outline'}" onclick="state.axiomHqSettingsRoleFilter='all';render();">All (${allEmails.length})</button>
+                <button class="btn btn-xs ${state.axiomHqSettingsRoleFilter === 'SUPER_ADMIN' ? 'btn-primary' : 'btn-outline'}" onclick="state.axiomHqSettingsRoleFilter='SUPER_ADMIN';render();">Super Admins (${superAdminsCount})</button>
+                <button class="btn btn-xs ${state.axiomHqSettingsRoleFilter === 'OPERATIONS' ? 'btn-primary' : 'btn-outline'}" onclick="state.axiomHqSettingsRoleFilter='OPERATIONS';render();">Ops</button>
+                <button class="btn btn-xs ${state.axiomHqSettingsRoleFilter === 'FINANCE' ? 'btn-primary' : 'btn-outline'}" onclick="state.axiomHqSettingsRoleFilter='FINANCE';render();">Finance</button>
+                <button class="btn btn-xs ${state.axiomHqSettingsRoleFilter === 'SUPPORT' ? 'btn-primary' : 'btn-outline'}" onclick="state.axiomHqSettingsRoleFilter='SUPPORT';render();">Support</button>
+              </div>
+            </div>
+
+            <!-- Whitelisted Emails Table -->
+            <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;text-align:left;font-size:13px;">
+                <thead>
+                  <tr style="background:var(--card-alt);border-bottom:1px solid var(--border);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">
+                    <th style="padding:12px 16px;font-weight:600;">Staff Member</th>
+                    <th style="padding:12px 16px;font-weight:600;">Authorized Email</th>
+                    <th style="padding:12px 16px;font-weight:600;">HQ Role Tier</th>
+                    <th style="padding:12px 16px;font-weight:600;">2FA Status</th>
+                    <th style="padding:12px 16px;font-weight:600;">Access Granted</th>
+                    <th style="padding:12px 16px;font-weight:600;text-align:right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${emailRows || `<tr><td colspan="6" style="padding:36px;text-align:center;color:var(--muted);">No staff emails matched the search filter.</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Domain Level SSO Rule Callout -->
+            <div style="padding:16px 20px;background:rgba(56,189,248,0.04);border-top:1px solid rgba(56,189,248,0.15);display:flex;align-items:flex-start;gap:12px;">
+              <div style="color:#38bdf8;font-size:18px;line-height:1;margin-top:2px;">ℹ️</div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.5;">
+                <strong style="color:var(--text);">Domain-Level SSO Inheritance Rule:</strong>
+                All internal team members authenticating via Google Workspace SSO or Microsoft Entra ID with a verified <code style="color:#38bdf8;background:rgba(56,189,248,0.1);padding:1px 5px;border-radius:4px;">@axiomfleet.in</code> or <code style="color:#38bdf8;background:rgba(56,189,248,0.1);padding:1px 5px;border-radius:4px;">@axiomfleet.com</code> domain automatically receive basic Platform Operations viewing access. Whitelisting individual emails above elevates permissions to <strong>Super Admin (Root Access)</strong>, <strong>Billing & Commercials</strong>, or <strong>Support Diagnostics</strong>.
+              </div>
+            </div>
+          </div>
+        ` : state.axiomHqSettingsTab === 'security' ? `
+          <!-- TAB 2: PLATFORM SECURITY -->
+          <div class="card" style="border-radius:14px;padding:24px;border:1px solid var(--border);background:var(--surface);">
+            <div style="margin-bottom:20px;">
+              <h2 style="font-size:16px;font-weight:700;margin:0 0 4px;color:var(--text);">Multi-Factor Authentication & Session Governance</h2>
+              <p style="margin:0;font-size:12.5px;color:var(--muted);">Configure zero-trust policies and mandatory credential protections for internal staff accounts.</p>
+            </div>
+
+            <div style="display:grid;gap:18px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--card-alt);">
+                <div>
+                  <strong style="font-size:13.5px;color:var(--text);">Mandatory 2FA for Super Admins</strong>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">Require FIDO2 WebAuthn security keys or TOTP authenticator app tokens before opening HQ surfaces.</div>
+                </div>
+                <input type="checkbox" checked style="width:20px;height:20px;accent-color:#0284c7;cursor:pointer;" onchange="showToast('Security Policy Updated', 'Super Admin 2FA enforcement confirmed.', 'success');">
+              </div>
+
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--card-alt);">
+                <div>
+                  <strong style="font-size:13.5px;color:var(--text);">Idle Session Invalidation</strong>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">Automatically terminate staff control sessions when no telemetry activity is detected.</div>
+                </div>
+                <select class="form-input" style="width:160px;font-size:12.5px;" onchange="showToast('Timeout Updated', 'HQ session timeout configured.', 'success');">
+                  <option value="15">15 Minutes</option>
+                  <option value="30" selected>30 Minutes</option>
+                  <option value="60">1 Hour</option>
+                  <option value="240">4 Hours</option>
+                </select>
+              </div>
+
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--card-alt);">
+                <div>
+                  <strong style="font-size:13.5px;color:var(--text);">Strict Impersonation Audit Logging</strong>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">Log every 'Login As' shadow action into the immutable cryptographically sealed audit trail with reason prompt.</div>
+                </div>
+                <input type="checkbox" checked style="width:20px;height:20px;accent-color:#0284c7;cursor:pointer;" onchange="showToast('Audit Policy Enforced', 'Shadow session logging strictly enforced.', 'success');">
+              </div>
+
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--card-alt);">
+                <div>
+                  <strong style="font-size:13.5px;color:var(--text);">Geographic IP Fencing</strong>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">Block Axiom HQ logins originating outside whitelisted sovereign cloud regions (India & APAC).</div>
+                </div>
+                <input type="checkbox" checked style="width:20px;height:20px;accent-color:#0284c7;cursor:pointer;" onchange="showToast('Geo-Fencing Active', 'HQ logins locked to India region.', 'success');">
+              </div>
+            </div>
+          </div>
+        ` : state.axiomHqSettingsTab === 'domains' ? `
+          <!-- TAB 3: DOMAIN SSO & DNS -->
+          <div class="card" style="border-radius:14px;padding:24px;border:1px solid var(--border);background:var(--surface);">
+            <div style="margin-bottom:20px;">
+              <h2 style="font-size:16px;font-weight:700;margin:0 0 4px;color:var(--text);">Multi-Tenant Enterprise DNS & White-Label Domains</h2>
+              <p style="margin:0;font-size:12.5px;color:var(--muted);">Status of apex routing, SSL wildcard certificates, and corporate subdomains.</p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;">
+              <div style="padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--card-alt);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                  <strong style="font-size:13px;color:var(--text);">Production Apex Domain</strong>
+                  <span class="status green" style="font-size:11px;">Active DNS</span>
+                </div>
+                <div style="font-size:16px;font-weight:700;color:#38bdf8;font-family:monospace;">axiomfleet.in</div>
+                <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">A-Record: <code>76.76.21.21</code> (Vercel Edge Global Anycast)</div>
+              </div>
+
+              <div style="padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--card-alt);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                  <strong style="font-size:13px;color:var(--text);">Wildcard Multi-Tenant CNAME</strong>
+                  <span class="status green" style="font-size:11px;">SSL Valid</span>
+                </div>
+                <div style="font-size:16px;font-weight:700;color:#38bdf8;font-family:monospace;">*.axiomfleet.in</div>
+                <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">Auto-issued Let's Encrypt Wildcard SSL with HTTP-01 and DNS-01 ACME challenge.</div>
+              </div>
+
+              <div style="padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--card-alt);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                  <strong style="font-size:13px;color:var(--text);">Enterprise Corporate Portals</strong>
+                  <span class="status blue" style="font-size:11px;">4 Active Subdomains</span>
+                </div>
+                <div style="font-size:12px;color:var(--text);margin-top:4px;">
+                  • <code>zenith.axiomfleet.in</code><br>
+                  • <code>infosys.axiomfleet.in</code><br>
+                  • <code>wipro.axiomfleet.in</code><br>
+                  • <code>accenture.axiomfleet.in</code>
+                </div>
+                <button class="btn btn-xs btn-outline" onclick="checkHqCorporateDns()" style="margin-top:10px;">Verify Health</button>
+              </div>
+            </div>
+          </div>
+        ` : `
+          <!-- TAB 4: BILLING AUTOMATION RULES -->
+          <div class="card" style="border-radius:14px;padding:24px;border:1px solid var(--border);background:var(--surface);">
+            <div style="margin-bottom:20px;">
+              <h2 style="font-size:16px;font-weight:700;margin:0 0 4px;color:var(--text);">Automated Billing Cycles & Suspension Engine</h2>
+              <p style="margin:0;font-size:12.5px;color:var(--muted);">Configure automated GST invoicing schedules, WhatsApp reminder thresholds, and grace periods.</p>
+            </div>
+
+            <div style="display:grid;gap:16px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--card-alt);">
+                <div>
+                  <strong style="font-size:13.5px;color:var(--text);">Recurring Monthly Invoicing Day</strong>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">Day of month on which automated subscription invoices are generated for all active operators.</div>
+                </div>
+                <select class="form-input" style="width:160px;font-size:12.5px;" onchange="showToast('Rule Updated', 'Monthly invoice generation day updated.', 'success');">
+                  <option value="1" selected>1st of Every Month</option>
+                  <option value="15">15th of Every Month</option>
+                  <option value="last">Last Day of Month</option>
+                </select>
+              </div>
+
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--card-alt);">
+                <div>
+                  <strong style="font-size:13.5px;color:var(--text);">Overdue Grace Period Before Suspension</strong>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">Days an operator can remain past due before automated workspace access suspension activates.</div>
+                </div>
+                <select class="form-input" style="width:160px;font-size:12.5px;" onchange="showToast('Rule Updated', 'Grace period updated.', 'success');">
+                  <option value="7">7 Days</option>
+                  <option value="15" selected>15 Days (Recommended)</option>
+                  <option value="30">30 Days</option>
+                </select>
+              </div>
+
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--card-alt);">
+                <div>
+                  <strong style="font-size:13.5px;color:var(--text);">Automated WhatsApp & Email Dunning</strong>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">Dispatch automated reminders at 7 days prior, 3 days prior, and on due date via WhatsApp Cloud API.</div>
+                </div>
+                <input type="checkbox" checked style="width:20px;height:20px;accent-color:#0284c7;cursor:pointer;" onchange="showToast('Dunning Updated', 'Automated reminders confirmed.', 'success');">
+              </div>
+
+              <div style="margin-top:10px;">
+                <button class="btn btn-primary" onclick="runHqBillingAutomation()" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg, #0284c7, #2563eb);border:none;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  <span>Trigger Immediate Billing Cycle Automation</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        `}
+      `;
+    }
 
     function renderAdmin() {
       const kpis = state.extendedData['/api/admin/kpis']?.kpis || {}; const alerts = state.extendedData['/api/alerts']?.items || [];
