@@ -181,34 +181,37 @@
        inspired by road markings, cockpit instruments and live routing.
        ─────────────────────────────────────────────────────────────── */
     :root {
-      --ink: #101a22;
-      --ink-2: #26343f;
-      --muted: #687883;
-      --muted-2: #92a0a5;
-      --line: #e3e9e5;
-      --line-strong: #d3ded8;
-      --canvas: #edf1ed;
-      --surface: #fffefa;
-      --surface-soft: #f7f9f5;
-      --navy: #0d1419;
-      --navy-2: #151f25;
-      --navy-3: #24343b;
-      --blue: #5d61ee;
-      --blue-2: #8183ff;
-      --blue-soft: #f0efff;
-      --teal: #0e9c89;
-      --teal-soft: #e7f7f1;
-      --amber: #da8a24;
-      --amber-soft: #fff3dc;
-      --red: #e05f58;
-      --red-soft: #fff0ed;
-      --purple: #976edd;
-      --purple-soft: #f2edff;
-      --lime: #dafa5b;
-      --orange: #ff8d62;
-      --shadow-sm: 0 1px 2px rgba(19, 34, 42, .04), 0 8px 24px rgba(19, 34, 42, .045);
-      --shadow-md: 0 22px 70px rgba(19, 34, 42, .18), 0 4px 16px rgba(19, 34, 42, .06);
-      --radius: 18px;
+      --ink: #000000;
+      --ink-2: #1f1f1f;
+      --muted: #5e5e5e;
+      --muted-2: #8c8c8c;
+      --line: #e5e5e5;
+      --line-strong: #d4d4d4;
+      --canvas: #f6f6f6;
+      --surface: #ffffff;
+      --surface-soft: #fafafa;
+      --navy: #000000;
+      --navy-2: #141414;
+      --navy-3: #1f1f1f;
+      --blue: #000000;
+      --blue-2: #276ef1;
+      --blue-soft: #e8f0fe;
+      --teal: #05a357;
+      --teal-soft: #e7f9f0;
+      --amber: #d97706;
+      --amber-soft: #fef3c7;
+      --red: #e11900;
+      --red-soft: #ffeceb;
+      --purple: #7e22ce;
+      --purple-soft: #f3e8ff;
+      --lime: #05a357;
+      --orange: #ea580c;
+      --uber-black: #000000;
+      --uber-green: #05a357;
+      --uber-green-soft: #e7f9f0;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, .05), 0 4px 12px rgba(0, 0, 0, .03);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, .08);
+      --radius: 12px;
     }
 
     * {
@@ -223,8 +226,9 @@
       margin: 0;
       background: var(--canvas);
       color: var(--ink);
-      font: 14px/1.45 Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font: 14px/1.45 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.015em;
     }
 
     button,
@@ -18693,6 +18697,10 @@
           </svg><input id="globalSearch" placeholder="Search duties, drivers, invoices…" autocomplete="off" /><span
             class="keycap">⌘ K</span></label>
         <div class="topbar-spacer"></div>
+        <div class="topbar-live-ticker" style="display:inline-flex;align-items:center;gap:6px;background:rgba(5,163,87,0.1);color:#048848;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:700;margin-right:6px;white-space:nowrap;">
+          <span style="width:6px;height:6px;border-radius:50%;background:#05a357;animation:uber-pulse 1.8s infinite;"></span>
+          <span>48 Active Rides</span>
+        </div>
         <button class="branch-select" id="branchSelect"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="1.8">
             <path d="M3 21h18M5 21V6l7-3 7 3v15M9 9h1M14 9h1M9 13h1M14 13h1M9 17h1M14 17h1" />
@@ -29751,115 +29759,102 @@ function renderCorporateOverview() {
       // SUBVIEW: VENDOR SAAS PRODUCTS
       if (activeView === 'vendors') {
         return `
-        <!-- Sleek Modern Executive Header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 24px;box-shadow:0 2px 10px rgba(0,0,0,0.02);">
+        <!-- Sleek Uber B2B Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:12px;padding:20px 24px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
           <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-              <span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#38bdf8;background:rgba(56,189,248,0.12);padding:3px 9px;border-radius:6px;border:1px solid rgba(56,189,248,0.25);">AXIOM HQ • REVENUE & TENANTS</span>
-              <span class="status green" style="padding:2px 8px;font-size:11px;">● 3 Operators Subscribed</span>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+              <span style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#000000;background:#F6F6F6;padding:3px 8px;border-radius:4px;border:1px solid #E5E5E5;">AXIOM B2B • VENDOR OPERATIONS</span>
+              <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#048848;background:#E7F9F0;padding:2px 8px;border-radius:100px;">● 3 Operators Subscribed</span>
             </div>
-            <h1 style="margin:0;font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.02em;">Vendor SaaS Operating System & Billing</h1>
-            <p style="margin:4px 0 0;font-size:12.5px;color:var(--muted);">Manage fleet operators buying Axiom OS subscriptions: live plan overrides, automated invoicing, and instant Login As diagnostics.</p>
+            <h1 style="margin:0;font-size:24px;font-weight:800;color:#000000;letter-spacing:-0.03em;">Vendor Fleet Operations & SaaS Ledger</h1>
+            <p style="margin:4px 0 0;font-size:12.5px;color:#5E5E5E;">Manage fleet operators on Axiom OS subscriptions: live plan overrides, automated invoicing, and instant Login As diagnostics.</p>
           </div>
 
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-outline btn-sm" onclick="refreshAxiomHqData()" style="display:flex;align-items:center;gap:6px;">
+            <button class="btn btn-sm" onclick="refreshAxiomHqData()" style="display:flex;align-items:center;gap:6px;background:#FFFFFF;color:#000000;border:1px solid #E2E2E2;border-radius:8px;font-weight:600;">
               ${icon('refresh')} <span>Sync Telemetry</span>
             </button>
-            <button class="btn btn-outline btn-sm" onclick="openHqNewPlanModal()" style="display:flex;align-items:center;gap:6px;">
+            <button class="btn btn-sm" onclick="openHqNewPlanModal()" style="display:flex;align-items:center;gap:6px;background:#FFFFFF;color:#000000;border:1px solid #E2E2E2;border-radius:8px;font-weight:600;">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
               <span>+ New Plan</span>
             </button>
-            <button class="btn btn-outline btn-sm" onclick="openHqCreateInvoiceModal()" style="display:flex;align-items:center;gap:6px;">
+            <button class="btn btn-sm" onclick="openHqCreateInvoiceModal()" style="display:flex;align-items:center;gap:6px;background:#FFFFFF;color:#000000;border:1px solid #E2E2E2;border-radius:8px;font-weight:600;">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               <span>+ Issue Invoice</span>
             </button>
-            <button class="btn btn-primary btn-sm" onclick="runHqBillingAutomation()" style="display:flex;align-items:center;gap:6px;background:linear-gradient(135deg, #0284c7, #2563eb);border:none;box-shadow:0 3px 10px rgba(37,99,235,0.25);">
+            <button class="btn btn-sm" onclick="runHqBillingAutomation()" style="display:flex;align-items:center;gap:6px;background:#000000;color:#FFFFFF;border:none;border-radius:8px;font-weight:600;padding:8px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.15);">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
               <span>Run Billing Cycle</span>
             </button>
           </div>
         </div>
 
-        <!-- High-Impact Glassmorphic KPI Ribbon -->
+        <!-- Uber Move High-Impact Metric Strip -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:24px;">
           <!-- Card 1: MRR -->
-          <div class="card" style="padding:20px;border-top:3px solid #38bdf8;background:linear-gradient(180deg, var(--surface) 0%, rgba(56,189,248,0.02) 100%);">
+          <div class="card" style="padding:20px;border:1px solid #E5E5E5;background:#FFFFFF;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Monthly SaaS MRR</span>
-              <div style="width:32px;height:32px;border-radius:8px;background:rgba(56,189,248,0.12);color:#38bdf8;display:grid;place-items:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              </div>
+              <span style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.06em;">Monthly SaaS MRR</span>
+              <div style="width:28px;height:28px;border-radius:6px;background:#F6F6F6;color:#000000;display:grid;place-items:center;font-weight:700;font-size:13px;">₹</div>
             </div>
-            <div style="font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.03em;">₹${Number(kpis.monthly_saas_mrr_inr || 0).toLocaleString('en-IN')}</div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;">
-              <span style="color:var(--muted);">Annual Run-Rate (ARR)</span>
-              <strong style="color:#38bdf8;font-weight:700;">₹${Number(kpis.annual_saas_arr_inr || 0).toLocaleString('en-IN')}</strong>
+            <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;">₹${Number(kpis.monthly_saas_mrr_inr || 0).toLocaleString('en-IN')}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid #F0F0F0;font-size:11.5px;">
+              <span style="color:#5E5E5E;">Annual Run-Rate</span>
+              <strong style="color:#05A357;font-weight:700;">₹${Number(kpis.annual_saas_arr_inr || 0).toLocaleString('en-IN')}</strong>
             </div>
           </div>
 
           <!-- Card 2: Active Operators -->
-          <div class="card" style="padding:20px;border-top:3px solid #10b981;background:linear-gradient(180deg, var(--surface) 0%, rgba(16,185,129,0.02) 100%);">
+          <div class="card" style="padding:20px;border:1px solid #E5E5E5;background:#FFFFFF;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Fleet Subscribers</span>
-              <div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,0.12);color:#10b981;display:grid;place-items:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 21h18M3 7v14M21 7v14M6 10h3M6 14h3M6 18h3M15 10h3M15 14h3M15 18h3M3 7l9-4 9 4"/></svg>
-              </div>
+              <span style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.06em;">Fleet Subscribers</span>
+              <div style="width:28px;height:28px;border-radius:6px;background:#F6F6F6;color:#000000;display:grid;place-items:center;font-size:12px;">🏢</div>
             </div>
-            <div style="font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.03em;">${kpis.total_vendors ?? vendors.length} <span style="font-size:14px;color:var(--muted);font-weight:normal;">Subscribers</span></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;">
-              <span class="status green" style="padding:1px 6px;font-size:10px;">100% Retained</span>
-              <span style="color:var(--muted);">1 White-Label · 1 Growth · 1 Starter</span>
+            <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;">${kpis.total_vendors ?? vendors.length} <span style="font-size:14px;color:#5E5E5E;font-weight:normal;">Subscribers</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid #F0F0F0;font-size:11.5px;">
+              <span style="color:#05A357;font-weight:700;display:flex;align-items:center;gap:4px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg> 100% Retained
+              </span>
+              <span style="color:#5E5E5E;">1 Ent · 1 Growth · 1 Start</span>
             </div>
           </div>
 
           <!-- Card 3: Collection Progress -->
-          <div class="card" style="padding:20px;border-top:3px solid #a855f7;background:linear-gradient(180deg, var(--surface) 0%, rgba(168,85,247,0.02) 100%);">
+          <div class="card" style="padding:20px;border:1px solid #E5E5E5;background:#FFFFFF;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Collection Health</span>
-              <div style="width:32px;height:32px;border-radius:8px;background:rgba(168,85,247,0.12);color:#a855f7;display:grid;place-items:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              </div>
+              <span style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.06em;">Collected Revenue</span>
+              <span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;background:#F6F6F6;color:#000000;">${collectionRatePct}% Rate</span>
             </div>
-            <div style="display:flex;align-items:baseline;justify-content:space-between;">
-              <div style="font-size:24px;font-weight:800;color:var(--text);letter-spacing:-0.03em;">₹${Number(totalPaidInvoices || 0).toLocaleString('en-IN')}</div>
-              <span style="font-size:12px;font-weight:700;color:#c084fc;">${collectionRatePct}% Rate</span>
-            </div>
-            <!-- Dual-tone progress bar -->
-            <div style="margin-top:8px;width:100%;height:6px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;">
-              <div style="width:${collectionRatePct}%;height:100%;background:linear-gradient(90deg, #9333ea, #a855f7);border-radius:4px;"></div>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;font-size:11.5px;color:var(--muted);">
-              <span>Pending: ₹${Number(totalPendingInvoices || 0).toLocaleString('en-IN')}</span>
-              <span>${invoices.filter(i => i.status === 'PAID').length} of ${invoices.length} Invoices Paid</span>
+            <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;">₹${Number(totalPaidInvoices || 0).toLocaleString('en-IN')}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid #F0F0F0;font-size:11.5px;">
+              <span style="color:#5E5E5E;">Pending: ₹${Number(totalPendingInvoices || 0).toLocaleString('en-IN')}</span>
+              <span style="color:#5E5E5E;">${invoices.filter(i => i.status === 'PAID').length} of ${invoices.length} Paid</span>
             </div>
           </div>
 
           <!-- Card 4: Billing Risk & Compliance -->
-          <div class="card" style="padding:20px;border-top:3px solid #f59e0b;background:linear-gradient(180deg, var(--surface) 0%, rgba(245,158,11,0.02) 100%);">
+          <div class="card" style="padding:20px;border:1px solid #E5E5E5;background:#FFFFFF;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <span style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;">Billing Compliance</span>
-              <div style="width:32px;height:32px;border-radius:8px;background:rgba(245,158,11,0.12);color:#f59e0b;display:grid;place-items:center;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              </div>
+              <span style="font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.06em;">Billing Compliance</span>
+              <div style="width:28px;height:28px;border-radius:6px;background:#E7F9F0;color:#048848;display:grid;place-items:center;font-weight:800;font-size:11px;">✓</div>
             </div>
-            <div style="font-size:26px;font-weight:800;color:#fbbf24;letter-spacing:-0.03em;">${kpis.vendors_overdue_payment ?? 0} <span style="font-size:14px;color:var(--muted);font-weight:normal;">in Grace</span></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11.5px;">
-              <span class="status amber" style="padding:1px 6px;font-size:10px;">15-Day Grace Active</span>
-              <span style="color:var(--muted);">0 Suspended</span>
+            <div style="font-size:28px;font-weight:800;color:#000000;letter-spacing:-0.03em;">${kpis.vendors_overdue_payment ?? 0} <span style="font-size:14px;color:#5E5E5E;font-weight:normal;">in Grace</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid #F0F0F0;font-size:11.5px;">
+              <span style="color:#D97706;font-weight:700;">15-Day Grace Active</span>
+              <span style="color:#5E5E5E;">0 Suspended</span>
             </div>
           </div>
         </div>
 
-        <!-- Section 1: Fleet Operator Subscribers (Luxury Table) -->
-        <section class="card section-card" style="margin-bottom:24px;overflow:hidden;border:1px solid var(--border);border-radius:14px;">
-          <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.015);flex-wrap:wrap;gap:14px;">
+        <!-- Section 1: Fleet Operator Subscribers (Uber Base Table) -->
+        <section class="card section-card" style="margin-bottom:24px;overflow:hidden;border:1px solid #E5E5E5;border-radius:12px;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+          <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid #EEEEEE;background:#FFFFFF;flex-wrap:wrap;gap:14px;">
             <div>
               <div style="display:flex;align-items:center;gap:10px;">
-                <h3 style="margin:0;font-size:16px;font-weight:700;color:var(--text);">Fleet Operator Subscribers</h3>
-                <span class="status blue" style="font-size:11px;font-weight:600;">${filteredVendors.length} of ${vendors.length} Vendors</span>
+                <h3 style="margin:0;font-size:15px;font-weight:800;color:#000000;">Fleet Operator Subscribers</h3>
+                <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;background:#F6F6F6;color:#5E5E5E;">${filteredVendors.length} of ${vendors.length} Vendors</span>
               </div>
-              <p style="margin:4px 0 0;font-size:12px;color:var(--muted);">B2B customers buying Axiom OS. Click <b>"Login As"</b> to assume their identity and resolve operational issues.</p>
+              <p style="margin:4px 0 0;font-size:12px;color:#5E5E5E;">B2B customers buying Axiom OS subscriptions. Assume operator identity for real-time dispatch diagnostics.</p>
             </div>
 
             <!-- Instant Search & Filter Bar -->
@@ -29867,19 +29862,19 @@ function renderCorporateOverview() {
               <div style="position:relative;">
                 <input type="text" placeholder="Search vendor, city, contact..." value="${esc(state.axiomHqVendorSearch || '')}" 
                   oninput="state.axiomHqVendorSearch = this.value; render();"
-                  style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:6px 12px 6px 32px;font-size:12px;color:var(--text);min-width:200px;outline:none;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:10px;top:9px;color:var(--muted);"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  style="background:#F6F6F6;border:1px solid #E5E5E5;border-radius:8px;padding:7px 12px 7px 32px;font-size:12px;color:#000000;min-width:210px;outline:none;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:10px;top:10px;color:#8A8A8A;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               </div>
 
-              <div style="display:flex;gap:4px;background:rgba(255,255,255,0.03);padding:3px;border-radius:8px;border:1px solid var(--border);">
-                <button class="btn btn-xs ${state.axiomHqVendorFilter === 'all' ? 'btn-primary' : 'btn-outline'}" 
-                  onclick="state.axiomHqVendorFilter = 'all'; render();" style="border:none;border-radius:6px;">All (${vendors.length})</button>
-                <button class="btn btn-xs ${state.axiomHqVendorFilter === 'active' ? 'btn-primary' : 'btn-outline'}" 
-                  onclick="state.axiomHqVendorFilter = 'active'; render();" style="border:none;border-radius:6px;">Active</button>
-                <button class="btn btn-xs ${state.axiomHqVendorFilter === 'overdue' ? 'btn-primary' : 'btn-outline'}" 
-                  onclick="state.axiomHqVendorFilter = 'overdue'; render();" style="border:none;border-radius:6px;">In Grace (${kpis.vendors_overdue_payment || 0})</button>
-                <button class="btn btn-xs ${state.axiomHqVendorFilter === 'enterprise' ? 'btn-primary' : 'btn-outline'}" 
-                  onclick="state.axiomHqVendorFilter = 'enterprise'; render();" style="border:none;border-radius:6px;">White-Label</button>
+              <div style="display:flex;gap:4px;background:#F6F6F6;padding:3px;border-radius:8px;border:1px solid #E5E5E5;">
+                <button class="btn btn-xs" 
+                  onclick="state.axiomHqVendorFilter = 'all'; render();" style="border:none;border-radius:6px;font-weight:600;padding:5px 10px;background:${state.axiomHqVendorFilter === 'all' ? '#000000' : 'transparent'};color:${state.axiomHqVendorFilter === 'all' ? '#FFFFFF' : '#5E5E5E'};">All (${vendors.length})</button>
+                <button class="btn btn-xs" 
+                  onclick="state.axiomHqVendorFilter = 'active'; render();" style="border:none;border-radius:6px;font-weight:600;padding:5px 10px;background:${state.axiomHqVendorFilter === 'active' ? '#000000' : 'transparent'};color:${state.axiomHqVendorFilter === 'active' ? '#FFFFFF' : '#5E5E5E'};">Active</button>
+                <button class="btn btn-xs" 
+                  onclick="state.axiomHqVendorFilter = 'overdue'; render();" style="border:none;border-radius:6px;font-weight:600;padding:5px 10px;background:${state.axiomHqVendorFilter === 'overdue' ? '#000000' : 'transparent'};color:${state.axiomHqVendorFilter === 'overdue' ? '#FFFFFF' : '#5E5E5E'};">In Grace (${kpis.vendors_overdue_payment || 0})</button>
+                <button class="btn btn-xs" 
+                  onclick="state.axiomHqVendorFilter = 'enterprise'; render();" style="border:none;border-radius:6px;font-weight:600;padding:5px 10px;background:${state.axiomHqVendorFilter === 'enterprise' ? '#000000' : 'transparent'};color:${state.axiomHqVendorFilter === 'enterprise' ? '#FFFFFF' : '#5E5E5E'};">White-Label</button>
               </div>
             </div>
           </div>
@@ -29887,14 +29882,14 @@ function renderCorporateOverview() {
           <div class="table-wrap">
             <table style="width:100%;border-collapse:collapse;">
               <thead>
-                <tr style="border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02);">
-                  <th style="padding:14px 20px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">Fleet Operator</th>
-                  <th style="padding:14px 16px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">SaaS Tier</th>
-                  <th style="padding:14px 16px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">Monthly Fee</th>
-                  <th style="padding:14px 16px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">Cycle & Due Date</th>
-                  <th style="padding:14px 16px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">Payment Status</th>
-                  <th style="padding:14px 16px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">Client Portals</th>
-                  <th style="padding:14px 20px;text-align:right;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;">Super-Admin Actions</th>
+                <tr style="border-bottom:1px solid #EEEEEE;background:#FAFAFA;">
+                  <th style="padding:12px 20px;text-align:left;font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.04em;">Fleet Operator</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.04em;">SaaS Tier</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.04em;">Monthly Fee</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.04em;">Cycle & Due Date</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.04em;">Payment Status</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.04em;">Client Portals</th>
+                  <th style="padding:12px 20px;text-align:right;font-size:11px;font-weight:700;color:#5E5E5E;text-transform:uppercase;letter-spacing:0.04em;">Super-Admin Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -29902,46 +29897,45 @@ function renderCorporateOverview() {
           const days = Number(v.days_until_payment_due || 0);
           const dueBadge = days < 0
             ? `<span style="color:#ef4444;font-size:11px;font-weight:600;">⚠️ Overdue by ${Math.abs(days)}d</span>`
-            : (days <= 7 ? `<span style="color:#f59e0b;font-size:11px;font-weight:600;">⏳ Due in ${days}d</span>` : `<span style="color:#10b981;font-size:11px;font-weight:600;">✓ Due in ${days}d</span>`);
+            : (days <= 7 ? `<span style="color:#f59e0b;font-size:11px;font-weight:600;">⏳ Due in ${days}d</span>` : `<span style="color:#05A357;font-size:11px;font-weight:600;">✓ Due in ${days}d</span>`);
 
           const pStatus = v.payment_status === 'ACTIVE_PAID'
-            ? `<span class="status green" style="font-weight:600;">● Active / Paid</span>`
+            ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#048848;background:#E7F9F0;padding:2px 8px;border-radius:100px;">● Active / Paid</span>`
             : (v.payment_status === 'SUSPENDED'
-              ? `<span class="status red" style="font-weight:600;">● Suspended</span>`
-              : `<span class="status amber" style="font-weight:600;">● Grace Period (15d)</span>`);
+              ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#DC2626;background:#FEE2E2;padding:2px 8px;border-radius:100px;">● Suspended</span>`
+              : `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#92400E;background:#FEF3C7;padding:2px 8px;border-radius:100px;">● Grace Period (15d)</span>`);
 
           const planName = v.custom_plan_name || (v.saas_plan === 'ENTERPRISE_WHITE_LABEL' ? 'Enterprise White-Label' : (v.saas_plan === 'GROWTH' ? 'Growth Plan' : (v.saas_plan === 'STARTER' ? 'Starter Plan' : v.saas_plan)));
           const planBadge = v.saas_plan === 'ENTERPRISE_WHITE_LABEL'
-            ? `<span style="background:rgba(168,85,247,0.12);color:#c084fc;border:1px solid rgba(168,85,247,0.25);padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:700;">👑 ${planName}</span>`
+            ? `<span style="background:#F3E8FF;color:#6B21A8;border:1px solid #E9D5FF;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;">👑 ${planName}</span>`
             : (v.saas_plan === 'GROWTH'
-              ? `<span style="background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.25);padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:700;">🚀 ${planName}</span>`
-              : `<span style="background:rgba(148,163,184,0.12);color:#94a3b8;border:1px solid rgba(148,163,184,0.25);padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:600;">🌱 ${planName}</span>`);
+              ? `<span style="background:#EFF6FF;color:#1D4ED8;border:1px solid #DBEAFE;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;">🚀 ${planName}</span>`
+              : `<span style="background:#F3F4F6;color:#374151;border:1px solid #E5E7EB;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;">🌱 ${planName}</span>`);
 
           const initials = getInitials(v.vendor_name);
-          const avatarBg = getAvatarColor(v.vendor_name);
 
           const ownedCorps = vendorPortalsMap[v.id] || [];
           const portalsDisplay = ownedCorps.length > 0
             ? `<div style="display:flex;flex-direction:column;gap:3px;">
                          <button class="btn btn-xs" onclick="state.page='axiom-hq-corporates';render();location.hash='#axiom-hq-corporates';" 
-                           style="background:rgba(20,184,166,0.12);color:#2dd4bf;border:1px solid rgba(20,184,166,0.3);padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px;cursor:pointer;width:fit-content;">
+                           style="background:#F6F6F6;color:#000000;border:1px solid #E5E5E5;padding:3px 8px;border-radius:6px;font-weight:700;font-size:11px;cursor:pointer;width:fit-content;">
                            🏢 ${ownedCorps.length} Live Portals ➔
                          </button>
-                         <span style="color:var(--muted);font-size:10.5px;">${ownedCorps.map(c => esc(c.corporate_name)).join(', ')}</span>
+                         <span style="color:#5E5E5E;font-size:10.5px;">${ownedCorps.map(c => esc(c.corporate_name)).join(', ')}</span>
                        </div>`
-            : `<span style="color:var(--muted);font-size:11.5px;">0 (Dispatch only)</span>`;
+            : `<span style="color:#8A8A8A;font-size:11.5px;">0 (Dispatch only)</span>`;
 
           return `
-                  <tr style="border-bottom:1px solid var(--border);transition:background 0.15s ease;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                  <tr style="border-bottom:1px solid #F0F0F0;transition:background 0.15s ease;" onmouseover="this.style.background='#FAFAFA'" onmouseout="this.style.background='transparent'">
                     <!-- Vendor Profile -->
                     <td style="padding:16px 20px;">
                       <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="width:38px;height:38px;border-radius:10px;background:${avatarBg};color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,0.15);flex-shrink:0;">
+                        <div style="width:36px;height:36px;border-radius:50%;background:#000000;color:#FFFFFF;display:grid;place-items:center;font-weight:800;font-size:12px;box-shadow:0 1px 3px rgba(0,0,0,0.15);flex-shrink:0;">
                           ${initials}
                         </div>
                         <div>
-                          <strong style="color:var(--text);font-size:13.5px;display:block;">${esc(v.vendor_name)}</strong>
-                          <div style="color:var(--muted);font-size:11.5px;margin-top:2px;">
+                          <strong style="color:#000000;font-size:13.5px;display:block;">${esc(v.vendor_name)}</strong>
+                          <div style="color:#5E5E5E;font-size:11.5px;margin-top:2px;">
                             ${esc(v.contact_person)} · ${esc(v.city)} · <span class="font-mono">${esc(v.phone)}</span>
                           </div>
                         </div>
@@ -29953,13 +29947,13 @@ function renderCorporateOverview() {
 
                     <!-- Fee -->
                     <td style="padding:16px;">
-                      <div style="font-size:14px;font-weight:700;color:#38bdf8;">₹${Number(v.saas_fee_inr || 0).toLocaleString('en-IN')}</div>
-                      <span style="font-size:11px;color:var(--muted);text-transform:lowercase;">/${esc(v.billing_cycle || 'month')}</span>
+                      <div style="font-size:14px;font-weight:800;color:#000000;font-family:monospace;">₹${Number(v.saas_fee_inr || 0).toLocaleString('en-IN')}</div>
+                      <span style="font-size:11px;color:#5E5E5E;text-transform:lowercase;">/${esc(v.billing_cycle || 'month')}</span>
                     </td>
 
                     <!-- Next Due Date -->
                     <td style="padding:16px;">
-                      <div class="font-mono" style="font-size:12.5px;font-weight:600;color:var(--text);">${esc(v.next_payment_due_date)}</div>
+                      <div class="font-mono" style="font-size:12px;font-weight:600;color:#000000;">${esc(v.next_payment_due_date)}</div>
                       <div style="margin-top:2px;">${dueBadge}</div>
                     </td>
 
@@ -29974,12 +29968,21 @@ function renderCorporateOverview() {
                       <div style="display:flex;gap:6px;justify-content:flex-end;align-items:center;">
                         <button class="btn btn-xs" onclick="impersonateTarget('vendor', '${v.id}', '${esc(v.vendor_name)}')" 
                           title="Assume vendor identity to inspect dispatch, duties, and rectify issues" 
-                          style="background:linear-gradient(135deg, #d97706, #b45309);color:#fff;font-weight:700;border:none;padding:6px 12px;border-radius:6px;box-shadow:0 2px 8px rgba(217,119,6,0.25);cursor:pointer;display:flex;align-items:center;gap:5px;">
-                          <span>🔑</span> <span>Login As</span>
+                          style="background:#000000;color:#FFFFFF;font-weight:600;border:none;padding:6px 14px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.15);cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:background 0.15s ease;">
+                          <span>Login As</span>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 5l7 7-7 7"/></svg>
                         </button>
-                        <button class="btn btn-outline btn-xs" onclick="openHqCustomPlanModal('${v.id}')" title="Configure custom fee, billing cycle or discounts" style="padding:6px 10px;border-radius:6px;">
+                        <button class="btn btn-xs" onclick="openHqCustomPlanModal('${v.id}')" title="Configure custom fee, billing cycle or discounts" style="background:#FFFFFF;color:#000000;border:1px solid #E2E2E2;padding:6px 10px;border-radius:8px;font-weight:500;">
                           Fee Override
                         </button>
+                        <button class="btn btn-xs" onclick="dispatchHqReminder('${v.id}')" title="Send WhatsApp & Email payment link" style="background:#FFFFFF;color:#D97706;border:1px solid rgba(217,119,6,0.3);padding:6px 10px;border-radius:8px;font-weight:500;">
+                          ⚡ Reminder
+                        </button>
+                      </div>
+                    </td>
+                  </tr>`;
+        }).join('') : `<tr><td colspan="7" style="text-align:center;padding:36px;color:#5E5E5E;font-size:13px;">No fleet vendors found matching current filter.</td></tr>`}
+              </tbody>
                         <button class="btn btn-outline btn-xs" onclick="dispatchHqReminder('${v.id}')" title="Send WhatsApp & Email payment link" style="padding:6px 10px;border-radius:6px;">
                           ⚡ Reminder
                         </button>
