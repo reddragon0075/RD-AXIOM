@@ -39049,7 +39049,11 @@ setText('workspaceName', workspaceName);
       if ((path === '/api/auth/login' || path === '/api/auth/zeroauthy/login') && reqMethod === 'POST') {
         let bodyObj = {};
         try { bodyObj = JSON.parse(options.body || '{}'); } catch (_) { }
-        const email = (bodyObj.email || '').toLowerCase();
+        const email = (bodyObj.email || '').toLowerCase().trim();
+
+        if (!email) {
+          throw new Error('Please enter a valid email address.');
+        }
 
         // Check if an account was registered with this email
         let registeredUser = null;
@@ -39064,6 +39068,24 @@ setText('workspaceName', workspaceName);
           const user = JSON.parse(JSON.stringify(registeredUser));
           user.is_demo = true;
           return { ok: true, access_token: 'tok_demo_' + Date.now(), user: user };
+        }
+
+        // Recognized platform personas
+        const isSeedPersona = [
+          'reddragon0075@gmail.com',
+          'ops.direct@axiomfleet.com',
+          'driver@axiomfleet.com',
+          'corp@axiomfleet.com',
+          'swaminathan@zenithcorp.example.com',
+          'suresh.rao@zenithcorp.io'
+        ].includes(email) || email.endsWith('@axiomfleet.com') || email.endsWith('@axiomfleet.in');
+
+        if (!isSeedPersona) {
+          const isSso = path.includes('zeroauthy');
+          const errDetail = isSso
+            ? `ZeroAuthy OIDC: No active directory account found for "${email}". Please sign up first.`
+            : `Authentication failed: No account registered for "${email}". Please sign up.`;
+          throw new Error(errDetail);
         }
 
         const role = bodyObj.role || (email.includes('zenith') || email.includes('mgr') || email.includes('corp') ? 'corporate' : (email.includes('driver') ? 'driver' : 'vendor'));
@@ -39755,6 +39777,11 @@ setText('workspaceName', workspaceName);
         }
       } catch (err) {
         showToast('SSO Error', err.message || 'ZeroAuthy authentication error');
+        const loginErrorEl = document.getElementById('login-error');
+        if (loginErrorEl) {
+          loginErrorEl.style.color = '#dc2626';
+          loginErrorEl.textContent = err.message || 'ZeroAuthy authentication error';
+        }
       }
     });
 
