@@ -38842,7 +38842,7 @@ function renderCorporateOverview() {
       const workspaceName = organization.name || user.organization_name || profile.organization_name || state.liveData?.organization?.name || 'Workspace';
       let branchName = selectedBranch?.name || selectedBranch?.branch_name || profile.city || 'Tenant region';
       if (user.role === 'corporate') {
-        const orgClean = (organization.name || user.organization_name || profile.organization_name || 'Zenith Corporate Tech').replace(/ Tech$/, '');
+        const orgClean = (organization.name || user.organization_name || profile.organization_name || 'Zenith').replace(/\s*(Tech|Corporate)\s*$/ig, '').trim() || 'Zenith';
         branchName = `${orgClean} Corporate HQ · Bengaluru`;
       }
       const roleLabel = ROLE_LABELS[user.role] || user.role || 'Workspace';
