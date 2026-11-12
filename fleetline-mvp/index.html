@@ -39050,6 +39050,22 @@ setText('workspaceName', workspaceName);
         let bodyObj = {};
         try { bodyObj = JSON.parse(options.body || '{}'); } catch (_) { }
         const email = (bodyObj.email || '').toLowerCase();
+
+        // Check if an account was registered with this email
+        let registeredUser = null;
+        try {
+          const regMap = JSON.parse(localStorage.getItem('axiom_registered_users') || '{}');
+          if (email && regMap && regMap[email]) {
+            registeredUser = regMap[email];
+          }
+        } catch (_) { }
+
+        if (registeredUser) {
+          const user = JSON.parse(JSON.stringify(registeredUser));
+          user.is_demo = true;
+          return { ok: true, access_token: 'tok_demo_' + Date.now(), user: user };
+        }
+
         const role = bodyObj.role || (email.includes('zenith') || email.includes('mgr') || email.includes('corp') ? 'corporate' : (email.includes('driver') ? 'driver' : 'vendor'));
         const name = bodyObj.name || (role === 'corporate' ? 'Suresh Rao' : (role === 'driver' ? 'Imran Khan' : 'Abhijith Vijayan'));
         let user;
@@ -39080,6 +39096,7 @@ setText('workspaceName', workspaceName);
         }
         user = JSON.parse(JSON.stringify(user));
         user.is_demo = true;
+        if (email) user.email = email;
         if (name && (!user.full_name || user.full_name === 'Abhijith Vijayan' && name !== 'Abhijith Vijayan')) user.full_name = name;
         return { ok: true, access_token: 'tok_demo_' + Date.now(), user: user };
       }
@@ -39092,16 +39109,21 @@ setText('workspaceName', workspaceName);
         const user = {
           id: 'usr_' + Date.now(),
           email: email,
-          full_name: payload.full_name || 'Abhijith Vijayan',
+          full_name: payload.full_name || 'Vendor Partner',
           role: role,
           phone: payload.phone || '+917829885737',
           organization: {
             id: 'org_' + Date.now(),
-            name: payload.organization_name || payload.company_name || 'goblr',
+            name: payload.organization_name || payload.company_name || 'Fleet Operator',
             type: role
           },
           is_demo: true
         };
+        try {
+          const regMap = JSON.parse(localStorage.getItem('axiom_registered_users') || '{}');
+          regMap[email] = user;
+          localStorage.setItem('axiom_registered_users', JSON.stringify(regMap));
+        } catch (_) { }
         return { ok: true, access_token: 'tok_demo_' + Date.now(), user: user, needs_confirmation: false };
       }
 
