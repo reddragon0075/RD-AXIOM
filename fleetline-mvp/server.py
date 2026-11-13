@@ -2447,6 +2447,17 @@ class AxiomFleetHTTPServer(ThreadingHTTPServer):
 def main() -> None:
     initialize_database()
     port = int(os.environ.get("PORT", "4173"))
+    use_asgi = "--fastapi" in sys.argv or "--asgi" in sys.argv or os.environ.get("AXIOM_SERVER_MODE", "").lower() in ("asgi", "fastapi")
+    if use_asgi:
+        try:
+            import uvicorn
+            import asgi_server
+            print(f"Axiom Fleet Enterprise ASGI (FastAPI) listening on 0.0.0.0:{port} · Docs at /docs", flush=True)
+            uvicorn.run(asgi_server.app, host="0.0.0.0", port=port, log_level="info")
+            return
+        except ImportError:
+            print("uvicorn not installed; falling back to ThreadingHTTPServer", flush=True)
+
     handler = partial(AxiomFleetHandler, directory=str(ROOT))
     server = AxiomFleetHTTPServer(("0.0.0.0", port), handler)
     print(f"Axiom Fleet backend listening on 0.0.0.0:{port} · SQLite at {DB_PATH}", flush=True)
