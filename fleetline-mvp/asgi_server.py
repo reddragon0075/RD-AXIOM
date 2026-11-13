@@ -353,6 +353,41 @@ async def serve_driver_app_index():
     return HTMLResponse("<h1>Driver App Not Found</h1>", status_code=404)
 
 
+DASHBOARD_DIST = ROOT.parent / "dashboard" / "dist"
+
+
+@app.get("/app", include_in_schema=False)
+@app.get("/app/", include_in_schema=False)
+@app.get("/app/{rest_path:path}", include_in_schema=False)
+async def serve_modern_dashboard(rest_path: str = ""):
+    if not DASHBOARD_DIST.is_dir():
+        return HTMLResponse("<h1>Modern React Dashboard is building... Please refresh in a moment.</h1>", status_code=503)
+    
+    if rest_path:
+        target = (DASHBOARD_DIST / rest_path).resolve()
+        try:
+            if DASHBOARD_DIST in target.parents or target == DASHBOARD_DIST:
+                if target.is_file():
+                    ext = target.suffix.lower()
+                    media_types = {
+                        ".html": "text/html",
+                        ".css": "text/css",
+                        ".js": "application/javascript",
+                        ".json": "application/json",
+                        ".png": "image/png",
+                        ".svg": "image/svg+xml",
+                        ".ico": "image/x-icon",
+                    }
+                    return FileResponse(target, media_type=media_types.get(ext, "application/octet-stream"))
+        except (ValueError, RuntimeError):
+            pass
+    
+    index_file = DASHBOARD_DIST / "index.html"
+    if index_file.is_file():
+        return FileResponse(index_file, media_type="text/html")
+    return HTMLResponse("<h1>Dashboard Not Found</h1>", status_code=404)
+
+
 @app.get("/{full_path:path}", include_in_schema=False)
 async def serve_static_or_spa(full_path: str, request: Request):
     # Skip any Swagger/OpenAPI routes
