@@ -28446,7 +28446,10 @@ function renderCorporateOverview() {
                       <h4 style="margin:0;font-size:15px;font-weight:700;color:var(--ink)">${esc(cnt.name || 'Corporate Standard Tariff')} <span class="badge" style="font-size:10px;margin-left:6px">v${cnt.version || 1}</span></h4>
                       <span style="font-size:11px;color:var(--muted)">Status: <span class="status green" style="font-size:10px">${esc(cnt.status || 'active').toUpperCase()}</span></span>
                     </div>
-                    <button class="btn small soft" data-action="pricing-contract" data-customer-id="${esc(customerId)}">${icon('edit')} Edit Rate Card</button>
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <button class="btn small primary" data-action="add-contract-slab" data-contract-id="${esc(cnt.id)}" data-contract-name="${esc(cnt.name || '')}" data-customer-id="${esc(customerId)}">${icon('plus')} Add Package Slab</button>
+                      <button class="btn small soft" data-action="pricing-contract" data-customer-id="${esc(customerId)}">${icon('edit')} Edit Contract</button>
+                    </div>
                   </div>
                   ${cnt.rules && cnt.rules.length ? `
                     <div class="table-wrap" style="background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden">
@@ -28462,6 +28465,7 @@ function renderCorporateOverview() {
                             <th style="text-align:right">Extra / Hr</th>
                             <th style="text-align:right">Day Batta</th>
                             <th style="text-align:right">Night Batta</th>
+                            <th style="text-align:center">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -28476,6 +28480,14 @@ function renderCorporateOverview() {
                               <td style="text-align:right">₹${(r.extra_hour_paise / 100).toLocaleString('en-IN')}</td>
                               <td style="text-align:right">₹${(r.allowance_paise / 100).toLocaleString('en-IN')}</td>
                               <td style="text-align:right">₹${((r.night_allowance_paise || 0) / 100).toLocaleString('en-IN')}</td>
+                              <td style="text-align:center;white-space:nowrap">
+                                <button class="btn small soft" data-action="edit-package-slab" data-contract-id="${esc(cnt.id)}" data-contract-name="${esc(cnt.name || '')}" data-rule-id="${esc(r.id)}" data-customer-id="${esc(customerId)}" title="Edit this package fare" style="padding:2px 8px;font-size:11px;font-weight:600">
+                                  ${icon('edit')} Edit
+                                </button>
+                                <button class="btn small soft" data-action="delete-package-slab" data-contract-id="${esc(cnt.id)}" data-rule-id="${esc(r.id)}" data-customer-id="${esc(customerId)}" title="Remove this package" style="padding:2px 6px;font-size:11px;color:#dc2626">
+                                  ${icon('trash')}
+                                </button>
+                              </td>
                             </tr>
                           `).join('')}
                         </tbody>
@@ -34793,6 +34805,23 @@ function renderCorporateOverview() {
         },
         'open-customer-profile': () => openCustomerProfileModal(el?.dataset?.customerId),
         'pricing-contract': () => openPricingContractModal('customer', el?.dataset?.customerId),
+        'add-contract-slab': () => openPackageSlabModal({ contractId: el?.dataset?.contractId, contractName: el?.dataset?.contractName, customerId: el?.dataset?.customerId }),
+        'edit-package-slab': () => openPackageSlabModal({ contractId: el?.dataset?.contractId, contractName: el?.dataset?.contractName, ruleId: el?.dataset?.ruleId, customerId: el?.dataset?.customerId }),
+        'delete-package-slab': () => {
+          const contractId = el?.dataset?.contractId;
+          const ruleId = el?.dataset?.ruleId;
+          const customerId = el?.dataset?.customerId;
+          if (!contractId || !ruleId) return;
+          openConfirmModal('Delete Package Slab', 'Are you sure you want to remove this tariff slab from the corporate contract?', 'Delete Slab', async () => {
+            try {
+              await apiRequest(`/api/pricing/contracts/${encodeURIComponent(contractId)}/rules/${encodeURIComponent(ruleId)}`, { method: 'DELETE' });
+              showToast('Package Slab Deleted', 'The tariff slab has been removed.');
+              if (customerId) await fetchCustomer360(customerId);
+            } catch (err) {
+              showToast('Delete Error', err.message);
+            }
+          });
+        },
         'supplier-pricing-contract': () => openPricingContractModal('supplier', el?.dataset?.supplierId),
         'view-supplier-vehicles': () => {
           state.page = 'vehicles';
@@ -39118,6 +39147,182 @@ function renderCorporateOverview() {
         } catch (error) {
           if (submitBtn) submitBtn.disabled = false;
           showToast('Rate Card Error', error.message);
+        }
+      });
+    }
+
+    function openPackageSlabModal({ contractId, contractName = '', ruleId = null, customerId = null }) {
+      if (!contractId) return showToast('Contract required', 'Contract ID was not provided.');
+      
+      const contract = (state.customer360Data?.contracts || []).find(c => c.id === contractId);
+      const existingRule = ruleId && contract ? (contract.rules || []).find(r => r.id === ruleId) : null;
+      const isEditing = Boolean(existingRule);
+
+      const branches = state.liveData?.branches?.items || [];
+      const cities = Array.from(new Set(branches.map(b => b.city).filter(Boolean)));
+      if (!cities.includes('Bengaluru')) cities.push('Bengaluru');
+      if (!cities.includes('Mumbai')) cities.push('Mumbai');
+      if (!cities.includes('Delhi')) cities.push('Delhi');
+
+      const selectedCity = existingRule?.city ? existingRule.city.toLowerCase() : 'bengaluru';
+      const cityOptions = `<option value="">All Cities (Global Default)</option>` + cities.map(c => `<option value="${esc(c.toLowerCase())}" ${selectedCity === c.toLowerCase() ? 'selected' : ''}>${esc(c)}</option>`).join('');
+
+      const vg = (existingRule?.vehicle_group || 'sedan').toLowerCase();
+      const dt = (existingRule?.duty_type || 'local').toLowerCase();
+      const hrs = existingRule?.package_minutes ? (existingRule.package_minutes / 60) : 8;
+      const km = existingRule?.included_km ?? 80;
+      const baseRs = existingRule?.base_paise ? (existingRule.base_paise / 100) : 4200;
+      const extraKmRs = existingRule?.extra_km_paise ? (existingRule.extra_km_paise / 100) : 28;
+      const extraHrRs = existingRule?.extra_hour_paise ? (existingRule.extra_hour_paise / 100) : 350;
+      const dayBattaRs = existingRule?.allowance_paise ? (existingRule.allowance_paise / 100) : 500;
+      const nightBattaRs = existingRule?.night_allowance_paise ? (existingRule.night_allowance_paise / 100) : 400;
+
+      const autoSwitchJson = typeof existingRule?.auto_switch_json === 'string' ? JSON.parse(existingRule.auto_switch_json || '{}') : (existingRule?.auto_switch_json || {});
+      const autoSwitchEnabled = autoSwitchJson.enabled !== false;
+      const gracePeriod = autoSwitchJson.grace_period_minutes ?? 15;
+
+      const modalTitle = isEditing ? `Edit Fare Slab: ${dt.toUpperCase()} · ${vg.toUpperCase()}` : `Add Package Slab to "${esc(contractName || contract?.name || 'Contract')}"`;
+      const modalSubtitle = isEditing ? 'Adjust base fare, included limits, extra rates and driver allowances for this specific package slab.' : 'Attach a new package slab (e.g. Airport, Outstation, or SUV) to this existing contract.';
+
+      const body = `
+        <div class="form-grid">
+          <div class="form-group">
+            <label>City / Operating Hub</label>
+            <select class="form-input" id="slabCity">
+              ${cityOptions}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Vehicle Group <span class="required">*</span></label>
+            <select class="form-input" id="slabVehicleGroup">
+              <option value="sedan" ${vg === 'sedan' ? 'selected' : ''}>Standard Sedan (Dzire, Etios)</option>
+              <option value="executive_sedan" ${vg === 'executive_sedan' ? 'selected' : ''}>Executive Sedan (Ciaz, City, Camry)</option>
+              <option value="suv" ${vg === 'suv' ? 'selected' : ''}>SUV (Ertiga, Carens)</option>
+              <option value="premium_suv" ${vg === 'premium_suv' ? 'selected' : ''}>Premium SUV (Innova Crysta)</option>
+              <option value="tempo" ${vg === 'tempo' ? 'selected' : ''}>Tempo Traveller (12/17s)</option>
+              <option value="hatchback" ${vg === 'hatchback' ? 'selected' : ''}>Hatchback (WagonR, Swift)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Duty Package Mode <span class="required">*</span></label>
+            <select class="form-input" id="slabDutyType">
+              <option value="local" ${dt === 'local' ? 'selected' : ''}>Local Hourly &amp; Km Package</option>
+              <option value="airport" ${dt === 'airport' ? 'selected' : ''}>Airport Transfer (Point-to-Point)</option>
+              <option value="outstation" ${dt === 'outstation' ? 'selected' : ''}>Outstation (Daily Minimum)</option>
+              <option value="point_to_point" ${dt === 'point_to_point' ? 'selected' : ''}>Fixed Point-to-Point</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Included Hours</label>
+            <input class="form-input" id="slabHours" type="number" min="1" step="0.5" value="${hrs}">
+          </div>
+          <div class="form-group">
+            <label>Included Distance (KM)</label>
+            <input class="form-input" id="slabKm" type="number" min="0" step="1" value="${km}">
+          </div>
+
+          <div class="form-group">
+            <label>Base Package Fare (₹) <span class="required">*</span></label>
+            <input class="form-input" id="slabBase" type="number" min="0" step="10" value="${baseRs}" placeholder="e.g. 4200">
+          </div>
+          <div class="form-group">
+            <label>Extra Rate per KM (₹/km)</label>
+            <input class="form-input" id="slabExtraKm" type="number" min="0" step="0.5" value="${extraKmRs}" placeholder="e.g. 28">
+          </div>
+          <div class="form-group">
+            <label>Extra Rate per Hour (₹/hr)</label>
+            <input class="form-input" id="slabExtraHr" type="number" min="0" step="10" value="${extraHrRs}" placeholder="e.g. 350">
+          </div>
+
+          <div class="form-group">
+            <label>Driver Day Batta (₹)</label>
+            <input class="form-input" id="slabDayBatta" type="number" min="0" step="50" value="${dayBattaRs}" placeholder="e.g. 500">
+          </div>
+          <div class="form-group">
+            <label>Driver Night Batta (₹) <span style="font-size:11px;color:var(--muted)">(22:00 – 06:00)</span></label>
+            <input class="form-input" id="slabNightBatta" type="number" min="0" step="50" value="${nightBattaRs}" placeholder="e.g. 400">
+          </div>
+
+          <div class="form-group full" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-top:6px">
+            <div style="font-weight:600;font-size:12px;color:var(--ink);margin-bottom:6px">Optimization &amp; Grace Period</div>
+            <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+              <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;cursor:pointer">
+                <input type="checkbox" id="slabAutoSwitch" ${autoSwitchEnabled ? 'checked' : ''}>
+                Enable Auto-Slab Upgrade (automatically optimizes tariff if overtime exceeds package)
+              </label>
+              <div style="display:flex;align-items:center;gap:6px;font-size:11.5px">
+                <span>Grace Period:</span>
+                <input id="slabGrace" class="form-input" style="width:75px;height:28px;padding:2px 8px;font-size:11px" type="number" min="0" max="60" value="${gracePeriod}">
+                <span>mins</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const modal = modalShell(modalTitle, modalSubtitle, body, `${button('Cancel', '', 'data-close-modal')}${button(icon('check') + (isEditing ? 'Save Fare Slab' : 'Add Fare Slab'), 'primary', 'data-submit-slab')}`);
+      modal.querySelectorAll('[data-close-modal]').forEach(b => b.addEventListener('click', closeModal));
+
+      modal.querySelector('[data-submit-slab]').addEventListener('click', async () => {
+        const city = modal.querySelector('#slabCity')?.value.trim() || 'bengaluru';
+        const vehicleGroup = modal.querySelector('#slabVehicleGroup')?.value.trim() || 'sedan';
+        const dutyType = modal.querySelector('#slabDutyType')?.value.trim() || 'local';
+        const hours = Number(modal.querySelector('#slabHours')?.value || 8);
+        const packageMinutes = Math.round(hours * 60);
+        const includedKm = Number(modal.querySelector('#slabKm')?.value || 80);
+        const base = Number(modal.querySelector('#slabBase')?.value || 0);
+        const extraKm = Number(modal.querySelector('#slabExtraKm')?.value || 0);
+        const extraHr = Number(modal.querySelector('#slabExtraHr')?.value || 0);
+        const dayBatta = Number(modal.querySelector('#slabDayBatta')?.value || 0);
+        const nightBatta = Number(modal.querySelector('#slabNightBatta')?.value || 0);
+        const autoSwitch = Boolean(modal.querySelector('#slabAutoSwitch')?.checked);
+        const graceMinutes = Number(modal.querySelector('#slabGrace')?.value || 15);
+
+        const rulePayload = {
+          id: existingRule ? existingRule.id : undefined,
+          city: city.toLowerCase(),
+          vehicle_group: vehicleGroup.toLowerCase(),
+          duty_type: dutyType.toLowerCase(),
+          package_minutes: packageMinutes,
+          included_km: includedKm,
+          base_paise: Math.round(base * 100),
+          extra_km_paise: Math.round(extraKm * 100),
+          extra_hour_paise: Math.round(extraHr * 100),
+          extra_half_hour_paise: Math.round((extraHr / 2) * 100),
+          allowance_paise: Math.round(dayBatta * 100),
+          night_allowance_paise: Math.round(nightBatta * 100),
+          extras: {
+            night_allowance_paise: Math.round(nightBatta * 100),
+            night_window: '22:00-06:00',
+            toll: 'at_actuals',
+            parking: 'at_actuals',
+            waiting_paise_per_hour: 30000,
+            free_waiting_minutes: 30,
+            tax_rate_bps: 500
+          },
+          auto_switch: {
+            enabled: autoSwitch,
+            grace_period_minutes: graceMinutes
+          }
+        };
+
+        const submitBtn = modal.querySelector('[data-submit-slab]');
+        if (submitBtn) submitBtn.disabled = true;
+
+        try {
+          await apiRequest(`/api/pricing/contracts/${encodeURIComponent(contractId)}/rules`, {
+            method: 'POST',
+            body: JSON.stringify(rulePayload)
+          });
+          closeModal();
+          showToast(isEditing ? 'Fare Slab Updated' : 'Package Slab Added', `${dutyType.toUpperCase()} ${vehicleGroup.toUpperCase()} tariff saved.`);
+          if (customerId) await fetchCustomer360(customerId);
+          await hydrateOperationalData();
+        } catch (error) {
+          if (submitBtn) submitBtn.disabled = false;
+          showToast('Slab Save Error', error.message);
         }
       });
     }

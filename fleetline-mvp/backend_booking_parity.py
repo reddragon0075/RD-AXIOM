@@ -828,6 +828,19 @@ def _pricing_routes(conn, user, method, route, payload, ip):
             conn.execute("INSERT INTO domain_booking_pricing_rules(id,organization_id,contract_id,city,vehicle_group,duty_type,package_minutes,included_km,base_paise,extra_km_paise,extra_hour_paise,extra_half_hour_paise,waiting_paise,allowance_paise,night_allowance_paise,auto_switch_json,extras_json,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET city=excluded.city, vehicle_group=excluded.vehicle_group, duty_type=excluded.duty_type, package_minutes=excluded.package_minutes, included_km=excluded.included_km, base_paise=excluded.base_paise, extra_km_paise=excluded.extra_km_paise, extra_hour_paise=excluded.extra_hour_paise, extra_half_hour_paise=excluded.extra_half_hour_paise, waiting_paise=excluded.waiting_paise, allowance_paise=excluded.allowance_paise, night_allowance_paise=excluded.night_allowance_paise, auto_switch_json=excluded.auto_switch_json, extras_json=excluded.extras_json, updated_at=excluded.updated_at", (rule_id, org, contract_id, str(payload.get("city") or "").lower(), str(payload.get("vehicle_group") or "").lower(), str(payload.get("duty_type") or "").lower(), int(payload.get("package_minutes") or 0), _number(payload.get("included_km")), int(payload.get("base_paise") or 0), int(payload.get("extra_km_paise") or 0), int(payload.get("extra_hour_paise") or 0), int(payload.get("extra_half_hour_paise") or 0), int(payload.get("waiting_paise") or 0), int(payload.get("allowance_paise") or 0), night_paise, json.dumps(payload.get("auto_switch") if isinstance(payload.get("auto_switch"), dict) else {}), json.dumps(payload.get("extras") if isinstance(payload.get("extras"), dict) else {}), now, now))
             return {"ok": True, "item": _serialize(conn.execute("SELECT * FROM domain_booking_pricing_rules WHERE id = ?", (rule_id,)).fetchone(), ("auto_switch_json", "extras_json"))}
 
+    match_single_rule = re.match(r"^/api/pricing/contracts/([^/]+)/rules/([^/]+)$", route)
+    if match_single_rule:
+        contract_id, rule_id = match_single_rule.group(1), match_single_rule.group(2)
+        contract = _assert_owned(conn, "domain_booking_pricing_contracts", contract_id, org)
+        if method == "GET":
+            row = conn.execute("SELECT * FROM domain_booking_pricing_rules WHERE organization_id = ? AND contract_id = ? AND id = ?", (org, contract_id, rule_id)).fetchone()
+            if not row: return {"ok": False, "error": "Rule not found"}
+            return {"ok": True, "item": _serialize(row, ("auto_switch_json", "extras_json"))}
+        if method == "DELETE":
+            conn.execute("DELETE FROM domain_booking_pricing_rules WHERE organization_id = ? AND contract_id = ? AND id = ?", (org, contract_id, rule_id))
+            _audit(conn, user, "pricing.rule_deleted", "pricing_rule", rule_id, ip, {"contract_id": contract_id})
+            return {"ok": True, "deleted": rule_id}
+
     if route == "/api/pricing/quote" and method == "POST":
         booking = None
         booking_id = str(payload.get("booking_id") or "").strip()
