@@ -13076,6 +13076,50 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
       display: flex;
       flex-direction: column;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .command-map-card.is-expanded {
+      position: fixed !important;
+      inset: 20px !important;
+      z-index: 100000 !important;
+      height: calc(100vh - 40px) !important;
+      max-height: calc(100vh - 40px) !important;
+      width: calc(100vw - 40px) !important;
+      max-width: none !important;
+      border-radius: 20px !important;
+      border: 1px solid rgba(255, 255, 255, 0.25) !important;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.9), 0 0 0 100vmax rgba(2, 6, 23, 0.85) !important;
+      animation: mapPopModalZoom 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    @keyframes mapPopModalZoom {
+      0% {
+        transform: scale(0.96);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+    .command-map-card.is-expanded .command-map-topbar {
+      padding: 14px 22px !important;
+      background: rgba(11, 15, 25, 0.96) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
+    }
+    .command-map-card.is-expanded .command-map-topbar-title {
+      font-size: 13.5px !important;
+    }
+    .command-map-card.is-expanded .command-map-container {
+      height: 100% !important;
+      min-height: 0 !important;
+      flex: 1 1 auto !important;
+      border-bottom-left-radius: 19px;
+      border-bottom-right-radius: 19px;
+    }
+    body.has-map-expanded {
+      overflow: hidden !important;
     }
     .command-map-topbar {
       display: flex;
@@ -22745,6 +22789,7 @@
     let liveCommandPolyline = null;
     let liveCommandSimulationTimer = null;
     let liveCommandSosActive = false;
+    let liveCommandNightMode = false;
     let liveCommandActiveFilter = 'all';
 
     function renderLiveCommandCenter() {
@@ -22890,11 +22935,12 @@
           <!-- Split Workspace: Map on Left / Active Trips on Right -->
           <div class="command-split-grid">
             <!-- Left: Interactive Leaflet Telemetry Map -->
-            <div class="command-map-card">
+            <div class="command-map-card" id="commandMapCard">
               <div class="command-map-topbar">
                 <div class="command-map-topbar-title">
                   <span>🗺️</span>
                   <span>Bengaluru Metropolitan Fleet Corridor Radar</span>
+                  <span id="mapExpandBadge" style="display:none;background:rgba(99,102,241,0.22);color:#a5b4fc;font-size:9.5px;font-weight:800;padding:2px 8px;border-radius:999px;border:1px solid rgba(99,102,241,0.45);letter-spacing:0.04em">POPUP FULLSCREEN</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px">
                   <span class="command-stream-badge">
@@ -22903,6 +22949,10 @@
                   </span>
                   <button type="button" class="btn small soft" id="btnToggleNightCorridor" style="border-radius:9999px;font-size:10px;padding:3px 10px">
                     🌙 Toggle Night Corridors
+                  </button>
+                  <button type="button" class="btn small soft" id="btnExpandCommandMap" title="Expand radar map as popup (Press Esc to close)" style="border-radius:9999px;font-size:10.5px;padding:3px 12px;background:rgba(255,255,255,0.15);color:#ffffff;border:1px solid rgba(255,255,255,0.25);display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:750;transition:all 0.15s ease">
+                    <span id="btnExpandCommandMapIcon" style="font-size:13px;line-height:1">⤢</span>
+                    <span id="btnExpandCommandMapText">Expand</span>
                   </button>
                 </div>
               </div>
@@ -22935,6 +22985,65 @@
         </div>
       `;
     }
+
+    function toggleCommandMapExpanded(forceState) {
+      const card = document.getElementById('commandMapCard') || document.querySelector('.command-map-card');
+      if (!card) return;
+
+      const isCurrentlyExpanded = card.classList.contains('is-expanded');
+      const willExpand = typeof forceState === 'boolean' ? forceState : !isCurrentlyExpanded;
+
+      const btnIcon = document.getElementById('btnExpandCommandMapIcon');
+      const btnText = document.getElementById('btnExpandCommandMapText');
+      const btn = document.getElementById('btnExpandCommandMap');
+      const badge = document.getElementById('mapExpandBadge');
+
+      if (willExpand) {
+        card.classList.add('is-expanded');
+        document.body.classList.add('has-map-expanded');
+        if (btnIcon) btnIcon.textContent = '✕';
+        if (btnText) btnText.textContent = 'Exit Popup';
+        if (badge) badge.style.display = 'inline-block';
+        if (btn) {
+          btn.style.background = 'rgba(239, 68, 68, 0.25)';
+          btn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+          btn.style.color = '#fca5a5';
+          btn.title = 'Close map popup (Press Esc to exit)';
+        }
+        showToast('Map Expanded', 'Popup view active. Press Esc or click Exit Popup to return.');
+      } else {
+        card.classList.remove('is-expanded');
+        document.body.classList.remove('has-map-expanded');
+        if (btnIcon) btnIcon.textContent = '⤢';
+        if (btnText) btnText.textContent = 'Expand';
+        if (badge) badge.style.display = 'none';
+        if (btn) {
+          btn.style.background = 'rgba(255, 255, 255, 0.15)';
+          btn.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+          btn.style.color = '#ffffff';
+          btn.title = 'Expand radar map as popup (Press Esc to close)';
+        }
+      }
+
+      // Smooth Leaflet tile recalculation
+      if (liveCommandMapInstance) {
+        setTimeout(() => { try { liveCommandMapInstance.invalidateSize(); } catch (_) {} }, 60);
+        setTimeout(() => { try { liveCommandMapInstance.invalidateSize(); } catch (_) {} }, 260);
+      }
+    }
+    window.toggleCommandMapExpanded = toggleCommandMapExpanded;
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const card = document.querySelector('.command-map-card.is-expanded');
+        if (card) toggleCommandMapExpanded(false);
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      const card = document.querySelector('.command-map-card.is-expanded');
+      if (card && !card.contains(e.target)) toggleCommandMapExpanded(false);
+    });
 
     function initLiveCommandCenterMap() {
       if (typeof L === 'undefined') {
@@ -27626,7 +27735,7 @@ function renderCorporateOverview() {
       const contracts = state.followonData?.['/api/pricing/contracts']?.items || [];
       const customerContracts = contracts.filter(c => c.contract_type === 'customer' || !c.contract_type);
 
-      return `${pageHead('Commercial · Corporate accounts & pricing', 'Customers and corporate pricing', 'Connected corporate client accounts, contract rate cards, duty packages and passenger permissions.', `${button(icon('plus') + 'Add customer', 'primary', 'data-action="add-customer"')}${button(icon('file') + 'Contract pricing', '', 'data-action="pricing-contract"')}${button(icon('copy') + 'Copy Pricing', '', 'data-action="copy-pricing"')}${button(icon('building') + 'My Companies', '', 'data-action="my-companies"')}${button(icon('users') + 'People & access', '', 'data-action="corporate-people"')}`)}
+      return `${pageHead('Commercial · Corporate accounts & pricing', 'Customers and corporate pricing', 'Connected corporate client accounts, contract rate cards, duty packages and passenger permissions.', `${button(icon('plus') + 'Add customer', 'primary', 'data-action="add-customer"')}${button(icon('copy') + 'Copy Pricing', '', 'data-action="copy-pricing"')}${button(icon('building') + 'My Companies', '', 'data-action="my-companies"')}${button(icon('users') + 'People & access', '', 'data-action="corporate-people"')}`)}
         <div class="grid three-col">
           <div class="card kpi">
             <div class="kpi-top"><span class="kpi-label">Customer entities</span><span class="kpi-icon">${icon('building')}</span></div>
@@ -27671,10 +27780,7 @@ function renderCorporateOverview() {
                     </td>
                     <td>${status(item.status || 'active', item.status === 'inactive' ? 'gray' : 'green')}</td>
                     <td>
-                      <div style="display:flex;gap:6px;align-items:center">
-                        <button class="btn small primary" data-action="open-customer-detail" data-customer-id="${esc(item.id)}" title="View Customer 360 profile, P&L, ledger & settings" style="font-weight:600">${icon('building')} Profile &amp; P&amp;L</button>
-                        <button class="btn small soft" data-action="pricing-contract" data-customer-id="${esc(item.id)}" title="Configure tariff">${icon('file')} Rate card</button>
-                      </div>
+                      <button class="btn small primary" data-action="open-customer-detail" data-customer-id="${esc(item.id)}" title="View Customer 360 profile, P&L, rate cards, ledger & settings" style="font-weight:600">${icon('building')} Profile &amp; P&amp;L</button>
                     </td>
                   </tr>
                 `).join('') : tenantTableEmpty('No customer entities returned', 'Add the first customer entity before restricting visibility by account.', button(icon('plus') + 'Add customer', 'small soft', 'data-action="add-customer"'))}
@@ -32440,6 +32546,34 @@ function renderCorporateOverview() {
         setTimeout(() => {
           initLiveCommandCenterMap();
         }, 50);
+
+        const btnExpand = content.querySelector('#btnExpandCommandMap');
+        if (btnExpand) {
+          btnExpand.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleCommandMapExpanded();
+          });
+        }
+
+        const btnNight = content.querySelector('#btnToggleNightCorridor');
+        if (btnNight) {
+          btnNight.addEventListener('click', () => {
+            liveCommandNightMode = !liveCommandNightMode;
+            if (liveCommandNightMode) {
+              btnNight.style.background = '#1e293b';
+              btnNight.style.color = '#fbbf24';
+              btnNight.style.borderColor = '#d97706';
+              btnNight.innerHTML = '☀️ Day Corridors';
+              showToast('Night Corridor Mode', 'High-security escort corridors & SOS sentinel highlighted.');
+            } else {
+              btnNight.style.background = '';
+              btnNight.style.color = '';
+              btnNight.style.borderColor = '';
+              btnNight.innerHTML = '🌙 Toggle Night Corridors';
+              showToast('Standard Radar', 'All metropolitan transit routes displayed.');
+            }
+          });
+        }
 
         const btnCenter = content.querySelector('#btnCenterAllCommandMap');
         if (btnCenter) {
